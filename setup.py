@@ -1,13 +1,18 @@
 from typing import List
+from pathlib import Path
+import os
 
 from setuptools import find_namespace_packages, setup
 
-
 setup_requirements: List[str] = []
 
-requirements = ["gt4py", "dace", "pace-util"]
-
 test_requirements: List[str] = []
+
+
+def local_pkg(name: str, relative_path: str) -> str:
+    """Returns an absolute path to a local package."""
+    path = f"{name} @ file://{Path(os.path.abspath(__file__)).parent / relative_path}"
+    return path
 
 
 setup(
@@ -22,7 +27,10 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
     ],
-    install_requires=requirements,
+    install_requires=[
+        local_pkg("gt4py", "external/gt4py"),
+        local_pkg("dace", "external/dace"),
+    ],
     setup_requires=setup_requirements,
     tests_require=test_requirements,
     name="ndsl",
