@@ -140,7 +140,7 @@ def test_relocatability(backend: str):
     import gt4py
     from gt4py.cartesian import config as gt_config
 
-    from ndsl.comm.mpi import MPI
+    from ..mpi.mpi_comm import MPI
 
     # Restore original dir name
     gt4py.cartesian.config.cache_settings["dir_name"] = os.environ.get(

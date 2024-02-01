@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from ndsl.quantity import Quantity
 import ndsl.quantity as qty
+from ndsl.quantity import Quantity
 
 
 try:

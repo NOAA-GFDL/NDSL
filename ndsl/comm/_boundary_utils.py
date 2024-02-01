@@ -1,8 +1,8 @@
 import functools
 from typing import Union
 
-from .. import constants
-from ..exceptions import OutOfBoundsError
+import ndsl.constants as constants
+from ndsl.exceptions import OutOfBoundsError
 
 
 def shift_boundary_slice_tuple(dims, origin, extent, boundary_type, slice_tuple):

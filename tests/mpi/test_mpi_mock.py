@@ -5,6 +5,7 @@ from mpi_comm import MPI
 from ndsl.comm.communicator import recv_buffer
 from ndsl.testing import ConcurrencyError, DummyComm
 
+
 worker_function_list = []
 
 MAX_WORKER_ITERATIONS = 16

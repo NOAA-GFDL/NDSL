@@ -6,6 +6,7 @@ from gt4py.cartesian.gtscript import (
     interval,
     region,
 )
+from pace import fv3core
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.comm.communicator import Communicator
@@ -15,7 +16,6 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid import GridData
 from ndsl.initialization.allocator import QuantityFactory
-from pace import fv3core
 
 
 A1 = 0.5625
