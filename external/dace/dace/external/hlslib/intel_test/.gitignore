@@ -1,0 +1,10 @@
+*.temp
+*.aoco
+*.aocx
+*.aocr
+.project.marker
+*.bc
+*.log
+*.txt
+!CMakeLists.txt
+*.so

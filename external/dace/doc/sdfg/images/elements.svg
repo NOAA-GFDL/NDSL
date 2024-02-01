@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 26.4.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="412.67001"
+   height="1156.323"
+   viewBox="0 0 412.67 1156.323"
+   xml:space="preserve"
+   sodipodi:docname="elements.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs380" /><sodipodi:namedview
+   id="namedview378"
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1.0"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   showgrid="false"
+   inkscape:zoom="0.5285234"
+   inkscape:cx="341.51752"
+   inkscape:cy="467.33977"
+   inkscape:current-layer="g1510" />
+<path
+   fill="#f2f2f2"
+   d="M 404.34,210.43 H 8.33 C 3.73,210.43 0,206.7 0,202.1 V 8.33 C 0,3.73 3.73,0 8.33,0 h 396.01 c 4.6,0 8.33,3.73 8.33,8.33 v 193.78 c 0,4.59 -3.73,8.32 -8.33,8.32 z"
+   id="path257" />
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   d="m 75.49,78.72 c 0,-14.63 24.79,-26.5 55.36,-26.5 30.57,0 55.36,11.87 55.36,26.5 0,14.64 -24.79,26.5 -55.36,26.5 -30.57,0 -55.36,-11.87 -55.36,-26.5 z"
+   id="path259" />
+<text
+   font-family="Arial"
+   font-size="28px"
+   id="text261"
+   x="122.945"
+   y="26.2036">Access Nodes</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   d="m 209.38,78.72 c 0,-14.63 32.01,-26.5 71.5,-26.5 39.49,0 71.5,11.87 71.5,26.5 0,14.64 -32.01,26.5 -71.5,26.5 -39.49,0 -71.5,-11.87 -71.5,-26.5 z"
+   id="path263" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text265"
+   x="231.3017"
+   y="87.243202">T</text>
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text267"
+   x="245.0717"
+   y="87.243202">ransient</text>
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text269"
+   x="96.171204"
+   y="87.243202">Global</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   stroke-dasharray="5.3333, 4"
+   d="m 3.06,166.72 c 0,-14.63 24.62,-26.5 55,-26.5 30.38,0 55,11.87 55,26.5 0,14.64 -24.62,26.5 -55,26.5 -30.38,0 -55,-11.87 -55,-26.5 z"
+   id="path271" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text273"
+   x="19.422501"
+   y="174.9651">Stream</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#f0fdff"
+   stroke="#000000"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   d="m 151.06,166.72 c 0,-14.63 24.62,-26.5 55,-26.5 30.38,0 55,11.87 55,26.5 0,14.64 -24.62,26.5 -55,26.5 -30.38,0 -55,-11.87 -55,-26.5 z"
+   id="path275" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text277"
+   x="180.1187"
+   y="174.96519">V</text>
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text279"
+   x="195.68871"
+   y="174.96519">iew</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffdede"
+   stroke="#000000"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   d="m 299.06,166.72 c 0,-14.63 24.62,-26.5 55,-26.5 30.38,0 55,11.87 55,26.5 0,14.64 -24.62,26.5 -55,26.5 -30.38,0 -55,-11.87 -55,-26.5 z"
+   id="path281" />
+<text
+   font-family="Arial"
+   font-size="19px"
+   id="text283"
+   x="310.48999"
+   y="173.6312">Reference</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   d="m 31.49,280.21 13.18,-13.18 h 121.64 l 13.18,13.18 v 18.64 l -13.18,13.18 H 44.67 L 31.49,298.85 c 0,0 0,-18.64 0,-18.64 z"
+   id="path285" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   letter-spacing="-2"
+   id="text287"
+   x="67.643097"
+   y="297.52689">T</text>
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text289"
+   x="79.643097"
+   y="297.52689">asklet</text>
+<rect
+   x="237.49001"
+   y="281.03"
+   fill="#deebf7"
+   stroke="#4472c4"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   width="28"
+   height="22"
+   id="rect291" />
+<rect
+   x="291.48999"
+   y="281.03"
+   fill="#deebf7"
+   stroke="#4472c4"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   width="28"
+   height="22"
+   id="rect293" />
+<rect
+   x="344.48999"
+   y="281.03"
+   fill="#deebf7"
+   stroke="#4472c4"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   width="28"
+   height="22"
+   id="rect295" />
+<path
+   fill="#5b9bd5"
+   d="m 227.49,291.69 h 5.82 v 0.67 h -5.82 z m 4.48,-3.66 5.33,4 -5.33,4 z"
+   id="path297" />
+<path
+   fill="#5b9bd5"
+   d="m 265.49,291.69 21.61,0.05 v 0.67 l -21.61,-0.05 z m 20.28,-3.62 5.32,4.01 -5.34,3.99 z"
+   id="path299" />
+<path
+   fill="#5b9bd5"
+   d="m 319.4,291.48 1.38,-0.25 -0.08,0.03 1.38,-0.62 -0.09,0.06 2.44,-2.31 -0.07,0.09 1.75,-3.31 -0.03,0.1 0.62,-3.75 v 0.1 l -0.25,-1.88 0.02,0.07 -0.69,-1.88 0.03,0.06 -1.06,-1.69 0.03,0.04 -1.38,-1.56 0.06,0.06 -3.44,-2.31 0.08,0.04 -1.94,-0.62 0.06,0.01 -2,-0.25 h 0.07 l -2,0.19 0.07,-0.01 -2,0.62 0.08,-0.04 -3.44,2.19 0.06,-0.05 -1.38,1.44 0.07,-0.1 -0.6,1.46 -0.62,-0.25 0.62,-1.52 1.45,-1.51 3.51,-2.23 2.08,-0.65 2.07,-0.19 2.07,0.26 2.01,0.65 3.51,2.36 1.42,1.61 1.1,1.74 0.71,1.94 0.26,1.96 -0.64,3.85 -1.8,3.41 -2.52,2.39 -1.46,0.67 -1.42,0.26 z m -8.32,-14.09 -5.59,3.63 -1.92,-6.38 z"
+   id="path301" />
+<path
+   fill="#5b9bd5"
+   d="m 319.49,292.42 21.61,-0.05 v -0.67 l -21.61,0.05 z m 20.28,3.62 5.32,-4.01 -5.34,-3.99 z"
+   id="path303" />
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   fill-opacity="0.651"
+   d="m 216.99,280.56 15.03,-15.03 h 142.94 l 15.03,15.03 v 15.94 l -15.03,15.03 H 232.02 L 216.99,296.5 Z"
+   id="path305" />
+<path
+   d="m 214.99,279.73 16.2,-16.2 h 144.59 l 16.2,16.2 v 17.59 l -16.2,16.2 H 231.2 L 215,297.32 Z m 1.34,17.04 15.42,15.42 h 143.49 l 15.42,-15.42 V 280.28 L 375.24,264.86 H 231.75 l -15.42,15.42 z m 1.33,-15.94 14.64,-14.64 h 142.38 l 14.64,14.64 v 15.38 l -14.64,14.64 H 232.3 l -14.64,-14.64 z m 1.33,14.84 13.86,13.86 h 141.28 l 13.86,-13.86 V 281.39 L 374.13,267.53 H 232.85 l -13.86,13.86 z"
+   id="path307" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text309"
+   x="228.4901"
+   y="297.52689">Nested SDFG</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   stroke-dasharray="9, 3"
+   d="m 220.49,431.03 37.61,-39 h 91.79 l 37.61,39 z"
+   id="path311" />
+<text
+   font-family="Arial"
+   font-size="27px"
+   id="text313"
+   x="245.4776"
+   y="423.52689">Consume</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   stroke-dasharray="9, 3"
+   d="m 387.49,484.03 -37.61,39 H 258.1 l -37.61,-39 z"
+   id="path315" />
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   d="m 23.49,431.03 37.61,-39 h 91.79 l 37.61,39 z"
+   id="path317" />
+<text
+   font-family="Arial"
+   font-size="27px"
+   id="text319"
+   x="80.704903"
+   y="423.52689">Map</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   d="m 190.49,484.03 -37.61,39 H 61.1 l -37.61,-39 z"
+   id="path321" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text323"
+   x="96.621597"
+   y="458.52689">...</text>
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="1.3333"
+   stroke-miterlimit="8"
+   stroke-dasharray="5.3333, 4"
+   d="m 291.49,361.53 c 0,-7.46 5.6,-13.5 12.5,-13.5 6.9,0 12.5,6.04 12.5,13.5 0,7.46 -5.6,13.5 -12.5,13.5 -6.9,0 -12.5,-6.05 -12.5,-13.5 z"
+   id="path325" />
+<path
+   d="m 304.83,375.03 v 9.78 h -0.67 v -9.78 z m 3.66,8.45 -4,8 -4,-8 z"
+   id="path327" />
+<path
+   fill-rule="evenodd"
+   clip-rule="evenodd"
+   fill="#ffffff"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   d="m 90.49,603.03 h 220.92 l 9.08,9.08 v 47.92 h -230 c 0,0 0,-57 0,-57 z"
+   id="path329" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text331"
+   x="137.7216"
+   y="641.52692">Library Node</text>
+<path
+   fill="none"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   d="m 310.49,603.03 v 9.5"
+   id="path333" />
+<path
+   fill="none"
+   stroke="#000000"
+   stroke-width="3"
+   stroke-miterlimit="8"
+   d="m 309.03,612.03 h 10.88"
+   id="path335" />
+<text
+   font-family="Arial"
+   font-size="24px"
+   id="text337"
+   x="293.56161"
+   y="458.52689">...</text>
+<path
+   d="m 292.64,843.29 v 12.8 h -3.2 v -12.8 z m 0,22.41 v 12.8 h -3.2 v -12.8 z m 0,22.4 v 12.8 h -3.2 v -12.8 z m 0,22.41 v 12.8 h -3.2 v -12.8 z m 0,22.41 v 12.8 h -3.2 v -12.8 z m 6.41,20.74 -8,16.01 -8,-16.01 z"
+   id="path339" />
+<text
+   font-family="Arial"
+   font-size="31.1027px"
+   id="text341"
+   x="301.987"
+   y="889.6991">A[0]</text>
+<text
+   font-family="Arial"
+   font-weight="bold"
+   font-size="24.623px"
+   id="text343"
+   x="300.83069"
+   y="920.80359">CR: Sum</text>
+<text
+   font-family="Arial"
+   font-size="19.4392px"
+   id="text345"
+   x="301.98889"
+   y="944.1308">V</text>
+<text
+   font-family="Arial"
+   font-size="19.4392px"
+   id="text347"
+   x="313.87891"
+   y="944.1308">olume: 1</text>
+<path
+   d="M 292.64,690.29 V 802.2 h -3.2 V 690.29 Z m 6.41,110.31 -8,16.01 -8,-16.01 z"
+   id="path349" />
+<text
+   font-family="Arial"
+   font-size="31.1027px"
+   id="text351"
+   x="299.13931"
+   y="752.23389">B[i, j]</text>
+<text
+   font-family="Arial"
+   font-size="19.4392px"
+   id="text353"
+   x="299.05139"
+   y="778.15192">V</text>
+<text
+   font-family="Arial"
+   font-size="19.4392px"
+   id="text355"
+   x="310.94141"
+   y="778.15192">olume: 1</text>
+<text
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text357"
+   x="45.564701"
+   y="758.65308">Memlet</text>
+<text
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text359"
+   x="45.564701"
+   y="895.68433">W</text>
+<text
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text361"
+   x="71.494698"
+   y="895.68433">rite-Conflict</text>
+<text
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text363"
+   x="45.564701"
+   y="929.29431">Resolution</text>
+<rect
+   x="18.675783"
+   y="992.11169"
+   fill="#deebf7"
+   width="196.89"
+   height="53.330002"
+   id="rect365" /><rect
+   x="18.286003"
+   y="1064.9932"
+   fill="#deebf7"
+   width="196.88998"
+   height="77.329956"
+   id="rect365-2"
+   style="fill:#86add9;fill-opacity:1" /><rect
+   x="21.630732"
+   y="1068.6724"
+   fill="#deebf7"
+   width="189.86607"
+   height="70.30603"
+   id="rect365-2-8"
+   style="fill:#ffffff;fill-opacity:1;stroke-width:0.91505" />
+<text
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text367"
+   x="84.417183"
+   y="1027.3923">State</text>
+<text
+   fill="#86add9"
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text369"
+   x="283.11401"
+   y="1047.8234">State</text>
+<text
+   fill="#86add9"
+   font-family="Arial"
+   font-size="28.0101px"
+   letter-spacing="-1"
+   id="text371"
+   x="254.84399"
+   y="1089.8234">T</text>
+<text
+   fill="#86add9"
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text373"
+   x="270.914"
+   y="1089.8234">ransition</text>
+<path
+   fill="#86add9"
+   d="m 240.33,1057.67 h 142.96 v 3.2 H 240.33 Z m 141.37,-6.4 16.01,8 -16.01,8 z"
+   id="path375" /><g
+   id="g1510"
+   transform="translate(4.2571473,15.136511)"><rect
+     x="45.677025"
+     y="1081.5244"
+     fill="#deebf7"
+     stroke="#4472c4"
+     stroke-width="1.3333"
+     stroke-miterlimit="8"
+     width="28"
+     height="22"
+     id="rect291-3" /><rect
+     x="99.677025"
+     y="1081.5244"
+     fill="#deebf7"
+     stroke="#4472c4"
+     stroke-width="1.3333"
+     stroke-miterlimit="8"
+     width="28"
+     height="22"
+     id="rect293-3" /><rect
+     x="152.67703"
+     y="1081.5244"
+     fill="#deebf7"
+     stroke="#4472c4"
+     stroke-width="1.3333"
+     stroke-miterlimit="8"
+     width="28"
+     height="22"
+     id="rect295-4" /><path
+     fill="#5b9bd5"
+     d="m 35.677017,1092.1845 h 5.82 v 0.67 h -5.82 z m 4.48,-3.66 5.33,4 -5.33,4 z"
+     id="path297-0" /><path
+     fill="#5b9bd5"
+     d="m 73.677017,1092.1845 21.61,0.05 v 0.67 l -21.61,-0.05 z m 20.28,-3.62 5.32,4.01 -5.34,3.99 z"
+     id="path299-3" /><path
+     fill="#5b9bd5"
+     d="m 127.58702,1091.9745 1.38,-0.25 -0.08,0.03 1.38,-0.62 -0.09,0.06 2.44,-2.31 -0.07,0.09 1.75,-3.31 -0.03,0.1 0.62,-3.75 v 0.1 l -0.25,-1.88 0.02,0.07 -0.69,-1.88 0.03,0.06 -1.06,-1.69 0.03,0.04 -1.38,-1.56 0.06,0.06 -3.44,-2.31 0.08,0.04 -1.94,-0.62 0.06,0.01 -2,-0.25 h 0.07 l -2,0.19 0.07,-0.01 -2,0.62 0.08,-0.04 -3.44,2.19 0.06,-0.05 -1.38,1.44 0.07,-0.1 -0.6,1.46 -0.62,-0.25 0.62,-1.52 1.45,-1.51 3.51,-2.23 2.08,-0.65 2.07,-0.19 2.07,0.26 2.01,0.65 3.51,2.36 1.42,1.61 1.1,1.74 0.71,1.94 0.26,1.96 -0.64,3.85 -1.8,3.41 -2.52,2.39 -1.46,0.67 -1.42,0.26 z m -8.32,-14.09 -5.59,3.63 -1.92,-6.38 z"
+     id="path301-2" /><path
+     fill="#5b9bd5"
+     d="m 127.67702,1092.9145 21.61,-0.05 v -0.67 l -21.61,0.05 z m 20.28,3.62 5.32,-4.01 -5.34,-3.99 z"
+     id="path303-2" /><path
+     fill-rule="evenodd"
+     clip-rule="evenodd"
+     fill="#ffffff"
+     fill-opacity="0.651"
+     d="m 30.06541,1085.1649 15.03,-15.03 h 142.94 l 15.03,15.03 v 15.94 l -15.03,15.03 h -142.94 l -15.03,-15.03 z"
+     id="path305-2" /></g><text
+   font-family="Arial"
+   font-size="28.0101px"
+   id="text367-9"
+   x="38.159119"
+   y="1094.6525"
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.0101px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+     sodipodi:role="line"
+     id="tspan1264"
+     x="38.159119"
+     y="1094.6525">Control Flow</tspan><tspan
+     sodipodi:role="line"
+     id="tspan1266"
+     x="38.159119"
+     y="1129.665">Region</tspan></text>
+</svg>

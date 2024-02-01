@@ -1,0 +1,23 @@
+ignore:
+  - "dace/jupyter.py"  # Omit files that cannot be tested
+  - "dace/frontend/tensorflow/**/*"  # Omit deprecated files
+
+coverage:
+  range: 40..90
+  round: nearest
+  status:
+    patch:
+      default:
+        informational: true
+    project:
+      default:
+        informational: true
+#    project:
+#      default:
+#        threshold: 1%
+
+codecov:
+  notify:
+    after_n_builds: 18
+
+comment: false
