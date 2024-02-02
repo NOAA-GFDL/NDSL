@@ -6,7 +6,6 @@ from gt4py.cartesian.gtscript import (
     interval,
     region,
 )
-import pyFV3
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.comm.communicator import Communicator
@@ -157,7 +156,7 @@ class CubedToLatLon:
 
     def __init__(
         self,
-        state: pyFV3.DycoreState,
+        state,  # No type hint on purpose to remove dependency on pyFV3
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         grid_data: GridData,
@@ -215,8 +214,6 @@ class CubedToLatLon:
             compute_halos=halos,
         )
 
-        origin = grid_indexing.origin_compute()
-        shape = grid_indexing.max_shape
         if not self.one_rank:
             full_size_xyiz_halo_spec = quantity_factory.get_quantity_halo_spec(
                 dims=[X_DIM, Y_INTERFACE_DIM, Z_DIM],
@@ -228,6 +225,17 @@ class CubedToLatLon:
                 n_halo=grid_indexing.n_halo,
                 dtype=Float,
             )
+
+            # TODO:
+            # To break the depedency to pyFV3 we allow ourselves to not have a type
+            # hint around state and we check for u and v to make sure we don't
+            # have bad input.
+            # This entire code should be retired when WrappedHaloUpdater is no longer
+            # required.
+            if not WrappedHaloUpdater.check_for_attribute(
+                state, "u"
+            ) and WrappedHaloUpdater.check_for_attribute(state, "v"):
+                raise RuntimeError("Cube To Lat Lon: state given is not readable.")
             self.u__v = WrappedHaloUpdater(
                 comm.get_vector_halo_updater(
                     [full_size_xyiz_halo_spec], [full_size_xiyz_halo_spec]
