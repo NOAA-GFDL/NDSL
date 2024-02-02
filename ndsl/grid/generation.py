@@ -220,7 +220,7 @@ class GridDefinitions:
 
 # TODO
 # corners use sizer + partitioner rather than GridIndexer,
-# have to refactor fv3core calls to corners to do this as well
+# have to refactor pyFV3 calls to corners to do this as well
 class MetricTerms:
     LON_OR_LAT_DIM = GridDefinitions.LON_OR_LAT_DIM
     TILE_DIM = GridDefinitions.TILE_DIM

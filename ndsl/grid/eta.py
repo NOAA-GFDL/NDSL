@@ -76,6 +76,6 @@ def set_hybrid_pressure_coefficients(
 
 
 def check_eta(ak, bk):
-    from pace.fv3core.initialization.init_utils import compute_eta
+    from pyFV3.initialization.init_utils import compute_eta
 
     return compute_eta(ak, bk)
