@@ -6,7 +6,7 @@ from gt4py.cartesian.gtscript import (
     interval,
     region,
 )
-from pace import fv3core
+import pyFV3
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.comm.communicator import Communicator
@@ -157,7 +157,7 @@ class CubedToLatLon:
 
     def __init__(
         self,
-        state: fv3core.DycoreState,
+        state: pyFV3.DycoreState,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         grid_data: GridData,
