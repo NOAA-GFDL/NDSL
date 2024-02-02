@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from ndsl.comm.communicator import Communicator
 from ndsl.dsl.dace.orchestration import dace_inhibitor
@@ -28,6 +28,14 @@ class WrappedHaloUpdater:
         self._qtx_x_names = qty_x_names
         self._qtx_y_names = qty_y_names
         self._comm = comm
+
+    @staticmethod
+    def check_for_attribute(state: Any, attr: str):
+        if dataclasses.is_dataclass(state):
+            return state.__getattribute__(attr)
+        elif isinstance(state, dict):
+            return attr in state.keys()
+        return False
 
     @dace_inhibitor
     def start(self):
