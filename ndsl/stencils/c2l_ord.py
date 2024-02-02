@@ -6,6 +6,7 @@ from gt4py.cartesian.gtscript import (
     interval,
     region,
 )
+
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM
