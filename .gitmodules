@@ -1,6 +1,3 @@
-[submodule "external/dace"]
-	path = external/dace
-	url = https://github.com/spcl/dace.git
 [submodule "external/gt4py"]
 	path = external/gt4py
 	url = https://github.com/GridTools/gt4py.git
