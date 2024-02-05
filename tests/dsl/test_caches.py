@@ -10,6 +10,7 @@ from ndsl.dsl.stencil import (
     StencilConfig,
     StencilFactory,
 )
+from ndsl.comm.mpi import MPI
 
 
 def _make_storage(
@@ -77,6 +78,9 @@ class OrchestratedProgam:
         pytest.param("dace:cpu"),
     ],
 )
+@pytest.mark.skipif(
+    MPI is not None, reason="relocatibility checked with a one-rank setup"
+)
 def test_relocatability_orchestration(backend):
     import os
     import shutil
@@ -133,14 +137,15 @@ def test_relocatability_orchestration(backend):
         pytest.param("dace:cpu"),
     ],
 )
+@pytest.mark.skipif(
+    MPI is not None, reason="relocatibility checked with a one-rank setup"
+)
 def test_relocatability(backend: str):
     import os
     import shutil
 
     import gt4py
     from gt4py.cartesian import config as gt_config
-
-    from ..mpi.mpi_comm import MPI
 
     # Restore original dir name
     gt4py.cartesian.config.cache_settings["dir_name"] = os.environ.get(
