@@ -2,6 +2,7 @@ import pytest
 from gt4py.cartesian.gtscript import PARALLEL, Field, computation, interval
 from gt4py.storage import empty, ones
 
+from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace import orchestrate
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.stencil import (
@@ -10,7 +11,6 @@ from ndsl.dsl.stencil import (
     StencilConfig,
     StencilFactory,
 )
-from ndsl.comm.mpi import MPI
 
 
 def _make_storage(

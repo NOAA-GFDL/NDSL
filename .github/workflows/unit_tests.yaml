@@ -28,4 +28,3 @@ jobs:
         - name: Run parallel-cpu tests
           run: |
               pytest -x tests/mpi
-  
