@@ -29,7 +29,7 @@ def test_local_comm_simple(local_communicator_list):
     for comm in local_communicator_list:
         rank = comm.Get_rank()
         size = comm.Get_size()
-        data = numpy.asarray([rank], dtype=numpy.int)
+        data = numpy.asarray([rank], dtype=numpy.int32)
         if rank % 2 == 0:
             comm.Send(data, dest=(rank + 1) % size)
         else:

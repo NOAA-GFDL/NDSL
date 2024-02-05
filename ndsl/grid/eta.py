@@ -1,8 +1,13 @@
+import math
 import os
 from dataclasses import dataclass
 
 import numpy as np
 import xarray as xr
+
+
+ETA_0 = 0.252
+SURFACE_PRESSURE = 1.0e5  # units of (Pa), from Table VI of DCMIP2016
 
 
 @dataclass
@@ -75,7 +80,23 @@ def set_hybrid_pressure_coefficients(
     return pressure_data
 
 
-def check_eta(ak, bk):
-    from pace.fv3core.initialization.init_utils import compute_eta
+def vertical_coordinate(eta_value):
+    """
+    Equation (1) JRMS2006
+    computes eta_v, the auxiliary variable vertical coordinate
+    """
+    return (eta_value - ETA_0) * math.pi * 0.5
 
+
+def compute_eta(ak, bk):
+    """
+    Equation (1) JRMS2006
+    eta is the vertical coordinate and eta_v is an auxiliary vertical coordinate
+    """
+    eta = 0.5 * ((ak[:-1] + ak[1:]) / SURFACE_PRESSURE + bk[:-1] + bk[1:])
+    eta_v = vertical_coordinate(eta)
+    return eta, eta_v
+
+
+def check_eta(ak, bk):
     return compute_eta(ak, bk)

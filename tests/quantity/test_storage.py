@@ -96,7 +96,7 @@ def test_modifying_numpy_data_modifies_view():
     assert quantity.data[4, 4] == 3
 
 
-@pytest.mark.parametrize("backend", ["gt4py_numpy", "gt4py_cupy"], indirect=True)
+@pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_data_exists(quantity, backend):
     if "numpy" in backend:
         assert isinstance(quantity.data, np.ndarray)

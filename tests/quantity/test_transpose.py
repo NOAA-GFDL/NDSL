@@ -164,7 +164,7 @@ def param_product(*param_lists):
     ],
     indirect=True,
 )
-@pytest.mark.parametrize("backend", ["gt4py_numpy", "gt4py_cupy"], indirect=True)
+@pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_transpose(
     quantity, target_dims, final_data, final_dims, final_origin, final_extent, numpy
 ):

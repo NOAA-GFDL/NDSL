@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from mpi_comm import MPI
 
-import ndsl.util
+from ndsl.comm.communicator import recv_buffer
+from ndsl.testing import ConcurrencyError, DummyComm
 
 
 worker_function_list = []
@@ -28,14 +29,14 @@ def return_constant(comm):
 def send_recv(comm, numpy):
     rank = comm.Get_rank()
     size = comm.Get_size()
-    data = numpy.asarray([rank], dtype=numpy.int)
+    data = numpy.asarray([rank], dtype=numpy.int32)
 
     if rank < size - 1:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"recieving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
@@ -48,11 +49,11 @@ def send_recv_big_data(comm, numpy):
     data = numpy.ones([5, 3, 96], dtype=numpy.float64) * rank
 
     if rank < size - 1:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"recieving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
@@ -79,7 +80,7 @@ def send_recv_multiple_async_calls(comm, numpy):
 
     for from_rank in range(size):
         if from_rank != rank:
-            with ndsl.recv_buffer(numpy, recv_data[from_rank, :]) as recvbuf:
+            with recv_buffer(numpy, recv_data[from_rank, :]) as recvbuf:
                 comm.Recv(recvbuf, source=from_rank, tag=0)
     for req in req_list:
         req.wait()
@@ -94,11 +95,11 @@ def send_f_contiguous_buffer(comm, numpy):
     data = numpy.random.uniform(size=[2, 3]).T
 
     if rank < size - 1:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"recieving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
@@ -113,7 +114,7 @@ def send_non_contiguous_buffer(comm, numpy):
     recv_buffer = numpy.zeros([4, 2, 3])
 
     if rank < size - 1:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
@@ -130,7 +131,7 @@ def send_subarray(comm, numpy):
     recv_buffer = numpy.zeros([2, 2, 2])
 
     if rank < size - 1:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data[1:-1, 1:-1, 1:-1], dest=rank + 1)
     if rank > 0:
@@ -149,11 +150,11 @@ def recv_to_subarray(comm, numpy):
     return_value = recv_buffer
 
     if rank < size - 1:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, ndsl.testing.DummyComm):
+        if isinstance(comm, DummyComm):
             print(f"recieving data from {rank - 1} to {rank}")
         try:
             comm.Recv(recv_buffer[1:-1, 1:-1, 1:-1], source=rank - 1)
@@ -199,7 +200,7 @@ def gather(comm, numpy):
 def isend_irecv(comm, numpy):
     rank = comm.Get_rank()
     size = comm.Get_size()
-    data = numpy.asarray([rank], dtype=numpy.int)
+    data = numpy.asarray([rank], dtype=numpy.int32)
     if rank < size - 1:
         req = comm.Isend(data, dest=(rank + 1) % size)
         req.wait()
@@ -213,8 +214,8 @@ def isend_irecv(comm, numpy):
 def asynchronous_and_synchronous_send_recv(comm, numpy):
     rank = comm.Get_rank()
     size = comm.Get_size()
-    data_async = numpy.asarray([rank], dtype=numpy.int)
-    data_sync = numpy.asarray([-rank], dtype=numpy.int)
+    data_async = numpy.asarray([rank], dtype=numpy.int32)
+    data_sync = numpy.asarray([-rank], dtype=numpy.int32)
     if rank < size - 1:
         req = comm.Isend(data_async, dest=(rank + 1) % size)
         req.wait()
@@ -253,9 +254,7 @@ def dummy_list(total_ranks):
     return_list = []
     for rank in range(total_ranks):
         return_list.append(
-            ndsl.testing.DummyComm(
-                rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
-            )
+            DummyComm(rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer)
         )
     return return_list
 
@@ -283,7 +282,7 @@ def dummy_results(worker_function, dummy_list, numpy):
             comm = dummy_list[i]
             try:
                 result_list[i] = worker_function(comm, numpy)
-            except ndsl.testing.ConcurrencyError as err:
+            except ConcurrencyError as err:
                 if iter_count >= MAX_WORKER_ITERATIONS:
                     result_list[i] = err
                 else:

@@ -11,8 +11,9 @@ from ndsl.comm.decomposition import (
     determine_rank_is_compiling,
     unblock_waiting_tiles,
 )
-from ndsl.comm.mpi import MPI
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+
+from .mpi.mpi_comm import MPI
 
 
 @pytest.mark.parametrize(

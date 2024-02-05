@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     cupy = None
 
 
-@pytest.fixture(params=["numpy", "cupy", "gt4py_numpy", "gt4py_cupy"])
+@pytest.fixture(params=["numpy", "cupy"])
 def backend(request):
     if cupy is None and request.param.endswith("cupy"):
         if request.config.getoption("--gpu-only"):
@@ -29,9 +29,9 @@ def backend(request):
 
 @pytest.fixture
 def gt4py_backend(backend):
-    if backend in ("numpy", "gt4py_numpy"):
+    if backend in ("numpy"):
         return "numpy"
-    elif backend in ("cupy", "gt4py_cupy"):
+    elif backend in ("cupy"):
         return "gt:gpu"
     else:
         return None
@@ -47,11 +47,6 @@ def numpy(backend):
     if backend == "numpy":
         return np
     elif backend == "cupy":
-        return cupy
-    elif backend == "gt4py_numpy":
-        # TODO: Deprecate these "backends".
-        return np
-    elif backend == "gt4py_cupy":
         return cupy
     else:
         raise NotImplementedError()

@@ -3,9 +3,9 @@ import tempfile
 
 import numpy as np
 import pytest
-from Checkpointer import SavepointThresholds, Threshold, ValidationCheckpointer
-from Checkpointer.validation import _clip_pace_array_to_target
 
+from ndsl.checkpointer import SavepointThresholds, Threshold, ValidationCheckpointer
+from ndsl.checkpointer.validation import _clip_pace_array_to_target
 from ndsl.optional_imports import xarray as xr
 
 

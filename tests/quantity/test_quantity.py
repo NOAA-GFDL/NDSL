@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import ndsl.quantity as qty
 from ndsl.quantity import Quantity
 
 
@@ -228,7 +229,7 @@ def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
     ],
 )
 def test_shift_slice(slice_in, shift, extent, slice_out):
-    result = Quantity.shift_slice(slice_in, shift, extent)
+    result = qty.shift_slice(slice_in, shift, extent)
     assert result == slice_out
 
 

@@ -1,10 +1,10 @@
 import copy
 
 import pytest
+from mpi_comm import MPI
 
 from ndsl.comm._boundary_utils import get_boundary_slice
 from ndsl.comm.communicator import CubedSphereCommunicator
-from ndsl.comm.mpi import MPI
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.constants import (
     BOUNDARY_TYPES,
