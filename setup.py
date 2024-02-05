@@ -43,7 +43,7 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     install_requires=requirements,
-    extras_requires=extras_requires,
+    extras_require=extras_requires,
     name="ndsl",
     license="BSD license",
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),

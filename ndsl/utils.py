@@ -55,7 +55,7 @@ def is_c_contiguous(array: np.ndarray) -> bool:
 
 def ensure_contiguous(maybe_array: Union[np.ndarray, None]) -> None:
     if maybe_array is not None and not is_contiguous(maybe_array):
-        raise ValueError("ndarray is not contiguous")
+        raise BufferError("dlpack: buffer is not contiguous")
 
 
 def safe_assign_array(to_array: np.ndarray, from_array: np.ndarray):

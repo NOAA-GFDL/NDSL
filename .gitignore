@@ -151,6 +151,10 @@ dmypy.json
 # GT4Py
 **/.gt_cache*/
 
+# Tests
+.my_cache_path/*
+.my_relocated_cache_path/*
+
 # Run outputs
 plot_output/
 profiling_results/
