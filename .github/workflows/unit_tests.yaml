@@ -6,6 +6,9 @@ on:
 jobs:
   all:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [3.8.12, 3.11.7]
     steps:
         - name: Checkout repository
           uses: actions/checkout@v3.5.2
@@ -14,7 +17,7 @@ jobs:
         - name: Setup Python
           uses: actions/setup-python@v4.6.0
           with:
-            python-version: '3.8.12'
+            python-version: ${{ matrix.python }}
         - name: Install OpenMPI & Boost for gt4py
           run: |
             sudo apt-get install libopenmpi-dev libboost1.74-dev
@@ -27,4 +30,4 @@ jobs:
             pytest -x tests
         - name: Run parallel-cpu tests
           run: |
-              pytest -x tests/mpi
+            mpirun -np 6 --oversubscribe pytest -x tests/mpi
