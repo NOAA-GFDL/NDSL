@@ -30,4 +30,4 @@ jobs:
             pytest -x tests
         - name: Run parallel-cpu tests
           run: |
-            mpirun -np --oversubscribe 6 pytest -x tests/mpi
+            mpirun -np 6 --oversubscribe pytest -x tests/mpi
