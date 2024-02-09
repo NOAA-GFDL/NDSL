@@ -26,15 +26,22 @@ def floating_point_precision() -> int:
     return int(os.getenv("PACE_FLOAT_PRECISION", "64"))
 
 
+# We redefine the type as a way to distinguish
+# the model definition of a float to other usage of the
+# common numpy type in the rest of the code.
+NDSL_32BIT_FLOAT_TYPE = np.float32
+NDSL_64BIT_FLOAT_TYPE = np.float64
+
+
 def global_set_floating_point_precision():
     """Set the global floating point precision for all reference
     to Float in the codebase. Defaults to 64 bit."""
     global Float
     precision_in_bit = floating_point_precision()
     if precision_in_bit == 64:
-        return np.float64
+        return NDSL_64BIT_FLOAT_TYPE
     elif precision_in_bit == 32:
-        return np.float32
+        return NDSL_32BIT_FLOAT_TYPE
     else:
         NotImplementedError(
             f"{precision_in_bit} bit precision not implemented or tested"

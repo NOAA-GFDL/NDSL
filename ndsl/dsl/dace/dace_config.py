@@ -10,6 +10,7 @@ from ndsl.comm.communicator import Communicator, Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.gt4py_utils import is_gpu_backend
+from ndsl.dsl.typing import floating_point_precision
 from ndsl.optional_imports import cupy as cp
 
 
@@ -261,6 +262,15 @@ class DaceConfig:
             dace.config.Config.set(
                 "compiler", "cuda", "syncdebug", value=dace_debug_env_var
             )
+
+            if floating_point_precision() == 32:
+                # When using 32-bit float, we flip the default dtypes to be all
+                # C, e.g. 32 bit.
+                dace.Config.set(
+                    "compiler",
+                    "default_data_types",
+                    value="c",
+                )
 
         # attempt to kill the dace.conf to avoid confusion
         if dace.config.Config._cfg_filename:
