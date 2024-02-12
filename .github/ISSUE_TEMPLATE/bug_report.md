@@ -25,4 +25,3 @@ Describe the system environment, include:
 **Additional context**
 Add any other context about the problem.  If applicable, include where any files
 that help describe, or reproduce the problem exist.
-

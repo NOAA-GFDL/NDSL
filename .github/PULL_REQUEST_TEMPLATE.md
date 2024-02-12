@@ -19,4 +19,3 @@ enough information so someone can reproduce your tests.
 - [ ] Any dependent changes have been merged and published in downstream modules
 - [ ] New check tests, if applicable, are included
 - [ ] `make distcheck` passes
-
