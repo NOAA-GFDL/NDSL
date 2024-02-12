@@ -17,10 +17,13 @@ A clear and concise description of what you expected to happen.
 **System Environment**
 Describe the system environment, include:
 - OS: [e.g. RHEL 7.2]
+- Backend used [e.g. dace:cpu]
+- Environment variables set
 - Compiler(s): Type and version [e.g. Intel 19.1]
 - MPI type, and version (e.g. MPICH, Cray MPI, openMPI)
 - netCDF Version: For both C and Fortran
 - Configure options: Any additional flags, or macros passed to configure
+- If this bug came from a model run, which model
 
 **Additional context**
 Add any other context about the problem.  If applicable, include where any files

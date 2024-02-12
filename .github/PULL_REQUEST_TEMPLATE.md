@@ -4,6 +4,7 @@ relevant motivation and context. List any dependencies that are required for
 this change.
 
 Fixes # (issue)
+If this is a hotfix to a released version, please specify it.
 
 **How Has This Been Tested?**
 Please describe the tests that you ran to verify your changes. Please also note
@@ -18,4 +19,3 @@ enough information so someone can reproduce your tests.
 - [ ] My changes generate no new warnings
 - [ ] Any dependent changes have been merged and published in downstream modules
 - [ ] New check tests, if applicable, are included
-- [ ] `make distcheck` passes
