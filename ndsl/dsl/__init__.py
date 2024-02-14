@@ -6,12 +6,13 @@ from . import dace
 from .dace.dace_config import DaceConfig, DaCeOrchestration
 from .dace.orchestration import orchestrate, orchestrate_function
 from .stencil import (
-    CompilationConfig,
+    CompareToNumpyStencil,
     FrozenStencil,
     GridIndexing,
-    StencilConfig,
     StencilFactory,
+    TimingCollector,
 )
+from .stencil_config import CompilationConfig, RunMode, StencilConfig
 
 
 if MPI is not None:

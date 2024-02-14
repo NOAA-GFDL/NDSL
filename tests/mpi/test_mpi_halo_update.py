@@ -1,7 +1,6 @@
 import copy
 
 import pytest
-from mpi_comm import MPI
 
 from ndsl.comm._boundary_utils import get_boundary_slice
 from ndsl.comm.communicator import CubedSphereCommunicator
@@ -24,6 +23,8 @@ from ndsl.constants import (
     Z_INTERFACE_DIM,
 )
 from ndsl.quantity import Quantity
+
+from .mpi_comm import MPI
 
 
 @pytest.fixture

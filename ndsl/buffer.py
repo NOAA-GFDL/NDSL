@@ -4,7 +4,6 @@ from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
 import numpy as np
 from numpy.lib.index_tricks import IndexExpression
 
-from ndsl.performance.timer import NullTimer, Timer
 from ndsl.types import Allocator
 from ndsl.utils import (
     device_synchronize,
@@ -12,6 +11,8 @@ from ndsl.utils import (
     safe_assign_array,
     safe_mpi_allocate,
 )
+
+from .performance.timer import NullTimer, Timer
 
 
 BufferKey = Tuple[Callable, Iterable[int], type]
