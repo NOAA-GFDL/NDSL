@@ -12,6 +12,7 @@ class ConstantVersions(Enum):
     GFDL = "GFDL"  # NOAA's FV3 dynamical core constants (original port)
     GFS = "GFS"  # Constant as defined in NOAA GFS
     GEOS = "GEOS"  # Constant as defined in GEOS v13
+    SHiELD = "SHiELD"
 
 
 CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "GFS")
@@ -128,41 +129,44 @@ K1K = RDGAS / CV_AIR
 CNST_0P20 = 0.2
 CV_VAP = 3.0 * RVGAS  # Heat capacity of water vapor at constant volume
 ZVIR = RVGAS / RDGAS - 1  # con_fvirt in Fortran physics
-C_ICE = 1972.0  # Heat capacity of ice at -15 degrees Celsius
-C_LIQ = 4.1855e3  # Heat capacity of water at 15 degrees Celsius
-C_ICE_0 = 2.106e3  # Heat capacity of ice at 0 degrees Celsius
-C_LIQ_0 = 4.218e3  # Heat capacity of water at 0 degrees Celsius
-CP_VAP = 4.0 * RVGAS  # Heat capacity of water vapor at constant pressure
 TICE = 273.16  # Freezing temperature
 TICE0 = TICE - 0.01
-DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling (J/kg/K)
-SHiELD_DC_ICE = C_LIQ_0 - C_ICE_0  # Isobaric heating / cooling (J/kg/K)
-DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling (J/kg/K)
-SHiELD_DC_VAP = CP_VAP - C_LIQ_0  # Isobaric heating / cooling (J/kg/K)
-D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling (J/kg/K)
-SHiELD_D2ICE = CP_VAP - C_ICE_0  # Isobaric heating / cooling (J/kg/K)
-LI0 = HLF - DC_ICE * TICE
+CP_VAP = 4.0 * RVGAS  # Heat capacity of water vapor at constant pressure
+
+if CONST_VERSION == ConstantVersions.SHiELD:
+    C_ICE = 2.106e3  # Heat capacity of ice at 0 degrees Celsius
+    C_LIQ = 4.218e3  # Heat capacity of water at 0 degrees Celsius
+    DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling (J/kg/K)
+    DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling (J/kg/K)
+    D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling (J/kg/K)
+    LV0 = (
+        HLV - DC_VAP * TICE0
+    )  # 3148711.3338762247, evaporation latent heat coefficient at 0 degrees Kelvin
+    LI00 = (
+        HLF - DC_ICE * TICE0
+    )  # -242413.92000000004, fusion latent heat coefficient at 0 degrees Kelvin
+    LI2 = (
+        LV0 + LI00
+    )  # 2906297.413876225, sublimation latent heat coefficient at 0 degrees Kelvin
+    LI0 = HLF - DC_ICE * TICE0
+else:
+    C_ICE = 1972.0  # Heat capacity of ice at -15 degrees Celsius
+    C_LIQ = 4.1855e3  # Heat capacity of water at 15 degrees Celsius
+    DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling (J/kg/K)
+    DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling (J/kg/K)
+    D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling (J/kg/K)
+    LV0 = (
+        HLV - DC_VAP * TICE
+    )  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin
+    LI00 = (
+        HLF - DC_ICE * TICE
+    )  # -2.7105966e5, fusion latent heat coefficient at 0 degrees Kelvin
+    LI2 = (
+        LV0 + LI00
+    )  # 2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin
+    LI0 = HLF - DC_ICE * TICE
+
 EPS = RDGAS / RVGAS
-LV0 = (
-    HLV - DC_VAP * TICE
-)  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin
-LI00 = (
-    HLF - DC_ICE * TICE
-)  # -2.7105966e5, fusion latent heat coefficient at 0 degrees Kelvin
-LI2 = (
-    LV0 + LI00
-)  # 2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin
-
-SHiELD_LV0 = (
-    HLV - SHiELD_DC_VAP * TICE0
-)  # 3148711.3338762247, evaporation latent heat coefficient at 0 degrees Kelvin
-SHiELD_LI00 = (
-    HLF - SHiELD_DC_ICE * TICE0
-)  # -242413.92000000004, fusion latent heat coefficient at 0 degrees Kelvin
-SHiELD_LI2 = (
-    SHiELD_LV0 + SHiELD_LI00
-)  # 2906297.413876225, sublimation latent heat coefficient at 0 degrees Kelvin
-
 E00 = 611.21  # Saturation vapor pressure at 0 degrees Celsius
 T_WFR = TICE - 40.0  # homogeneous freezing temperature
 TICE0 = TICE - 0.01
