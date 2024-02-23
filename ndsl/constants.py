@@ -12,7 +12,7 @@ class ConstantVersions(Enum):
     GFDL = "GFDL"  # NOAA's FV3 dynamical core constants (original port)
     GFS = "GFS"  # Constant as defined in NOAA GFS
     GEOS = "GEOS"  # Constant as defined in GEOS v13
-    SHiELD = "SHiELD"
+    SHiELD = "SHiELD"  # Constant as defined in NOAA SHiELD
 
 
 CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "GFS")
@@ -68,7 +68,11 @@ N_HALO_DEFAULT = 3
 if CONST_VERSION == ConstantVersions.GEOS:
     # 'qlcd' is exchanged in GEOS
     NQ = 9
-elif CONST_VERSION == ConstantVersions.GFS or CONST_VERSION == ConstantVersions.GFDL:
+elif (
+    CONST_VERSION == ConstantVersions.GFS
+    or ConstantVersions.SHiELD
+    or CONST_VERSION == ConstantVersions.GFDL
+):
     NQ = 8
 else:
     raise RuntimeError("Constant selector failed, bad code.")
@@ -90,7 +94,7 @@ if CONST_VERSION == ConstantVersions.GEOS:
     CP_AIR = RDGAS / KAPPA
     TFREEZE = 273.15
     SAT_ADJUST_THRESHOLD = 1.0e-6
-elif CONST_VERSION == ConstantVersions.GFS:
+elif CONST_VERSION == ConstantVersions.GFS or ConstantVersions.SHiELD:
     RADIUS = 6.3712e6  # Radius of the Earth [m]
     PI = 3.1415926535897931
     OMEGA = 7.2921e-5  # Rotation of the earth
