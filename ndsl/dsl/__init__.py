@@ -3,15 +3,8 @@ import gt4py.cartesian.config
 from ndsl.comm.mpi import MPI
 
 from . import dace
-from .dace.dace_config import DaceConfig, DaCeOrchestration
-from .dace.orchestration import orchestrate, orchestrate_function
-from .stencil import (
-    CompareToNumpyStencil,
-    FrozenStencil,
-    GridIndexing,
-    StencilFactory,
-    TimingCollector,
-)
+from .dace import DaceConfig, DaCeOrchestration, orchestrate, orchestrate_function
+from .stencil import CompareToNumpyStencil, FrozenStencil, GridIndexing, StencilFactory
 from .stencil_config import CompilationConfig, RunMode, StencilConfig
 
 

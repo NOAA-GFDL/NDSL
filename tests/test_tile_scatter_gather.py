@@ -3,8 +3,7 @@ import datetime
 
 import pytest
 
-from ndsl.comm.communicator import TileCommunicator
-from ndsl.comm.partitioner import TilePartitioner
+from ndsl import DummyComm, Quantity, TileCommunicator, TilePartitioner
 from ndsl.constants import (
     HORIZONTAL_DIMS,
     X_DIM,
@@ -14,8 +13,6 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.quantity import Quantity
-from ndsl.testing import DummyComm
 
 
 try:

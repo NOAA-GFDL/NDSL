@@ -1,7 +1,13 @@
 import pytest
 
-from ndsl.comm.communicator import CubedSphereCommunicator
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from ndsl import (
+    CubedSphereCommunicator,
+    CubedSpherePartitioner,
+    DummyComm,
+    Quantity,
+    TilePartitioner,
+    Timer,
+)
 from ndsl.constants import (
     X_DIM,
     X_INTERFACE_DIM,
@@ -10,9 +16,6 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.performance.timer import Timer
-from ndsl.quantity import Quantity
-from ndsl.testing import DummyComm
 
 
 @pytest.fixture

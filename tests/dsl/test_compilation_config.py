@@ -3,9 +3,13 @@ from math import sqrt
 
 import pytest
 
-from ndsl.comm.communicator import CubedSphereCommunicator
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
-from ndsl.dsl.stencil import CompilationConfig, RunMode
+from ndsl import (
+    CompilationConfig,
+    CubedSphereCommunicator,
+    CubedSpherePartitioner,
+    RunMode,
+    TilePartitioner,
+)
 
 
 def test_safety_checks():

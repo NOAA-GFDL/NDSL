@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ndsl.checkpointer import (
+from ndsl.checkpointer.thresholds import (
     InsufficientTrialsError,
     Threshold,
     ThresholdCalibrationCheckpointer,

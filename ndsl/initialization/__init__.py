@@ -1,2 +1,2 @@
 from .allocator import QuantityFactory
-from .sizer import GridSizer, SubtileGridSizer
+from .sizer import SubtileGridSizer

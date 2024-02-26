@@ -3,8 +3,7 @@ import pytest
 
 from ndsl.comm.communicator import recv_buffer
 from ndsl.testing import ConcurrencyError, DummyComm
-
-from .mpi_comm import MPI
+from tests.mpi.mpi_comm import MPI
 
 
 worker_function_list = []

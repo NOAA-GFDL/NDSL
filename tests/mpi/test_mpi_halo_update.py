@@ -2,9 +2,13 @@ import copy
 
 import pytest
 
+from ndsl import (
+    CubedSphereCommunicator,
+    CubedSpherePartitioner,
+    Quantity,
+    TilePartitioner,
+)
 from ndsl.comm._boundary_utils import get_boundary_slice
-from ndsl.comm.communicator import CubedSphereCommunicator
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
@@ -22,9 +26,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.quantity import Quantity
-
-from .mpi_comm import MPI
+from tests.mpi.mpi_comm import MPI
 
 
 @pytest.fixture

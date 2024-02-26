@@ -11,6 +11,7 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.performance.report import (
     Report,
     TimeReport,
+    collect_data_and_write_to_file,
     collect_keys_from_data,
     gather_hit_counts,
     get_experiment_info,
@@ -18,8 +19,6 @@ from ndsl.performance.report import (
 )
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.utils import GPU_AVAILABLE
-
-from .report import collect_data_and_write_to_file
 
 
 class AbstractPerformanceCollector(Protocol):

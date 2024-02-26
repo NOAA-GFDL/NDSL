@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from ndsl.performance.timer import NullTimer, Timer
+from ndsl import NullTimer, Timer
 
 
 @pytest.fixture

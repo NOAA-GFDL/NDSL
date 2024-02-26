@@ -1,7 +1,5 @@
 from ndsl.comm.partitioner import TilePartitioner
-from ndsl.quantity import Quantity
-
-from .gnomonic import (
+from ndsl.grid.gnomonic import (
     get_lonlat_vect,
     get_unit_vector_direction,
     great_circle_distance_lon_lat,
@@ -10,6 +8,7 @@ from .gnomonic import (
     spherical_cos,
     xyz_midpoint,
 )
+from ndsl.quantity import Quantity
 
 
 def get_center_vector(

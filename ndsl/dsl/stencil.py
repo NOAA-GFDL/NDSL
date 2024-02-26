@@ -31,7 +31,7 @@ from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
-from ndsl.initialization import GridSizer, SubtileGridSizer
+from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
 from ndsl.quantity import Quantity
 
 

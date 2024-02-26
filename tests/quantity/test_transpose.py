@@ -1,5 +1,6 @@
 import pytest
 
+from ndsl import Quantity
 from ndsl.constants import (
     X_DIM,
     X_DIMS,
@@ -10,7 +11,6 @@ from ndsl.constants import (
     Z_DIM,
     Z_DIMS,
 )
-from ndsl.quantity import Quantity
 
 
 @pytest.fixture
