@@ -14,7 +14,7 @@ import ndsl.constants as constants
 from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
 from ndsl.filesystem import get_fs
 from ndsl.grid.generation import MetricTerms
-from ndsl.initialization import QuantityFactory
+from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
 
 

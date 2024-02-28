@@ -11,7 +11,7 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.comm.mpi import MPI
-from ndsl.dsl.dace import orchestrate
+from ndsl.dsl.dace.orchestration import orchestrate
 
 
 def _make_storage(

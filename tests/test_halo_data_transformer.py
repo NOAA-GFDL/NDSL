@@ -4,8 +4,13 @@ from typing import Tuple
 import numpy as np
 import pytest
 
-from ndsl import HaloDataTransformer, HaloExchangeSpec, Quantity, QuantityHaloSpec
-from ndsl.buffer import Buffer
+from ndsl import (
+    Buffer,
+    HaloDataTransformer,
+    HaloExchangeSpec,
+    Quantity,
+    QuantityHaloSpec,
+)
 from ndsl.comm import _boundary_utils
 from ndsl.constants import (
     EAST,

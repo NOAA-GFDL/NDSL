@@ -22,7 +22,6 @@ import numpy as np
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
-from ndsl import testing
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
@@ -33,6 +32,9 @@ from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
 from ndsl.quantity import Quantity
+
+# from ndsl import testing
+from ndsl.testing import comparison
 
 
 try:
@@ -68,7 +70,7 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
 
 
 def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label) -> str:
-    metric_err = testing.compare_arr(arg, numpy_arg)
+    metric_err = comparison.compare_arr(arg, numpy_arg)
     nans_match = np.logical_and(np.isnan(arg), np.isnan(numpy_arg))
     n_points = np.product(arg.shape)
     failures_14 = n_points - np.sum(
