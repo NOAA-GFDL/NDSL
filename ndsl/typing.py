@@ -5,18 +5,20 @@ import numpy as np
 
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, recv_buffer, send_buffer
+from ndsl.comm import boundary as bd
 from ndsl.comm.boundary import Boundary
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
 from ndsl.utils import device_synchronize
-from ndsl.comm import boundary as bd
+
 
 try:
     import cupy
 except ImportError:
     cupy = None
+
 
 def to_numpy(array, dtype=None) -> np.ndarray:
     """
@@ -40,10 +42,12 @@ def to_numpy(array, dtype=None) -> np.ndarray:
         output = output.astype(dtype=dtype)
     return output
 
+
 class Checkpointer(abc.ABC):
     @abc.abstractmethod
     def __call__(self, savepoint_name, **kwargs):
         ...
+
 
 class Communicator(abc.ABC):
     def __init__(
@@ -570,7 +574,8 @@ class Communicator(abc.ABC):
                 if boundary is not None:
                     self._boundaries[boundary_type] = boundary
         return self._boundaries
-    
+
+
 class Partitioner(abc.ABC):
     @abc.abstractmethod
     def __init__(self):
