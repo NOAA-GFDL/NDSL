@@ -5,8 +5,6 @@ from typing import List
 import numpy as np
 
 from ndsl import (
-    CachingCommReader,
-    CachingCommWriter,
     CubedSphereCommunicator,
     CubedSpherePartitioner,
     LocalComm,
@@ -14,6 +12,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
+from ndsl.comm import CachingCommReader, CachingCommWriter
 from ndsl.constants import X_DIM, Y_DIM
 
 

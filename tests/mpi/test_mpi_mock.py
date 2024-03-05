@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from ndsl import ConcurrencyError, DummyComm
-from ndsl.comm.communicator import recv_buffer
+from ndsl.buffer import recv_buffer
 from tests.mpi.mpi_comm import MPI
 
 

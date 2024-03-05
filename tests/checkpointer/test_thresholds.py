@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from ndsl import InsufficientTrialsError, Threshold, ThresholdCalibrationCheckpointer
+from ndsl.checkpointer import (
+    InsufficientTrialsError,
+    Threshold,
+    ThresholdCalibrationCheckpointer,
+)
 
 
 def test_thresholds_no_trials():

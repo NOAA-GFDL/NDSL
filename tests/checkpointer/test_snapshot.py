@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ndsl import SnapshotCheckpointer
+from ndsl.checkpointer import SnapshotCheckpointer
 from ndsl.optional_imports import xarray as xr
 
 

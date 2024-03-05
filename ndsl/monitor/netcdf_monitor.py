@@ -5,12 +5,12 @@ from typing import Any, Dict, List, Optional, Set
 import fsspec
 import numpy as np
 
-from ndsl.comm.communicator import Communicator
 from ndsl.filesystem import get_fs
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
 from ndsl.optional_imports import xarray as xr
 from ndsl.quantity import Quantity
+from ndsl.typing import Communicator
 
 
 class _TimeChunkedVariable:

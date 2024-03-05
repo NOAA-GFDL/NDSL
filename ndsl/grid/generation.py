@@ -5,7 +5,6 @@ from typing import Tuple
 
 import numpy as np
 
-from ndsl.comm.communicator import Communicator
 from ndsl.constants import (
     N_HALO_DEFAULT,
     PI,
@@ -59,6 +58,7 @@ from ndsl.stencils.corners import (
     fill_corners_cgrid,
     fill_corners_dgrid,
 )
+from ndsl.typing import Communicator
 
 
 # TODO: when every environment in python3.8, remove

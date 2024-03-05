@@ -1,4 +1,3 @@
-import abc
 import copy
 import functools
 from typing import Callable, List, Optional, Sequence, Tuple, TypeVar, Union, cast
@@ -18,6 +17,7 @@ from ndsl.constants import (
     WEST,
 )
 from ndsl.quantity import Quantity, QuantityMetadata
+from ndsl.typing import Partitioner
 from ndsl.utils import list_by_dims
 
 
@@ -52,83 +52,6 @@ def get_tile_number(tile_rank: int, total_ranks: int) -> int:
         raise ValueError(f"total_ranks {total_ranks} is not evenly divisible by 6")
     ranks_per_tile = total_ranks // 6
     return tile_rank // ranks_per_tile + 1
-
-
-class Partitioner(abc.ABC):
-    @abc.abstractmethod
-    def __init__(self):
-        self.tile = None
-        self.layout = None
-
-    @abc.abstractmethod
-    def boundary(self, boundary_type: int, rank: int) -> Optional[bd.SimpleBoundary]:
-        ...
-
-    @abc.abstractmethod
-    def tile_index(self, rank: int):
-        pass
-
-    @abc.abstractmethod
-    def global_extent(self, rank_metadata: QuantityMetadata) -> Tuple[int, ...]:
-        """Return the shape of a full tile representation for the given dimensions.
-
-        Args:
-            metadata: quantity metadata
-
-        Returns:
-            extent: shape of full tile representation
-        """
-        pass
-
-    @abc.abstractmethod
-    def subtile_slice(
-        self,
-        rank: int,
-        global_dims: Sequence[str],
-        global_extent: Sequence[int],
-        overlap: bool = False,
-    ) -> Tuple[Union[int, slice], ...]:
-        """Return the subtile slice of a given rank on an array.
-
-        Global refers to the domain being partitioned. For example, for a partitioning
-        of a tile, the tile would be the "global" domain.
-
-        Args:
-            rank: the rank of the process
-            global_dims: dimensions of the global quantity being partitioned
-            global_extent: extent of the global quantity being partitioned
-            overlap (optional): if True, for interface variables include the part
-                of the array shared by adjacent ranks in both ranks. If False, ensure
-                only one of those ranks (the greater rank) is assigned the overlapping
-                section. Default is False.
-
-        Returns:
-            subtile_slice: the slice of the global compute domain corresponding
-                to the subtile compute domain
-        """
-        pass
-
-    @abc.abstractmethod
-    def subtile_extent(
-        self,
-        global_metadata: QuantityMetadata,
-        rank: int,
-    ) -> Tuple[int, ...]:
-        """Return the shape of a single rank representation for the given dimensions.
-
-        Args:
-            global_metadata: quantity metadata.
-            rank: rank of the process.
-
-        Returns:
-            extent: shape of a single rank representation for the given dimensions.
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def total_ranks(self) -> int:
-        pass
 
 
 class TilePartitioner(Partitioner):

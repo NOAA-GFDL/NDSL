@@ -2,9 +2,9 @@ import collections
 
 import numpy as np
 
-from ndsl.checkpointer.base import Checkpointer
 from ndsl.optional_imports import cupy as cp
 from ndsl.optional_imports import xarray as xr
+from ndsl.typing import Checkpointer
 
 
 def make_dims(savepoint_dim, label, data_list):
