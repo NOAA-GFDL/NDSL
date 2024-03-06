@@ -70,7 +70,7 @@ if CONST_VERSION == ConstantVersions.GEOS:
     NQ = 9
 elif (
     CONST_VERSION == ConstantVersions.GFS
-    or ConstantVersions.SHiELD
+    or CONST_VERSION == ConstantVersions.SHiELD
     or CONST_VERSION == ConstantVersions.GFDL
 ):
     NQ = 8
@@ -94,7 +94,10 @@ if CONST_VERSION == ConstantVersions.GEOS:
     CP_AIR = RDGAS / KAPPA
     TFREEZE = 273.15
     SAT_ADJUST_THRESHOLD = 1.0e-6
-elif CONST_VERSION == ConstantVersions.GFS or ConstantVersions.SHiELD:
+elif (
+    CONST_VERSION == ConstantVersions.GFS 
+    or CONST_VERSION == ConstantVersions.SHiELD
+):
     RADIUS = 6.3712e6  # Radius of the Earth [m]
     PI = 3.1415926535897931
     OMEGA = 7.2921e-5  # Rotation of the earth
