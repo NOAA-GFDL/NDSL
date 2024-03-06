@@ -10,7 +10,6 @@ from ndsl import (
     HaloUpdater,
     OutOfBoundsError,
     Quantity,
-    QuantityHaloSpec,
     TileCommunicator,
     TilePartitioner,
     Timer,
@@ -34,6 +33,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
+from ndsl.quantity import QuantityHaloSpec
 
 
 @pytest.fixture

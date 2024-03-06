@@ -5,6 +5,7 @@ from typing import MutableMapping, Tuple
 
 import numpy as np
 
+from ndsl.checkpointer.base import Checkpointer
 from ndsl.checkpointer.thresholds import (
     ArrayLike,
     SavepointName,
@@ -12,7 +13,6 @@ from ndsl.checkpointer.thresholds import (
     cast_to_ndarray,
 )
 from ndsl.optional_imports import xarray as xr
-from ndsl.typing import Checkpointer
 
 
 def _clip_pace_array_to_target(

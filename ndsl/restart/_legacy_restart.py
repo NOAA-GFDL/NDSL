@@ -5,11 +5,11 @@ from typing import BinaryIO, Generator, Iterable
 import ndsl.constants as constants
 import ndsl.filesystem as filesystem
 import ndsl.io as io
+from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import get_tile_index
 from ndsl.optional_imports import xarray as xr
 from ndsl.quantity import Quantity
 from ndsl.restart._properties import RESTART_PROPERTIES, RestartProperties
-from ndsl.typing import Communicator
 
 
 __all__ = ["open_restart"]

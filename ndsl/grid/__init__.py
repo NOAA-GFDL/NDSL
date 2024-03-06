@@ -1,5 +1,5 @@
 from .eta import HybridPressureCoefficients
-from .generation import GridDefinition, GridDefinitions, MetricTerms
+from .generation import GridDefinitions, MetricTerms
 from .helper import (
     AngleGridData,
     ContravariantGridData,

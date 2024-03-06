@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 
-from ndsl import ConcurrencyError, DummyComm
+from ndsl import DummyComm
 from ndsl.buffer import recv_buffer
+from ndsl.typing import ConcurrencyError
 from tests.mpi.mpi_comm import MPI
 
 

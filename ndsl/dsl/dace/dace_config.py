@@ -6,12 +6,13 @@ import dace.config
 from dace.codegen.compiled_sdfg import CompiledSDFG
 from dace.frontend.python.parser import DaceProgram
 
+from ndsl.comm.communicator import Communicator
+from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.gt4py_utils import is_gpu_backend
 from ndsl.dsl.typing import floating_point_precision
 from ndsl.optional_imports import cupy as cp
-from ndsl.typing import Communicator, Partitioner
 
 
 # This can be turned on to revert compilation for orchestration
