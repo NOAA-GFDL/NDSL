@@ -5,3 +5,6 @@
 	path = external/dace
 	url = https://github.com/spcl/dace.git
 
+[submodule "external/FMS"]
+	path = external/FMS
+	url = https://github.com/NOAA-GFDL/FMS.git
