@@ -1,5 +1,5 @@
 from .null import NullCheckpointer
-from .snapshots import SnapshotCheckpointer, _Snapshots
+from .snapshots import SnapshotCheckpointer
 from .thresholds import (
     InsufficientTrialsError,
     SavepointThresholds,

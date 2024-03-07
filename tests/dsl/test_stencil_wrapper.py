@@ -285,14 +285,14 @@ def test_backend_options(
             "backend": "numpy",
             "rebuild": True,
             "format_source": False,
-            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
+            "name": "test_stencil_wrapper.copy_stencil",
         },
         "cuda": {
             "backend": "cuda",
             "rebuild": True,
             "device_sync": False,
             "format_source": False,
-            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
+            "name": "test_stencil_wrapper.copy_stencil",
         },
     }
 

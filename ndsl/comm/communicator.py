@@ -54,7 +54,7 @@ class Communicator(abc.ABC):
         self.timer: Timer = timer if timer is not None else NullTimer()
 
     @abc.abstractproperty
-    def tile(self):
+    def tile(self) -> "TileCommunicator":
         pass
 
     @classmethod
