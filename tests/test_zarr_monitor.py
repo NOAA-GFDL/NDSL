@@ -12,13 +12,7 @@ from datetime import datetime, timedelta
 import cftime
 import pytest
 
-from ndsl import (
-    CubedSpherePartitioner,
-    DummyComm,
-    Quantity,
-    TilePartitioner,
-    ZarrMonitor,
-)
+from ndsl import CubedSpherePartitioner, DummyComm, Quantity, TilePartitioner
 from ndsl.constants import (
     X_DIM,
     X_DIMS,
@@ -28,7 +22,7 @@ from ndsl.constants import (
     Y_INTERFACE_DIM,
     Z_DIM,
 )
-from ndsl.monitor.zarr_monitor import array_chunks, get_calendar
+from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
 from ndsl.optional_imports import xarray as xr
 
 

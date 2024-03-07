@@ -6,7 +6,6 @@ from ndsl import (
     DummyComm,
     Quantity,
     TilePartitioner,
-    Timer,
 )
 from ndsl.constants import (
     X_DIM,
@@ -16,6 +15,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
+from ndsl.performance import Timer
 
 
 @pytest.fixture

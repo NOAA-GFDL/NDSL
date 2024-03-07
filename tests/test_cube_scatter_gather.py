@@ -9,7 +9,6 @@ from ndsl import (
     DummyComm,
     Quantity,
     TilePartitioner,
-    Timer,
 )
 from ndsl.constants import (
     HORIZONTAL_DIMS,
@@ -21,6 +20,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
+from ndsl.performance import Timer
 
 
 try:

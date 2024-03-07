@@ -12,7 +12,6 @@ from ndsl import (
     Quantity,
     TileCommunicator,
     TilePartitioner,
-    Timer,
 )
 from ndsl.buffer import BUFFER_CACHE
 from ndsl.comm._boundary_utils import get_boundary_slice
@@ -33,6 +32,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
+from ndsl.performance import Timer
 from ndsl.quantity import QuantityHaloSpec
 
 
