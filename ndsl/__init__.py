@@ -22,6 +22,7 @@ from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpd
 from .initialization.allocator import QuantityFactory
 from .initialization.sizer import GridSizer, SubtileGridSizer
 from .logging import ndsl_log
+from .monitor.netcdf_monitor import NetCDFMonitor
 from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler

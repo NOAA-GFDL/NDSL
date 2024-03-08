@@ -10,10 +10,10 @@ from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
     DummyComm,
+    NetCDFMonitor,
     Quantity,
     TilePartitioner,
 )
-from ndsl.monitor import NetCDFMonitor
 from ndsl.optional_imports import xarray as xr
 
 
