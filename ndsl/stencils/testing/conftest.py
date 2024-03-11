@@ -17,8 +17,9 @@ from ndsl.comm.mpi import MPI
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.namelist import Namelist
-from ndsl.stencils.testing import ParallelTranslate, TranslateGrid
+from ndsl.stencils.testing.parallel_translate import ParallelTranslate
 from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
+from ndsl.stencils.testing.translate import TranslateGrid
 
 
 @pytest.fixture()

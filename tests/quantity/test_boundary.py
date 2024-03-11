@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from ndsl import Quantity
 from ndsl.comm._boundary_utils import _shift_boundary_slice, get_boundary_slice
 from ndsl.constants import (
     EAST,
@@ -12,7 +13,6 @@ from ndsl.constants import (
     Y_DIM,
     Z_DIM,
 )
-from ndsl.quantity import Quantity
 
 
 def boundary_data(quantity, boundary_type, n_points, interior=True):

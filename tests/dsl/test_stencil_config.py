@@ -1,7 +1,6 @@
 import pytest
 
-from ndsl.dsl.dace.dace_config import DaceConfig
-from ndsl.dsl.stencil import CompilationConfig, StencilConfig
+from ndsl import CompilationConfig, DaceConfig, StencilConfig
 
 
 @pytest.mark.parametrize("validate_args", [True, False])
