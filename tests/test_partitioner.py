@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
+from ndsl import CubedSpherePartitioner, Quantity, TilePartitioner
 from ndsl.comm.partitioner import (
-    CubedSpherePartitioner,
-    TilePartitioner,
     _subtile_extents_from_tile_metadata,
     get_tile_index,
     get_tile_number,
@@ -18,7 +17,6 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.quantity import Quantity
 
 
 rank_list = []

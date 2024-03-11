@@ -6,12 +6,17 @@ import numpy as np
 import pytest
 from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
-from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
+from ndsl import (
+    CompilationConfig,
+    DaceConfig,
+    DaCeOrchestration,
+    FrozenStencil,
+    Quantity,
+    StencilConfig,
+)
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
-from ndsl.dsl.stencil import FrozenStencil, _convert_quantities_to_storage
-from ndsl.dsl.stencil_config import CompilationConfig, StencilConfig
+from ndsl.dsl.stencil import _convert_quantities_to_storage
 from ndsl.dsl.typing import Float, FloatField
-from ndsl.quantity import Quantity
 
 
 def get_stencil_config(

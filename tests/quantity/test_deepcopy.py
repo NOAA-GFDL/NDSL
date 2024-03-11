@@ -3,7 +3,7 @@ import dataclasses
 
 import numpy as np
 
-from ndsl.quantity import Quantity
+from ndsl import Quantity
 
 
 def test_deepcopy_copy_is_editable_by_view():
