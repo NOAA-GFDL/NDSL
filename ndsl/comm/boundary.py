@@ -1,8 +1,8 @@
 import dataclasses
 from typing import Tuple
 
-from ..quantity import Quantity, QuantityHaloSpec
-from ._boundary_utils import get_boundary_slice
+from ndsl.comm._boundary_utils import get_boundary_slice
+from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
 @dataclasses.dataclass

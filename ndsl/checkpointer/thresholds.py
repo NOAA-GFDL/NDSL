@@ -5,8 +5,8 @@ from typing import Dict, List, Mapping, Union
 
 import numpy as np
 
-from ..quantity import Quantity
-from .base import Checkpointer
+from ndsl.checkpointer.base import Checkpointer
+from ndsl.quantity import Quantity
 
 
 try:

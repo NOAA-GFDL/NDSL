@@ -6,12 +6,15 @@ import cftime
 import numpy as np
 import pytest
 
-from ndsl.comm.communicator import CubedSphereCommunicator
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
-from ndsl.monitor import NetCDFMonitor
+from ndsl import (
+    CubedSphereCommunicator,
+    CubedSpherePartitioner,
+    DummyComm,
+    NetCDFMonitor,
+    Quantity,
+    TilePartitioner,
+)
 from ndsl.optional_imports import xarray as xr
-from ndsl.quantity import Quantity
-from ndsl.testing import DummyComm
 
 
 requires_xarray = pytest.mark.skipif(xr is None, reason="xarray is not installed")

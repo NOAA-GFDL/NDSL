@@ -22,6 +22,7 @@ requirements: List[str] = [
     "mpi4py",
     "cftime",
     "xarray",
+    "f90nml>=1.1.0",
     "fsspec",
     "netcdf4",
     "scipy",  # restart capacities only
