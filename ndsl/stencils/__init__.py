@@ -1,4 +1,3 @@
-from .c2l_ord import CubedToLatLon
 from .corners import CopyCorners, CopyCornersXY, FillCornersBGrid
 
 
