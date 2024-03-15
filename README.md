@@ -24,3 +24,32 @@ Tests are available via:
 
 - `pytest -x test`: running CPU serial tests (GPU as well if `cupy` is installed)
 - `mpirun -np 6 pytest -x test/mpi`: running CPU parallel tests (GPU as well if `cupy` is installed)
+
+## Requirements & supported compilers
+
+For CPU backends:
+
+- 3.11.x >= Python < 3.12.x
+- Compilers:
+  - GNU 11.2+
+- Libraries:
+  - Boost headers 1.76+ (no lib installed, just headers)
+
+For GPU backends (the above plus):
+
+- CUDA 11.2+
+- Python package:
+  - `cupy` (latest with proper driver support [see install notes](https://docs.cupy.dev/en/stable/install.html))
+- Libraries:
+  - MPI compiled with cuda support
+
+## Development
+
+TBD: Code/contribution guideline
+
+TBD: Documentation
+
+Point of Contacts:
+
+- NOAA: Rusty Benson: rusty.benson -at- noaa.gov
+- NASA: Florian Deconinck florian.g.deconinck -at- nasa.gov
