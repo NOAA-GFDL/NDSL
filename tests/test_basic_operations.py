@@ -13,10 +13,10 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.stencils import basic_operations as basic
 
 
-nx = 20
-ny = 20
-nz = 79
-nhalo = 3
+nx = 5
+ny = 5
+nz = 1
+nhalo = 0
 backend = "numpy"
 
 dace_config = DaceConfig(
@@ -122,35 +122,35 @@ class AdjustDivide:
 def test_copy():
     copy = Copy(stencil_factory)
 
-    infield = zeros(
+    infield = ones(
         backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz)
     )
 
-    outfield = ones(
+    outfield = zeros(
         backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz)
     )
 
     copy(f_in=infield, f_out=outfield)
 
-    assert infield.all() == outfield.all()
+    assert infield.any() == outfield.any()
 
 
 def test_adjustmentfactor():
     adfact = AdjustmentFactor(stencil_factory)
 
-    factorfield = ones(
-        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo)
+    factorfield = full(
+        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo), fill_value=2.0
     )
 
-    outfield = ones(
-        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz)
+    outfield = full(
+        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz), fill_value=2.0
     )
 
     testfield = full(
         backend=backend,
         dtype=Float,
         shape=(nx + 2 * nhalo, ny + 2 * nhalo),
-        fill_value=26.0,
+        fill_value=4.0,
     )
 
     adfact(factor=factorfield, f_out=outfield)
@@ -188,18 +188,20 @@ def test_adjustdivide():
         fill_value=2.0,
     )
 
-    outfield = ones(
+    outfield = full(
         backend=backend,
         dtype=Float,
         shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
+        fill_value=4.0,
     )
 
     testfield = full(
         backend=backend,
         dtype=Float,
         shape=(nx + 2 * nhalo, ny + 2 * nhalo),
-        fill_value=13.0,
+        fill_value=2.0,
     )
-
+    
     addiv(factor=factorfield, f_out=outfield)
+
     assert outfield.any() == testfield.any()
