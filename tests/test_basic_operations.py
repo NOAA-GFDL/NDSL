@@ -139,11 +139,17 @@ def test_adjustmentfactor():
     adfact = AdjustmentFactor(stencil_factory)
 
     factorfield = full(
-        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo), fill_value=2.0
+        backend=backend,
+        dtype=Float,
+        shape=(nx + 2 * nhalo, ny + 2 * nhalo),
+        fill_value=2.0,
     )
 
     outfield = full(
-        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz), fill_value=2.0
+        backend=backend,
+        dtype=Float,
+        shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
+        fill_value=2.0,
     )
 
     testfield = full(
@@ -201,7 +207,7 @@ def test_adjustdivide():
         shape=(nx + 2 * nhalo, ny + 2 * nhalo),
         fill_value=2.0,
     )
-    
+
     addiv(factor=factorfield, f_out=outfield)
 
     assert outfield.any() == testfield.any()
