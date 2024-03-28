@@ -1,14 +1,16 @@
-from gt4py.storage import full, ones, zeros
+import numpy as np
 
 from ndsl import (
     CompilationConfig,
     DaceConfig,
     DaCeOrchestration,
     GridIndexing,
+    Quantity,
     RunMode,
     StencilConfig,
     StencilFactory,
 )
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.stencils import basic_operations as basic
 
@@ -122,92 +124,89 @@ class AdjustDivide:
 def test_copy():
     copy = Copy(stencil_factory)
 
-    infield = ones(
-        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz)
+    infield = Quantity(
+        data=np.zeros([5, 5, 1]),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    outfield = zeros(
-        backend=backend, dtype=Float, shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz)
+    outfield = Quantity(
+        data=np.ones([5, 5, 1]),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    copy(f_in=infield, f_out=outfield)
+    copy(f_in=infield.data, f_out=outfield.data)
 
-    assert infield.any() == outfield.any()
+    assert infield.data.any() == outfield.data.any()
 
 
 def test_adjustmentfactor():
     adfact = AdjustmentFactor(stencil_factory)
 
-    factorfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo),
-        fill_value=2.0,
+    factorfield = Quantity(
+        data=np.full(shape=[5, 5], fill_value=2.0),
+        dims=[X_DIM, Y_DIM],
+        units="m",
     )
 
-    outfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
-        fill_value=2.0,
+    outfield = Quantity(
+        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    testfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo),
-        fill_value=4.0,
+    testfield = Quantity(
+        data=np.full(shape=[5, 5, 1], fill_value=4.0),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    adfact(factor=factorfield, f_out=outfield)
-    assert outfield.any() == testfield.any()
+    adfact(factor=factorfield.data, f_out=outfield.data)
+    assert outfield.data.any() == testfield.data.any()
 
 
 def test_setvalue():
     setvalue = SetValue(stencil_factory)
 
-    outfield = zeros(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
+    outfield = Quantity(
+        data=np.zeros(shape=[5, 5, 1]),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    testfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
-        fill_value=2.0,
+    testfield = Quantity(
+        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    setvalue(f_out=outfield, value=2.0)
+    setvalue(f_out=outfield.data, value=2.0)
 
-    assert outfield.any() == testfield.any()
+    assert outfield.data.any() == testfield.data.any()
 
 
 def test_adjustdivide():
     addiv = AdjustDivide(stencil_factory)
 
-    factorfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
-        fill_value=2.0,
+    factorfield = Quantity(
+        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    outfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo, nz),
-        fill_value=4.0,
+    outfield = Quantity(
+        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    testfield = full(
-        backend=backend,
-        dtype=Float,
-        shape=(nx + 2 * nhalo, ny + 2 * nhalo),
-        fill_value=2.0,
+    testfield = Quantity(
+        data=np.full(shape=[5, 5, 1], fill_value=1.0),
+        dims=[X_DIM, Y_DIM, Z_DIM],
+        units="m",
     )
 
-    addiv(factor=factorfield, f_out=outfield)
+    addiv(factor=factorfield.data, f_out=outfield.data)
 
-    assert outfield.any() == testfield.any()
+    assert outfield.data.any() == testfield.data.any()
