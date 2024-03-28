@@ -4,14 +4,13 @@ from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 import numpy as np
 
 import ndsl.constants as constants
-from ndsl.buffer import array_buffer, recv_buffer, send_buffer
+from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
 from ndsl.comm.boundary import Boundary
 from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
-from ndsl.utils import device_synchronize
 
 
 try:
@@ -41,21 +40,6 @@ def to_numpy(array, dtype=None) -> np.ndarray:
     if dtype:
         output = output.astype(dtype=dtype)
     return output
-
-
-def bcast_metadata_list(comm, quantity_list):
-    is_root = comm.Get_rank() == constants.ROOT_RANK
-    if is_root:
-        metadata_list = []
-        for quantity in quantity_list:
-            metadata_list.append(quantity.metadata)
-    else:
-        metadata_list = None
-    return comm.bcast(metadata_list, root=constants.ROOT_RANK)
-
-
-def bcast_metadata(comm, array):
-    return bcast_metadata_list(comm, [array])[0]
 
 
 class Communicator(abc.ABC):
@@ -583,6 +567,21 @@ class Communicator(abc.ABC):
                 if boundary is not None:
                     self._boundaries[boundary_type] = boundary
         return self._boundaries
+
+
+def bcast_metadata_list(comm, quantity_list):
+    is_root = comm.Get_rank() == constants.ROOT_RANK
+    if is_root:
+        metadata_list = []
+        for quantity in quantity_list:
+            metadata_list.append(quantity.metadata)
+    else:
+        metadata_list = None
+    return comm.bcast(metadata_list, root=constants.ROOT_RANK)
+
+
+def bcast_metadata(comm, array):
+    return bcast_metadata_list(comm, [array])[0]
 
 
 class TileCommunicator(Communicator):

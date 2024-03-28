@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import ndsl.quantity as qty
-from ndsl.quantity import Quantity
+from ndsl import Quantity
 
 
 try:

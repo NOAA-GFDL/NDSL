@@ -8,13 +8,13 @@ from ndsl.constants import N_HALO_DEFAULT, X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import Float
-from ndsl.grid import (
+from ndsl.grid.generation import GridDefinitions
+from ndsl.grid.helper import (
     AngleGridData,
     ContravariantGridData,
     DampingCoefficients,
     DriverGridData,
     GridData,
-    GridDefinitions,
     HorizontalGridData,
     MetricTerms,
     VerticalGridData,

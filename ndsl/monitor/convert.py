@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..optional_imports import cupy
+from ndsl.optional_imports import cupy
 
 
 def to_numpy(array, dtype=None) -> np.ndarray:

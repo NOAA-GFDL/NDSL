@@ -2,17 +2,17 @@ import numpy as np
 import pytest
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.dace_config import DaceConfig
-from ndsl.dsl.gt4py_utils import make_storage_from_shape
-from ndsl.dsl.stencil import (
-    CompareToNumpyStencil,
+from ndsl import (
+    CompilationConfig,
+    DaceConfig,
     FrozenStencil,
     GridIndexing,
+    StencilConfig,
     StencilFactory,
-    get_stencils_with_varied_bounds,
 )
-from ndsl.dsl.stencil_config import CompilationConfig, StencilConfig
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py_utils import make_storage_from_shape
+from ndsl.dsl.stencil import CompareToNumpyStencil, get_stencils_with_varied_bounds
 from ndsl.dsl.typing import FloatField
 
 

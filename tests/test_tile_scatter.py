@@ -1,10 +1,7 @@
 import pytest
 
-from ndsl.comm.communicator import TileCommunicator
-from ndsl.comm.partitioner import TilePartitioner
+from ndsl import DummyComm, Quantity, TileCommunicator, TilePartitioner
 from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM
-from ndsl.quantity import Quantity
-from ndsl.testing import DummyComm
 
 
 def rank_scatter_results(communicator_list, quantity):

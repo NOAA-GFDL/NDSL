@@ -21,17 +21,7 @@ from ndsl.dsl.gt4py_utils import asarray
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import Float
 from ndsl.grid import eta
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
-from ndsl.quantity import Quantity
-from ndsl.stencils.corners import (
-    fill_corners_2d,
-    fill_corners_agrid,
-    fill_corners_cgrid,
-    fill_corners_dgrid,
-)
-
-from .geometry import (
+from ndsl.grid.geometry import (
     calc_unit_vector_south,
     calc_unit_vector_west,
     calculate_divg_del6,
@@ -47,7 +37,7 @@ from .geometry import (
     supergrid_corner_fix,
     unit_vector_lonlat,
 )
-from .gnomonic import (
+from ndsl.grid.gnomonic import (
     get_area,
     great_circle_distance_along_axis,
     local_gnomonic_ed,
@@ -59,7 +49,16 @@ from .gnomonic import (
     set_tile_border_dxc,
     set_tile_border_dyc,
 )
-from .mirror import mirror_grid
+from ndsl.grid.mirror import mirror_grid
+from ndsl.initialization.allocator import QuantityFactory
+from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.quantity import Quantity
+from ndsl.stencils.corners import (
+    fill_corners_2d,
+    fill_corners_agrid,
+    fill_corners_cgrid,
+    fill_corners_dgrid,
+)
 
 
 # TODO: when every environment in python3.8, remove

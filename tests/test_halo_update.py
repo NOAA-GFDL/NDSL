@@ -3,10 +3,18 @@ from typing import Any, Dict
 
 import pytest
 
+from ndsl import (
+    CubedSphereCommunicator,
+    CubedSpherePartitioner,
+    DummyComm,
+    HaloUpdater,
+    OutOfBoundsError,
+    Quantity,
+    TileCommunicator,
+    TilePartitioner,
+)
 from ndsl.buffer import BUFFER_CACHE
 from ndsl.comm._boundary_utils import get_boundary_slice
-from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
@@ -24,11 +32,8 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.exceptions import OutOfBoundsError
-from ndsl.halo.updater import HaloUpdater
-from ndsl.performance.timer import Timer
-from ndsl.quantity import Quantity, QuantityHaloSpec
-from ndsl.testing import DummyComm
+from ndsl.performance import Timer
+from ndsl.quantity import QuantityHaloSpec
 
 
 @pytest.fixture

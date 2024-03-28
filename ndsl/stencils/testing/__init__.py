@@ -1,9 +1,10 @@
-from . import parallel_translate, translate
+from .grid import Grid  # type: ignore
 from .parallel_translate import (
     ParallelTranslate,
     ParallelTranslate2Py,
     ParallelTranslate2PyState,
     ParallelTranslateBaseSlicing,
+    ParallelTranslateGrid,
 )
 from .savepoint import SavepointCase, Translate, dataset_to_dict
 from .temporaries import assert_same_temporaries, copy_temporaries

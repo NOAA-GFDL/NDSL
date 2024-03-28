@@ -1,6 +1,9 @@
-from ndsl.comm.communicator import CubedSphereCommunicator
-from ndsl.comm.null_comm import NullComm
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from ndsl import (
+    CubedSphereCommunicator,
+    CubedSpherePartitioner,
+    NullComm,
+    TilePartitioner,
+)
 
 
 def test_can_create_cube_communicator():
