@@ -138,7 +138,7 @@ def test_copy():
 
     copy(f_in=infield.data, f_out=outfield.data)
 
-    assert (infield.data == outfield.data).any()
+    assert (infield.data == outfield.data).all()
 
 
 def test_adjustmentfactor():
@@ -163,7 +163,7 @@ def test_adjustmentfactor():
     )
 
     adfact(factor=factorfield.data, f_out=outfield.data)
-    assert (outfield.data == testfield.data).any()
+    assert (outfield.data == testfield.data).all()
 
 
 def test_setvalue():
@@ -183,7 +183,7 @@ def test_setvalue():
 
     setvalue(f_out=outfield.data, value=2.0)
 
-    assert (outfield.data == testfield.data).any()
+    assert (outfield.data == testfield.data).all()
 
 
 def test_adjustdivide():
@@ -209,4 +209,4 @@ def test_adjustdivide():
 
     addiv(factor=factorfield.data, f_out=outfield.data)
 
-    assert (outfield.data == testfield.data).any()
+    assert (outfield.data == testfield.data).all()
