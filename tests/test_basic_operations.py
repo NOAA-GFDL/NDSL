@@ -15,9 +15,9 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.stencils import basic_operations as basic
 
 
-nx = 5
-ny = 5
-nz = 1
+nx = 20
+ny = 20
+nz = 79
 nhalo = 0
 backend = "numpy"
 
@@ -125,88 +125,88 @@ def test_copy():
     copy = Copy(stencil_factory)
 
     infield = Quantity(
-        data=np.zeros([5, 5, 1]),
+        data=np.zeros([20, 20, 79]),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     outfield = Quantity(
-        data=np.ones([5, 5, 1]),
+        data=np.ones([20, 20, 79]),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     copy(f_in=infield.data, f_out=outfield.data)
 
-    assert infield.data.any() == outfield.data.any()
+    assert (infield.data == outfield.data).any()
 
 
 def test_adjustmentfactor():
     adfact = AdjustmentFactor(stencil_factory)
 
     factorfield = Quantity(
-        data=np.full(shape=[5, 5], fill_value=2.0),
+        data=np.full(shape=[20, 20], fill_value=2.0),
         dims=[X_DIM, Y_DIM],
         units="m",
     )
 
     outfield = Quantity(
-        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     testfield = Quantity(
-        data=np.full(shape=[5, 5, 1], fill_value=4.0),
+        data=np.full(shape=[20, 20, 79], fill_value=4.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     adfact(factor=factorfield.data, f_out=outfield.data)
-    assert outfield.data.any() == testfield.data.any()
+    assert (outfield.data == testfield.data).any()
 
 
 def test_setvalue():
     setvalue = SetValue(stencil_factory)
 
     outfield = Quantity(
-        data=np.zeros(shape=[5, 5, 1]),
+        data=np.zeros(shape=[20, 20, 79]),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     testfield = Quantity(
-        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     setvalue(f_out=outfield.data, value=2.0)
 
-    assert outfield.data.any() == testfield.data.any()
+    assert (outfield.data == testfield.data).any()
 
 
 def test_adjustdivide():
     addiv = AdjustDivide(stencil_factory)
 
     factorfield = Quantity(
-        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     outfield = Quantity(
-        data=np.full(shape=[5, 5, 1], fill_value=2.0),
+        data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     testfield = Quantity(
-        data=np.full(shape=[5, 5, 1], fill_value=1.0),
+        data=np.full(shape=[20, 20, 79], fill_value=1.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
     )
 
     addiv(factor=factorfield.data, f_out=outfield.data)
 
-    assert outfield.data.any() == testfield.data.any()
+    assert (outfield.data == testfield.data).any()
