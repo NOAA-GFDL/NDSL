@@ -61,9 +61,10 @@ def mpp_array_global_min_max(
 
     Modified by Niki.Zadeh@noaa.gov (Feb. 2009)
     """
+    doubleptr = ct.POINTER(ct.c_double)
     lib_fms.mpp_array_global_min_max(
-        ct.byref(in_array),
-        ct.byref(tmask),
+        in_array.ct.data_as(doubleptr),
+        tmask.ct.data_as(doubleptr),
         ct.byref(isd),
         ct.byref(jsd),
         ct.byref(isc),
@@ -73,9 +74,9 @@ def mpp_array_global_min_max(
         ct.byref(nk),
         ct.byref(g_min),
         ct.byref(g_max),
-        ct.byref(geo_x),
-        ct.byref(geo_y),
-        ct.byref(geo_z),
+        geo_x.ct.data_as(doubleptr),
+        geo_y.ct.data_as(doubleptr),
+        geo_z.ct.data_as(doubleptr),
         ct.byref(xgmin),
         ct.byref(ygmin),
         ct.byref(zgmin),
