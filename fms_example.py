@@ -1,10 +1,13 @@
 import ctypes as ct
+
 import numpy as np
+
 import pyFMS
 
-lib_fms =  ct.cdll.LoadLibrary('./pyFMS/libs/libpyFMS.so')
 
-pyFMS.fms_init(lib_fms=lib_fms, local_comm=-999, alt_input_nml_path='None')
+lib_fms = ct.cdll.LoadLibrary("./pyFMS/libs/libpyFMS.so")
+
+pyFMS.fms_init(lib_fms=lib_fms, local_comm=-999, alt_input_nml_path="None")
 
 
 isd = ct.c_int(5)
@@ -13,13 +16,13 @@ isc = ct.c_int(0)
 iec = ct.c_int(5)
 jsc = ct.c_int(0)
 jec = ct.c_int(5)
-in_array = np.array(np.random.rand(iec,jec,5), dtype=ct.c_double)
-tmask = np.array(np.random.rand(iec,jec,5), dtype=ct.c_double)
+in_array = np.array(np.random.rand(iec, jec, 5), dtype=ct.c_double)
+tmask = np.array(np.random.rand(iec, jec, 5), dtype=ct.c_double)
 nk = ct.c_int(0)
 g_min = ct.c_double()
 g_max = ct.c_double()
-geo_x = np.array(np.random.rand(iec,jec), dtype=ct.c_double)
-geo_y = np.array(np.random.rand(iec,jec), dtype=ct.c_double)
+geo_x = np.array(np.random.rand(iec, jec), dtype=ct.c_double)
+geo_y = np.array(np.random.rand(iec, jec), dtype=ct.c_double)
 geo_z = np.array(np.random.rand(iec), dtype=ct.c_double)
 xgmin = ct.c_double()
 ygmin = ct.c_double()
@@ -51,7 +54,3 @@ pyFMS.mpp_array_global_min_max(
     ygmax,
     zgmax,
 )
-
-
-
-

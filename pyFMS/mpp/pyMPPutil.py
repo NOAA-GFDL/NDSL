@@ -2,27 +2,27 @@ import ctypes as ct
 
 
 def mpp_array_global_min_max(
-        lib_fms,
-        in_array,
-        tmask,
-        isd,
-        jsd,
-        isc,
-        iec,
-        jsc,
-        jec,
-        nk,
-        g_min,
-        g_max,
-        geo_x,
-        geo_y,
-        geo_z,
-        xgmin,
-        ygmin,
-        zgmin,
-        xgmax,
-        ygmax,
-        zgmax,
+    lib_fms,
+    in_array,
+    tmask,
+    isd,
+    jsd,
+    isc,
+    iec,
+    jsc,
+    jec,
+    nk,
+    g_min,
+    g_max,
+    geo_x,
+    geo_y,
+    geo_z,
+    xgmin,
+    ygmin,
+    zgmin,
+    xgmax,
+    ygmax,
+    zgmax,
 ):
     """
     Compute and return the global min and max of an array
@@ -33,8 +33,8 @@ def mpp_array_global_min_max(
 
     Arguments:
         lib_fms: shared object library containing FMS c-binded modules, routines, and functions
-        in_array: 
-        tmask: 
+        in_array:
+        tmask:
         isd:
         jsd:
         isc:
