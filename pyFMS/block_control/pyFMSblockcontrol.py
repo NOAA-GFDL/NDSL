@@ -4,10 +4,60 @@ import ctypes as ct
 # TODO: Structural non-functional code
 
 
+class ix_type(ct.Structure):
+
+    _fields_ = ["ix", (ct.POINTER(ct.c_int) * 32) * 2]
+
+
+class pk_type(ct.Structure):
+
+    _fields_ = ["ii", ct.POINTER(ct.c_int) * 32, "jj", ct.POINTER(ct.c_int) * 32]
+
+
+class block_control_type(ct.Structure):
+
+    _fields_ = [
+        "nx_block",
+        ct.c_int,
+        "ny_block",
+        ct.c_int,
+        "nbliks",
+        ct.c_int,
+        "isc",
+        ct.c_int,
+        "iec",
+        ct.c_int,
+        "jsc",
+        ct.c_int,
+        "jec",
+        ct.c_int,
+        "npz",
+        ct.c_int,
+        "ibs",
+        ct.POINTER(ct.c_int) * 32,
+        "ibe",
+        ct.POINTER(ct.c_int) * 32,
+        "jbs",
+        ct.POINTER(ct.c_int) * 32,
+        "jbe",
+        ct.POINTER(ct.c_int) * 32,
+        "ix",
+        ix_type,
+        "blksz",
+        ct.POINTER(ct.c_int) * 32,
+        "blkno",
+        (ct.POINTER(ct.c_int) * 32) * 2,
+        "ixp",
+        (ct.POINTER(ct.c_int) * 32) * 2,
+        "index",
+        pk_type,
+    ]
+
+
 def define_blocks(
     lib_fms,
-    component,
-    Block,
+    component: str,
+    Block: block_control_type,
     isc: ct.c_int,
     iec: ct.c_int,
     jsc: ct.c_int,
@@ -24,7 +74,7 @@ def define_blocks(
 
     lib_fms.define_blocks(
         component,
-        Block,
+        ct.byref(Block),
         ct.byref(isc),
         ct.byref(iec),
         ct.byref(jsc),
@@ -32,14 +82,14 @@ def define_blocks(
         ct.byref(kpts),
         ct.byref(nx_block),
         ct.byref(ny_block),
-        message,
+        ct.byref(message),
     )
 
 
 def define_blocks_packed(
     lib_fms,
-    component,
-    Block,
+    component: str,
+    Block: block_control_type,
     isc: ct.c_int,
     iec: ct.c_int,
     jsc: ct.c_int,
@@ -56,12 +106,12 @@ def define_blocks_packed(
 
     lib_fms.define_blocks_packed(
         component,
-        Block,
+        ct.byref(Block),
         ct.byref(isc),
         ct.byref(iec),
         ct.byref(jsc),
         ct.byref(jec),
         ct.byref(kpts),
         ct.byref(blksz),
-        message,
+        ct.byref(message),
     )
