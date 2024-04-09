@@ -1,6 +1,6 @@
-from .block_control.pyFMSblockcontrol import define_blocks, define_blocks_packed
-from .fms.pyFMSinit import fms_init
-from .mpp.pyMPPpset import (
+from .block_control.pyFMS_block_control import define_blocks, define_blocks_packed
+from .fms.pyFMS_fms import fms_init
+from .mpp.pyFMS_mpp_pset import (
     mpp_pset_broadcast,
     mpp_pset_broadcast_ptr_array,
     mpp_pset_broadcast_ptr_scalar,
@@ -26,4 +26,4 @@ from .mpp.pyMPPpset import (
     mpp_send_ptr_scalar,
     mpp_translate_remote_ptr,
 )
-from .mpp.pyMPPutil import mpp_array_global_min_max
+from .mpp.pyFMS_mpp_util import mpp_array_global_min_max
