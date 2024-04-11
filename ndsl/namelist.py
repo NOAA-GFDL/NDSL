@@ -111,6 +111,11 @@ class NamelistDefaults:
     tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
     alin = 842.0  # "a" in lin1983
     clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to ehance ql -- > qs)
+    isatmedmf = 0  # which version of satmedmfvdif to use
+    dspheat = False
+    xkzm_h = 1.0
+    xkzm_m = 1.0
+    xkzm_s = 1.0
 
     @classmethod
     def as_dict(cls):
@@ -293,6 +298,11 @@ class Namelist:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
+    isatmedmf: int = NamelistDefaults.isatmedmf
+    dspheat: bool = NamelistDefaults.dspheat
+    xkzm_h: float = NamelistDefaults.xkzm_h
+    xkzm_m: float = NamelistDefaults.xkzm_m
+    xkzm_s: float = NamelistDefaults.xkzm_s
     # c0s_shal: Any
     # c1_shal: Any
     # cal_pre: Any
