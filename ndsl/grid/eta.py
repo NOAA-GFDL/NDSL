@@ -1,6 +1,7 @@
 import math
 import os
 from dataclasses import dataclass
+from typing import Optional, Tuple
 
 import numpy as np
 import xarray as xr
@@ -28,8 +29,25 @@ class HybridPressureCoefficients:
     bk: np.ndarray
 
 
+def _load_ak_bk_from_file(eta_file: str) -> Tuple[np.ndarray, np.ndarray]:
+    if eta_file == "None":
+        raise ValueError("eta file not specified")
+    if not os.path.isfile(eta_file):
+        raise ValueError("file " + eta_file + " does not exist")
+
+    # read file into ak, bk arrays
+    data = xr.open_dataset(eta_file)
+    ak = data["ak"].values
+    bk = data["bk"].values
+
+    return ak, bk
+
+
 def set_hybrid_pressure_coefficients(
-    km: int, eta_file: str
+    km: int,
+    eta_file: str,
+    ak_data: Optional[np.ndarray] = None,
+    bk_data: Optional[np.ndarray] = None,
 ) -> HybridPressureCoefficients:
     """
     Sets the coefficients describing the hybrid pressure coordinates.
@@ -44,25 +62,19 @@ def set_hybrid_pressure_coefficients(
     Returns:
         a HybridPressureCoefficients dataclass
     """
-
-    if eta_file == "None":
-        raise ValueError("eta file not specified")
-    if not os.path.isfile(eta_file):
-        raise ValueError("file " + eta_file + " does not exist")
-
-    # read file into ak, bk arrays
-    data = xr.open_dataset(eta_file)
-    ak = data["ak"].values
-    bk = data["bk"].values
+    if ak_data is None or bk_data is None:
+        ak, bk = _load_ak_bk_from_file(eta_file)
+    else:
+        ak, bk = ak_data, bk_data
 
     # check size of ak and bk array is km+1
     if ak.size - 1 != km:
-        raise ValueError(f"size of ak array is not equal to km={km}")
+        raise ValueError(f"size of ak array {ak.size} is not equal to km+1={km+1}")
     if bk.size - 1 != km:
-        raise ValueError(f"size of bk array is not equal to km={km}")
+        raise ValueError(f"size of bk array {ak.size} is not equal to km+1={km+1}")
 
     # check that the eta values computed from ak and bk are monotonically increasing
-    eta, etav = check_eta(ak, bk)
+    eta, etav = _check_eta(ak, bk)
 
     if not np.all(eta[:-1] <= eta[1:]):
         raise ValueError("ETA values are not monotonically increasing")
@@ -75,12 +87,10 @@ def set_hybrid_pressure_coefficients(
     else:
         raise ValueError("bk must contain at least one 0.")
 
-    pressure_data = HybridPressureCoefficients(ks, ptop, ak, bk)
-
-    return pressure_data
+    return HybridPressureCoefficients(ks, ptop, ak, bk)
 
 
-def vertical_coordinate(eta_value):
+def _vertical_coordinate(eta_value) -> np.ndarray:
     """
     Equation (1) JRMS2006
     computes eta_v, the auxiliary variable vertical coordinate
@@ -88,15 +98,15 @@ def vertical_coordinate(eta_value):
     return (eta_value - ETA_0) * math.pi * 0.5
 
 
-def compute_eta(ak, bk):
+def _compute_eta(ak, bk) -> Tuple[np.ndarray, np.ndarray]:
     """
     Equation (1) JRMS2006
     eta is the vertical coordinate and eta_v is an auxiliary vertical coordinate
     """
     eta = 0.5 * ((ak[:-1] + ak[1:]) / SURFACE_PRESSURE + bk[:-1] + bk[1:])
-    eta_v = vertical_coordinate(eta)
+    eta_v = _vertical_coordinate(eta)
     return eta, eta_v
 
 
-def check_eta(ak, bk):
-    return compute_eta(ak, bk)
+def _check_eta(ak, bk):
+    return _compute_eta(ak, bk)
