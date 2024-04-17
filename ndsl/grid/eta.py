@@ -90,7 +90,7 @@ def set_hybrid_pressure_coefficients(
     return HybridPressureCoefficients(ks, ptop, ak, bk)
 
 
-def _vertical_coordinate(eta_value) -> np.ndarray:
+def vertical_coordinate(eta_value) -> np.ndarray:
     """
     Equation (1) JRMS2006
     computes eta_v, the auxiliary variable vertical coordinate
@@ -98,15 +98,15 @@ def _vertical_coordinate(eta_value) -> np.ndarray:
     return (eta_value - ETA_0) * math.pi * 0.5
 
 
-def _compute_eta(ak, bk) -> Tuple[np.ndarray, np.ndarray]:
+def compute_eta(ak, bk) -> Tuple[np.ndarray, np.ndarray]:
     """
     Equation (1) JRMS2006
     eta is the vertical coordinate and eta_v is an auxiliary vertical coordinate
     """
     eta = 0.5 * ((ak[:-1] + ak[1:]) / SURFACE_PRESSURE + bk[:-1] + bk[1:])
-    eta_v = _vertical_coordinate(eta)
+    eta_v = vertical_coordinate(eta)
     return eta, eta_v
 
 
 def _check_eta(ak, bk):
-    return _compute_eta(ak, bk)
+    return compute_eta(ak, bk)
