@@ -55,9 +55,12 @@ def plot_field_at_k0(field):
 def plot_field_at_kN(field, k_index=0):
 
     print("Min and max values:", field[:,:,k_index].max(), field[:,:,k_index].min())
+    plt.xlabel("I")
+    plt.ylabel("J")
 
-    fig, ax = plt.subplots()
-    im = ax.imshow(field[:,:,k_index].transpose(), origin='lower')
+    im = plt.imshow(field[:,:,k_index].transpose(), origin='lower')
 
-    cbar = fig.colorbar(im, ax=ax)
+    plt.colorbar(im)
+    plt.title("Plot at K = " + str(k_index))
     plt.show()
+ 
