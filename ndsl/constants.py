@@ -1,3 +1,4 @@
+import math
 import os
 from enum import Enum
 
@@ -11,6 +12,7 @@ class ConstantVersions(Enum):
     GFDL = "GFDL"  # NOAA's FV3 dynamical core constants (original port)
     GFS = "GFS"  # Constant as defined in NOAA GFS
     GEOS = "GEOS"  # Constant as defined in GEOS v13
+    SHiELD = "SHiELD"  # Constant as defined in NOAA SHiELD
 
 
 CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "GFS")
@@ -66,7 +68,11 @@ N_HALO_DEFAULT = 3
 if CONST_VERSION == ConstantVersions.GEOS:
     # 'qlcd' is exchanged in GEOS
     NQ = 9
-elif CONST_VERSION == ConstantVersions.GFS or CONST_VERSION == ConstantVersions.GFDL:
+elif (
+    CONST_VERSION == ConstantVersions.GFS
+    or CONST_VERSION == ConstantVersions.SHiELD
+    or CONST_VERSION == ConstantVersions.GFDL
+):
     NQ = 8
 else:
     raise RuntimeError("Constant selector failed, bad code.")
@@ -88,7 +94,10 @@ if CONST_VERSION == ConstantVersions.GEOS:
     CP_AIR = RDGAS / KAPPA
     TFREEZE = 273.15
     SAT_ADJUST_THRESHOLD = 1.0e-6
-elif CONST_VERSION == ConstantVersions.GFS:
+elif (
+    CONST_VERSION == ConstantVersions.GFS 
+    or CONST_VERSION == ConstantVersions.SHiELD
+):
     RADIUS = 6.3712e6  # Radius of the Earth [m]
     PI = 3.1415926535897931
     OMEGA = 7.2921e-5  # Rotation of the earth
@@ -127,27 +136,79 @@ K1K = RDGAS / CV_AIR
 CNST_0P20 = 0.2
 CV_VAP = 3.0 * RVGAS  # Heat capacity of water vapor at constant volume
 ZVIR = RVGAS / RDGAS - 1  # con_fvirt in Fortran physics
-C_ICE = 1972.0  # Heat capacity of ice at -15 degrees Celsius
-C_LIQ = 4.1855e3  # Heat capacity of water at 15 degrees Celsius
-CP_VAP = 4.0 * RVGAS  # Heat capacity of water vapor at constant pressure
 TICE = 273.16  # Freezing temperature
-DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling
-DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling
-D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling
-LI0 = HLF - DC_ICE * TICE
+TICE0 = TICE - 0.01
+CP_VAP = 4.0 * RVGAS  # Heat capacity of water vapor at constant pressure
+
+if CONST_VERSION == ConstantVersions.SHiELD:
+    C_ICE = 2.106e3  # Heat capacity of ice at 0 degrees Celsius
+    C_LIQ = 4.218e3  # Heat capacity of water at 0 degrees Celsius
+    DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling (J/kg/K)
+    DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling (J/kg/K)
+    D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling (J/kg/K)
+    LV0 = (
+        HLV - DC_VAP * TICE0
+    )  # 3148711.3338762247, evaporation latent heat coefficient at 0 degrees Kelvin
+    LI00 = (
+        HLF - DC_ICE * TICE0
+    )  # -242413.92000000004, fusion latent heat coefficient at 0 degrees Kelvin
+    LI2 = (
+        LV0 + LI00
+    )  # 2906297.413876225, sublimation latent heat coefficient at 0 degrees Kelvin
+    LI0 = HLF - DC_ICE * TICE0
+else:
+    C_ICE = 1972.0  # Heat capacity of ice at -15 degrees Celsius
+    C_LIQ = 4.1855e3  # Heat capacity of water at 15 degrees Celsius
+    DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling (J/kg/K)
+    DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling (J/kg/K)
+    D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling (J/kg/K)
+    LV0 = (
+        HLV - DC_VAP * TICE
+    )  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin
+    LI00 = (
+        HLF - DC_ICE * TICE
+    )  # -2.7105966e5, fusion latent heat coefficient at 0 degrees Kelvin
+    LI2 = (
+        LV0 + LI00
+    )  # 2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin
+    LI0 = HLF - DC_ICE * TICE
+
 EPS = RDGAS / RVGAS
-LV0 = (
-    HLV - DC_VAP * TICE
-)  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin
-LI00 = (
-    HLF - DC_ICE * TICE
-)  # -2.7105966e5, fusion latent heat coefficient at 0 degrees Kelvin
-LI2 = (
-    LV0 + LI00
-)  # 2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin
 E00 = 611.21  # Saturation vapor pressure at 0 degrees Celsius
 T_WFR = TICE - 40.0  # homogeneous freezing temperature
 TICE0 = TICE - 0.01
 T_MIN = 178.0  # Minimum temperature to freeze-dry all water vapor
 T_SAT_MIN = TICE - 160.0
 LAT2 = (HLV + HLF) ** 2  # used in bigg mechanism
+
+RHO_0 = 1.0  # reference air density (kg/m^3), ref: IFS
+RHO_W = 1.0e3  # density of cloud water (kg/m^3)
+RHO_I = 9.17e2  # density of cloud ice (kg/m^3)
+RHO_R = 1.0e3  # density of rain (Lin et al. 1983) (kg/m^3)
+RHO_S = 1.0e2  # density of snow (Lin et al. 1983) (kg/m^3)
+RHO_G = 4.0e2  # density of graupel (Rutledge and Hobbs 1984) (kg/m^3)
+RHO_H = 9.17e2  # density of hail (Lin et al. 1983) (kg/m^3)
+
+VISD = 1.717e-5  # dynamics viscosity of air at 0 deg C and 1000 hPa
+# (Mason, 1971) (kg/m/s)
+VISK = 1.35e-5  # kinematic viscosity of air at 0 deg C  and 1000 hPa
+# (Mason, 1971) (m^2/s)
+VDIFU = 2.25e-5  # diffusivity of water vapor in air at 0 deg C  and 1000 hPa
+# (Mason, 1971) (m^2/s)
+TCOND = 2.40e-2  # thermal conductivity of air at 0 C and 1000 hPa
+# (Mason, 1971) (J/m/s/K)
+SCM3 = math.exp(1.0 / 3 * math.log(VISK / VDIFU))  # Schmidt number, Sc ** (1 / 3)
+# Lin et al. (1983)
+
+QCMIN = 1.0e-15  # min value for cloud condensates (kg/kg)
+QFMIN = 1.0e-8  # min value for sedimentation (kg/kg)
+DT_FR = 8.0  # t_wfr - dt_fr: minimum temperature water can exist
+# (Moore and Molinero 2011)
+CDG = 3.15121  # drag coefficient of graupel (Locatelli and Hobbs, 1974)
+CDH = 0.5  # drag coefficient of hail (Heymsfield and Wright, 2014)
+
+DZ_MIN_FLIP = 1.0e-2  # used for correcting flipped height (m)
+
+# Terminal Velocity Parameters, Lin et al. (1983)
+GCON = (4.0 * GRAV * RHO_G / (3.0 * CDG * RHO_0)) ** 0.5
+HCON = (4.0 * GRAV * RHO_H / (3.0 * CDH * RHO_0)) ** 0.5
