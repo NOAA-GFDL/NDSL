@@ -197,7 +197,7 @@ VDIFU = 2.25e-5  # diffusivity of water vapor in air at 0 deg C  and 1000 hPa
 # (Mason, 1971) (m^2/s)
 TCOND = 2.40e-2  # thermal conductivity of air at 0 C and 1000 hPa
 # (Mason, 1971) (J/m/s/K)
-SCM3 = math.exp(1.0 / 3 * math.log(VISK / VDIFU))  # S =chmidt number, Sc ** (1 / 3)
+SCM3 = math.exp(1.0 / 3 * math.log(VISK / VDIFU))  # Schmidt number, Sc ** (1 / 3)
 # Lin et al. (1983)
 
 QCMIN = 1.0e-15  # min value for cloud condensates (kg/kg)
