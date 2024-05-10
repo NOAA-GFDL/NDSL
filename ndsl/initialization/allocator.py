@@ -2,10 +2,10 @@ from typing import Callable, Optional, Sequence
 
 import numpy as np
 
-from ..constants import SPATIAL_DIMS
-from ..optional_imports import gt4py
-from ..quantity import Quantity, QuantityHaloSpec
-from .sizer import GridSizer
+from ndsl.constants import SPATIAL_DIMS
+from ndsl.initialization.sizer import GridSizer
+from ndsl.optional_imports import gt4py
+from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
 class StorageNumpy:

@@ -4,6 +4,7 @@ from typing import Tuple
 import numpy as np
 import pytest
 
+from ndsl import HaloExchangeSpec, Quantity
 from ndsl.buffer import Buffer
 from ndsl.comm import _boundary_utils
 from ndsl.constants import (
@@ -22,9 +23,9 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.halo.data_transformer import HaloDataTransformer, HaloExchangeSpec
+from ndsl.halo import HaloDataTransformer
 from ndsl.halo.rotate import rotate_scalar_data, rotate_vector_data
-from ndsl.quantity import Quantity, QuantityHaloSpec
+from ndsl.quantity import QuantityHaloSpec
 
 
 @pytest.fixture

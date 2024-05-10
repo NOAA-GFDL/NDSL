@@ -1,9 +1,10 @@
 import numpy as np
 import pytest
-from mpi_comm import MPI
 
-from ndsl.comm.communicator import recv_buffer
-from ndsl.testing import ConcurrencyError, DummyComm
+from ndsl import DummyComm
+from ndsl.buffer import recv_buffer
+from ndsl.exceptions import ConcurrencyError
+from tests.mpi.mpi_comm import MPI
 
 
 worker_function_list = []

@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import pytest
 
+from ndsl import QuantityFactory, SubtileGridSizer
 from ndsl.constants import (
     N_HALO_DEFAULT,
     X_DIM,
@@ -11,8 +12,6 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
 
 
 @pytest.fixture(params=[48, 96])

@@ -19,9 +19,10 @@ extras_requires = {"test": test_requirements, "develop": develop_requirements}
 requirements: List[str] = [
     local_pkg("gt4py", "external/gt4py"),
     local_pkg("dace", "external/dace"),
-    "mpi4py",
+    "mpi4py==3.1.5",
     "cftime",
     "xarray",
+    "f90nml>=1.1.0",
     "fsspec",
     "netcdf4",
     "scipy",  # restart capacities only
@@ -49,6 +50,6 @@ setup(
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
     include_package_data=True,
     url="https://github.com/NOAA-GFDL/NDSL",
-    version="0.0.0",
+    version="2024.04.00",
     zip_safe=False,
 )

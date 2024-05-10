@@ -7,14 +7,14 @@ from gt4py.cartesian.gtc.passes.oir_optimizations.horizontal_execution_merging i
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline
 from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.dace.dace_config import DaceConfig
-from ndsl.dsl.stencil import (
+from ndsl import (
     CompilationConfig,
+    DaceConfig,
     GridIndexing,
     StencilConfig,
     StencilFactory,
 )
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.typing import FloatField
 
 

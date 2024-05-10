@@ -1,16 +1,15 @@
 import math
 
 from ndsl.constants import PI, RADIUS
-
-from .generation import MetricTerms
-from .gnomonic import (
+from ndsl.grid.generation import MetricTerms
+from ndsl.grid.gnomonic import (
     _cart_to_latlon,
     _check_shapes,
     _latlon2xyz,
     _mirror_latlon,
     symm_ed,
 )
-from .mirror import _rot_3d
+from ndsl.grid.mirror import _rot_3d
 
 
 def gnomonic_grid(grid_type: int, lon, lat, np):

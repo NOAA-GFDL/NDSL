@@ -1,4 +1,4 @@
-from .base import Checkpointer
+from ndsl.checkpointer.base import Checkpointer
 
 
 class NullCheckpointer(Checkpointer):

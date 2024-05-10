@@ -1,7 +1,7 @@
 import dataclasses
 import functools
 import warnings
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -21,17 +21,7 @@ from ndsl.dsl.gt4py_utils import asarray
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import Float
 from ndsl.grid import eta
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
-from ndsl.quantity import Quantity
-from ndsl.stencils.corners import (
-    fill_corners_2d,
-    fill_corners_agrid,
-    fill_corners_cgrid,
-    fill_corners_dgrid,
-)
-
-from .geometry import (
+from ndsl.grid.geometry import (
     calc_unit_vector_south,
     calc_unit_vector_west,
     calculate_divg_del6,
@@ -47,7 +37,7 @@ from .geometry import (
     supergrid_corner_fix,
     unit_vector_lonlat,
 )
-from .gnomonic import (
+from ndsl.grid.gnomonic import (
     get_area,
     great_circle_distance_along_axis,
     local_gnomonic_ed,
@@ -59,7 +49,16 @@ from .gnomonic import (
     set_tile_border_dxc,
     set_tile_border_dyc,
 )
-from .mirror import mirror_grid
+from ndsl.grid.mirror import mirror_grid
+from ndsl.initialization.allocator import QuantityFactory
+from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.quantity import Quantity
+from ndsl.stencils.corners import (
+    fill_corners_2d,
+    fill_corners_agrid,
+    fill_corners_cgrid,
+    fill_corners_dgrid,
+)
 
 
 # TODO: when every environment in python3.8, remove
@@ -239,6 +238,8 @@ class MetricTerms:
         deglat: float = 15.0,
         extdgrid: bool = False,
         eta_file: str = "None",
+        ak: Optional[np.ndarray] = None,
+        bk: Optional[np.ndarray] = None,
     ):
         self._grid_type = grid_type
         self._dx_const = dx_const
@@ -301,7 +302,7 @@ class MetricTerms:
             self._ptop,
             self._ak,
             self._bk,
-        ) = self._set_hybrid_pressure_coefficients(eta_file)
+        ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
         self._ec1 = None
         self._ec2 = None
         self._ew1 = None
@@ -2148,7 +2149,12 @@ class MetricTerms:
         area_cgrid_64.data[:, :] = self._dx_const * self._dy_const
         return quantity_cast_to_model_float(self.quantity_factory, area_cgrid_64)
 
-    def _set_hybrid_pressure_coefficients(self, eta_file):
+    def _set_hybrid_pressure_coefficients(
+        self,
+        eta_file,
+        ak_data: Optional[np.ndarray] = None,
+        bk_data: Optional[np.ndarray] = None,
+    ):
         ks = self.quantity_factory.zeros(
             [],
             "",
@@ -2170,7 +2176,10 @@ class MetricTerms:
             dtype=Float,
         )
         pressure_coefficients = eta.set_hybrid_pressure_coefficients(
-            self._npz, eta_file
+            self._npz,
+            eta_file,
+            ak_data,
+            bk_data,
         )
         ks = pressure_coefficients.ks
         ptop = pressure_coefficients.ptop
