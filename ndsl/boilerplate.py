@@ -1,28 +1,29 @@
+from typing import Tuple
+
 import numpy as np
+
 from ndsl import (
-    StencilFactory,
+    CompilationConfig,
     DaceConfig,
     DaCeOrchestration,
     GridIndexing,
-    StencilConfig,
-    CompilationConfig,
-    RunMode,
-    SubtileGridSizer,
     NullComm,
     QuantityFactory,
+    RunMode,
+    StencilConfig,
+    StencilFactory,
+    SubtileGridSizer,
     TileCommunicator,
     TilePartitioner,
 )
 
-from typing import Tuple
-
 
 def _get_one_tile_factory(
     nx, ny, nz, nhalo, backend, orchestration
-)-> Tuple[StencilFactory, QuantityFactory]:
+) -> Tuple[StencilFactory, QuantityFactory]:
     """Build a Stencil & Quantity factory for:
-        - one tile
-        - no MPI communicator
+    - one tile
+    - no MPI communicator
     """
     dace_config = DaceConfig(
         communicator=None,
@@ -76,8 +77,9 @@ def get_one_tile_factory_orchestrated_cpu(
         nz=nz,
         nhalo=nhalo,
         backend="dace:cpu",
-        orchestration=DaCeOrchestration.BuildAndRun
+        orchestration=DaCeOrchestration.BuildAndRun,
     )
+
 
 def get_one_tile_factory_numpy(
     nx, ny, nz, nhalo
@@ -89,5 +91,5 @@ def get_one_tile_factory_numpy(
         nz=nz,
         nhalo=nhalo,
         backend="numpy",
-        orchestration=DaCeOrchestration.Python
+        orchestration=DaCeOrchestration.Python,
     )
