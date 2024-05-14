@@ -11,7 +11,7 @@ def local_pkg(name: str, relative_path: str) -> str:
     return path
 
 
-test_requirements = ["pytest", "pytest-subtests"]
+test_requirements = ["pytest", "pytest-subtests", "pytest-cov"]
 develop_requirements = test_requirements + ["pre-commit"]
 
 extras_requires = {"test": test_requirements, "develop": develop_requirements}

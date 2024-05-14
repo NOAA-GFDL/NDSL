@@ -1,0 +1,7 @@
+[run]
+omit = 
+        tests/*
+        .gt_cache*
+        .dacecache*
+        external/*
+        __init__.py
