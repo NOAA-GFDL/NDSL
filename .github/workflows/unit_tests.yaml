@@ -27,7 +27,12 @@ jobs:
             pip install .[test]
         - name: Run serial-cpu tests
           run: |
-            pytest -x tests
+            coverage run --rcfile=setup.cfg -m pytest -x tests
         - name: Run parallel-cpu tests
           run: |
-            mpirun -np 6 --oversubscribe pytest -x tests/mpi
+            mpirun -np 6 --oversubscribe coverage run --rcfile=setup.cfg -m mpi4py -m pytest -x tests/mpi
+        - name: Output code coverage
+          run: |
+            coverage combine
+            coverage report 
+
