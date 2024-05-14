@@ -34,5 +34,4 @@ jobs:
         - name: Output code coverage
           run: |
             coverage combine
-            coverage report 
-
+            coverage report
