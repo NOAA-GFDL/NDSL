@@ -266,7 +266,9 @@ def _savepoint_cases(
                 backend=backend,
             ).python_grid()
             if grid_mode == "compute":
-                compute_grid_data(grid, namelist, backend, namelist.layout, topology_mode)
+                compute_grid_data(
+                    grid, namelist, backend, namelist.layout, topology_mode
+                )
         else:
             raise NotImplementedError(f"Grid mode {grid_mode} is unknown.")
 
