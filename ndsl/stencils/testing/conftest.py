@@ -77,10 +77,10 @@ def pytest_addoption(parser):
         help='Grid loading mode. "file" looks for "Grid-Info.nc", "compute" does the same but recomputes MetricTerms, "default" creates a simple grid with no metrics terms. Default to "file".',
     )
     parser.addoption(
-        "--layout",
+        "--topology",
         action="store",
-        default="cube",
-        help='Layout of the grid. "cube" means a 6-faced grid, "tile" means a 1 tile grid. Default to "cube".',
+        default="cube-sphere",
+        help='Topology of the grid. "cube-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cube-sphere".',
     )
 
 
@@ -185,14 +185,14 @@ def get_parallel_savepoint_names(metafunc, data_path):
 
 def get_ranks(metafunc, layout):
     only_rank = metafunc.config.getoption("which_rank")
-    layout_mode = metafunc.config.getoption("layout")
+    topology = metafunc.config.getoption("topology")
     if only_rank is None:
-        if layout_mode == "tile":
+        if topology == "doubly-periodic":
             total_ranks = layout[0] * layout[1]
-        elif layout_mode == "cube":
+        elif topology == "cube-sphere":
             total_ranks = 6 * layout[0] * layout[1]
         else:
-            raise NotImplementedError(f"Layout {layout_mode} is unknown.")
+            raise NotImplementedError(f"Topology {topology} is unknown.")
         return range(total_ranks)
     else:
         return [int(only_rank)]
@@ -221,7 +221,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
     stencil_config = get_config(backend, None)
     ranks = get_ranks(metafunc, namelist.layout)
     grid_mode = metafunc.config.getoption("grid")
-    layout_mode = metafunc.config.getoption("layout")
+    topology_mode = metafunc.config.getoption("topology")
     return _savepoint_cases(
         savepoint_names,
         ranks,
@@ -230,7 +230,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
         backend,
         data_path,
         grid_mode,
-        layout_mode,
+        topology_mode,
     )
 
 
@@ -242,7 +242,7 @@ def _savepoint_cases(
     backend: str,
     data_path: str,
     grid_mode: str,
-    layout_mode: bool,
+    topology_mode: bool,
 ):
     return_list = []
     for rank in ranks:
@@ -266,7 +266,7 @@ def _savepoint_cases(
                 backend=backend,
             ).python_grid()
             if grid_mode == "compute":
-                compute_grid_data(grid, namelist, backend, namelist.layout, layout_mode)
+                compute_grid_data(grid, namelist, backend, namelist.layout, topology_mode)
         else:
             raise NotImplementedError(f"Grid mode {grid_mode} is unknown.")
 
@@ -295,12 +295,12 @@ def _savepoint_cases(
     return return_list
 
 
-def compute_grid_data(grid, namelist, backend, layout, layout_mode):
+def compute_grid_data(grid, namelist, backend, layout, topology_mode):
     grid.make_grid_data(
         npx=namelist.npx,
         npy=namelist.npy,
         npz=namelist.npz,
-        communicator=get_communicator(MPI.COMM_WORLD, layout, layout_mode),
+        communicator=get_communicator(MPI.COMM_WORLD, layout, topology_mode),
         backend=backend,
     )
 
@@ -309,8 +309,8 @@ def parallel_savepoint_cases(
     metafunc, data_path, namelist_filename, mpi_rank, *, backend: str, comm
 ):
     namelist = get_namelist(namelist_filename)
-    layout_mode = metafunc.config.getoption("layout")
-    communicator = get_communicator(comm, namelist.layout, layout_mode)
+    topology_mode = metafunc.config.getoption("topology")
+    communicator = get_communicator(comm, namelist.layout, topology_mode)
     stencil_config = get_config(backend, communicator)
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
@@ -322,7 +322,7 @@ def parallel_savepoint_cases(
         backend,
         data_path,
         grid_mode,
-        layout_mode,
+        topology_mode,
     )
 
 
@@ -367,8 +367,8 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
     )
 
 
-def get_communicator(comm, layout, layout_mode):
-    if (MPI.COMM_WORLD.Get_size() > 1) and (layout_mode == "tile"):
+def get_communicator(comm, layout, topology_mode):
+    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "doubly-periodic"):
         partitioner = CubedSpherePartitioner(TilePartitioner(layout))
         communicator = CubedSphereCommunicator(comm, partitioner)
     else:
@@ -393,8 +393,8 @@ def grid(pytestconfig):
 
 
 @pytest.fixture()
-def layout_mode(pytestconfig):
-    return pytestconfig.getoption("layout_mode")
+def topology_mode(pytestconfig):
+    return pytestconfig.getoption("topology_mode")
 
 
 @pytest.fixture()
