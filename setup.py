@@ -50,6 +50,6 @@ setup(
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
     include_package_data=True,
     url="https://github.com/NOAA-GFDL/NDSL",
-    version="2024.04.00",
+    version="2024.04.02",
     zip_safe=False,
 )
