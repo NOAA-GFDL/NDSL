@@ -4,12 +4,9 @@ import numpy as np
 
 from ndsl import (
     CompilationConfig,
-    CubedSphereCommunicator,
-    CubedSpherePartitioner,
     DaceConfig,
     DaCeOrchestration,
     GridIndexing,
-    LocalComm,
     NullComm,
     QuantityFactory,
     RunMode,
