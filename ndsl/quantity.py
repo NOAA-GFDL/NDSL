@@ -298,8 +298,6 @@ class Quantity:
                 storage attribute is disabled and will raise an exception. Will raise
                 a TypeError if this is given with a gt4py storage type as data
         """
-        # ToDo: [Florian 01/23] Kill the abomination.
-        # See https://github.com/NOAA-GFDL/pace/issues/3
 
         if (
             not allow_mismatch_float_precision
