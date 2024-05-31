@@ -353,7 +353,7 @@ def test_parallel_savepoint(
     subtests,
     caplog,
     threshold_overrides,
-    compute_grid,
+    grid,
     xy_indices=True,
 ):
     if MPI.COMM_WORLD.Get_size() % 6 != 0:
@@ -389,8 +389,8 @@ def test_parallel_savepoint(
         )
     if case.testobj.skip_test:
         return
-    if compute_grid and not case.testobj.compute_grid_option:
-        pytest.xfail(f"compute_grid option not used for test {case.savepoint_name}")
+    if grid and not case.testobj.compute_grid_option:
+        pytest.xfail(f"Grid compute option not used for test {case.savepoint_name}")
     input_data = dataset_to_dict(case.ds_in)
     # run python version of functionality
     output = case.testobj.compute_parallel(input_data, communicator)
