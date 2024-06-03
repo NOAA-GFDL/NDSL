@@ -52,4 +52,9 @@ setup(
     url="https://github.com/NOAA-GFDL/NDSL",
     version="2024.04.00",
     zip_safe=False,
+    entry_points={
+        "console_scripts": [
+            "ndsl-serialbox_to_netcdf = ndsl.stencils.testing.serialbox_to_netcdf:entry_point",
+        ]
+    },
 )
