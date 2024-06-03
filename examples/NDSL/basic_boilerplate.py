@@ -1,13 +1,14 @@
-from ndsl import(
-    StencilFactory,
-    GridIndexing,
-    StencilConfig,
+import matplotlib.pyplot as plt
+
+from ndsl import (
+    CompilationConfig,
     DaceConfig,
     DaCeOrchestration,
-    CompilationConfig,
-    RunMode
+    GridIndexing,
+    RunMode,
+    StencilConfig,
+    StencilFactory,
 )
-import matplotlib.pyplot as plt
 
 
 def get_one_tile_factory(nx, ny, nz, nhalo, backend) -> StencilFactory:
@@ -58,15 +59,15 @@ def plot_field_at_k0(field):
     cbar = plt.colorbar(f1)
     plt.show()
 
+
 def plot_field_at_kN(field, k_index=0):
 
-    print("Min and max values:", field[:,:,k_index].max(), field[:,:,k_index].min())
+    print("Min and max values:", field[:, :, k_index].max(), field[:, :, k_index].min())
     plt.xlabel("I")
     plt.ylabel("J")
 
-    im = plt.imshow(field[:,:,k_index].transpose(), origin='lower')
+    im = plt.imshow(field[:, :, k_index].transpose(), origin="lower")
 
     plt.colorbar(im)
     plt.title("Plot at K = " + str(k_index))
     plt.show()
- 

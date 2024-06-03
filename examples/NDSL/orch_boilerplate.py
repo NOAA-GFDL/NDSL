@@ -1,20 +1,21 @@
+from typing import Tuple
+
 import numpy as np
+
 from ndsl import (
-    StencilFactory,
+    CompilationConfig,
     DaceConfig,
     DaCeOrchestration,
     GridIndexing,
-    StencilConfig,
-    CompilationConfig,
-    RunMode,
-    SubtileGridSizer,
     NullComm,
     QuantityFactory,
+    RunMode,
+    StencilConfig,
+    StencilFactory,
+    SubtileGridSizer,
     TileCommunicator,
     TilePartitioner,
 )
-
-from typing import Tuple
 
 
 def get_one_tile_factory_orchestrated(
