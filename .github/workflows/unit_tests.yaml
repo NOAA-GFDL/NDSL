@@ -1,6 +1,5 @@
 name: "Unit tests"
 on:
-  push:
   pull_request:
       types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
@@ -20,9 +19,7 @@ jobs:
           with:
             submodules: 'recursive'
         - name: Install Python packages
-          run: |
-            bash 
-            pip3 install .[test]
+          run: pip3 install .[test]
         - name: Run serial-cpu tests
           run: coverage run --rcfile=setup.cfg -m pytest -x tests
         - name: Run parallel-cpu tests
