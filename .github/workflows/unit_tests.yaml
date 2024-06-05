@@ -22,7 +22,8 @@ jobs:
         - name: Install Python packages
           run: |
             conda create --name=test python=3.11.7 -y
-            conda init  && conda activate test
+            conda init
+            conda activate test
             pip3 install .[test]
         - name: Run serial-cpu tests
           run: coverage run --rcfile=setup.cfg -m pytest -x tests
