@@ -11,7 +11,7 @@ def local_pkg(name: str, relative_path: str) -> str:
     return path
 
 
-test_requirements = ["pytest", "pytest-subtests"]
+test_requirements = ["pytest", "pytest-subtests", "coverage"]
 develop_requirements = test_requirements + ["pre-commit"]
 
 extras_requires = {"test": test_requirements, "develop": develop_requirements}
@@ -50,6 +50,11 @@ setup(
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
     include_package_data=True,
     url="https://github.com/NOAA-GFDL/NDSL",
-    version="2024.04.00",
+    version="2024.06.00",
     zip_safe=False,
+    entry_points={
+        "console_scripts": [
+            "ndsl-serialbox_to_netcdf = ndsl.stencils.testing.serialbox_to_netcdf:entry_point",
+        ]
+    },
 )

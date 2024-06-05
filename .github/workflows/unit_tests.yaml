@@ -27,7 +27,7 @@ jobs:
           run: coverage run --rcfile=setup.cfg -m pytest -x tests
         - name: Run parallel-cpu tests
           run: mpirun -np 6 coverage run --rcfile=setup.cfg -m mpi4py -m pytest -x tests/mpi
-        - name: output coverage
+        - name: Output code coverage
           run: |
             coverage combine
             coverage report

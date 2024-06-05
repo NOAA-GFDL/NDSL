@@ -6,6 +6,7 @@ import numpy as np
 
 import ndsl.constants as constants
 from ndsl.comm._boundary_utils import bound_default_slice, shift_boundary_slice_tuple
+from ndsl.dsl.typing import Float
 from ndsl.optional_imports import cupy, dace, gt4py
 from ndsl.optional_imports import xarray as xr
 from ndsl.types import NumpyModule
@@ -260,7 +261,8 @@ def _validate_quantity_property_lengths(shape, dims, origin, extent):
 def _is_float(dtype):
     """Expected floating point type for Pace"""
     return (
-        dtype == float
+        dtype == Float
+        or dtype == float
         or dtype == np.float32
         or dtype == np.float64
         or dtype == np.float16
@@ -296,9 +298,6 @@ class Quantity:
                 storage attribute is disabled and will raise an exception. Will raise
                 a TypeError if this is given with a gt4py storage type as data
         """
-        # ToDo: [Florian 01/23] Kill the abomination.
-        # See https://github.com/NOAA-GFDL/pace/issues/3
-        from ndsl.dsl.typing import Float
 
         if (
             not allow_mismatch_float_precision
