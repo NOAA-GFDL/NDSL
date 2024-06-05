@@ -21,6 +21,7 @@ jobs:
             submodules: 'recursive'
         - name: Install Python packages
           run: |
+            bash 
             echo "y" | conda create --name=test python=3.11.7 
             . /root/.bashrc && conda init
             conda activate test
