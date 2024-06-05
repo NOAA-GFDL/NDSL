@@ -22,7 +22,7 @@ jobs:
         - name: Install Python packages
           run: |
             echo "y" | conda create --name=test python=3.11.7 
-            source /root/.bashrc && conda init
+            . /root/.bashrc && conda init
             conda activate test
             pip3 install .[test]
         - name: Run serial-cpu tests
