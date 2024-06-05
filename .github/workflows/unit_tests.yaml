@@ -23,7 +23,7 @@ jobs:
           run: |
             bash 
             echo "y" | conda create --name=test python=3.11.7 
-            conda init            
+            /opt/view/setup.sh
             conda activate test
             pip3 install .[test]
         - name: Run serial-cpu tests
