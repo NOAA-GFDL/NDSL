@@ -1,6 +1,5 @@
 name: "Unit tests"
 on:
-  push:
   pull_request:
       types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
@@ -19,11 +18,10 @@ jobs:
           uses: actions/checkout@v4
           with:
             submodules: 'recursive'
+        - name: Install Python packages
+          run: pip3 install .[test]
         - name: Run serial-cpu tests
-          run: |
-            pip3 install pytest-parallel
-            pytest tests/test_boilerplate.py
-            pytest --workers auto --ignore tests/test_boilerplate.py tests
+          run: coverage run --rcfile=setup.cfg -m pytest -x tests
         - name: Run parallel-cpu tests
           run: mpiexec -np 6 --oversubscribe coverage run --rcfile=setup.cfg -m mpi4py -m pytest -x tests/mpi
         - name: Output code coverage
