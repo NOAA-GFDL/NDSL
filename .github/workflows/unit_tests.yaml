@@ -20,7 +20,10 @@ jobs:
           with:
             submodules: 'recursive'
         - name: Run serial-cpu tests
-          run: coverage run --rcfile=setup.cfg -m pytest -x tests
+          run: |
+            pip3 install pytest-parallel
+            pytest tests/test_boilerplate.py
+            pytest --workers auto --ignore tests/test_boilerplate.py tests
         - name: Run parallel-cpu tests
           run: mpiexec -np 6 --oversubscribe coverage run --rcfile=setup.cfg -m mpi4py -m pytest -x tests/mpi
         - name: Output code coverage
