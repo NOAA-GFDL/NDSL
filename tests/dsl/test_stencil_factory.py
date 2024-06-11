@@ -173,6 +173,41 @@ def test_stencil_factory_numpy_comparison_from_origin_domain(enabled: bool):
         assert isinstance(stencil, CompareToNumpyStencil)
     else:
         assert isinstance(stencil, FrozenStencil)
+        
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_stencil_factory_numpy_comparison_from_origin_domain_2d(enabled: bool):
+    backend = "numpy"
+    dace_config = DaceConfig(communicator=None, backend=backend)
+    config = StencilConfig(
+        compilation_config=CompilationConfig(
+            backend=backend,
+            rebuild=False,
+            validate_args=False,
+            format_source=False,
+            device_sync=False,
+        ),
+        compare_to_numpy=enabled,
+        dace_config=dace_config,
+    )
+    indexing = GridIndexing(
+        domain=(12, 12, 79),
+        n_halo=3,
+        south_edge=True,
+        north_edge=True,
+        west_edge=True,
+        east_edge=True,
+    )
+    dims = ["X_DIM", "Y_DIM", "Z_DIM"]
+    origin, domain = indexing.get_2d_compute_origin_domain(klevel=1)
+    factory = StencilFactory(config=config, grid_indexing=indexing)
+    stencil = factory.from_origin_domain(
+        func=copy_stencil, origin=origin, domain=domain
+    )
+    if enabled:
+        assert isinstance(stencil, CompareToNumpyStencil)
+    else:
+        assert isinstance(stencil, FrozenStencil)
 
 
 def test_stencil_factory_numpy_comparison_runs_without_exceptions():
