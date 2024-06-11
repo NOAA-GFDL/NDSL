@@ -173,7 +173,7 @@ def test_stencil_factory_numpy_comparison_from_origin_domain(enabled: bool):
         assert isinstance(stencil, CompareToNumpyStencil)
     else:
         assert isinstance(stencil, FrozenStencil)
-        
+
 
 @pytest.mark.parametrize("enabled", [True, False])
 def test_stencil_factory_numpy_comparison_from_origin_domain_2d(enabled: bool):
