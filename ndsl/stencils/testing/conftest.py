@@ -79,8 +79,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--topology",
         action="store",
-        default="cube-sphere",
-        help='Topology of the grid. "cube-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cube-sphere".',
+        default="cubed-sphere",
+        help='Topology of the grid. "cubed-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cube-sphere".',
     )
 
 
@@ -370,7 +370,7 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
 
 
 def get_communicator(comm, layout, topology_mode):
-    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "doubly-periodic"):
+    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "cubed-sphere"):
         partitioner = CubedSpherePartitioner(TilePartitioner(layout))
         communicator = CubedSphereCommunicator(comm, partitioner)
     else:
