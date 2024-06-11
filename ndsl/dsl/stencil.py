@@ -787,6 +787,34 @@ class GridIndexing:
             domain[i] += 2 * n
         return tuple(origin), tuple(domain)
 
+    def get_2d_origin_domain(
+        self,
+        dims: Sequence[str],
+        halos: Sequence[int] = tuple(),
+        klevel: int = 0,
+    ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+        """
+        Get the origin and domain for a computation that occurs on the lowest klevel over a certain grid
+        configuration (given by dims) and a certain number of halo points.
+
+        Args:
+            dims: dimension names, using dimension constants from ndsl.constants
+            halos: number of halo points for each dimension, defaults to zero
+            klevel: the vertical level of the domain, defaults to zero
+
+        Returns:
+            origin: origin of the computation
+            domain: shape of the computation
+        """
+        origin = self._origin_from_dims(dims)
+        origin[2] = klevel
+        domain = list(self._sizer.get_extent(dims))
+        domain[2] = 1
+        for i, n in enumerate(halos):
+            origin[i] -= n
+            domain[i] += 2 * n
+        return tuple(origin), tuple(domain)
+
     def _origin_from_dims(self, dims: Iterable[str]) -> List[int]:
         return_origin = []
         for dim in dims:
