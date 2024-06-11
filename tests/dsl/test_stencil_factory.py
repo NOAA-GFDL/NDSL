@@ -198,7 +198,6 @@ def test_stencil_factory_numpy_comparison_from_origin_domain_2d(enabled: bool):
         west_edge=True,
         east_edge=True,
     )
-    dims = ["X_DIM", "Y_DIM", "Z_DIM"]
     origin, domain = indexing.get_2d_compute_origin_domain(klevel=1)
     factory = StencilFactory(config=config, grid_indexing=indexing)
     stencil = factory.from_origin_domain(
