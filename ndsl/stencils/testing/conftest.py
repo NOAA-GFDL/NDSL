@@ -80,7 +80,7 @@ def pytest_addoption(parser):
         "--topology",
         action="store",
         default="cubed-sphere",
-        help='Topology of the grid. "cubed-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cube-sphere".',
+        help='Topology of the grid. "cubed-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cubed-sphere".',
     )
 
 
@@ -189,7 +189,7 @@ def get_ranks(metafunc, layout):
     if only_rank is None:
         if topology == "doubly-periodic":
             total_ranks = layout[0] * layout[1]
-        elif topology == "cube-sphere":
+        elif topology == "cubed-sphere":
             total_ranks = 6 * layout[0] * layout[1]
         else:
             raise NotImplementedError(f"Topology {topology} is unknown.")
