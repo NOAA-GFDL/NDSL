@@ -997,7 +997,7 @@ def fill_corners_dgrid_defn(
         y_in (in):
         y_out (inout):
     """
-    from __externals__ import mysign, i_end, i_start, j_end, j_start
+    from __externals__ import i_end, i_start, j_end, j_start, mysign
 
     with computation(PARALLEL), interval(...):
         # sw corner
