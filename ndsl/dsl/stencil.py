@@ -763,6 +763,7 @@ class GridIndexing:
             "local_js": gtscript.J[0] + self.jsc - origin[1],
             "j_end": j_end,
             "local_je": gtscript.J[-1] + self.jec - origin[1] - domain[1] + 1,
+            "mysign": -1.0,
         }
 
     def get_origin_domain(
