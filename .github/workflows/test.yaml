@@ -19,5 +19,5 @@ jobs:
   all_tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        run: echo ${{github.event.action}}
+      - name: test
+        run: echo ${{github.event}}
