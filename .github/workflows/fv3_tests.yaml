@@ -8,5 +8,5 @@ jobs:
   all_tests: 
     uses: mlee03/pyFV3/.github/workflows/translate.yml@reusing_workflows
     with:
-      ndsl_hash: $GITHUB_SHA
-      trigger:  true
+      ndsl_hash: 2024.04.00 #$GITHUB_SHA
+      ndsl_trigger:  true
