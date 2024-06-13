@@ -1,0 +1,12 @@
+name: "FV3 unit tests"
+on:
+  push:
+  pull_request:
+      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+jobs:
+  all_tests:
+    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yml@develop
+    with:
+      ndsl_hash: $GITHUB_SHA
+      trigger:  true
