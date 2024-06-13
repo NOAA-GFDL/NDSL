@@ -20,5 +20,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        if: ${{ github.event.action == 'push' }}
         run: echo ${{github.event.action}}
