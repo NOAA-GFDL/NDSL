@@ -11,6 +11,6 @@ concurrency:
 
 jobs:
   all_tests:
-    uses: mlee03/pyFV3/.github/workflows/translate.yml@develop
+    uses: mlee03/pyFV3/.github/workflows/translate.yml@reusing_workflows
     with:
       ndsl_hash: ${{GITHUB_SHA}}
