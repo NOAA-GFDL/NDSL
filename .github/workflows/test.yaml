@@ -1,0 +1,24 @@
+name: "Unit tests"
+on:
+  workflow_call :
+    inputs:
+      test_hash:
+        required: false
+        type: string
+        default: "NONE"
+  push:
+  pull_request:
+      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+# cancel running jobs if theres a newer push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  all_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        if: ${{ github.event.action == 'push' }}
+        run: echo ${{github.event.action}}
