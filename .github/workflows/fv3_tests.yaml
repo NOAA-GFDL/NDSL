@@ -15,9 +15,5 @@ jobs:
     container:
       image: ghcr.io/noaa-gfdl/miniforge:mpich      
     uses: mlee03/pyFV3/.github/workflows/translate.yml
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          repository: 'NOAA-GFDL/pyFV3'
-          submodules: 'recursive'
+    with:
+      ndsl_hash: ${{GITHUB_SHA}}
