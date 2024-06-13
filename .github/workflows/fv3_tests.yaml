@@ -9,3 +9,4 @@ jobs:
     uses: mlee03/pyFV3/.github/workflows/translate.yml@reusing_workflows
     with:
       ndsl_hash: $GITHUB_SHA
+      trigger:  true
