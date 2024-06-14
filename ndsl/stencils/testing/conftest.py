@@ -238,7 +238,7 @@ def _savepoint_cases(
     savepoint_names,
     ranks,
     stencil_config,
-    namelist,
+    namelist: Namelist,
     backend: str,
     data_path: str,
     grid_mode: str,
@@ -248,8 +248,8 @@ def _savepoint_cases(
     for rank in ranks:
         if grid_mode == "default":
             grid = Grid._make(
-                namelist.npx + 1,
-                namelist.npy + 1,
+                namelist.npx,
+                namelist.npy,
                 namelist.npz,
                 namelist.layout,
                 rank,
