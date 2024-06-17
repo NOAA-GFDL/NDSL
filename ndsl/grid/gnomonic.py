@@ -384,6 +384,19 @@ def get_area(lon, lat, radius, np):
         lower_left, upper_left, upper_right, lower_right, radius, np
     )
 
+def get_area_varz(lon, lat, radius, height, np):
+    """
+    Given latitude and longitude on cell corners, return the area of each cell.
+    """
+    xyz = lon_lat_to_xyz(lon, lat, np)
+    lower_left = xyz[(slice(None, -1), slice(None, -1), slice(None, None))]
+    lower_right = xyz[(slice(1, None), slice(None, -1), slice(None, None))]
+    upper_left = xyz[(slice(None, -1), slice(1, None), slice(None, None))]
+    upper_right = xyz[(slice(1, None), slice(1, None), slice(None, None))]
+    return get_rectangle_area_varz(
+        lower_left, upper_left, upper_right, lower_right, radius, height, np
+    )
+
 
 def set_corner_area_to_triangle_area(
     lon, lat, area, tile_partitioner, rank, radius, np
@@ -605,6 +618,30 @@ def get_rectangle_area(p1, p2, p3, p4, radius, np):
         q3,
     ) in ((p3, p2, p4), (p4, p3, p1), (p1, p4, p2)):
         total_angle += spherical_angle(q1, q2, q3, np)
+
+    return (total_angle - 2 * PI) * radius ** 2
+
+def get_rectangle_area_varz(p1, p2, p3, p4, radius, height, np):
+    """
+    Given four point arrays whose last dimensions are x/y/z in clockwise or
+    counterclockwise order, return an array of spherical rectangle areas.
+    NOTE, this is not the exact same order of operations as the Fortran code
+    This results in some errors in the last digit, but the spherical_angle
+    is an exact match. The errors in the last digit multipled out by the radius
+    end up causing relative errors larger than 1e-14, but still wtihin 1e-12.
+
+    This method also takes into account the effect of height from surface of
+    Earth on surface area
+    """
+    total_angle = spherical_angle(p2, p3, p1, np)
+    for (
+        q1,
+        q2,
+        q3,
+    ) in ((p3, p2, p4), (p4, p3, p1), (p1, p4, p2)):
+        total_angle += spherical_angle(q1, q2, q3, np)
+
+    radius = radius + height
 
     return (total_angle - 2 * PI) * radius ** 2
 
