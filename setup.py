@@ -28,6 +28,7 @@ requirements: List[str] = [
     "scipy",  # restart capacities only
     "h5netcdf",  # for xarray
     "dask",  # for xarray
+    "numpy==1.26.4",
 ]
 
 
