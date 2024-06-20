@@ -27,10 +27,8 @@ requirements: List[str] = [
     "netcdf4==1.7.0",
     "scipy",  # restart capacities only
     "h5netcdf",  # for xarray
-    "dask==2024.5.2",  # for xarray
+    "dask",  # for xarray
     "numpy==1.26.4",
-    "importlib_metadata==7.1.0",
-    "Faker==25.8.0",
 ]
 
 
