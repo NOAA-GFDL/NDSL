@@ -5,7 +5,7 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Field  # noqa: F401
+from ndsl.dsl.typing import Field, Float  # noqa: F401
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 
@@ -168,7 +168,7 @@ class TranslateFortranData2Py:
             if type(inputs_in[p]) in [np.int64, np.int32]:
                 inputs_out[p] = int(inputs_in[p])
             else:
-                inputs_out[p] = inputs_in[p]
+                inputs_out[p] = Float(inputs_in[p])
         for d, info in storage_vars.items():
             serialname = info["serialname"] if "serialname" in info else d
             self.update_info(info, inputs_in)
