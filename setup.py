@@ -24,10 +24,11 @@ requirements: List[str] = [
     "xarray",
     "f90nml>=1.1.0",
     "fsspec",
-    "netcdf4",
+    "netcdf4==1.7.0",
     "scipy",  # restart capacities only
     "h5netcdf",  # for xarray
     "dask",  # for xarray
+    "numpy==1.26.4",
 ]
 
 
