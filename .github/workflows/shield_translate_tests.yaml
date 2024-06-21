@@ -8,4 +8,4 @@ jobs:
   all_tests:
     uses: mlee03/pySHiELD/.github/workflows/translate.yml@reusing_workflows
     with:
-      shield_trigger:  true
+      ndsl_trigger:  true
