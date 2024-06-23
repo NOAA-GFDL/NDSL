@@ -6,6 +6,6 @@ on:
 
 jobs:
   pace_unit_tests:
-    uses: mlee03/pace/.github/workflows/main_unit_tests_mpich.yaml@reusable_workflow
+    uses: mlee03/pace/.github/workflows/main_unit_tests.yaml@reusable_workflow
     with:
       ndsl_trigger:  true
