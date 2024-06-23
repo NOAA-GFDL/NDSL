@@ -1,4 +1,4 @@
-name: "Unit tests"
+name: "pyFV3 translate tests"
 on:
   push:
   pull_request:

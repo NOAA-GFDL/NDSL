@@ -1,4 +1,4 @@
-name: "Unit tests"
+name: "NDSL Unit tests"
 on:
   push:
   pull_request:

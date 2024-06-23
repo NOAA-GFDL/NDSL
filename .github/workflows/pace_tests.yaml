@@ -1,4 +1,4 @@
-name: "Unit tests"
+name: "pace unit tests"
 on:
   push:
   pull_request:
