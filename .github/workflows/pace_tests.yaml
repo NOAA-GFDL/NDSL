@@ -1,0 +1,11 @@
+name: "Unit tests"
+on:
+  push:
+  pull_request:
+      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+jobs:
+  all_tests: 
+    uses: mlee03/pace/.github/workflows/main_unit_tests_mpich.yaml@reusable_workflow
+    with:
+      ndsl_trigger:  true
