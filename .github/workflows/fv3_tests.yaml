@@ -4,7 +4,7 @@ on:
       types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 jobs:
-  all_tests: 
+  fv3_translate_tests:
     uses: mlee03/pyFV3/.github/workflows/translate.yml@reusing_workflows
     with:
       ndsl_hash: 2024.04.00 #$GITHUB_SHA
