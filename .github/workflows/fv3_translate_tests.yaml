@@ -5,7 +5,6 @@ on:
 
 jobs:
   all_tests:
-    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yml@develop
+    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yaml@develop
     with:
-      ndsl_hash: $GITHUB_SHA
       ndsl_trigger:  true
