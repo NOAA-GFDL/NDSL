@@ -1,0 +1,11 @@
+name: "pace unit tests"
+on:
+  push:
+  pull_request:
+      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+jobs:
+  pace_unit_tests:
+    uses: mlee03/pace/.github/workflows/main_unit_tests.yaml@reusable_workflow
+    with:
+      ndsl_trigger:  true
