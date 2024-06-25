@@ -79,8 +79,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--topology",
         action="store",
-        default="cube-sphere",
-        help='Topology of the grid. "cube-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cube-sphere".',
+        default="cubed-sphere",
+        help='Topology of the grid. "cubed-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cubed-sphere".',
     )
 
 
@@ -189,7 +189,7 @@ def get_ranks(metafunc, layout):
     if only_rank is None:
         if topology == "doubly-periodic":
             total_ranks = layout[0] * layout[1]
-        elif topology == "cube-sphere":
+        elif topology == "cubed-sphere":
             total_ranks = 6 * layout[0] * layout[1]
         else:
             raise NotImplementedError(f"Topology {topology} is unknown.")
@@ -238,7 +238,7 @@ def _savepoint_cases(
     savepoint_names,
     ranks,
     stencil_config,
-    namelist,
+    namelist: Namelist,
     backend: str,
     data_path: str,
     grid_mode: str,
@@ -248,8 +248,8 @@ def _savepoint_cases(
     for rank in ranks:
         if grid_mode == "default":
             grid = Grid._make(
-                namelist.npx + 1,
-                namelist.npy + 1,
+                namelist.npx,
+                namelist.npy,
                 namelist.npz,
                 namelist.layout,
                 rank,
@@ -370,7 +370,7 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
 
 
 def get_communicator(comm, layout, topology_mode):
-    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "doubly-periodic"):
+    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "cubed-sphere"):
         partitioner = CubedSpherePartitioner(TilePartitioner(layout))
         communicator = CubedSphereCommunicator(comm, partitioner)
     else:
