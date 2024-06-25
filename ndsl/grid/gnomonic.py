@@ -384,6 +384,7 @@ def get_area(lon, lat, radius, np):
         lower_left, upper_left, upper_right, lower_right, radius, np
     )
 
+
 def get_area_varz(lon, lat, radius, height, np):
     """
     Given latitude and longitude on cell corners, return the area of each cell.
@@ -621,6 +622,7 @@ def get_rectangle_area(p1, p2, p3, p4, radius, np):
 
     return (total_angle - 2 * PI) * radius ** 2
 
+
 def get_rectangle_area_varz(p1, p2, p3, p4, radius, height, np):
     """
     Given four point arrays whose last dimensions are x/y/z in clockwise or
@@ -630,8 +632,8 @@ def get_rectangle_area_varz(p1, p2, p3, p4, radius, height, np):
     is an exact match. The errors in the last digit multipled out by the radius
     end up causing relative errors larger than 1e-14, but still wtihin 1e-12.
 
-    This method also takes into account the effect of height from surface of
-    Earth on surface area
+    This method also takes into account the effect of height from the surface of
+    the Earth on surface area
     """
     total_angle = spherical_angle(p2, p3, p1, np)
     for (
