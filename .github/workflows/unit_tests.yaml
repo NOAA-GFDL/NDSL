@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  all_tests:
+  all_ndsl_tests:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/noaa-gfdl/miniforge:mpich
