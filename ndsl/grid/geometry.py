@@ -1,4 +1,5 @@
 from ndsl.comm.partitioner import TilePartitioner
+from ndsl.dsl.typing import Float
 from ndsl.grid.gnomonic import (
     get_lonlat_vect,
     get_unit_vector_direction,
@@ -591,7 +592,7 @@ def edge_factors(
     nhalo: int,
     tile_partitioner: TilePartitioner,
     rank: int,
-    radius: float,
+    radius: Float,
     np,
 ):
     """
@@ -704,7 +705,7 @@ def efactor_a2c_v(
     nhalo: int,
     tile_partitioner: TilePartitioner,
     rank: int,
-    radius: float,
+    radius: Float,
     np,
 ):
     """
@@ -888,7 +889,7 @@ def unit_vector_lonlat(grid, np):
     return unit_lon, unit_lat
 
 
-def _fill_halo_corners(field, value: float, nhalo: int, tile_partitioner, rank):
+def _fill_halo_corners(field, value: Float, nhalo: int, tile_partitioner, rank):
     """
     Fills a tile halo corners (ghost cells) of a field
     with a set value along the first 2 axes
@@ -905,7 +906,7 @@ def _fill_halo_corners(field, value: float, nhalo: int, tile_partitioner, rank):
             field[-nhalo:, -nhalo:] = value  # NE corner
 
 
-def _fill_single_halo_corner(field, value: float, nhalo: int, corner: str):
+def _fill_single_halo_corner(field, value: Float, nhalo: int, corner: str):
     """
     Fills a tile halo corner (ghost cells) of a field
     with a set value along the first 2 axes
