@@ -989,6 +989,7 @@ def fill_corners_dgrid_defn(
     x_out: FloatField,
     y_in: FloatField,
     y_out: FloatField,
+    mysign: float,
 ):
     """
     Args:
@@ -997,7 +998,7 @@ def fill_corners_dgrid_defn(
         y_in (in):
         y_out (inout):
     """
-    from __externals__ import i_end, i_start, j_end, j_start, mysign
+    from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
         # sw corner
