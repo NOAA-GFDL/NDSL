@@ -34,7 +34,7 @@ requirements: List[str] = [
 
 setup(
     author="NOAA/NASA",
-    python_requires=">=3.8",
+    python_requires=">=3.11.7",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
