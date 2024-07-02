@@ -2,11 +2,10 @@ name: "pyFV3 translate tests"
 on:
   push:
   pull_request:
-      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 jobs:
   fv3_translate_tests:
-    uses: mlee03/pyFV3/.github/workflows/translate.yaml@reusing_workflows
+    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yaml@develop
     with:
       component_trigger:  true
       component_name: NDSL

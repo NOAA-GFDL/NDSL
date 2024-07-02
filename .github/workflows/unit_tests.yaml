@@ -1,8 +1,6 @@
-name: "NDSL Unit tests"
+name: "NDSL unit tests"
 on:
-  push:
   pull_request:
-      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 # cancel running jobs if theres a newer push
 concurrency:
@@ -10,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  all_tests:
+  ndsl_unit_tests:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/noaa-gfdl/miniforge:mpich
