@@ -1,7 +1,6 @@
 name: "Lint"
 on:
   pull_request:
-      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
 # cancel running jobs if theres a newer push
 concurrency:
