@@ -61,6 +61,24 @@ def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField):
         q_out = q_out / adjustment
 
 
+def average_in(
+    q_out: FloatField,
+    adjustement: FloatField,
+):
+    """
+    Averages every element of q_out
+    with every element of the adjustment
+    field over the interval, replacing
+    the elements of q_out by the result
+    of the averaging
+
+    Args:
+        adjustment: adjustment field
+        q_out: output field
+    """
+    with computation(PARALLEL), interval(...):
+        q_out = (q_out + adjustement) * 0.5
+
 @gtscript.function
 def sign(a, b):
     """

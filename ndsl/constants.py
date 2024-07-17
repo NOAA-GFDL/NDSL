@@ -119,6 +119,7 @@ elif CONST_VERSION == ConstantVersions.GFDL:
 else:
     raise RuntimeError("Constant selector failed, bad code.")
 
+SBC = 5.6704e-8  # Stefan-Boltzmann constant (W/m^2/K^4)
 RHO_H2O = 1000.  # Density of water in kg/m^3
 DZ_MIN = 2.0
 CV_AIR = CP_AIR - RDGAS  # Heat capacity of dry air at constant volume
