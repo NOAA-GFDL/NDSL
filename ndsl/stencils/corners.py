@@ -1001,6 +1001,8 @@ def fill_corners_dgrid_defn(
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
+        # this line of code is used to fix the missing symbol crash due to the node visitor depth limitation
+        acoef = mysign
         # sw corner
         with horizontal(region[i_start - 1, j_start - 1]):
             x_out = mysign * y_in[0, 1, 0]
