@@ -139,7 +139,16 @@ def main(data_path: str, output_path: str, data_name: Optional[str] = None):
 
 
 def get_data(data_shape, total_ranks, n_savepoints, output_list, varname):
-    array = np.full([n_savepoints, total_ranks] + data_shape, fill_value=np.nan)
+    # Read in dtype
+    if total_ranks <= 0:
+        return
+    varname_dtype = output_list[0][varname][0].dtype
+    # Build data array
+    array = np.full(
+        [n_savepoints, total_ranks] + data_shape,
+        fill_value=np.nan,
+        dtype=varname_dtype,
+    )
     dims = ["savepoint", "rank"] + [
         f"dim_{varname}_{i}" for i in range(len(data_shape))
     ]
