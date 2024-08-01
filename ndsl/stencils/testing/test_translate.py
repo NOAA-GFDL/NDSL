@@ -58,23 +58,26 @@ def sample_wherefail(
     bad_indices_count = len(found_indices[0])
     # Determine worst result
     worst_metric_err = 0.0
+    abs_errs = []
     for b in range(bad_indices_count):
         full_index = [f[b] for f in found_indices]
         metric_err = compare_scalar(computed_failures[b], reference_failures[b])
-        abs_err = abs(computed_failures[b] - reference_failures[b])
+        abs_errs.append(abs(computed_failures[b] - reference_failures[b]))
         if print_failures and b % failure_stride == 0:
             return_strings.append(
                 f"index: {full_index}, computed {computed_failures[b]}, "
                 f"reference {reference_failures[b]}, "
-                f"absolute diff {abs_err:.3e}, "
+                f"absolute diff {abs_errs[-1]:.3e}, "
                 f"metric diff: {metric_err:.3e}"
             )
         if np.isnan(metric_err) or (metric_err > worst_metric_err):
             worst_metric_err = metric_err
             worst_full_idx = full_index
-            worst_abs_err = abs_err
+            worst_abs_err = abs_errs[-1]
             computed_worst = computed_failures[b]
             reference_worst = reference_failures[b]
+    # Try to quantify noisy errors
+    unique_errors = len(np.unique(np.array(abs_errs)))
     # Summary and worst result
     fullcount = len(ref_data.flatten())
     return_strings.append(
@@ -85,6 +88,8 @@ def sample_wherefail(
         f"\treference: {reference_worst}\n"
         f"\tabsolute diff: {worst_abs_err:.3e}\n"
         f"\tmetric diff: {worst_metric_err:.3e}\n"
+        f"Noise quantification:\n"
+        f"\tunique errors: {unique_errors}/{bad_indices_count}\n"
     )
 
     if xy_indices:
@@ -112,7 +117,7 @@ def sample_wherefail(
         )
 
         return_strings.append(
-            "failed horizontal indices:" + str(list(zip(*found_xy_indices)))
+            "Failed horizontal indices:" + str(list(zip(*found_xy_indices)))
         )
 
     return "\n".join(return_strings)
@@ -153,9 +158,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key][
-                                    "near_zero"
-                                ] = float(match["all_other_near_zero"])
+                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
+                                    float(match["all_other_near_zero"])
+                                )
 
                 else:
                     raise TypeError(
