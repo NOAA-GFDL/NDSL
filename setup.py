@@ -13,8 +13,13 @@ def local_pkg(name: str, relative_path: str) -> str:
 
 test_requirements = ["pytest", "pytest-subtests", "coverage"]
 develop_requirements = test_requirements + ["pre-commit"]
+demos_requirements = ["ipython", "ipykernel"]
 
-extras_requires = {"test": test_requirements, "develop": develop_requirements}
+extras_requires = {
+    "test": test_requirements,
+    "develop": develop_requirements,
+    "demos": demos_requirements,
+}
 
 requirements: List[str] = [
     local_pkg("gt4py", "external/gt4py"),
@@ -29,6 +34,7 @@ requirements: List[str] = [
     "h5netcdf",  # for xarray
     "dask",  # for xarray
     "numpy==1.26.4",
+    "matplotlib",  # for plotting in boilerplate
 ]
 
 
