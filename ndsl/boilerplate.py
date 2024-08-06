@@ -1,6 +1,5 @@
 from typing import Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from ndsl import (
@@ -108,16 +107,3 @@ def get_factories_single_tile_numpy(
         orchestration=DaCeOrchestration.Python,
         topology="tile",
     )
-
-
-def plot_field_at_kN(field, k_index=0):
-
-    print("Min and max values:", field[:, :, k_index].min(), field[:, :, k_index].max())
-    plt.xlabel("I")
-    plt.ylabel("J")
-
-    im = plt.imshow(field[:, :, k_index].transpose(), origin="lower")
-
-    plt.colorbar(im)
-    plt.title("Plot at K = " + str(k_index))
-    plt.show()
