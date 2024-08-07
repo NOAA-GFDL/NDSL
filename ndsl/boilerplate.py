@@ -82,7 +82,7 @@ def _get_factories(
 def get_factories_single_tile_orchestrated_cpu(
     nx, ny, nz, nhalo
 ) -> Tuple[StencilFactory, QuantityFactory]:
-    """Build a Stencil & Quantity factory for orchestrated CPU, on a single tile toplogy."""
+    """Build a Stencil & Quantity factory for orchestrated CPU, on a single tile topology."""
     return _get_factories(
         nx=nx,
         ny=ny,
@@ -97,7 +97,7 @@ def get_factories_single_tile_orchestrated_cpu(
 def get_factories_single_tile_numpy(
     nx, ny, nz, nhalo
 ) -> Tuple[StencilFactory, QuantityFactory]:
-    """Build a Stencil & Quantity factory for Numpy, on a single tile toplogy."""
+    """Build a Stencil & Quantity factory for Numpy, on a single tile topology."""
     return _get_factories(
         nx=nx,
         ny=ny,
