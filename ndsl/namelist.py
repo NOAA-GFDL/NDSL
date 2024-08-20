@@ -111,6 +111,9 @@ class NamelistDefaults:
     tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
     alin = 842.0  # "a" in lin1983
     clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to ehance ql -- > qs)
+    mom4ice = False
+    lsm = 1
+    redrag = False
 
     @classmethod
     def as_dict(cls):
@@ -293,6 +296,9 @@ class Namelist:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
+    mom4ice: bool = NamelistDefaults.mom4ice
+    lsm: int = NamelistDefaults.lsm
+    redrag: bool = NamelistDefaults.redrag
     # c0s_shal: Any
     # c1_shal: Any
     # cal_pre: Any
