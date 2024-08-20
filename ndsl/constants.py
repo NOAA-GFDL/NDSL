@@ -137,7 +137,7 @@ DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling
 D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling
 LI0 = HLF - DC_ICE * TICE
 EPS = RDGAS / RVGAS
-EPSM1 = EPS - 1.
+EPSM1 = EPS - 1.0
 LV0 = (
     HLV - DC_VAP * TICE
 )  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin

@@ -122,9 +122,9 @@ class NamelistDefaults:
     xkzm_s = 1.0  # sigma threshold for background mom. diffusion
     xkzm_lim = 0.01  # background vertical diffusion limit
     xkzminv = 0.15  # diffusivity in inversion layers
-    xkgdx = 25.e3  # background vertical diffusion threshold
-    rlmn = 30.  # lower-limter on asymtotic mixing length in satmedmfdiff
-    rlmx = 300.  # upper-limter on asymtotic mixing length in satmedmfdiff
+    xkgdx = 25.0e3  # background vertical diffusion threshold
+    rlmn = 30.0  # lower-limter on asymtotic mixing length in satmedmfdiff
+    rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
     cap_k0_land = False  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
 
