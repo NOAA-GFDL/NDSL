@@ -297,12 +297,13 @@ class MetricTerms:
         self._dy_center = None
         self._area = None
         self._area_c = None
-        (
-            self._ks,
-            self._ptop,
-            self._ak,
-            self._bk,
-        ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
+        if eta_file != "None":
+            (
+                self._ks,
+                self._ptop,
+                self._ak,
+                self._bk,
+            ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
         self._ec1 = None
         self._ec2 = None
         self._ew1 = None
