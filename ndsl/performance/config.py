@@ -1,13 +1,12 @@
 import dataclasses
 
 from ndsl.comm.comm_abc import Comm
-from ndsl.performance.profiler import NullProfiler, Profiler
-
-from .collector import (
+from ndsl.performance.collector import (
     AbstractPerformanceCollector,
     NullPerformanceCollector,
     PerformanceCollector,
 )
+from ndsl.performance.profiler import NullProfiler, Profiler
 
 
 @dataclasses.dataclass

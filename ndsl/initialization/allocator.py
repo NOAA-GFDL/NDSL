@@ -2,10 +2,11 @@ from typing import Callable, Optional, Sequence
 
 import numpy as np
 
-from ..constants import SPATIAL_DIMS
-from ..optional_imports import gt4py
-from ..quantity import Quantity, QuantityHaloSpec
-from .sizer import GridSizer
+from ndsl.constants import SPATIAL_DIMS
+from ndsl.dsl.typing import Float
+from ndsl.initialization.sizer import GridSizer
+from ndsl.optional_imports import gt4py
+from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
 class StorageNumpy:
@@ -60,7 +61,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = np.float64,
+        dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ):
         return self._allocate(
@@ -71,7 +72,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = np.float64,
+        dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ):
         return self._allocate(
@@ -82,7 +83,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = np.float64,
+        dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ):
         return self._allocate(
@@ -116,7 +117,7 @@ class QuantityFactory:
         allocator: Callable,
         dims: Sequence[str],
         units: str,
-        dtype: type = np.float64,
+        dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ):
         origin = self.sizer.get_origin(dims)
@@ -150,7 +151,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         n_halo: Optional[int] = None,
-        dtype: type = np.float64,
+        dtype: type = Float,
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update.
 

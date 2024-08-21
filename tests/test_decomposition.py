@@ -4,6 +4,7 @@ from typing import Tuple
 
 import pytest
 
+from ndsl import CubedSpherePartitioner, TilePartitioner
 from ndsl.comm.decomposition import (
     block_waiting_for_compilation,
     build_cache_path,
@@ -11,9 +12,7 @@ from ndsl.comm.decomposition import (
     determine_rank_is_compiling,
     unblock_waiting_tiles,
 )
-from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
-
-from .mpi.mpi_comm import MPI
+from tests.mpi.mpi_comm import MPI
 
 
 @pytest.mark.parametrize(

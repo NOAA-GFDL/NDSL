@@ -1,12 +1,7 @@
 from gt4py.cartesian.gtscript import PARALLEL, Field, computation, interval
 from gt4py.storage import empty, ones
 
-from ndsl.dsl.stencil import (
-    CompilationConfig,
-    GridIndexing,
-    StencilConfig,
-    StencilFactory,
-)
+from ndsl import CompilationConfig, GridIndexing, StencilConfig, StencilFactory
 
 
 def _make_storage(

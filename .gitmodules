@@ -3,5 +3,4 @@
 	url = https://github.com/GridTools/gt4py.git
 [submodule "external/dace"]
 	path = external/dace
-	url = https://github.com/FlorianDeconinck/dace.git
-	branch = fix/gcc_dies_on_dacecpu
+	url = https://github.com/spcl/dace.git

@@ -12,11 +12,11 @@ except ImportError:
     split_cartesian_into_storages = None
 import ndsl.constants as constants
 from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.typing import Float
 from ndsl.filesystem import get_fs
-from ndsl.initialization import QuantityFactory
+from ndsl.grid.generation import MetricTerms
+from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
-
-from .generation import MetricTerms
 
 
 @dataclasses.dataclass(frozen=True)
@@ -227,13 +227,13 @@ class VerticalGridData:
         return self._dp_ref
 
     @property
-    def ptop(self) -> float:
+    def ptop(self) -> Float:
         """
         top of atmosphere pressure (Pa)
         """
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
-        return float(self.ak.view[0])
+        return Float(self.ak.view[0])
 
 
 @dataclasses.dataclass(frozen=True)
