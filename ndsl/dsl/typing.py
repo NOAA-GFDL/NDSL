@@ -63,7 +63,7 @@ IntField = Field[gtscript.IJK, Int]
 IntFieldIJ = Field[gtscript.IJ, Int]
 IntFieldK = Field[gtscript.K, Int]
 BoolField = Field[gtscript.IJK, Bool]
-BoolField = Field[gtscript.IJ, Bool]
+BoolFieldIJ = Field[gtscript.IJ, Bool]
 
 Index3D = Tuple[int, int, int]
 
