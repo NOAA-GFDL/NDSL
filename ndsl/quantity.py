@@ -2,6 +2,7 @@ import dataclasses
 import warnings
 from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, cast
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 import ndsl.constants as constants
@@ -592,6 +593,22 @@ class Quantity:
         )
         transposed._attrs = self._attrs
         return transposed
+
+    def plot_k_level(self, k_index=0):
+        field = self.data
+        print(
+            "Min and max values:",
+            field[:, :, k_index].min(),
+            field[:, :, k_index].max(),
+        )
+        plt.xlabel("I")
+        plt.ylabel("J")
+
+        im = plt.imshow(field[:, :, k_index].transpose(), origin="lower")
+
+        plt.colorbar(im)
+        plt.title("Plot at K = " + str(k_index))
+        plt.show()
 
 
 def transpose_sequence(sequence, order):
