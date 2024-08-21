@@ -111,6 +111,22 @@ class NamelistDefaults:
     tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
     alin = 842.0  # "a" in lin1983
     clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to ehance ql -- > qs)
+    isatmedmf = 0  # which version of satmedmfvdif to use
+    dspheat = False  # flag for tke dissipative heating
+    xkzm_h = 1.0  # background vertical diffusion for heat q over ocean
+    xkzm_m = 1.0  # background vertical diffusion for momentum over ocean
+    xkzm_hl = 1.0  # background vertical diffusion for heat q over land
+    xkzm_ml = 1.0  # background vertical diffusion for momentum over land
+    xkzm_hi = 1.0  # background vertical diffusion for heat q over ice
+    xkzm_mi = 1.0  # background vertical diffusion for momentum over ice
+    xkzm_s = 1.0  # sigma threshold for background mom. diffusion
+    xkzm_lim = 0.01  # background vertical diffusion limit
+    xkzminv = 0.15  # diffusivity in inversion layers
+    xkgdx = 25.0e3  # background vertical diffusion threshold
+    rlmn = 30.0  # lower-limter on asymtotic mixing length in satmedmfdiff
+    rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
+    do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
+    cap_k0_land = False  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
 
     @classmethod
     def as_dict(cls):
@@ -293,6 +309,22 @@ class Namelist:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
+    isatmedmf: int = NamelistDefaults.isatmedmf
+    dspheat: bool = NamelistDefaults.dspheat
+    xkzm_h: float = NamelistDefaults.xkzm_h
+    xkzm_m: float = NamelistDefaults.xkzm_m
+    xkzm_hl: float = NamelistDefaults.xkzm_hl
+    xkzm_ml: float = NamelistDefaults.xkzm_ml
+    xkzm_hi: float = NamelistDefaults.xkzm_hi
+    xkzm_mi: float = NamelistDefaults.xkzm_mi
+    xkzm_s: float = NamelistDefaults.xkzm_s
+    xkzm_lim: float = NamelistDefaults.xkzm_lim
+    xkzminv: float = NamelistDefaults.xkzminv
+    xkgdx: float = NamelistDefaults.xkgdx
+    rlmn: float = NamelistDefaults.rlmn
+    rlmx: float = NamelistDefaults.rlmx
+    do_dk_hb19: bool = NamelistDefaults.do_dk_hb19
+    cap_k0_land: bool = NamelistDefaults.cap_k0_land
     # c0s_shal: Any
     # c1_shal: Any
     # cal_pre: Any
