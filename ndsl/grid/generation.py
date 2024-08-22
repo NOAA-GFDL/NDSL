@@ -304,6 +304,27 @@ class MetricTerms:
                 self._ak,
                 self._bk,
             ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
+        else:
+            ks = self.quantity_factory.zeros(
+                [],
+                "",
+                dtype=Float,
+            )
+            ptop = self.quantity_factory.zeros(
+                [],
+                "Pa",
+                dtype=Float,
+            )
+            ak = self.quantity_factory.zeros(
+                [Z_INTERFACE_DIM],
+                "Pa",
+                dtype=Float,
+            )
+            bk = self.quantity_factory.zeros(
+                [Z_INTERFACE_DIM],
+                "",
+                dtype=Float,
+            )
         self._ec1 = None
         self._ec2 = None
         self._ew1 = None
