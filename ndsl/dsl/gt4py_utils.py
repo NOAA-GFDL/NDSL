@@ -154,6 +154,9 @@ def make_storage_data(
         data = _make_storage_data_2d(
             data, shape, start, dummy, axis, read_only, backend=backend
         )
+    elif n_dims == 4:
+        
+        data = _make_storage_data_4d(data, shape, start, backend=backend)
     else:
         data = _make_storage_data_3d(data, shape, start, backend=backend)
 
@@ -256,6 +259,23 @@ def _make_storage_data_3d(
     ] = asarray(data, type(buffer))
     return buffer
 
+def _make_storage_data_4d(
+    data: Field,
+    shape: Tuple[int, ...],
+    start: Tuple[int, ...] = (0, 0, 0, 0),
+    *,
+    backend: str,
+) -> Field:
+    istart, jstart, kstart, lstart = start
+    isize, jsize, ksize, lsize = data.shape
+    buffer = zeros(shape, backend=backend)
+    buffer[
+        istart : istart + isize,
+        jstart : jstart + jsize,
+        kstart : kstart + ksize,
+        lstart : lstart + lsize,
+    ] = asarray(data, type(buffer))
+    return buffer
 
 def make_storage_from_shape(
     shape: Tuple[int, ...],
