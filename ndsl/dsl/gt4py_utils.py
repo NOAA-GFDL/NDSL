@@ -59,8 +59,8 @@ def _mask_to_dimensions(
         if mask[i]:
             dimensions.append(axis)
     if len(mask) > 3:
-        for i in range(len(mask) - 3):
-            dimensions.append(None)
+        for i in range(3, len(mask)):
+            dimensions.append(str(shape[i]))
     offset = int(sum(mask))
     dimensions.extend(shape[offset:])
     return dimensions
