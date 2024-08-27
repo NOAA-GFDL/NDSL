@@ -24,7 +24,6 @@ jobs:
 
         - name: prepare input eta files
           run: |
-            cd ${GITHUB_WORKSPACE}/ndsl
             python tests/grid/generate_eta_files.py
 
         - name: Run serial-cpu tests
