@@ -65,8 +65,8 @@ def test_set_hybrid_pressure_coefficients_correct(km):
     values read-in directly from the NetCDF file.
     """
 
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    eta_file = os.path.join(dirname, f"eta{km}.nc")
+    working_dir = str(os.getcwd())
+    eta_file = f"{working_dir}/eta{km}.nc"
 
     backend = "numpy"
 
@@ -155,7 +155,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         metric_terms = MetricTerms(quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file)
     except Exception as error:
         if str(error) == "eta file NULL does not exist":
-            pytest.xfail("testing eta file not specified")
+            pytest.xfail("testing eta file not correctly specified")
         else:
             pytest.fail(f"ERROR {error}")
 
@@ -171,8 +171,8 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     to result in erronenous eta values.
     """
 
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    in_eta_file = os.path.join(dirname, "eta79.nc")
+    working_dir = str(os.getcwd())
+    in_eta_file = f"{working_dir}/eta79.nc"
     out_eta_file = "eta_not_mono_79.nc"
     write_non_mono_eta_file(in_eta_file, out_eta_file)
     eta_file = out_eta_file
