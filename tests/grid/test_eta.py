@@ -7,12 +7,12 @@ import pytest
 import xarray as xr
 
 from ndsl import (
-    NullComm,
     CubedSphereCommunicator,
     CubedSpherePartitioner,
+    NullComm,
     QuantityFactory,
-    TilePartitioner,
     SubtileGridSizer,
+    TilePartitioner,
 )
 from ndsl.grid import MetricTerms
 
@@ -70,7 +70,7 @@ def test_set_hybrid_pressure_coefficients_correct(km):
 
     backend = "numpy"
 
-    layout = (1,1)
+    layout = (1, 1)
 
     nz = km
     ny = 48
@@ -79,7 +79,7 @@ def test_set_hybrid_pressure_coefficients_correct(km):
 
     partitioner = CubedSpherePartitioner(TilePartitioner(layout))
 
-    communicator = CubedSphereCommunicator(NullComm(rank=0,total_ranks=6), partitioner)
+    communicator = CubedSphereCommunicator(NullComm(rank=0, total_ranks=6), partitioner)
 
     sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -94,7 +94,9 @@ def test_set_hybrid_pressure_coefficients_correct(km):
 
     quantity_factory = QuantityFactory.from_backend(sizer=sizer, backend=backend)
 
-    metric_terms = MetricTerms(quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file)
+    metric_terms = MetricTerms(
+        quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file
+    )
 
     ak_results = metric_terms.ak.data
     bk_results = metric_terms.bk.data
@@ -109,7 +111,6 @@ def test_set_hybrid_pressure_coefficients_correct(km):
         raise ValueError("Unexpected value of ak")
     if not np.array_equal(bk_answers, bk_results):
         raise ValueError("Unexpected value of bk")
-
 
 
 def test_set_hybrid_pressure_coefficients_nofile():
@@ -127,7 +128,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
 
     backend = "numpy"
 
-    layout = (1,1)
+    layout = (1, 1)
 
     nz = 79
     ny = 48
@@ -136,7 +137,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
 
     partitioner = CubedSpherePartitioner(TilePartitioner(layout))
 
-    communicator = CubedSphereCommunicator(NullComm(rank=0,total_ranks=6), partitioner)
+    communicator = CubedSphereCommunicator(NullComm(rank=0, total_ranks=6), partitioner)
 
     sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -152,7 +153,11 @@ def test_set_hybrid_pressure_coefficients_nofile():
     quantity_factory = QuantityFactory.from_backend(sizer=sizer, backend=backend)
 
     try:
-        metric_terms = MetricTerms(quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file)
+        metric_terms = MetricTerms(
+            quantity_factory=quantity_factory,
+            communicator=communicator,
+            eta_file=eta_file,
+        )
     except Exception as error:
         if str(error) == "eta file NULL does not exist":
             pytest.xfail("testing eta file not correctly specified")
@@ -179,7 +184,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
 
     backend = "numpy"
 
-    layout = (1,1)
+    layout = (1, 1)
 
     nz = 79
     ny = 48
@@ -188,7 +193,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
 
     partitioner = CubedSpherePartitioner(TilePartitioner(layout))
 
-    communicator = CubedSphereCommunicator(NullComm(rank=0,total_ranks=6), partitioner)
+    communicator = CubedSphereCommunicator(NullComm(rank=0, total_ranks=6), partitioner)
 
     sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -204,7 +209,11 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     quantity_factory = QuantityFactory.from_backend(sizer=sizer, backend=backend)
 
     try:
-        metric_terms = MetricTerms(quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file)
+        metric_terms = MetricTerms(
+            quantity_factory=quantity_factory,
+            communicator=communicator,
+            eta_file=eta_file,
+        )
     except Exception as error:
         if os.path.isfile(out_eta_file):
             os.remove(out_eta_file)
