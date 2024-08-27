@@ -157,6 +157,9 @@ class MultiModalFloatMetric(BaseMetric):
     Absolute errors for large amplitute
     """
 
+    _f32_absolute_eps = 1e-10
+    _f64_absolute_eps = 1e-13
+
     def __init__(
         self,
         reference_values: np.ndarray,
@@ -165,7 +168,6 @@ class MultiModalFloatMetric(BaseMetric):
         **kwargs,
     ):
         super().__init__(reference_values, computed_values)
-        self.eps = eps
         self.absolute_distance = np.empty_like(self.references)
         self.absolute_distance_metric = np.empty_like(self.references, dtype=np.bool_)
         self.relative_distance = np.empty_like(self.references)
@@ -174,7 +176,10 @@ class MultiModalFloatMetric(BaseMetric):
         self.ulp_distance_metric = np.empty_like(self.references, dtype=np.bool_)
 
         self.relative_fraction = 0.000001
-        self.absolute_eps = 1.0e-13
+        if self.references.dtype is (np.float32, np.int32):
+            self.absolute_eps = max(eps, self._f32_absolute_eps)
+        else:
+            self.absolute_eps = max(eps, self._f64_absolute_eps)
         self.ulp_threshold = 1.0
 
         self.success = self._compute_all_metrics()
@@ -189,11 +194,11 @@ class MultiModalFloatMetric(BaseMetric):
             )
             # Absolute distance
             self.absolute_distance = np.absolute(self.computed - self.references)
-            self.absolute_distance_metric = self.absolute_distance < 1.0e-13
+            self.absolute_distance_metric = self.absolute_distance < self.absolute_eps
             # Relative distance (in pct)
             self.relative_distance = np.divide(self.absolute_distance, max_values)
             self.relative_distance_metric = (
-                self.absolute_distance < 0.000001 * max_values
+                self.absolute_distance < self.relative_fraction * max_values
             )
             # ULP distance
             self.ulp_distance = np.divide(
@@ -202,10 +207,15 @@ class MultiModalFloatMetric(BaseMetric):
             self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold
 
             # Combine all distances into sucess or failure
-            success = np.logical_and(np.isnan(self.computed), np.isnan(self.references))
-            success = np.logical_or(success, self.absolute_distance_metric)
-            success = np.logical_or(success, self.relative_distance_metric)
-            success = np.logical_or(success, self.ulp_distance_metric)
+            # Success = no NANs & ( abs or rel or ulp )
+            naninf_success = not np.logical_and(
+                np.isnan(self.computed), np.isnan(self.references)
+            ).all()
+            metric_success = np.logical_or(
+                self.relative_distance_metric, self.absolute_distance_metric
+            )
+            metric_success = np.logical_or(metric_success, self.ulp_distance_metric)
+            success = np.logical_and(naninf_success, metric_success)
             return success
         elif self.references.dtype in (np.bool_, bool):
             success = np.logical_xor(self.computed, self.references)
