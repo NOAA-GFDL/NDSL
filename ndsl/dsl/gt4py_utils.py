@@ -53,11 +53,14 @@ def mark_untested(msg="This is not tested"):
 def _mask_to_dimensions(
     mask: Tuple[bool, ...], shape: Sequence[int]
 ) -> List[Union[str, int]]:
-    assert len(mask) == 3
+    assert len(mask) >= 3
     dimensions: List[Union[str, int]] = []
     for i, axis in enumerate(("I", "J", "K")):
         if mask[i]:
             dimensions.append(axis)
+    if len(mask) > 3:
+        for i in range(len(mask) - 3):
+            dimensions.append(None)
     offset = int(sum(mask))
     dimensions.extend(shape[offset:])
     return dimensions

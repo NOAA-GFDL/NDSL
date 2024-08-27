@@ -125,7 +125,7 @@ class TranslateFortranData2Py:
                 backend=self.stencil_factory.backend,
             )
         else:
-            if len(array.shape == 4):
+            if len(array.shape) == 4:
                 start = (int(istart), int(jstart), int(kstart), 0)
                 use_shape.append(array.shape[-1])
             return utils.make_storage_data(
