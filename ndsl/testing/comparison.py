@@ -91,8 +91,11 @@ class LegacyMetric(BaseMetric):
         return self.__repr__()
 
     def __repr__(self) -> str:
+        if self.check:
+            return "✅ No numerical differences"
+
         report = []
-        report.append("✅ Success" if self.check else "❌ Numerical failures")
+        report.append("❌ Numerical failures")
 
         found_indices = np.logical_not(self.success).nonzero()
         computed_failures = self.computed[found_indices]
@@ -231,8 +234,11 @@ class MultiModalFloatMetric(BaseMetric):
         return self.__repr__()
 
     def __repr__(self) -> str:
+        if self.check:
+            return "✅ No numerical differences"
+
         report = []
-        report.append("✅ Success" if self.check else "❌ Numerical failures")
+        report.append("❌ Numerical failures")
 
         found_indices = np.logical_not(self.success).nonzero()
         # List all errors
