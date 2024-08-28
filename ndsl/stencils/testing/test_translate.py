@@ -15,7 +15,7 @@ from ndsl.dsl.stencil import CompilationConfig, StencilConfig
 from ndsl.quantity import Quantity
 from ndsl.restart._legacy_restart import RESTART_PROPERTIES
 from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
-from ndsl.testing.comparison import MultiModalFloatMetric, LegacyMetric
+from ndsl.testing.comparison import LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
 
 
@@ -67,9 +67,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
-                                    float(match["all_other_near_zero"])
-                                )
+                                testobj.ignore_near_zero_errors[key][
+                                    "near_zero"
+                                ] = float(match["all_other_near_zero"])
 
                 else:
                     raise TypeError(

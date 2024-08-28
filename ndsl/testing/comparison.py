@@ -14,9 +14,11 @@ class BaseMetric:
         self.computed = np.atleast_1d(computed_values)
         self.check = False
 
-    def __str__(self) -> str: ...
+    def __str__(self) -> str:
+        ...
 
-    def __repr__(self) -> str: ...
+    def __repr__(self) -> str:
+        ...
 
 
 class LegacyMetric(BaseMetric):
