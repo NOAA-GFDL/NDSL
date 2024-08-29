@@ -113,6 +113,7 @@ def main(data_path: str, output_path: str, merge_blocks: bool, data_name: Option
                     rank_data[name].append(
                         read_serialized_data(serializer, savepoint, name)
                     )
+                nblocks = len(rank_data.name)
                 if merge_blocks and len(rank_data[name] > 1):
                     full_data = np.array(rank_data[name])
                     if len(full_data.shape) > 1:
@@ -120,11 +121,12 @@ def main(data_path: str, output_path: str, merge_blocks: bool, data_name: Option
                             # If we have an (i, x) array from each block reshape it
                             new_shape = (nx, ny) + full_data.shape[2:]
                             full_data = full_data.reshape(new_shape)
-                        elif full_data.shape[1] == namelist["fv_core_nml"]['npz']:
-                            # If it's a k-array from each block just take one
+                        elif full_data.shape[0] == nblocks:
+                            # We have one array for all blocks
+                            # could be a k-array or something else, so we take one copy
                             full_data = full_data[0]
                         else:
-                            return IndexError(
+                            raise IndexError(
                                 "Shape mismatch in block merging: "
                                 f"{full_data.shape[0]} by {full_data.shape[1]} "
                                 f"is not compatible with {nx} by {ny}"
