@@ -221,5 +221,5 @@ def test_set_hybrid_pressure_coefficients_not_mono():
             pytest.xfail("testing eta values are not monotomincally increasing")
         else:
             pytest.fail(
-                "ERROR in testing etav values not are not monotonically increasing"
+                "ERROR in testing eta values not are not monotonically increasing"
             )
