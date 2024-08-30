@@ -113,7 +113,7 @@ def main(data_path: str, output_path: str, merge_blocks: bool, data_name: Option
                     rank_data[name].append(
                         read_serialized_data(serializer, savepoint, name)
                     )
-                nblocks = len(rank_data.name)
+                nblocks = len(rank_data[name])
                 if merge_blocks and len(rank_data[name] > 1):
                     full_data = np.array(rank_data[name])
                     if len(full_data.shape) > 1:
