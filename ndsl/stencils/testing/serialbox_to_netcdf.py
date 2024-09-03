@@ -33,10 +33,11 @@ def get_parser():
         help="[Optional] Give the name of the data, will default to Generator_rankX",
     )
     parser.add_argument(
-        "-m", "--merge",
-        action='store_true',
+        "-m",
+        "--merge",
+        action="store_true",
         default=False,
-        help="merges datastreams blocked into separate savepoints"
+        help="merges datastreams blocked into separate savepoints",
     )
     return parser
 
@@ -64,7 +65,12 @@ def get_serializer(data_path: str, rank: int, data_name: Optional[str] = None):
     return serialbox.Serializer(serialbox.OpenModeKind.Read, data_path, name)
 
 
-def main(data_path: str, output_path: str, merge_blocks: bool, data_name: Optional[str] = None):
+def main(
+    data_path: str,
+    output_path: str,
+    merge_blocks: bool,
+    data_name: Optional[str] = None,
+):
     os.makedirs(output_path, exist_ok=True)
     namelist_filename_in = os.path.join(data_path, "input.nml")
 
@@ -77,18 +83,20 @@ def main(data_path: str, output_path: str, merge_blocks: bool, data_name: Option
     namelist = f90nml.read(namelist_filename_out)
     if namelist["fv_core_nml"]["grid_type"] <= 3:
         total_ranks = (
-            6 * namelist["fv_core_nml"]["layout"][0] * namelist["fv_core_nml"]["layout"][1]
+            6
+            * namelist["fv_core_nml"]["layout"][0]
+            * namelist["fv_core_nml"]["layout"][1]
         )
     else:
         total_ranks = (
             namelist["fv_core_nml"]["layout"][0] * namelist["fv_core_nml"]["layout"][1]
         )
-    nx = int((namelist["fv_core_nml"]['npx'] - 1) / (
-        namelist["fv_core_nml"]['layout'][0]
-    ))
-    ny = int((namelist["fv_core_nml"]['npy'] - 1) / (
-        namelist["fv_core_nml"]['layout'][1]
-    ))
+    nx = int(
+        (namelist["fv_core_nml"]["npx"] - 1) / (namelist["fv_core_nml"]["layout"][0])
+    )
+    ny = int(
+        (namelist["fv_core_nml"]["npy"] - 1) / (namelist["fv_core_nml"]["layout"][1])
+    )
 
     # all ranks have the same names, just look at first one
     serializer_0 = get_serializer(data_path, rank=0, data_name=data_name)
@@ -117,7 +125,7 @@ def main(data_path: str, output_path: str, merge_blocks: bool, data_name: Option
                 if merge_blocks and len(rank_data[name] > 1):
                     full_data = np.array(rank_data[name])
                     if len(full_data.shape) > 1:
-                        if (nx * ny == full_data.shape[0] * full_data.shape[1]):
+                        if nx * ny == full_data.shape[0] * full_data.shape[1]:
                             # If we have an (i, x) array from each block reshape it
                             new_shape = (nx, ny) + full_data.shape[2:]
                             full_data = full_data.reshape(new_shape)
