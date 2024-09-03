@@ -134,12 +134,6 @@ def main(
                             # could be a k-array or something else, so we take one copy
                             # TODO: is there a decent check for this?
                             full_data = full_data[0]
-                        #else:
-                        #    raise IndexError(
-                        #        "Shape mismatch in block merging: "
-                        #        f"{full_data.shape[0]} by {full_data.shape[1]} "
-                        #        f"is not compatible with {nx} by {ny}"
-                        #    )
                     elif len(full_data.shape) == 1:
                         # if it's a scalar from each block then just take one
                         full_data = full_data[0]
