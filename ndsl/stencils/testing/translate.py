@@ -125,6 +125,9 @@ class TranslateFortranData2Py:
                 backend=self.stencil_factory.backend,
             )
         else:
+            if len(array.shape) == 4:
+                start = (int(istart), int(jstart), int(kstart), 0)
+                use_shape.append(array.shape[-1])
             return utils.make_storage_data(
                 array,
                 tuple(use_shape),
@@ -159,7 +162,7 @@ class TranslateFortranData2Py:
         kstart = self.get_index_from_info(varinfo, "kstart", 0)
         return istart, jstart, kstart
 
-    def make_storage_data_input_vars(self, inputs, storage_vars=None):
+    def make_storage_data_input_vars(self, inputs, storage_vars=None, dict_4d=True):
         inputs_in = {**inputs}
         inputs_out = {}
         if storage_vars is None:
@@ -183,7 +186,7 @@ class TranslateFortranData2Py:
             )
 
             names_4d = None
-            if len(inputs_in[serialname].shape) == 4:
+            if (len(inputs_in[serialname].shape) == 4) and dict_4d:
                 names_4d = info.get("names_4d", utils.tracer_variables)
 
             dummy_axes = info.get("dummy_axes", None)
