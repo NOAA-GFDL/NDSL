@@ -32,7 +32,7 @@ from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
 from ndsl.quantity import Quantity
-from ndsl.testing import comparison
+from ndsl.testing.comparison import LegacyMetric
 
 
 try:
@@ -68,40 +68,14 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
 
 
 def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label) -> str:
-    metric_err = comparison.compare_arr(arg, numpy_arg)
-    nans_match = np.logical_and(np.isnan(arg), np.isnan(numpy_arg))
-    n_points = np.product(arg.shape)
-    failures_14 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-14,
-        )
+    metric = LegacyMetric(
+        reference_values=arg,
+        computed_values=numpy_arg,
+        eps=1e-13,
+        ignore_near_zero_errors=False,
+        near_zero=0,
     )
-    failures_10 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-10,
-        )
-    )
-    failures_8 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-8,
-        )
-    )
-    greatest_error = np.max(metric_err[~np.isnan(metric_err)])
-    if greatest_error == 0.0 and failures_14 == 0:
-        report = ""
-    else:
-        report = f"\n    {label}: "
-        report += f"max_err={greatest_error}"
-        if failures_14 > 0:
-            report += f" 1e-14 failures: {failures_14}"
-        if failures_10 > 0:
-            report += f" 1e-10 failures: {failures_10}"
-        if failures_8 > 0:
-            report += f" 1e-8 failures: {failures_8}"
-    return report
+    return metric.__repr__()
 
 
 @dataclasses.dataclass

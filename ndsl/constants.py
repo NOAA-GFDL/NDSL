@@ -130,6 +130,7 @@ CNST_0P20 = 0.2
 CV_VAP = 3.0 * RVGAS  # Heat capacity of water vapor at constant volume
 ZVIR = RVGAS / RDGAS - 1  # con_fvirt in Fortran physics
 C_ICE = 1972.0  # Heat capacity of ice at -15 degrees Celsius
+C_ICE_0 = 2106.0  # Heat capacity of ice at 0 degrees Celsius
 C_LIQ = 4.1855e3  # Heat capacity of water at 15 degrees Celsius
 CP_VAP = 4.0 * RVGAS  # Heat capacity of water vapor at constant pressure
 TICE = 273.16  # Freezing temperature
@@ -138,6 +139,7 @@ DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling
 D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling
 LI0 = HLF - DC_ICE * TICE
 EPS = RDGAS / RVGAS
+EPSM1 = EPS - 1.0
 LV0 = (
     HLV - DC_VAP * TICE
 )  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin
@@ -147,7 +149,8 @@ LI00 = (
 LI2 = (
     LV0 + LI00
 )  # 2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin
-E00 = 611.21  # Saturation vapor pressure at 0 degrees Celsius
+E00 = 611.21  # Saturation vapor pressure at 0 degrees Celsius (Pa)
+PSAT = 610.78  # Saturation vapor pressure at H2O 3pt (Pa)
 T_WFR = TICE - 40.0  # homogeneous freezing temperature
 TICE0 = TICE - 0.01
 T_MIN = 178.0  # Minimum temperature to freeze-dry all water vapor

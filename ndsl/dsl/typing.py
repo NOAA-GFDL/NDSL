@@ -68,6 +68,14 @@ BoolFieldIJ = Field[gtscript.IJ, Bool]
 Index3D = Tuple[int, int, int]
 
 
+def set_4d_field_size(n, dtype):
+    """
+    Defines a 4D field with a given size and type
+    The extra data dimension is not parallel
+    """
+    return Field[gtscript.IJK, (dtype, (n,))]
+
+
 def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     if len(val) != 3:
         raise ValueError(f"expected 3d index, received {val}")
