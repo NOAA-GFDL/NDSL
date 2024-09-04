@@ -176,7 +176,7 @@ def test_sequential_savepoint(
         input_data = {name: input_data[name] for name in input_names}
     except KeyError as e:
         raise KeyError(
-            f"Variable {e} was described in the translate test but cannot be found in the netCDF"
+            f"Variable {e} was described in the translate test but cannot be found in the NetCDF"
         )
     original_input_data = copy.deepcopy(input_data)
     # run python version of functionality

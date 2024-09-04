@@ -164,6 +164,8 @@ class MultiModalFloatMetric(BaseMetric):
 
     _f32_absolute_eps = 1e-10
     _f64_absolute_eps = 1e-13
+    relative_fraction = 0.000001  # 0.0001%
+    ulp_threshold = 1.0
 
     def __init__(
         self,
@@ -180,12 +182,10 @@ class MultiModalFloatMetric(BaseMetric):
         self.ulp_distance = np.empty_like(self.references)
         self.ulp_distance_metric = np.empty_like(self.references, dtype=np.bool_)
 
-        self.relative_fraction = 0.000001
         if self.references.dtype is (np.float32, np.int32):
             self.absolute_eps = max(eps, self._f32_absolute_eps)
         else:
             self.absolute_eps = max(eps, self._f64_absolute_eps)
-        self.ulp_threshold = 1.0
 
         self.success = self._compute_all_metrics()
         self.check = np.all(self.success)
