@@ -39,12 +39,12 @@ class LegacyMetric(BaseMetric):
     ):
         super().__init__(reference_values, computed_values)
         self.eps = eps
+        self._calculated_metric = np.empty_like(self.references)
         self.success = self._compute_errors(
             ignore_near_zero_errors,
             near_zero,
         )
         self.check = np.all(self.success)
-        self._calculated_metric = np.empty_like(self.references)
 
     def _compute_errors(
         self,
