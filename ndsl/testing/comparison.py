@@ -55,7 +55,7 @@ class LegacyMetric(BaseMetric):
             denom = self.references
             denom[self.references == 0] = self.computed[self.references == 0]
             self._calculated_metric = np.asarray(
-                np.abs(self.computed - self.references / denom)
+                np.abs((self.computed - self.references) / denom)
             )
             self._calculated_metric[denom == 0] = 0.0
         elif self.references.dtype in (np.bool_, bool):
