@@ -52,9 +52,10 @@ class LegacyMetric(BaseMetric):
         near_zero,
     ) -> npt.NDArray[np.bool_]:
         if self.references.dtype in (np.float64, np.int64, np.float32, np.int32):
-            denom = np.abs(self.references) + np.abs(self.computed)
+            denom = self.references
+            denom[self.references == 0] = self.computed[self.references == 0]
             self._calculated_metric = np.asarray(
-                2.0 * np.abs(self.computed - self.references) / denom
+                np.abs(self.computed - self.references / denom)
             )
             self._calculated_metric[denom == 0] = 0.0
         elif self.references.dtype in (np.bool_, bool):
@@ -123,7 +124,7 @@ class LegacyMetric(BaseMetric):
                 f"{reference_failures[b]}  {abs_errs[-1]:.3e}  {metric_err:.3e}"
             )
 
-            if np.isnan(metric_err) or (metric_err > worst_metric_err):
+            if np.isnan(metric_err) or (abs(metric_err) > abs(worst_metric_err)):
                 worst_metric_err = metric_err
                 worst_full_idx = full_index
                 worst_abs_err = abs_errs[-1]
@@ -249,7 +250,7 @@ class MultiModalFloatMetric(BaseMetric):
             f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
             f"Index   Computed   Reference   "
             f"Absolute E(<{self.absolute_eps:.2e})  "
-            f"Relative E(<{self.relative_fraction*100:.2e}%)   "
+            f"Relative E(<{self.relative_fraction * 100:.2e}%)   "
             f"ULP E(<{self.ulp_threshold})",
         ]
         # Summary and worst result
