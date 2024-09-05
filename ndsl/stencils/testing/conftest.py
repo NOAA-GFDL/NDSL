@@ -82,6 +82,12 @@ def pytest_addoption(parser):
         default="cubed-sphere",
         help='Topology of the grid. "cubed-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cubed-sphere".',
     )
+    parser.addoption(
+        "--multimodal_metric",
+        action="store_true",
+        default=False,
+        help="Use the multi-modal float metric. Default to False.",
+    )
 
 
 def pytest_configure(config):
@@ -387,6 +393,11 @@ def print_failures(pytestconfig):
 @pytest.fixture()
 def failure_stride(pytestconfig):
     return int(pytestconfig.getoption("failure_stride"))
+
+
+@pytest.fixture()
+def multimodal_metric(pytestconfig):
+    return bool(pytestconfig.getoption("multimodal_metric"))
 
 
 @pytest.fixture()
