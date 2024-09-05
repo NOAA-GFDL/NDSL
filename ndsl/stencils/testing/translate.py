@@ -123,6 +123,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 names=names_4d,
                 backend=self.stencil_factory.backend,
+                dtype=array.dtype,
             )
         else:
             if len(array.shape) == 4:
@@ -137,6 +138,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 read_only=read_only,
                 backend=self.stencil_factory.backend,
+                dtype=array.dtype,
             )
 
     def storage_vars(self):
