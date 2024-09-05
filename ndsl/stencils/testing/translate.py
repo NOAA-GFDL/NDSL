@@ -113,9 +113,9 @@ class TranslateFortranData2Py:
         elif not full_shape and len(array.shape) < 3 and axis == len(array.shape) - 1:
             use_shape[1] = 1
         start = (int(istart), int(jstart), int(kstart))
-        if 'float' in str(array.dtype):
+        if "float" in str(array.dtype):
             dtype = Float
-        elif 'int' in str(array.dtype):
+        elif "int" in str(array.dtype):
             dtype = Int
         else:
             dtype = array.dtype
@@ -133,7 +133,7 @@ class TranslateFortranData2Py:
             )
         else:
             if len(array.shape) == 4:
-                start = (int(istart), int(jstart), int(kstart), 0)
+                start = (int(istart), int(jstart), int(kstart), 0)  # type: ignore
                 use_shape.append(array.shape[-1])
             return utils.make_storage_data(
                 array,

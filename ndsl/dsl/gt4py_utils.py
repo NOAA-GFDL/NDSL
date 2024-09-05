@@ -158,7 +158,7 @@ def make_storage_data(
             data, shape, start, dummy, axis, read_only, backend=backend
         )
     elif n_dims == 4:
-        
+
         data = _make_storage_data_4d(data, shape, start, backend=backend)
     else:
         data = _make_storage_data_3d(data, shape, start, backend=backend)
@@ -262,6 +262,7 @@ def _make_storage_data_3d(
     ] = asarray(data, type(buffer))
     return buffer
 
+
 def _make_storage_data_4d(
     data: Field,
     shape: Tuple[int, ...],
@@ -279,6 +280,7 @@ def _make_storage_data_4d(
         lstart : lstart + lsize,
     ] = asarray(data, type(buffer))
     return buffer
+
 
 def make_storage_from_shape(
     shape: Tuple[int, ...],
@@ -333,6 +335,7 @@ def make_storage_dict(
     axis: int = 2,
     *,
     backend: str,
+    dtype: DTypes = Float,
 ) -> Dict[str, "Field"]:
     assert names is not None, "for 4d variable storages, specify a list of names"
     if shape is None:
@@ -347,6 +350,7 @@ def make_storage_dict(
             dummy=dummy,
             axis=axis,
             backend=backend,
+            dtype=dtype,
         )
     return data_dict
 
