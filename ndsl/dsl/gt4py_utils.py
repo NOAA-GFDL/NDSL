@@ -158,7 +158,6 @@ def make_storage_data(
             data, shape, start, dummy, axis, read_only, backend=backend
         )
     elif n_dims == 4:
-
         data = _make_storage_data_4d(data, shape, start, backend=backend)
     else:
         data = _make_storage_data_3d(data, shape, start, backend=backend)
