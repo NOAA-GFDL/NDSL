@@ -5,7 +5,7 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Field, Float  # noqa: F401
+from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 
@@ -113,6 +113,12 @@ class TranslateFortranData2Py:
         elif not full_shape and len(array.shape) < 3 and axis == len(array.shape) - 1:
             use_shape[1] = 1
         start = (int(istart), int(jstart), int(kstart))
+        if 'float' in str(array.dtype):
+            dtype = Float
+        elif 'int' in str(array.dtype):
+            dtype = Int
+        else:
+            dtype = array.dtype
         if names_4d:
             return utils.make_storage_dict(
                 array,
@@ -123,7 +129,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 names=names_4d,
                 backend=self.stencil_factory.backend,
-                dtype=array.dtype,
+                dtype=dtype,
             )
         else:
             if len(array.shape) == 4:
@@ -138,7 +144,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 read_only=read_only,
                 backend=self.stencil_factory.backend,
-                dtype=array.dtype,
+                dtype=dtype,
             )
 
     def storage_vars(self):
