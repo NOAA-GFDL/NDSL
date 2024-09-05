@@ -123,7 +123,7 @@ class LegacyMetric(BaseMetric):
                 f"{reference_failures[b]}  {abs_errs[-1]:.3e}  {metric_err:.3e}"
             )
 
-            if np.isnan(metric_err) or (metric_err > worst_metric_err):
+            if np.isnan(metric_err) or (abs(metric_err) > abs(worst_metric_err)):
                 worst_metric_err = metric_err
                 worst_full_idx = full_index
                 worst_abs_err = abs_errs[-1]
@@ -249,7 +249,7 @@ class MultiModalFloatMetric(BaseMetric):
             f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
             f"Index   Computed   Reference   "
             f"Absolute E(<{self.absolute_eps:.2e})  "
-            f"Relative E(<{self.relative_fraction*100:.2e}%)   "
+            f"Relative E(<{self.relative_fraction * 100:.2e}%)   "
             f"ULP E(<{self.ulp_threshold})",
         ]
         # Summary and worst result
