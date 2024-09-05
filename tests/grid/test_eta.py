@@ -115,13 +115,10 @@ def test_set_hybrid_pressure_coefficients_correct(km):
 
 def test_set_hybrid_pressure_coefficients_nofile():
 
-    """This test checks to see that the program
-    fails when (1) the eta_file is not specified in the yaml
-    configuration file; and (2), the computed eta values
-    increase non-monotonically.  For the latter test, the eta_file
-    is specified in test_config_not_mono.yaml file and
-    the ak and bk values in the eta_file have been changed nonsensically
-    to result in erronenous eta values.
+    """
+    This test checks to see that the program
+    fails when the eta_file is not specified 
+    in the yaml configuration file.
     """
 
     eta_file = "NULL"
@@ -167,13 +164,14 @@ def test_set_hybrid_pressure_coefficients_nofile():
 
 def test_set_hybrid_pressure_coefficients_not_mono():
 
-    """This test checks to see that the program
-    fails when (1) the eta_file is not specified in the yaml
-    configuration file; and (2), the computed eta values
-    increase non-monotonically.  For the latter test, the eta_file
-    is specified in test_config_not_mono.yaml file and
-    the ak and bk values in the eta_file have been changed nonsensically
-    to result in erronenous eta values.
+    """
+    This test checks to see that the program
+    fails when the computed eta values increase 
+    non-monotonically. For the latter test, the 
+    eta_file is specified in test_config_not_mono.yaml 
+    file and the ak and bk values in the eta_file 
+    have been changed nonsensically to result in 
+    erronenous eta values.
     """
 
     working_dir = str(os.getcwd())
