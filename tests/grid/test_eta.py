@@ -117,7 +117,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
 
     """
     This test checks to see that the program
-    fails when the eta_file is not specified 
+    fails when the eta_file is not specified
     in the yaml configuration file.
     """
 
@@ -166,11 +166,11 @@ def test_set_hybrid_pressure_coefficients_not_mono():
 
     """
     This test checks to see that the program
-    fails when the computed eta values increase 
-    non-monotonically. For the latter test, the 
-    eta_file is specified in test_config_not_mono.yaml 
-    file and the ak and bk values in the eta_file 
-    have been changed nonsensically to result in 
+    fails when the computed eta values increase
+    non-monotonically. For the latter test, the
+    eta_file is specified in test_config_not_mono.yaml
+    file and the ak and bk values in the eta_file
+    have been changed nonsensically to result in
     erronenous eta values.
     """
 

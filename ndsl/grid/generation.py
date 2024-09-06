@@ -297,7 +297,7 @@ class MetricTerms:
         self._dy_center = None
         self._area = None
         self._area_c = None
-        if eta_file is not "":
+        if eta_file != "":
             (
                 self._ks,
                 self._ptop,
