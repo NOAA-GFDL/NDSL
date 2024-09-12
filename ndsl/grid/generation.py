@@ -237,7 +237,7 @@ class MetricTerms:
         dy_const: float = 1000.0,
         deglat: float = 15.0,
         extdgrid: bool = False,
-        eta_file: str = "",
+        eta_file: str = None,
         ak: Optional[np.ndarray] = None,
         bk: Optional[np.ndarray] = None,
     ):
@@ -297,7 +297,7 @@ class MetricTerms:
         self._dy_center = None
         self._area = None
         self._area_c = None
-        if eta_file != "":
+        if eta_file is not None:
             (
                 self._ks,
                 self._ptop,
