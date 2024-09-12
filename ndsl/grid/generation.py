@@ -237,7 +237,7 @@ class MetricTerms:
         dy_const: float = 1000.0,
         deglat: float = 15.0,
         extdgrid: bool = False,
-        eta_file: str = None,
+        eta_file: Optional[str] = None,
         ak: Optional[np.ndarray] = None,
         bk: Optional[np.ndarray] = None,
     ):
