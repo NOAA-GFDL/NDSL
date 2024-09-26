@@ -130,6 +130,7 @@ class NamelistDefaults:
     rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
     cap_k0_land = False  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
+    lsoil = 4  # Number of soil levels in land surface model
 
     @classmethod
     def as_dict(cls):
@@ -496,6 +497,7 @@ class Namelist:
     nf_omega: int = NamelistDefaults.nf_omega
     fv_sg_adj: int = NamelistDefaults.fv_sg_adj
     n_sponge: int = NamelistDefaults.n_sponge
+    lsoil: int = NamelistDefaults.lsoil
 
     @classmethod
     def from_f90nml(cls, namelist: f90nml.Namelist):
