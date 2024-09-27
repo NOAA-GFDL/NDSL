@@ -270,7 +270,7 @@ def _make_storage_data_Nd(
     backend: str,
 ) -> Field:
     buffer = zeros(shape, backend=backend)
-    idx = tuple([slice(start[i], start[i] + data.shape[i]) for i in range(start)])
+    idx = tuple([slice(start[i], start[i] + data.shape[i]) for i in range(len(start))])
     buffer[idx] = asarray(data, type(buffer))
     return buffer
 
