@@ -210,13 +210,19 @@ def test_sequential_savepoint(
                     near_zero=case.testobj.near_zero,
                 )
             if not metric.check:
+                os.makedirs(OUTDIR, exist_ok=True)
+                log_filename = os.path.join(
+                    OUTDIR,
+                    f"details-{case.savepoint_name}-{varname}-rank{case.rank}.log",
+                )
+                metric.report(log_filename)
                 pytest.fail(str(metric), pytrace=False)
             passing_names.append(failing_names.pop())
         ref_data_out[varname] = [ref_data]
     if len(failing_names) > 0:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
-        out_filename = os.path.join(OUTDIR, f"translate-{case.savepoint_name}.nc")
+        nc_filename = os.path.join(OUTDIR, f"translate-{case.savepoint_name}.nc")
         input_data_on_host = {}
         for key, _input in input_data.items():
             input_data_on_host[key] = gt_utils.asarray(_input)
@@ -226,7 +232,7 @@ def test_sequential_savepoint(
             [output],
             ref_data_out,
             failing_names,
-            out_filename,
+            nc_filename,
         )
     if failing_names != []:
         pytest.fail(
@@ -353,11 +359,16 @@ def test_parallel_savepoint(
                     near_zero=case.testobj.near_zero,
                 )
             if not metric.check:
+                os.makedirs(OUTDIR, exist_ok=True)
+                log_filename = os.path.join(
+                    OUTDIR, f"details-{case.savepoint_name}-{varname}.log"
+                )
+                metric.report(log_filename)
                 pytest.fail(str(metric), pytrace=False)
             passing_names.append(failing_names.pop())
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
-        out_filename = os.path.join(
+        nct_filename = os.path.join(
             OUTDIR, f"translate-{case.savepoint_name}-{case.grid.rank}.nc"
         )
         try:
@@ -370,7 +381,7 @@ def test_parallel_savepoint(
                 [output],
                 ref_data,
                 failing_names,
-                out_filename,
+                nct_filename,
             )
         except Exception as error:
             print(f"TestParallel SaveNetCDF Error: {error}")

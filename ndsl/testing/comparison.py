@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -20,6 +20,9 @@ class BaseMetric:
     def __repr__(self) -> str:
         ...
 
+    def report(self, file_path: Optional[str] = None) -> List[str]:
+        ...
+
 
 class LegacyMetric(BaseMetric):
     """Legacy (AI2) metric used for original FV3 port.
@@ -39,12 +42,12 @@ class LegacyMetric(BaseMetric):
     ):
         super().__init__(reference_values, computed_values)
         self.eps = eps
+        self._calculated_metric = np.empty_like(self.references)
         self.success = self._compute_errors(
             ignore_near_zero_errors,
             near_zero,
         )
         self.check = np.all(self.success)
-        self._calculated_metric = np.empty_like(self.references)
 
     def _compute_errors(
         self,
@@ -52,9 +55,10 @@ class LegacyMetric(BaseMetric):
         near_zero,
     ) -> npt.NDArray[np.bool_]:
         if self.references.dtype in (np.float64, np.int64, np.float32, np.int32):
-            denom = np.abs(self.references) + np.abs(self.computed)
+            denom = self.references
+            denom[self.references == 0] = self.computed[self.references == 0]
             self._calculated_metric = np.asarray(
-                2.0 * np.abs(self.computed - self.references) / denom
+                np.abs((self.computed - self.references) / denom)
             )
             self._calculated_metric[denom == 0] = 0.0
         elif self.references.dtype in (np.bool_, bool):
@@ -87,67 +91,78 @@ class LegacyMetric(BaseMetric):
             )
         return success
 
+    def report(self, file_path: Optional[str] = None) -> List[str]:
+        report = []
+        if self.check:
+            report.append("✅ No numerical differences")
+        else:
+            report.append("❌ Numerical failures")
+
+            found_indices = np.logical_not(self.success).nonzero()
+            computed_failures = self.computed[found_indices]
+            reference_failures = self.references[found_indices]
+
+            # List all errors
+            bad_indices_count = len(found_indices[0])
+            # Determine worst result
+            worst_metric_err = 0.0
+            abs_errs = []
+            details = [
+                "All failures:",
+                "Index  Computed  Reference  Absloute E  Metric E",
+            ]
+            for b in range(bad_indices_count):
+                full_index = tuple([f[b] for f in found_indices])
+
+                metric_err = self._calculated_metric[full_index]
+
+                absolute_distance = abs(computed_failures[b] - reference_failures[b])
+                abs_errs.append(absolute_distance)
+
+                details.append(
+                    f"{full_index}  {computed_failures[b]}  "
+                    f"{reference_failures[b]}  {abs_errs[-1]:.3e}  {metric_err:.3e}"
+                )
+
+                if np.isnan(metric_err) or (abs(metric_err) > abs(worst_metric_err)):
+                    worst_metric_err = metric_err
+                    worst_full_idx = full_index
+                    worst_abs_err = abs_errs[-1]
+                    computed_worst = computed_failures[b]
+                    reference_worst = reference_failures[b]
+            # Try to quantify noisy errors
+            unique_errors = len(np.unique(np.array(abs_errs)))
+            # Summary and worst result
+            fullcount = len(self.references.flatten())
+            report.append(
+                f"Failed count: {bad_indices_count}/{fullcount} "
+                f"({round(100.0 * (bad_indices_count / fullcount), 2)}%),\n"
+                f"Worst failed index {worst_full_idx}\n"
+                f"    Computed:{computed_worst}\n"
+                f"    Reference: {reference_worst}\n"
+                f"    Absolute diff: {worst_abs_err:.3e}\n"
+                f"    Metric diff: {worst_metric_err:.3e}\n"
+                f"    Metric threshold: {self.eps}\n"
+                f"  Noise quantification:\n"
+                f"    Reference dtype: {type(reference_worst)}\n"
+                f"    Unique errors: {unique_errors}/{bad_indices_count}"
+            )
+            report.extend(details)
+
+        if file_path:
+            with open(file_path, "w") as fd:
+                fd.write("\n".join(report))
+
+        return report
+
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        if self.check:
-            return "✅ No numerical differences"
-
-        report = []
-        report.append("❌ Numerical failures")
-
-        found_indices = np.logical_not(self.success).nonzero()
-        computed_failures = self.computed[found_indices]
-        reference_failures = self.references[found_indices]
-
-        # List all errors
-        bad_indices_count = len(found_indices[0])
-        # Determine worst result
-        worst_metric_err = 0.0
-        abs_errs = []
-        details = [
-            "All failures:",
-            "Index  Computed  Reference  Absloute E  Metric E",
-        ]
-        for b in range(bad_indices_count):
-            full_index = tuple([f[b] for f in found_indices])
-
-            metric_err = self._calculated_metric[full_index]
-
-            absolute_distance = abs(computed_failures[b] - reference_failures[b])
-            abs_errs.append(absolute_distance)
-
-            details.append(
-                f"{full_index}  {computed_failures[b]}  "
-                f"{reference_failures[b]}  {abs_errs[-1]:.3e}  {metric_err:.3e}"
-            )
-
-            if np.isnan(metric_err) or (metric_err > worst_metric_err):
-                worst_metric_err = metric_err
-                worst_full_idx = full_index
-                worst_abs_err = abs_errs[-1]
-                computed_worst = computed_failures[b]
-                reference_worst = reference_failures[b]
-        # Try to quantify noisy errors
-        unique_errors = len(np.unique(np.array(abs_errs)))
-        # Summary and worst result
-        fullcount = len(self.references.flatten())
-        report.append(
-            f"Failed count: {bad_indices_count}/{fullcount} "
-            f"({round(100.0 * (bad_indices_count / fullcount), 2)}%),\n"
-            f"Worst failed index {worst_full_idx}\n"
-            f"    Computed:{computed_worst}\n"
-            f"    Reference: {reference_worst}\n"
-            f"    Absolute diff: {worst_abs_err:.3e}\n"
-            f"    Metric diff: {worst_metric_err:.3e}\n"
-            f"    Metric threshold: {self.eps}\n"
-            f"  Noise quantification:\n"
-            f"    Reference dtype: {type(reference_worst)}\n"
-            f"    Unique errors: {unique_errors}/{bad_indices_count}"
-        )
-        report.extend(details)
-
+        report = self.report()
+        if len(report) > 30:
+            report = report[:30]  # ~10 first errors
+            report.append("...")
         return "\n".join(report)
 
 
@@ -230,36 +245,47 @@ class MultiModalFloatMetric(BaseMetric):
                 f"recieved data with unexpected dtype {self.references.dtype}"
             )
 
+    def report(self, file_path: Optional[str] = None) -> List[str]:
+        report = []
+        if self.check:
+            report.append("✅ No numerical differences")
+        else:
+            report.append("❌ Numerical failures")
+
+            found_indices = np.logical_not(self.success).nonzero()
+            # List all errors to terminal and file
+            bad_indices_count = len(found_indices[0])
+            full_count = len(self.references.flatten())
+            failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
+            report = [
+                f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
+                f"Index   Computed   Reference   "
+                f"Absolute E(<{self.absolute_eps:.2e})  "
+                f"Relative E(<{self.relative_fraction * 100:.2e}%)   "
+                f"ULP E(<{self.ulp_threshold})",
+            ]
+            # Summary and worst result
+            for iBad in range(bad_indices_count):
+                fi = tuple([f[iBad] for f in found_indices])
+                report.append(
+                    f"{str(fi)}  {self.computed[fi]:.16e}  {self.references[fi]:.16e}  "
+                    f"{self.absolute_distance[fi]:.2e} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
+                    f"{self.relative_distance[fi] * 100:.2e} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
+                    f"{int(self.ulp_distance[fi]):02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
+                )
+
+        if file_path:
+            with open(file_path, "w") as fd:
+                fd.write("\n".join(report))
+
+        return report
+
     def __str__(self) -> str:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        if self.check:
-            return "✅ No numerical differences"
-
-        report = []
-        report.append("❌ Numerical failures")
-
-        found_indices = np.logical_not(self.success).nonzero()
-        # List all errors
-        bad_indices_count = len(found_indices[0])
-        full_count = len(self.references.flatten())
-        failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
-        report = [
-            f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
-            f"Index   Computed   Reference   "
-            f"Absolute E(<{self.absolute_eps:.2e})  "
-            f"Relative E(<{self.relative_fraction*100:.2e}%)   "
-            f"ULP E(<{self.ulp_threshold})",
-        ]
-        # Summary and worst result
-        for iBad in range(bad_indices_count):
-            fi = tuple([f[iBad] for f in found_indices])
-            report.append(
-                f"({fi[0]:02}, {fi[1]:02}, {fi[2]:02})  {self.computed[fi]:.16e}  {self.references[fi]:.16e}  "
-                f"{self.absolute_distance[fi]:.2e} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
-                f"{self.relative_distance[fi] * 100:.2e} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
-                f"{int(self.ulp_distance[fi]):02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
-            )
-
+        report = self.report()
+        if len(report) > 12:
+            report = report[:12]  # ~10 first errors
+            report.append("...")
         return "\n".join(report)

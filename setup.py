@@ -40,7 +40,7 @@ requirements: List[str] = [
 
 setup(
     author="NOAA/NASA",
-    python_requires=">=3.8",
+    python_requires=">=3.11",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
@@ -57,7 +57,7 @@ setup(
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
     include_package_data=True,
     url="https://github.com/NOAA-GFDL/NDSL",
-    version="2024.06.00",
+    version="2024.09.00",
     zip_safe=False,
     entry_points={
         "console_scripts": [
