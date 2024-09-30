@@ -1,6 +1,6 @@
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, computation, interval
 
-from ndsl.dsl.typing import FloatField
+from ndsl.dsl.typing import FloatField, BoolFieldIJ
 
 def tridiag_solve(
     a: FloatField,
@@ -48,3 +48,42 @@ def tridiag_solve(
             x = delta
         with interval(0, -1):
             x = delta - x * x[0, 0, 1]
+
+def masked_tridiag_solve(
+    a: FloatField,
+    b: FloatField,
+    c: FloatField,
+    d: FloatField,
+    x: FloatField,
+    delta: FloatField,
+    mask: BoolFieldIJ,
+):
+    """
+    Same as above but restricted to a subset of horizontal points
+
+    Inputs:
+        a: lower-diagonal matrix coefficients
+        b: diagonal matrix coefficients
+        c: upper-diagonal matrix coefficients
+        d: Result vector
+        mask: 
+    Outputs:
+        x: The vector to solve for
+        delta: d post-pivot
+    """
+    with computation(FORWARD):  # Forward sweep
+        with interval(0, 1):
+            if mask:
+                x = c / b
+                delta = d / b
+        with interval(1, None):
+            if mask:
+                x = c / (b - a * x[0, 0, -1])
+                delta = (d - a * delta[0, 0, -1]) / (b - a * x[0, 0, -1])
+    with computation(BACKWARD):  # Reverse sweep
+        with interval(-1, None):
+            if mask:
+                x = delta
+        with interval(0, -1):
+            if mask:
+                x = delta - x * x[0, 0, 1]
