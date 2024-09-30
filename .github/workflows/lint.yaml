@@ -1,7 +1,11 @@
 name: "Lint"
 on:
   pull_request:
-      types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+# cancel running jobs if theres a newer push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -14,7 +18,7 @@ jobs:
         - name: Step Python
           uses: actions/setup-python@v4.6.0
           with:
-            python-version: '3.8.12'
+            python-version: '3.11.7'
         - name: Install OpenMPI for gt4py
           run: |
             sudo apt-get install libopenmpi-dev

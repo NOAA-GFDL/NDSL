@@ -11,10 +11,15 @@ def local_pkg(name: str, relative_path: str) -> str:
     return path
 
 
-test_requirements = ["pytest", "pytest-subtests"]
+test_requirements = ["pytest", "pytest-subtests", "coverage"]
 develop_requirements = test_requirements + ["pre-commit"]
+demos_requirements = ["ipython", "ipykernel"]
 
-extras_requires = {"test": test_requirements, "develop": develop_requirements}
+extras_requires = {
+    "test": test_requirements,
+    "develop": develop_requirements,
+    "demos": demos_requirements,
+}
 
 requirements: List[str] = [
     local_pkg("gt4py", "external/gt4py"),
@@ -24,16 +29,18 @@ requirements: List[str] = [
     "xarray",
     "f90nml>=1.1.0",
     "fsspec",
-    "netcdf4",
+    "netcdf4==1.7.0",
     "scipy",  # restart capacities only
     "h5netcdf",  # for xarray
     "dask",  # for xarray
+    "numpy==1.26.4",
+    "matplotlib",  # for plotting in boilerplate
 ]
 
 
 setup(
     author="NOAA/NASA",
-    python_requires=">=3.8",
+    python_requires=">=3.11",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
@@ -50,6 +57,11 @@ setup(
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
     include_package_data=True,
     url="https://github.com/NOAA-GFDL/NDSL",
-    version="2024.04.00-RC",
+    version="2024.09.00",
     zip_safe=False,
+    entry_points={
+        "console_scripts": [
+            "ndsl-serialbox_to_netcdf = ndsl.stencils.testing.serialbox_to_netcdf:entry_point",
+        ]
+    },
 )

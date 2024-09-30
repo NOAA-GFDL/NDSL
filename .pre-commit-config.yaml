@@ -15,11 +15,12 @@ repos:
       args: ["--profile", "black"]
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.812
+    rev: v1.4.1
     hooks:
     - id: mypy
       name: mypy-ndsl
       args: [--config-file, setup.cfg]
+      additional_dependencies: [types-PyYAML]
       files: ndsl
       exclude: |
         (?x)^(
