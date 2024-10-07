@@ -349,14 +349,14 @@ class FrozenStencil(SDFGConvertible):
             ):
                 unblock_waiting_tiles(MPI.COMM_WORLD)
 
-        self._timing_collector.build_info[
-            _stencil_object_name(self.stencil_object)
-        ] = build_info
+        self._timing_collector.build_info[_stencil_object_name(self.stencil_object)] = (
+            build_info
+        )
         field_info = self.stencil_object.field_info
 
-        self._field_origins: Dict[
-            str, Tuple[int, ...]
-        ] = FrozenStencil._compute_field_origins(field_info, self.origin)
+        self._field_origins: Dict[str, Tuple[int, ...]] = (
+            FrozenStencil._compute_field_origins(field_info, self.origin)
+        )
         """mapping from field names to field origins"""
 
         self._stencil_run_kwargs: Dict[str, Any] = {
@@ -737,7 +737,7 @@ class GridIndexing:
             "local_js": gtscript.J[0] + self.jsc - origin[1],
             "j_end": j_end,
             "local_je": gtscript.J[-1] + self.jec - origin[1] - domain[1] + 1,
-            "k_start": self.origin[2],
+            "k_start": origin[2],
             "k_end": self.origin[2] + domain[2] - 1,
         }
 
