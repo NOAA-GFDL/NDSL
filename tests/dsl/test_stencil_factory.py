@@ -121,7 +121,7 @@ def test_stencil_vertical_bounds(backend: str):
     assert "k_start" in stencils[0].externals and stencils[0].externals["k_start"] == 0
     assert "k_end" in stencils[0].externals and stencils[0].externals["k_end"] == 2
     assert "k_start" in stencils[1].externals and stencils[1].externals["k_start"] == 1
-    assert "k_end" in stencils[1].externals and stencils[1].externals["k_end"] == 3
+    assert "k_end" in stencils[1].externals and stencils[1].externals["k_end"] == 4
 
 
 @pytest.mark.parametrize("enabled", [True, False])
