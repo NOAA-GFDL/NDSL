@@ -166,6 +166,21 @@ class LegacyMetric(BaseMetric):
         return "\n".join(report)
 
 
+class _Metric:
+    def __init__(self, value):
+        self._value: float = value
+        self.is_default = True
+
+    @property
+    def value(self) -> float:
+        return self._value
+
+    @value.setter
+    def value(self, _value: float):
+        self._value = _value
+        self.is_default = False
+
+
 class MultiModalFloatMetric(BaseMetric):
     """Combination of absolute, relative & ULP comparison for floats
 
@@ -177,16 +192,18 @@ class MultiModalFloatMetric(BaseMetric):
     Absolute errors for large amplitute
     """
 
-    _f32_absolute_eps = 1e-10
-    _f64_absolute_eps = 1e-13
-    relative_fraction = 0.000001  # 0.0001%
-    ulp_threshold = 1.0
+    _f32_absolute_eps = _Metric(1e-10)
+    _f64_absolute_eps = _Metric(1e-13)
+    relative_fraction = _Metric(0.000001)  # 0.0001%
+    ulp_threshold = _Metric(1.0)
 
     def __init__(
         self,
         reference_values: np.ndarray,
         computed_values: np.ndarray,
-        eps: float,
+        absolute_eps_override: float = -1,
+        relative_fraction_override: float = -1,
+        ulp_override: float = -1,
         **kwargs,
     ):
         super().__init__(reference_values, computed_values)
@@ -198,9 +215,17 @@ class MultiModalFloatMetric(BaseMetric):
         self.ulp_distance_metric = np.empty_like(self.references, dtype=np.bool_)
 
         if self.references.dtype is (np.float32, np.int32):
-            self.absolute_eps = max(eps, self._f32_absolute_eps)
+            self.absolute_eps = _Metric(self._f32_absolute_eps.value)
         else:
-            self.absolute_eps = max(eps, self._f64_absolute_eps)
+            self.absolute_eps = _Metric(self._f64_absolute_eps.value)
+
+        # Assign overrides if needed
+        if absolute_eps_override > self.absolute_eps.value:
+            self.absolute_eps.value = absolute_eps_override
+        if relative_fraction_override > self.relative_fraction.value:
+            self.relative_fraction.value = relative_fraction_override
+        if ulp_override > self.ulp_threshold.value:
+            self.ulp_threshold.value = ulp_override
 
         self.success = self._compute_all_metrics()
         self.check = np.all(self.success)
@@ -214,17 +239,19 @@ class MultiModalFloatMetric(BaseMetric):
             )
             # Absolute distance
             self.absolute_distance = np.absolute(self.computed - self.references)
-            self.absolute_distance_metric = self.absolute_distance < self.absolute_eps
+            self.absolute_distance_metric = (
+                self.absolute_distance < self.absolute_eps.value
+            )
             # Relative distance (in pct)
             self.relative_distance = np.divide(self.absolute_distance, max_values)
             self.relative_distance_metric = (
-                self.absolute_distance < self.relative_fraction * max_values
+                self.absolute_distance < self.relative_fraction.value * max_values
             )
             # ULP distance
             self.ulp_distance = np.divide(
                 self.absolute_distance, np.spacing(max_values)
             )
-            self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold
+            self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold.value
 
             # Combine all distances into sucess or failure
             # Success = no NANs & ( abs or rel or ulp )
@@ -245,9 +272,18 @@ class MultiModalFloatMetric(BaseMetric):
                 f"recieved data with unexpected dtype {self.references.dtype}"
             )
 
+    def _has_override(self) -> bool:
+        return (
+            not self.relative_fraction.is_default
+            or not self.absolute_eps.is_default
+            or not self.ulp_threshold.is_default
+        )
+
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
-        if self.check:
+        if self.check and self._has_override():
+            report.append("❎ Numerical differences with threshold override")
+        elif self.check:
             report.append("✅ No numerical differences")
         else:
             report.append("❌ Numerical failures")
@@ -260,9 +296,9 @@ class MultiModalFloatMetric(BaseMetric):
             report = [
                 f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
                 f"Index   Computed   Reference   "
-                f"Absolute E(<{self.absolute_eps:.2e})  "
-                f"Relative E(<{self.relative_fraction * 100:.2e}%)   "
-                f"ULP E(<{self.ulp_threshold})",
+                f"{'❎ ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
+                f"{'❎ ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+                f"{'❎ ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})",
             ]
             # Summary and worst result
             for iBad in range(bad_indices_count):

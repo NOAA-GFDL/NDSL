@@ -75,6 +75,18 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                     raise TypeError(
                         "ignore_near_zero_errors is either a list or a dict"
                     )
+            if "multimodal" in match:
+                parsed_mutimodal = match["multimodal"]
+                if "mmr_absolute_eps" in parsed_mutimodal:
+                    testobj.mmr_absolute_eps = float(
+                        parsed_mutimodal["mmr_absolute_eps"]
+                    )
+                if "mmr_relative_fraction" in parsed_mutimodal:
+                    testobj.mmr_relative_fraction = float(
+                        parsed_mutimodal["mmr_relative_fraction"]
+                    )
+                if "mmr_ulp_threshold" in parsed_mutimodal:
+                    testobj.mmr_ulp = float(parsed_mutimodal["mmr_ulp_threshold"])
             if "skip_test" in match:
                 testobj.skip_test = bool(match["skip_test"])
         elif len(matches) > 1:
@@ -197,9 +209,9 @@ def test_sequential_savepoint(
                 metric = MultiModalFloatMetric(
                     reference_values=ref_data,
                     computed_values=output_data,
-                    eps=case.testobj.max_error,
-                    ignore_near_zero_errors=ignore_near_zero,
-                    near_zero=case.testobj.near_zero,
+                    absolute_eps_override=case.testobj.mmr_absolute_eps,
+                    relative_fraction_override=case.testobj.mmr_relative_fraction,
+                    ulp_override=case.testobj.mmr_ulp,
                 )
             else:
                 metric = LegacyMetric(
