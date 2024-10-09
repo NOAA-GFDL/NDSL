@@ -261,10 +261,6 @@ def _make_storage_data_3d(
     ] = asarray(data, type(buffer))
     return buffer
 
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
 def _make_storage_data_Nd(
     data: Field,
     shape: Tuple[int, ...],
