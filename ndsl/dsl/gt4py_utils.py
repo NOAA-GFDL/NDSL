@@ -53,11 +53,14 @@ def mark_untested(msg="This is not tested"):
 def _mask_to_dimensions(
     mask: Tuple[bool, ...], shape: Sequence[int]
 ) -> List[Union[str, int]]:
-    assert len(mask) == 3
+    assert len(mask) >= 3
     dimensions: List[Union[str, int]] = []
     for i, axis in enumerate(("I", "J", "K")):
         if mask[i]:
             dimensions.append(axis)
+    if len(mask) > 3:
+        for i in range(3, len(mask)):
+            dimensions.append(str(shape[i]))
     offset = int(sum(mask))
     dimensions.extend(shape[offset:])
     return dimensions
@@ -154,6 +157,8 @@ def make_storage_data(
         data = _make_storage_data_2d(
             data, shape, start, dummy, axis, read_only, backend=backend
         )
+    elif n_dims >= 4:
+        data = _make_storage_data_Nd(data, shape, start, backend=backend)
     else:
         data = _make_storage_data_3d(data, shape, start, backend=backend)
 
@@ -257,6 +262,21 @@ def _make_storage_data_3d(
     return buffer
 
 
+def _make_storage_data_Nd(
+    data: Field,
+    shape: Tuple[int, ...],
+    start: Tuple[int, ...] = None,
+    *,
+    backend: str,
+) -> Field:
+    if start is None:
+        start = tuple([0] * data.ndim)
+    buffer = zeros(shape, backend=backend)
+    idx = tuple([slice(start[i], start[i] + data.shape[i]) for i in range(len(start))])
+    buffer[idx] = asarray(data, type(buffer))
+    return buffer
+
+
 def make_storage_from_shape(
     shape: Tuple[int, ...],
     origin: Tuple[int, ...] = origin,
@@ -310,6 +330,7 @@ def make_storage_dict(
     axis: int = 2,
     *,
     backend: str,
+    dtype: DTypes = Float,
 ) -> Dict[str, "Field"]:
     assert names is not None, "for 4d variable storages, specify a list of names"
     if shape is None:
@@ -324,6 +345,7 @@ def make_storage_dict(
             dummy=dummy,
             axis=axis,
             backend=backend,
+            dtype=dtype,
         )
     return data_dict
 
