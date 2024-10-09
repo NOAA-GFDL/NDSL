@@ -30,10 +30,8 @@ class HybridPressureCoefficients:
 
 
 def _load_ak_bk_from_file(eta_file: str) -> Tuple[np.ndarray, np.ndarray]:
-    if eta_file == "None":
-        raise ValueError("eta file not specified")
     if not os.path.isfile(eta_file):
-        raise ValueError("file " + eta_file + " does not exist")
+        raise ValueError(f"eta file {eta_file} does not exist")
 
     # read file into ak, bk arrays
     data = xr.open_dataset(eta_file)

@@ -237,7 +237,7 @@ class MetricTerms:
         dy_const: float = 1000.0,
         deglat: float = 15.0,
         extdgrid: bool = False,
-        eta_file: str = "None",
+        eta_file: Optional[str] = None,
         ak: Optional[np.ndarray] = None,
         bk: Optional[np.ndarray] = None,
     ):
@@ -297,12 +297,34 @@ class MetricTerms:
         self._dy_center = None
         self._area = None
         self._area_c = None
-        (
-            self._ks,
-            self._ptop,
-            self._ak,
-            self._bk,
-        ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
+        if eta_file is not None:
+            (
+                self._ks,
+                self._ptop,
+                self._ak,
+                self._bk,
+            ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
+        else:
+            self._ks = self.quantity_factory.zeros(
+                [],
+                "",
+                dtype=Float,
+            )
+            self._ptop = self.quantity_factory.zeros(
+                [],
+                "Pa",
+                dtype=Float,
+            )
+            self._ak = self.quantity_factory.zeros(
+                [Z_INTERFACE_DIM],
+                "Pa",
+                dtype=Float,
+            )
+            self._bk = self.quantity_factory.zeros(
+                [Z_INTERFACE_DIM],
+                "",
+                dtype=Float,
+            )
         self._ec1 = None
         self._ec2 = None
         self._ew1 = None
