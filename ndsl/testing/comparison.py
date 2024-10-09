@@ -23,6 +23,9 @@ class BaseMetric:
     def report(self, file_path: Optional[str] = None) -> List[str]:
         ...
 
+    def one_line_report(self) -> str:
+        ...
+
 
 class LegacyMetric(BaseMetric):
     """Legacy (AI2) metric used for original FV3 port.
@@ -91,13 +94,16 @@ class LegacyMetric(BaseMetric):
             )
         return success
 
+    def one_line_report(self) -> str:
+        if self.check:
+            return "✅ No numerical differences"
+        else:
+            return "❌ Numerical failures"
+
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
-        if self.check:
-            report.append("✅ No numerical differences")
-        else:
-            report.append("❌ Numerical failures")
-
+        report.append(self.one_line_report())
+        if not self.check:
             found_indices = np.logical_not(self.success).nonzero()
             computed_failures = self.computed[found_indices]
             reference_failures = self.references[found_indices]
@@ -279,15 +285,21 @@ class MultiModalFloatMetric(BaseMetric):
             or not self.ulp_threshold.is_default
         )
 
+    def one_line_report(self) -> str:
+        metric_threholds = f"{'🔶 ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
+        metric_threholds += f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+        metric_threholds += f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})"
+        if self.check and self._has_override():
+            return f"🔶 No numerical differences with threshold override ({metric_threholds})"
+        elif self.check:
+            return f"✅ No numerical differences ({metric_threholds})"
+        else:
+            return f"❌ Numerical failures ({metric_threholds})"
+
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
-        if self.check and self._has_override():
-            report.append("❎ Numerical differences with threshold override")
-        elif self.check:
-            report.append("✅ No numerical differences")
-        else:
-            report.append("❌ Numerical failures")
-
+        report.append(self.one_line_report())
+        if not self.check:
             found_indices = np.logical_not(self.success).nonzero()
             # List all errors to terminal and file
             bad_indices_count = len(found_indices[0])
@@ -296,9 +308,9 @@ class MultiModalFloatMetric(BaseMetric):
             report = [
                 f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
                 f"Index   Computed   Reference   "
-                f"{'❎ ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
-                f"{'❎ ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
-                f"{'❎ ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})",
+                f"{'🔶 ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
+                f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+                f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})",
             ]
             # Summary and worst result
             for iBad in range(bad_indices_count):
