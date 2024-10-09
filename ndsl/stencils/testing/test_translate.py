@@ -77,16 +77,14 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                     )
             if "multimodal" in match:
                 parsed_mutimodal = match["multimodal"]
-                if "mmr_absolute_eps" in parsed_mutimodal:
-                    testobj.mmr_absolute_eps = float(
-                        parsed_mutimodal["mmr_absolute_eps"]
-                    )
-                if "mmr_relative_fraction" in parsed_mutimodal:
+                if "absolute_epsilon" in parsed_mutimodal:
+                    testobj.mmr_absolute_eps = float(parsed_mutimodal["absolute_eps"])
+                if "relative_fraction" in parsed_mutimodal:
                     testobj.mmr_relative_fraction = float(
-                        parsed_mutimodal["mmr_relative_fraction"]
+                        parsed_mutimodal["relative_fraction"]
                     )
-                if "mmr_ulp_threshold" in parsed_mutimodal:
-                    testobj.mmr_ulp = float(parsed_mutimodal["mmr_ulp_threshold"])
+                if "ulp_threshold" in parsed_mutimodal:
+                    testobj.mmr_ulp = float(parsed_mutimodal["ulp_threshold"])
             if "skip_test" in match:
                 testobj.skip_test = bool(match["skip_test"])
         elif len(matches) > 1:
