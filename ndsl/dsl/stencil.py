@@ -737,6 +737,9 @@ class GridIndexing:
             "local_js": gtscript.J[0] + self.jsc - origin[1],
             "j_end": j_end,
             "local_je": gtscript.J[-1] + self.jec - origin[1] - domain[1] + 1,
+            "k_start": origin[2] if len(origin) > 2 else 0,
+            "k_end": (origin[2] if len(origin) > 2 else 0)
+            + (domain[2] - 1 if len(domain) > 2 else 0),
         }
 
     def get_origin_domain(
