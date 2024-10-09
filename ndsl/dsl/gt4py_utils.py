@@ -265,10 +265,12 @@ def _make_storage_data_3d(
 def _make_storage_data_Nd(
     data: Field,
     shape: Tuple[int, ...],
-    start: Tuple[int, ...],
+    start: Tuple[int, ...] = None,
     *,
     backend: str,
 ) -> Field:
+    if start is None:
+        start = tuple([0] * data.ndim)
     buffer = zeros(shape, backend=backend)
     idx = tuple([slice(start[i], start[i] + data.shape[i]) for i in range(len(start))])
     buffer[idx] = asarray(data, type(buffer))
