@@ -35,7 +35,7 @@ There is three state of a test in `pytest`: FAIL, PASS and XFAIL (expected fail)
 
 ### Legacy metric
 
-The legacy metric was used throughout the developement of the dynamical core and microphysics scheme at 64-bit precision. It tries to solve differences over big and small amplitutde values with a single formula that goes as follows: $\abs{computed-reference}/reference$ where `reference` has been purged of 0.
+The legacy metric was used throughout the developement of the dynamical core and microphysics scheme at 64-bit precision. It tries to solve differences over big and small amplitutde values with a single formula that goes as follows: $`\|computed-reference|/reference`$ where `reference` has been purged of 0.
 NaN values are considered no-pass.
 To pass the metric has to be lower than `1e-14`, any value lower than `1e-18` will be considered pass by default. The pass threshold can be overriden (see below).
 
