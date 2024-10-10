@@ -182,7 +182,7 @@ class TranslateFortranData2Py:
             if type(inputs_in[p]) in [np.int64, np.int32]:
                 inputs_out[p] = int(inputs_in[p])
             elif type(inputs_in[p]) is bool:
-                inputs_out[p] == inputs_in[p]
+                inputs_out[p] = inputs_in[p]
             else:
                 inputs_out[p] = Float(inputs_in[p])
         for d, info in storage_vars.items():
