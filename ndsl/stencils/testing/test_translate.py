@@ -410,7 +410,7 @@ def _report_results(savepoint_name: str, results: Dict[str, BaseMetric]) -> None
     os.makedirs(OUTDIR, exist_ok=True)
 
     # Summary
-    with open(f"{OUTDIR}/summary.log", "w") as f:
+    with open(f"{OUTDIR}/{savepoint_name}-summary.log", "w") as f:
         for varname, metric in results.items():
             f.write(f"{varname}: {metric.one_line_report()}\n")
 
