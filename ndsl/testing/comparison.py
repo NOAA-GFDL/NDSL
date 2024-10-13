@@ -290,11 +290,13 @@ class MultiModalFloatMetric(BaseMetric):
         metric_threholds += f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
         metric_threholds += f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})"
         if self.check and self._has_override():
-            return f"🔶 No numerical differences with threshold override ({metric_threholds})"
+            return f"🔶 No numerical differences with threshold override - metric: {metric_threholds}"
         elif self.check:
-            return f"✅ No numerical differences ({metric_threholds})"
+            return f"✅ No numerical differences - metric: {metric_threholds}"
         else:
-            return f"❌ Numerical failures ({metric_threholds})"
+            failed_indices = len(np.logical_not(self.success).nonzero()[0])
+            all_indices = len(self.references.flatten())
+            return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_threholds}"
 
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
