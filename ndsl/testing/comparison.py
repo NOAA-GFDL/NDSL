@@ -220,7 +220,7 @@ class MultiModalFloatMetric(BaseMetric):
         self.ulp_distance = np.empty_like(self.references)
         self.ulp_distance_metric = np.empty_like(self.references, dtype=np.bool_)
 
-        if self.references.dtype is (np.float32, np.int32):
+        if self.references.dtype in [np.float32, np.int32]:
             self.absolute_eps = _Metric(self._f32_absolute_eps.value)
         else:
             self.absolute_eps = _Metric(self._f64_absolute_eps.value)
