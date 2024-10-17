@@ -15,14 +15,14 @@ from ndsl.dsl.stencil import CompilationConfig, StencilConfig
 from ndsl.quantity import Quantity
 from ndsl.restart._legacy_restart import RESTART_PROPERTIES
 from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
-from ndsl.testing.comparison import LegacyMetric, MultiModalFloatMetric
+from ndsl.testing.comparison import BaseMetric, LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
 
 
 # this only matters for manually-added print statements
 np.set_printoptions(threshold=4096)
 
-OUTDIR = "./.translate-errors"
+OUTDIR = "./.translate-outputs"
 GPU_MAX_ERR = 1e-10
 GPU_NEAR_ZERO = 1e-15
 
@@ -75,6 +75,16 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                     raise TypeError(
                         "ignore_near_zero_errors is either a list or a dict"
                     )
+            if "multimodal" in match:
+                parsed_mutimodal = match["multimodal"]
+                if "absolute_epsilon" in parsed_mutimodal:
+                    testobj.mmr_absolute_eps = float(parsed_mutimodal["absolute_eps"])
+                if "relative_fraction" in parsed_mutimodal:
+                    testobj.mmr_relative_fraction = float(
+                        parsed_mutimodal["relative_fraction"]
+                    )
+                if "ulp_threshold" in parsed_mutimodal:
+                    testobj.mmr_ulp = float(parsed_mutimodal["ulp_threshold"])
             if "skip_test" in match:
                 testobj.skip_test = bool(match["skip_test"])
         elif len(matches) > 1:
@@ -185,6 +195,9 @@ def test_sequential_savepoint(
     passing_names: List[str] = []
     all_ref_data = dataset_to_dict(case.ds_out)
     ref_data_out = {}
+    results = {}
+
+    # Assign metrics and report on terminal any failures
     for varname in case.testobj.serialnames(case.testobj.out_vars):
         ignore_near_zero = case.testobj.ignore_near_zero_errors.get(varname, False)
         ref_data = all_ref_data[varname]
@@ -197,9 +210,9 @@ def test_sequential_savepoint(
                 metric = MultiModalFloatMetric(
                     reference_values=ref_data,
                     computed_values=output_data,
-                    eps=case.testobj.max_error,
-                    ignore_near_zero_errors=ignore_near_zero,
-                    near_zero=case.testobj.near_zero,
+                    absolute_eps_override=case.testobj.mmr_absolute_eps,
+                    relative_fraction_override=case.testobj.mmr_relative_fraction,
+                    ulp_override=case.testobj.mmr_ulp,
                 )
             else:
                 metric = LegacyMetric(
@@ -209,16 +222,14 @@ def test_sequential_savepoint(
                     ignore_near_zero_errors=ignore_near_zero,
                     near_zero=case.testobj.near_zero,
                 )
+            results[varname] = metric
             if not metric.check:
-                os.makedirs(OUTDIR, exist_ok=True)
-                log_filename = os.path.join(
-                    OUTDIR,
-                    f"details-{case.savepoint_name}-{varname}-rank{case.rank}.log",
-                )
-                metric.report(log_filename)
                 pytest.fail(str(metric), pytrace=False)
             passing_names.append(failing_names.pop())
         ref_data_out[varname] = [ref_data]
+
+    # Reporting & data save
+    _report_results(case.savepoint_name, results)
     if len(failing_names) > 0:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
@@ -332,6 +343,9 @@ def test_parallel_savepoint(
     passing_names = []
     ref_data: Dict[str, Any] = {}
     all_ref_data = dataset_to_dict(case.ds_out)
+    results = {}
+
+    # Assign metrics and report on terminal any failures
     for varname in out_vars:
         ref_data[varname] = []
         new_ref_data = all_ref_data[varname]
@@ -358,14 +372,13 @@ def test_parallel_savepoint(
                     ignore_near_zero_errors=ignore_near_zero,
                     near_zero=case.testobj.near_zero,
                 )
+            results[varname] = metric
             if not metric.check:
-                os.makedirs(OUTDIR, exist_ok=True)
-                log_filename = os.path.join(
-                    OUTDIR, f"details-{case.savepoint_name}-{varname}.log"
-                )
-                metric.report(log_filename)
                 pytest.fail(str(metric), pytrace=False)
             passing_names.append(failing_names.pop())
+
+    # Reporting & data save
+    _report_results(case.savepoint_name, results)
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
         nct_filename = os.path.join(
@@ -391,6 +404,20 @@ def test_parallel_savepoint(
         )
     if len(passing_names) == 0:
         pytest.fail("No tests passed")
+
+
+def _report_results(savepoint_name: str, results: Dict[str, BaseMetric]) -> None:
+    os.makedirs(OUTDIR, exist_ok=True)
+
+    # Summary
+    with open(f"{OUTDIR}/summary-{savepoint_name}.log", "w") as f:
+        for varname, metric in results.items():
+            f.write(f"{varname}: {metric.one_line_report()}\n")
+
+    # Detailled log
+    for varname, metric in results.items():
+        log_filename = os.path.join(OUTDIR, f"details-{savepoint_name}-{varname}.log")
+        metric.report(log_filename)
 
 
 def save_netcdf(
