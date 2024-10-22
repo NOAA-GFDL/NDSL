@@ -203,7 +203,6 @@ class TranslateFortranData2Py:
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
             if index_variable:
-                breakpoint()
                 inputs_in[serialname] -= 1
             inputs_out[d] = self.make_storage_data(
                 np.squeeze(inputs_in[serialname]),
@@ -237,7 +236,6 @@ class TranslateFortranData2Py:
             ds.update(info)
             data_result = as_numpy(out_data[var])
             if index_variable:
-                breakpoint()
                 data_result += 1
             if isinstance(data_result, dict):
                 names_4d = info.get("names_4d", utils.tracer_variables)
