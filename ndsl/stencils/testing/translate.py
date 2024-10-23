@@ -32,7 +32,7 @@ def pad_field_in_j(field, nj: int, backend: str):
 
 
 def as_numpy(
-    value: Union[Dict[str, Any], Quantity, np.ndarray]
+    value: Union[Dict[str, Any], Quantity, np.ndarray],
 ) -> Union[np.ndarray, Dict[str, np.ndarray]]:
     def _convert(value: Union[Quantity, np.ndarray]) -> np.ndarray:
         if isinstance(value, Quantity):
@@ -53,6 +53,9 @@ def as_numpy(
 class TranslateFortranData2Py:
     max_error = 1e-14
     near_zero = 1e-18
+    mmr_absolute_eps = -1
+    mmr_relative_fraction = -1
+    mmr_ulp = -1
 
     def __init__(self, grid, stencil_factory: StencilFactory, origin=utils.origin):
         self.origin = origin
