@@ -317,11 +317,16 @@ class MultiModalFloatMetric(BaseMetric):
             # Summary and worst result
             for iBad in range(bad_indices_count):
                 fi = tuple([f[iBad] for f in found_indices])
+                ulp_dist = (
+                    self.ulp_distance[fi]
+                    if np.isnan(self.ulp_distance[fi])
+                    else int(self.ulp_distance[fi])
+                )
                 report.append(
                     f"{str(fi)}  {self.computed[fi]:.16e}  {self.references[fi]:.16e}  "
                     f"{self.absolute_distance[fi]:.2e} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
                     f"{self.relative_distance[fi] * 100:.2e} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
-                    f"{int(self.ulp_distance[fi]):02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
+                    f"{ulp_dist:02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
                 )
 
         if file_path:
