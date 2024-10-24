@@ -220,9 +220,9 @@ def get_data_collapse_all_ranks(total_ranks, n_savepoints, output_list, varname)
     for rank in range(total_ranks):
         for i_savepoint in range(n_savepoints):
             this_rank_data = output_list[rank][varname][i_savepoint]
-            data[i_savepoint, last_size : last_size + this_rank_data.shape[0]] = (
-                this_rank_data[:]
-            )
+            data[
+                i_savepoint, last_size : last_size + this_rank_data.shape[0]
+            ] = this_rank_data[:]
             last_size += this_rank_data.shape[0]
 
     return data
