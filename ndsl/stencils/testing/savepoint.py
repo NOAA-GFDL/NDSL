@@ -46,6 +46,15 @@ class SavepointCase:
         return f"{self.savepoint_name}-rank={self.rank}-call={self.i_call}"
 
     @property
+    def exists(self) -> bool:
+        return (
+            xr.open_dataset(
+                os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc")
+            ).sizes["rank"]
+            > self.rank
+        )
+
+    @property
     def ds_in(self) -> xr.Dataset:
         return (
             xr.open_dataset(os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc"))
