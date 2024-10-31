@@ -336,7 +336,7 @@ def test_parallel_savepoint(
         return
     if (grid == "compute") and not case.testobj.compute_grid_option:
         pytest.xfail(f"Grid compute option not used for test {case.savepoint_name}")
-    if case.exists:
+    if not case.exists:
         pytest.skip(f"Data at rank {case.rank} does not exists")
     input_data = dataset_to_dict(case.ds_in)
     # run python version of functionality
