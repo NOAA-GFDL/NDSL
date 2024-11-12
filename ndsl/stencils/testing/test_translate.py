@@ -200,7 +200,10 @@ def test_sequential_savepoint(
     # Assign metrics and report on terminal any failures
     for varname in case.testobj.serialnames(case.testobj.out_vars):
         ignore_near_zero = case.testobj.ignore_near_zero_errors.get(varname, False)
-        ref_data = all_ref_data[varname]
+        try:
+            ref_data = all_ref_data[varname]
+        except KeyError:
+            raise KeyError(f'Output "{varname}" couldn\'t be found in output data')
         if hasattr(case.testobj, "subset_output"):
             ref_data = case.testobj.subset_output(varname, ref_data)
         with subtests.test(varname=varname):
