@@ -46,7 +46,6 @@ def global_set_floating_point_precision():
         NotImplementedError(
             f"{precision_in_bit} bit precision not implemented or tested"
         )
-    return None
 
 
 # Default float and int types
