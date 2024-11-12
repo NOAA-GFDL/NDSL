@@ -145,6 +145,7 @@ def main(
                 # feedback on one rank
                 colapse_all_ranks = False
                 data_shape = list(rank_list[0][varname][0].shape)
+                print(f"  Exporting {varname} - {data_shape}")
                 for rank in range(total_ranks):
                     this_shape = list(rank_list[rank][varname][0].shape)
                     if data_shape != this_shape:
