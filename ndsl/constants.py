@@ -2,6 +2,7 @@ import os
 from enum import Enum
 
 from ndsl.logging import ndsl_log
+from ndsl.dsl.typing import Float
 
 
 # The FV3GFS model ships with two sets of constants, one used in the GFS physics
@@ -119,6 +120,7 @@ elif CONST_VERSION == ConstantVersions.GFDL:
 else:
     raise RuntimeError("Constant selector failed, bad code.")
 
+SECONDS_PER_DAY = Float(86400.0)
 DZ_MIN = 2.0
 CV_AIR = CP_AIR - RDGAS  # Heat capacity of dry air at constant volume
 RDG = -RDGAS / GRAV
