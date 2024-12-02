@@ -1,8 +1,8 @@
 import os
 from enum import Enum
 
-from ndsl.logging import ndsl_log
 from ndsl.dsl.typing import Float
+from ndsl.logging import ndsl_log
 
 
 # The FV3GFS model ships with two sets of constants, one used in the GFS physics
