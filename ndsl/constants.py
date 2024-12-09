@@ -1,6 +1,8 @@
 import os
 from enum import Enum
 
+import numpy as np
+
 from ndsl.dsl.typing import Float
 from ndsl.logging import ndsl_log
 
@@ -76,70 +78,71 @@ else:
 # Physical constants
 #####################
 if CONST_VERSION == ConstantVersions.GEOS:
-    RADIUS = 6.371e6
-    PI = 3.14159265358979323846
-    OMEGA = 2.0 * PI / 86164.0
-    GRAV = 9.80665
-    RGRAV = 1.0 / GRAV
-    RDGAS = 8314.47 / 28.965
-    RVGAS = 8314.47 / 18.015
-    HLV = 2.4665e6
-    HLF = 3.3370e5
-    KAPPA = RDGAS / (3.5 * RDGAS)
+    RADIUS = Float(6.371e6)
+    PI_8 = np.float64(3.14159265358979323846)
+    PI = Float(PI_8)
+    OMEGA = Float(2.0) * PI / Float(86164.0)
+    GRAV = Float(9.80665)
+    RGRAV = Float(1.0) / GRAV
+    RDGAS = Float(8314.47) / Float(28.965)
+    RVGAS = Float(8314.47) / Float(18.015)
+    HLV = Float(2.4665e6)
+    HLF = Float(3.3370e5)
+    KAPPA = RDGAS / (Float(3.5) * RDGAS)
     CP_AIR = RDGAS / KAPPA
-    TFREEZE = 273.15
-    SAT_ADJUST_THRESHOLD = 1.0e-6
+    TFREEZE = Float(273.16)
+    SAT_ADJUST_THRESHOLD = Float(1.0e-6)
 elif CONST_VERSION == ConstantVersions.GFS:
-    RADIUS = 6.3712e6  # Radius of the Earth [m]
-    PI = 3.1415926535897931
-    OMEGA = 7.2921e-5  # Rotation of the earth
-    GRAV = 9.80665  # Acceleration due to gravity [m/s^2].04
-    RGRAV = 1.0 / GRAV  # Inverse of gravitational acceleration
-    RDGAS = 287.05  # Gas constant for dry air [J/kg/deg] # 287.04
-    RVGAS = 461.50  # Gas constant for water vapor [J/kg/deg]
-    HLV = 2.5e6  # Latent heat of evaporation [J/kg]
-    HLF = 3.3358e5  # Latent heat of fusion [J/kg]  # 3.34e5
-    CP_AIR = 1004.6
+    RADIUS = Float(6.3712e6)  # Radius of the Earth [m]
+    PI = Float(3.1415926535897931)
+    OMEGA = Float(7.2921e-5)  # Rotation of the earth
+    GRAV = Float(9.80665)  # Acceleration due to gravity [m/s^2].04
+    RGRAV = Float(1.0 / GRAV)  # Inverse of gravitational acceleration
+    RDGAS = Float(287.05)  # Gas constant for dry air [J/kg/deg] # 287.04
+    RVGAS = Float(461.50)  # Gas constant for water vapor [J/kg/deg]
+    HLV = Float(2.5e6)  # Latent heat of evaporation [J/kg]
+    HLF = Float(3.3358e5)  # Latent heat of fusion [J/kg]  # 3.34e5
+    CP_AIR = Float(1004.6)
     KAPPA = RDGAS / CP_AIR  # Specific heat capacity of dry air at
-    TFREEZE = 273.15
-    SAT_ADJUST_THRESHOLD = 1.0e-8
+    TFREEZE = Float(273.15)
+    SAT_ADJUST_THRESHOLD = Float(1.0e-8)
 elif CONST_VERSION == ConstantVersions.GFDL:
-    RADIUS = 6371.0e3  # Radius of the Earth [m] #6371.0e3
-    PI = 3.14159265358979323846  # 3.14159265358979323846
-    OMEGA = 7.292e-5  # Rotation of the earth  # 7.292e-5
-    GRAV = 9.80  # Acceleration due to gravity [m/s^2].04
-    RGRAV = 1.0 / GRAV  # Inverse of gravitational acceleration
-    RDGAS = 287.04  # Gas constant for dry air [J/kg/deg] # 287.04
-    RVGAS = 461.50  # Gas constant for water vapor [J/kg/deg]
-    HLV = 2.500e6  # Latent heat of evaporation [J/kg]
-    HLF = 3.34e5  # Latent heat of fusion [J/kg]  # 3.34e5
-    KAPPA = 2.0 / 7.0
+    RADIUS = Float(6371.0e3)  # Radius of the Earth [m] #6371.0e3
+    PI = Float(3.14159265358979323846)  # 3.14159265358979323846
+    OMEGA = Float(7.292e-5)  # Rotation of the earth  # 7.292e-5
+    GRAV = Float(9.80)  # Acceleration due to gravity [m/s^2].04
+    RGRAV = Float(1.0) / GRAV  # Inverse of gravitational acceleration
+    RDGAS = Float(287.04)  # Gas constant for dry air [J/kg/deg] # 287.04
+    RVGAS = Float(461.50)  # Gas constant for water vapor [J/kg/deg]
+    HLV = Float(2.500e6)  # Latent heat of evaporation [J/kg]
+    HLF = Float(3.34e5)  # Latent heat of fusion [J/kg]  # 3.34e5
+    KAPPA = Float(2.0) / Float(7.0)
     CP_AIR = RDGAS / KAPPA  # Specific heat capacity of dry air at
-    TFREEZE = 273.16  # Freezing temperature of fresh water [K]
-    SAT_ADJUST_THRESHOLD = 1.0e-8
+    TFREEZE = Float(273.16)  # Freezing temperature of fresh water [K]
+    SAT_ADJUST_THRESHOLD = Float(1.0e-8)
 else:
     raise RuntimeError("Constant selector failed, bad code.")
 
 SECONDS_PER_DAY = Float(86400.0)
-DZ_MIN = 2.0
+DZ_MIN = Float(2.0)
 CV_AIR = CP_AIR - RDGAS  # Heat capacity of dry air at constant volume
 RDG = -RDGAS / GRAV
-CNST_0P20 = 0.2
+CNST_0P20 = Float(0.2)
 K1K = RDGAS / CV_AIR
-CNST_0P20 = 0.2
-CV_VAP = 3.0 * RVGAS  # Heat capacity of water vapor at constant volume
-ZVIR = RVGAS / RDGAS - 1  # con_fvirt in Fortran physics
-C_ICE = 1972.0  # Heat capacity of ice at -15 degrees Celsius
-C_ICE_0 = 2106.0  # Heat capacity of ice at 0 degrees Celsius
-C_LIQ = 4.1855e3  # Heat capacity of water at 15 degrees Celsius
-CP_VAP = 4.0 * RVGAS  # Heat capacity of water vapor at constant pressure
-TICE = 273.16  # Freezing temperature
+CNST_0P20 = Float(0.2)
+CV_VAP = Float(3.0) * RVGAS  # Heat capacity of water vapor at constant volume
+ZVIR = RVGAS / RDGAS - Float(1)  # con_fvirt in Fortran physics
+C_ICE = Float(1972.0)  # Heat capacity of ice at -15 degrees Celsius
+C_ICE_0 = Float(2106.0)  # Heat capacity of ice at 0 degrees Celsius
+C_LIQ = Float(4.1855e3)  # Heat capacity of water at 15 degrees Celsius
+CP_VAP = Float(4.0) * RVGAS  # Heat capacity of water vapor at constant pressure
+TICE = Float(273.16)  # Freezing temperature
 DC_ICE = C_LIQ - C_ICE  # Isobaric heating / cooling
 DC_VAP = CP_VAP - C_LIQ  # Isobaric heating / cooling
 D2ICE = DC_VAP + DC_ICE  # Isobaric heating / cooling
 LI0 = HLF - DC_ICE * TICE
 EPS = RDGAS / RVGAS
-EPSM1 = EPS - 1.0
+EPSM1 = EPS - Float(1.0)
 LV0 = (
     HLV - DC_VAP * TICE
 )  # 3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin
@@ -149,10 +152,10 @@ LI00 = (
 LI2 = (
     LV0 + LI00
 )  # 2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin
-E00 = 611.21  # Saturation vapor pressure at 0 degrees Celsius (Pa)
-PSAT = 610.78  # Saturation vapor pressure at H2O 3pt (Pa)
-T_WFR = TICE - 40.0  # homogeneous freezing temperature
-TICE0 = TICE - 0.01
-T_MIN = 178.0  # Minimum temperature to freeze-dry all water vapor
-T_SAT_MIN = TICE - 160.0
-LAT2 = (HLV + HLF) ** 2  # used in bigg mechanism
+E00 = Float(611.21)  # Saturation vapor pressure at 0 degrees Celsius (Pa)
+PSAT = Float(610.78)  # Saturation vapor pressure at H2O 3pt (Pa)
+T_WFR = TICE - Float(40.0)  # homogeneous freezing temperature
+TICE0 = TICE - Float(0.01)
+T_MIN = Float(178.0)  # Minimum temperature to freeze-dry all water vapor
+T_SAT_MIN = TICE - Float(160.0)
+LAT2 = np.power((HLV + HLF), 2, dtype=Float)  # used in bigg mechanism
