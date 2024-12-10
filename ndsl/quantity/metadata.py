@@ -2,6 +2,7 @@ import dataclasses
 from typing import Any, Dict, Tuple, Union
 
 import numpy as np
+
 from ndsl.optional_imports import cupy
 from ndsl.types import NumpyModule
 

@@ -8,9 +8,9 @@ import ndsl.constants as constants
 from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy, dace, gt4py
 from ndsl.optional_imports import xarray as xr
-from ndsl.types import NumpyModule
 from ndsl.quantity.bounds import BoundedArrayView
-from ndsl.quantity.metadata import QuantityMetadata, QuantityHaloSpec
+from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
+from ndsl.types import NumpyModule
 
 
 class Quantity:
