@@ -7,16 +7,16 @@ from ndsl.dsl.typing import Float
 from ndsl.logging import ndsl_log
 
 
-# The FV3GFS model ships with two sets of constants, one used in the GFS physics
+# The FV3GFS model ships with two sets of constants, one used in the UFS physics
 # package and the other used for the Dycore. Their difference are small but significant
 # In addition the GSFC's GEOS model as its own variables
 class ConstantVersions(Enum):
     GFDL = "GFDL"  # NOAA's FV3 dynamical core constants (original port)
-    GFS = "GFS"  # Constant as defined in NOAA GFS
+    UFS = "UFS"  # Constant as defined in NOAA UFS
     GEOS = "GEOS"  # Constant as defined in GEOS v13
 
 
-CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "GFS")
+CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "UFS")
 
 try:
     CONST_VERSION = ConstantVersions[CONST_VERSION_AS_STR]
@@ -69,7 +69,7 @@ N_HALO_DEFAULT = 3
 if CONST_VERSION == ConstantVersions.GEOS:
     # 'qlcd' is exchanged in GEOS
     NQ = 9
-elif CONST_VERSION == ConstantVersions.GFS or CONST_VERSION == ConstantVersions.GFDL:
+elif CONST_VERSION == ConstantVersions.UFS or CONST_VERSION == ConstantVersions.GFDL:
     NQ = 8
 else:
     raise RuntimeError("Constant selector failed, bad code.")
@@ -92,7 +92,7 @@ if CONST_VERSION == ConstantVersions.GEOS:
     CP_AIR = RDGAS / KAPPA
     TFREEZE = Float(273.16)
     SAT_ADJUST_THRESHOLD = Float(1.0e-6)
-elif CONST_VERSION == ConstantVersions.GFS:
+elif CONST_VERSION == ConstantVersions.UFS:
     RADIUS = Float(6.3712e6)  # Radius of the Earth [m]
     PI = Float(3.1415926535897931)
     OMEGA = Float(7.2921e-5)  # Rotation of the earth
