@@ -231,7 +231,7 @@ class Quantity:
         return self._compute_domain_view
 
     @property
-    def data(self) -> Union[np.ndarray, cupy.ndarray]:
+    def data(self) -> np.ndarray:
         """the underlying array of data"""
         return self._data
 
