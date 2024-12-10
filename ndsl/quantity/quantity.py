@@ -13,6 +13,10 @@ from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
 
 
+if cupy is None:
+    import numpy as cupy
+
+
 class Quantity:
     """
     Data container for physical quantities.
@@ -231,7 +235,7 @@ class Quantity:
         return self._compute_domain_view
 
     @property
-    def data(self) -> np.ndarray:
+    def data(self) -> Union[np.ndarray, cupy.ndarray]:
         """the underlying array of data"""
         return self._data
 
