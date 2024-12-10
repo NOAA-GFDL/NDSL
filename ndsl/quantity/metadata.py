@@ -7,6 +7,10 @@ from ndsl.optional_imports import cupy
 from ndsl.types import NumpyModule
 
 
+if cupy is None:
+    import numpy as cupy
+
+
 @dataclasses.dataclass
 class QuantityMetadata:
     origin: Tuple[int, ...]
