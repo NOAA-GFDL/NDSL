@@ -2,6 +2,7 @@ import abc
 from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
+from mpi4py import MPI 
 
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
@@ -93,6 +94,25 @@ class Communicator(abc.ABC):
         # this is a method so we can profile it separately from other device syncs
         device_synchronize()
 
+    def _create_all_reduce_quantity(
+        self, input_metadata: QuantityMetadata, input_data
+    ) -> Quantity:
+        """Create a Quantity for all_reduce data and metadata"""
+        all_reduce_quantity = Quantity(
+            input_data,
+            dims=input_metadata.dims,
+            units=input_metadata.units,
+            origin=tuple([0 for dim in input_metadata.dims]),
+            gt4py_backend=input_metadata.gt4py_backend,
+            allow_mismatch_float_precision=True,
+        )
+        return all_reduce_quantity
+
+    def all_reduce_sum(self, quantity: Quantity):
+        reduced_quantity_data = self.comm.allreduce(quantity.data,MPI.SUM)
+        all_reduce_quantity = self._create_all_reduce_quantity(quantity.metadata, reduced_quantity_data)
+        return all_reduce_quantity
+    
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
         with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
             numpy_module.zeros, recvbuf
