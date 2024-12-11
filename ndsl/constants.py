@@ -12,8 +12,8 @@ from ndsl.logging import ndsl_log
 # In addition the GSFC's GEOS model as its own variables
 class ConstantVersions(Enum):
     GFDL = "GFDL"  # NOAA's FV3 dynamical core constants (original port)
-    UFS = "UFS"  # Constant as defined in NOAA UFS
-    GEOS = "GEOS"  # Constant as defined in GEOS v13
+    UFS = "UFS"  # Constant as defined in NOAA's UFS
+    GEOS = "GEOS"  # Constant as defined in GEOS v11.4.2
 
 
 CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "UFS")
@@ -78,19 +78,21 @@ else:
 # Physical constants
 #####################
 if CONST_VERSION == ConstantVersions.GEOS:
-    RADIUS = Float(6.371e6)
+    RADIUS = Float(6.371e6)  # Radius of the Earth [m]
     PI_8 = np.float64(3.14159265358979323846)
     PI = Float(PI_8)
-    OMEGA = Float(2.0) * PI / Float(86164.0)
-    GRAV = Float(9.80665)
-    RGRAV = Float(1.0) / GRAV
-    RDGAS = Float(8314.47) / Float(28.965)
-    RVGAS = Float(8314.47) / Float(18.015)
-    HLV = Float(2.4665e6)
-    HLF = Float(3.3370e5)
-    KAPPA = RDGAS / (Float(3.5) * RDGAS)
+    OMEGA = Float(2.0) * PI / Float(86164.0)  # Rotation of the earth
+    GRAV = Float(9.80665)  # Acceleration due to gravity [m/s^2].04
+    RGRAV = Float(1.0) / GRAV  # Inverse of gravitational acceleration
+    RDGAS = Float(8314.47) / Float(
+        28.965
+    )  # Gas constant for dry air [J/kg/deg] ~287.04
+    RVGAS = Float(8314.47) / Float(18.015)  # Gas constant for water vapor [J/kg/deg]
+    HLV = Float(2.4665e6)  # Latent heat of evaporation [J/kg]
+    HLF = Float(3.3370e5)  # Latent heat of fusion [J/kg]  ~3.34e5
+    KAPPA = RDGAS / (Float(3.5) * RDGAS)  # Specific heat capacity of dry air at
     CP_AIR = RDGAS / KAPPA
-    TFREEZE = Float(273.16)
+    TFREEZE = Float(273.16)  # Freezing temperature of fresh water [K]
     SAT_ADJUST_THRESHOLD = Float(1.0e-6)
 elif CONST_VERSION == ConstantVersions.UFS:
     RADIUS = Float(6.3712e6)  # Radius of the Earth [m]
@@ -98,13 +100,13 @@ elif CONST_VERSION == ConstantVersions.UFS:
     OMEGA = Float(7.2921e-5)  # Rotation of the earth
     GRAV = Float(9.80665)  # Acceleration due to gravity [m/s^2].04
     RGRAV = Float(1.0 / GRAV)  # Inverse of gravitational acceleration
-    RDGAS = Float(287.05)  # Gas constant for dry air [J/kg/deg] # 287.04
+    RDGAS = Float(287.05)  # Gas constant for dry air [J/kg/deg] ~287.04
     RVGAS = Float(461.50)  # Gas constant for water vapor [J/kg/deg]
     HLV = Float(2.5e6)  # Latent heat of evaporation [J/kg]
-    HLF = Float(3.3358e5)  # Latent heat of fusion [J/kg]  # 3.34e5
+    HLF = Float(3.3358e5)  # Latent heat of fusion [J/kg]  ~3.34e5
     CP_AIR = Float(1004.6)
     KAPPA = RDGAS / CP_AIR  # Specific heat capacity of dry air at
-    TFREEZE = Float(273.15)
+    TFREEZE = Float(273.15)  # Freezing temperature of fresh water [K]
     SAT_ADJUST_THRESHOLD = Float(1.0e-8)
 elif CONST_VERSION == ConstantVersions.GFDL:
     RADIUS = Float(6371.0e3)  # Radius of the Earth [m] #6371.0e3
@@ -112,10 +114,10 @@ elif CONST_VERSION == ConstantVersions.GFDL:
     OMEGA = Float(7.292e-5)  # Rotation of the earth  # 7.292e-5
     GRAV = Float(9.80)  # Acceleration due to gravity [m/s^2].04
     RGRAV = Float(1.0) / GRAV  # Inverse of gravitational acceleration
-    RDGAS = Float(287.04)  # Gas constant for dry air [J/kg/deg] # 287.04
+    RDGAS = Float(287.04)  # Gas constant for dry air [J/kg/deg] ~287.04
     RVGAS = Float(461.50)  # Gas constant for water vapor [J/kg/deg]
     HLV = Float(2.500e6)  # Latent heat of evaporation [J/kg]
-    HLF = Float(3.34e5)  # Latent heat of fusion [J/kg]  # 3.34e5
+    HLF = Float(3.34e5)  # Latent heat of fusion [J/kg]  ~3.34e5
     KAPPA = Float(2.0) / Float(7.0)
     CP_AIR = RDGAS / KAPPA  # Specific heat capacity of dry air at
     TFREEZE = Float(273.16)  # Freezing temperature of fresh water [K]
