@@ -1,7 +1,6 @@
 import pytest
-
+import numpy as np
 from tests.mpi.mpi_comm import MPI
-# from ndsl.typing import Communicator
 
 from ndsl import (
     CubedSphereCommunicator,
@@ -10,7 +9,10 @@ from ndsl import (
     TilePartitioner,
 )
 
+from ndsl.quantity import Quantity
 from ndsl.comm.partitioner import Partitioner
+
+from ndsl.dsl.typing import Float
 
 @pytest.fixture
 def layout():
@@ -44,6 +46,49 @@ def communicator(cube_partitioner):
 def test_all_reduce_sum(
     communicator,      
 ):
-    print("Communicator rank = ", communicator.rank)
-    print("Communicator size = ", communicator.size)
-    assert True
+    
+    backend = "numpy"
+    base_array = np.array([i for i in range(5)], dtype=Float)
+
+    testQuantity_1D = Quantity(
+                                data=base_array,
+                                dims=["K"],
+                                units="Some 1D unit",
+                                gt4py_backend=backend,
+                            )
+    
+    base_array = np.array([i for i in range(5*5)], dtype=Float)
+    base_array = base_array.reshape(5,5)
+
+    testQuantity_2D = Quantity(
+                                data=base_array,
+                                dims=["I","J"],
+                                units="Some 2D unit",
+                                gt4py_backend=backend,
+                            )
+
+    base_array = np.array([i for i in range(5*5*5)], dtype=Float)
+    base_array = base_array.reshape(5,5,5)
+
+    testQuantity_3D = Quantity(
+                                data=base_array,
+                                dims=["I","J","K"],
+                                units="Some 3D unit",
+                                gt4py_backend=backend,
+                            )
+
+    # print("Communicator rank = ", communicator.rank)
+    # print("Communicator size = ", communicator.size)
+    # print("nsize = ", nsize)
+
+    global_sum_q = communicator.all_reduce_sum(testQuantity_1D)
+    assert global_sum_q.metadata == testQuantity_1D.metadata
+    assert (global_sum_q.data == (testQuantity_1D.data * communicator.size)).all()
+
+    global_sum_q = communicator.all_reduce_sum(testQuantity_2D)
+    assert global_sum_q.metadata == testQuantity_2D.metadata
+    assert (global_sum_q.data == (testQuantity_2D.data * communicator.size)).all()
+
+    global_sum_q = communicator.all_reduce_sum(testQuantity_3D)
+    assert global_sum_q.metadata == testQuantity_3D.metadata
+    assert (global_sum_q.data == (testQuantity_3D.data * communicator.size)).all()
