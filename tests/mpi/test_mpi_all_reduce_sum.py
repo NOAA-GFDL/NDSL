@@ -45,6 +45,9 @@ def communicator(cube_partitioner):
     )
 
 
+@pytest.mark.skipif(
+    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
+)
 def test_all_reduce_sum(
     communicator,
 ):
