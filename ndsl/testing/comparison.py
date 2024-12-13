@@ -260,15 +260,19 @@ class MultiModalFloatMetric(BaseMetric):
             self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold.value
 
             # Combine all distances into sucess or failure
-            # Success = no NANs & ( abs or rel or ulp )
-            naninf_success = not np.logical_and(
+            # Success =
+            # - no unexpected NANs (e.g. NaN in the ref MUST BE in computation) OR
+            # - absolute distance pass OR
+            # - relative distance pass OR
+            # - ulp distance pass
+            naninf_success = np.logical_and(
                 np.isnan(self.computed), np.isnan(self.references)
-            ).all()
+            )
             metric_success = np.logical_or(
                 self.relative_distance_metric, self.absolute_distance_metric
             )
             metric_success = np.logical_or(metric_success, self.ulp_distance_metric)
-            success = np.logical_and(naninf_success, metric_success)
+            success = np.logical_or(naninf_success, metric_success)
             return success
         elif self.references.dtype in (np.bool_, bool):
             success = np.logical_xor(self.computed, self.references)
