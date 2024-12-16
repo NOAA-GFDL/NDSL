@@ -52,44 +52,46 @@ def test_all_reduce_sum(
     communicator,
 ):
 
-    backend = "numpy"
-    base_array = np.array([i for i in range(5)], dtype=Float)
+    backends = ["dace:cpu", "gt:cpu_kfirst", "numpy"]
 
-    testQuantity_1D = Quantity(
-        data=base_array,
-        dims=["K"],
-        units="Some 1D unit",
-        gt4py_backend=backend,
-    )
+    for backend in backends:
+        base_array = np.array([i for i in range(5)], dtype=Float)
 
-    base_array = np.array([i for i in range(5 * 5)], dtype=Float)
-    base_array = base_array.reshape(5, 5)
+        testQuantity_1D = Quantity(
+            data=base_array,
+            dims=["K"],
+            units="Some 1D unit",
+            gt4py_backend=backend,
+        )
 
-    testQuantity_2D = Quantity(
-        data=base_array,
-        dims=["I", "J"],
-        units="Some 2D unit",
-        gt4py_backend=backend,
-    )
+        base_array = np.array([i for i in range(5 * 5)], dtype=Float)
+        base_array = base_array.reshape(5, 5)
 
-    base_array = np.array([i for i in range(5 * 5 * 5)], dtype=Float)
-    base_array = base_array.reshape(5, 5, 5)
+        testQuantity_2D = Quantity(
+            data=base_array,
+            dims=["I", "J"],
+            units="Some 2D unit",
+            gt4py_backend=backend,
+        )
 
-    testQuantity_3D = Quantity(
-        data=base_array,
-        dims=["I", "J", "K"],
-        units="Some 3D unit",
-        gt4py_backend=backend,
-    )
+        base_array = np.array([i for i in range(5 * 5 * 5)], dtype=Float)
+        base_array = base_array.reshape(5, 5, 5)
 
-    global_sum_q = communicator.all_reduce_sum(testQuantity_1D)
-    assert global_sum_q.metadata == testQuantity_1D.metadata
-    assert (global_sum_q.data == (testQuantity_1D.data * communicator.size)).all()
+        testQuantity_3D = Quantity(
+            data=base_array,
+            dims=["I", "J", "K"],
+            units="Some 3D unit",
+            gt4py_backend=backend,
+        )
 
-    global_sum_q = communicator.all_reduce_sum(testQuantity_2D)
-    assert global_sum_q.metadata == testQuantity_2D.metadata
-    assert (global_sum_q.data == (testQuantity_2D.data * communicator.size)).all()
+        global_sum_q = communicator.all_reduce_sum(testQuantity_1D)
+        assert global_sum_q.metadata == testQuantity_1D.metadata
+        assert (global_sum_q.data == (testQuantity_1D.data * communicator.size)).all()
 
-    global_sum_q = communicator.all_reduce_sum(testQuantity_3D)
-    assert global_sum_q.metadata == testQuantity_3D.metadata
-    assert (global_sum_q.data == (testQuantity_3D.data * communicator.size)).all()
+        global_sum_q = communicator.all_reduce_sum(testQuantity_2D)
+        assert global_sum_q.metadata == testQuantity_2D.metadata
+        assert (global_sum_q.data == (testQuantity_2D.data * communicator.size)).all()
+
+        global_sum_q = communicator.all_reduce_sum(testQuantity_3D)
+        assert global_sum_q.metadata == testQuantity_3D.metadata
+        assert (global_sum_q.data == (testQuantity_3D.data * communicator.size)).all()

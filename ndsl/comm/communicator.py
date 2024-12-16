@@ -102,9 +102,10 @@ class Communicator(abc.ABC):
             input_data,
             dims=input_metadata.dims,
             units=input_metadata.units,
-            origin=tuple([0 for dim in input_metadata.dims]),
+            origin=input_metadata.origin,
+            extent=input_metadata.extent,
             gt4py_backend=input_metadata.gt4py_backend,
-            allow_mismatch_float_precision=True,
+            allow_mismatch_float_precision=False,
         )
         return all_reduce_quantity
 
@@ -114,6 +115,8 @@ class Communicator(abc.ABC):
             quantity.metadata, reduced_quantity_data
         )
         return all_reduce_quantity
+        # quantity.data = reduced_quantity_data
+        # return quantity
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
         with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
