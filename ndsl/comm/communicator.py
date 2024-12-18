@@ -109,14 +109,28 @@ class Communicator(abc.ABC):
         )
         return all_reduce_quantity
 
-    def all_reduce_sum(self, quantity: Quantity):
-        reduced_quantity_data = self.comm.allreduce(quantity.data, MPI.SUM)
-        all_reduce_quantity = self._create_all_reduce_quantity(
-            quantity.metadata, reduced_quantity_data
-        )
-        return all_reduce_quantity
-        # quantity.data = reduced_quantity_data
-        # return quantity
+    def all_reduce_sum(
+        self, input_quantity: Quantity, output_quantity: Quantity = None
+    ):
+        reduced_quantity_data = self.comm.allreduce(input_quantity.data, MPI.SUM)
+        if output_quantity is None:
+            all_reduce_quantity = self._create_all_reduce_quantity(
+                input_quantity.metadata, reduced_quantity_data
+            )
+            return all_reduce_quantity
+        else:
+            if output_quantity.data.shape != input_quantity.data.shape:
+                raise TypeError("Shapes not matching")
+
+            output_quantity.metadata.dims = input_quantity.metadata.dims
+            output_quantity.metadata.units = input_quantity.metadata.units
+            output_quantity.metadata.origin = input_quantity.metadata.origin
+            output_quantity.metadata.extent = input_quantity.metadata.extent
+            output_quantity.metadata.gt4py_backend = (
+                input_quantity.metadata.gt4py_backend
+            )
+
+            output_quantity.data = reduced_quantity_data
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
         with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(

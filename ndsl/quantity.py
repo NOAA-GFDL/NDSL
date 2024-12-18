@@ -458,9 +458,19 @@ class Quantity:
         """units of the quantity"""
         return self.metadata.units
 
+    @units.setter
+    def units(self, newUnits):
+        if type(newUnits) is str:
+            self.metadata.units = newUnits
+
     @property
     def gt4py_backend(self) -> Union[str, None]:
         return self.metadata.gt4py_backend
+
+    @gt4py_backend.setter
+    def gt4py_backend(self, newBackend):
+        if type(newBackend) is Union[str, None]:
+            self.metadata.gt4py_backend = newBackend
 
     @property
     def attrs(self) -> dict:
@@ -470,6 +480,11 @@ class Quantity:
     def dims(self) -> Tuple[str, ...]:
         """names of each dimension"""
         return self.metadata.dims
+
+    @dims.setter
+    def dims(self, newDims):
+        if type(newDims) is Tuple:
+            self.metadata.dims = newDims
 
     @property
     def values(self) -> np.ndarray:
@@ -492,15 +507,30 @@ class Quantity:
         """the underlying array of data"""
         return self._data
 
+    @data.setter
+    def data(self, inputData):
+        if type(inputData) in [np.ndarray, cupy.ndarray]:
+            self._data = inputData
+
     @property
     def origin(self) -> Tuple[int, ...]:
         """the start of the computational domain"""
         return self.metadata.origin
 
+    @origin.setter
+    def origin(self, newOrigin):
+        if type(newOrigin) is Tuple:
+            self.metadata.origin = newOrigin
+
     @property
     def extent(self) -> Tuple[int, ...]:
         """the shape of the computational domain"""
         return self.metadata.extent
+
+    @extent.setter
+    def extent(self, newExtent):
+        if type(newExtent) is Tuple:
+            self.metadata.extent = newExtent
 
     @property
     def data_array(self) -> xr.DataArray:
