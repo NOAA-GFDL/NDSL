@@ -53,6 +53,15 @@ class QuantityMetadata:
                 f"quantity underlying data is of unexpected type {self.data_type}"
             )
 
+    def duplicate_metadata(self, metadata_copy):
+        metadata_copy.origin = self.origin
+        metadata_copy.extent = self.extent
+        metadata_copy.dims = self.dims
+        metadata_copy.units = self.units
+        metadata_copy.data_type = self.data_type
+        metadata_copy.dtype = self.dtype
+        metadata_copy.gt4py_backend = self.gt4py_backend
+
 
 @dataclasses.dataclass
 class QuantityHaloSpec:
@@ -458,19 +467,9 @@ class Quantity:
         """units of the quantity"""
         return self.metadata.units
 
-    @units.setter
-    def units(self, newUnits):
-        if type(newUnits) is str:
-            self.metadata.units = newUnits
-
     @property
     def gt4py_backend(self) -> Union[str, None]:
         return self.metadata.gt4py_backend
-
-    @gt4py_backend.setter
-    def gt4py_backend(self, newBackend):
-        if type(newBackend) is Union[str, None]:
-            self.metadata.gt4py_backend = newBackend
 
     @property
     def attrs(self) -> dict:
@@ -480,11 +479,6 @@ class Quantity:
     def dims(self) -> Tuple[str, ...]:
         """names of each dimension"""
         return self.metadata.dims
-
-    @dims.setter
-    def dims(self, newDims):
-        if type(newDims) is Tuple:
-            self.metadata.dims = newDims
 
     @property
     def values(self) -> np.ndarray:
@@ -517,20 +511,10 @@ class Quantity:
         """the start of the computational domain"""
         return self.metadata.origin
 
-    @origin.setter
-    def origin(self, newOrigin):
-        if type(newOrigin) is Tuple:
-            self.metadata.origin = newOrigin
-
     @property
     def extent(self) -> Tuple[int, ...]:
         """the shape of the computational domain"""
         return self.metadata.extent
-
-    @extent.setter
-    def extent(self, newExtent):
-        if type(newExtent) is Tuple:
-            self.metadata.extent = newExtent
 
     @property
     def data_array(self) -> xr.DataArray:

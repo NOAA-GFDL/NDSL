@@ -126,7 +126,7 @@ def test_all_reduce_sum(
             gt4py_backend=backend,
         )
         communicator.all_reduce_sum(testQuantity_1D, testQuantity_1D_out)
-        assert testQuantity_1D_out.metadata == testQuantity_1D_out.metadata
+        assert testQuantity_1D_out.metadata == testQuantity_1D.metadata
         assert (
             testQuantity_1D_out.data == (testQuantity_1D.data * communicator.size)
         ).all()

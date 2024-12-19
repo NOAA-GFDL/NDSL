@@ -122,13 +122,7 @@ class Communicator(abc.ABC):
             if output_quantity.data.shape != input_quantity.data.shape:
                 raise TypeError("Shapes not matching")
 
-            output_quantity.metadata.dims = input_quantity.metadata.dims
-            output_quantity.metadata.units = input_quantity.metadata.units
-            output_quantity.metadata.origin = input_quantity.metadata.origin
-            output_quantity.metadata.extent = input_quantity.metadata.extent
-            output_quantity.metadata.gt4py_backend = (
-                input_quantity.metadata.gt4py_backend
-            )
+            input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
 
             output_quantity.data = reduced_quantity_data
 
