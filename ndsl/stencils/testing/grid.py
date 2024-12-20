@@ -734,6 +734,31 @@ class Grid:
                 dims=GridDefinitions.sin_sg4.dims,
                 units=GridDefinitions.sin_sg4.units,
             ),
+            sin_sg5=self.quantity_factory.from_array(
+                data=self.sin_sg5,
+                dims=GridDefinitions.sin_sg5.dims,
+                units=GridDefinitions.sin_sg5.units,
+            ),
+            sin_sg6=self.quantity_factory.from_array(
+                data=self.sin_sg6,
+                dims=GridDefinitions.sin_sg6.dims,
+                units=GridDefinitions.sin_sg6.units,
+            ),
+            sin_sg7=self.quantity_factory.from_array(
+                data=self.sin_sg7,
+                dims=GridDefinitions.sin_sg7.dims,
+                units=GridDefinitions.sin_sg7.units,
+            ),
+            sin_sg8=self.quantity_factory.from_array(
+                data=self.sin_sg8,
+                dims=GridDefinitions.sin_sg8.dims,
+                units=GridDefinitions.sin_sg8.units,
+            ),
+            sin_sg9=self.quantity_factory.from_array(
+                data=self.sin_sg9,
+                dims=GridDefinitions.sin_sg9.dims,
+                units=GridDefinitions.sin_sg9.units,
+            ),
             cos_sg1=self.quantity_factory.from_array(
                 data=self.cos_sg1,
                 dims=GridDefinitions.cos_sg1.dims,
@@ -753,6 +778,31 @@ class Grid:
                 data=self.cos_sg4,
                 dims=GridDefinitions.cos_sg4.dims,
                 units=GridDefinitions.cos_sg4.units,
+            ),
+            cos_sg5=self.quantity_factory.from_array(
+                data=self.cos_sg5,
+                dims=GridDefinitions.cos_sg5.dims,
+                units=GridDefinitions.cos_sg5.units,
+            ),
+            cos_sg6=self.quantity_factory.from_array(
+                data=self.cos_sg6,
+                dims=GridDefinitions.cos_sg6.dims,
+                units=GridDefinitions.cos_sg6.units,
+            ),
+            cos_sg7=self.quantity_factory.from_array(
+                data=self.cos_sg7,
+                dims=GridDefinitions.cos_sg7.dims,
+                units=GridDefinitions.cos_sg7.units,
+            ),
+            cos_sg8=self.quantity_factory.from_array(
+                data=self.cos_sg8,
+                dims=GridDefinitions.cos_sg8.dims,
+                units=GridDefinitions.cos_sg8.units,
+            ),
+            cos_sg9=self.quantity_factory.from_array(
+                data=self.cos_sg9,
+                dims=GridDefinitions.cos_sg9.dims,
+                units=GridDefinitions.cos_sg9.units,
             ),
         )
         self._grid_data = GridData(
