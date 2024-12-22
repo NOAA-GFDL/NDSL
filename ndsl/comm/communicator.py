@@ -6,6 +6,7 @@ import numpy as np
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
 from ndsl.comm.boundary import Boundary
+from ndsl.comm.comm_abc import Comm as CommABC
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
@@ -45,7 +46,11 @@ def to_numpy(array, dtype=None) -> np.ndarray:
 
 class Communicator(abc.ABC):
     def __init__(
-        self, comm, partitioner, force_cpu: bool = False, timer: Optional[Timer] = None
+        self,
+        comm: CommABC,
+        partitioner,
+        force_cpu: bool = False,
+        timer: Optional[Timer] = None,
     ):
         self.comm = comm
         self.partitioner: Partitioner = partitioner
@@ -62,7 +67,7 @@ class Communicator(abc.ABC):
     @abc.abstractmethod
     def from_layout(
         cls,
-        comm,
+        comm: CommABC,
         layout: Tuple[int, int],
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
@@ -138,15 +143,17 @@ class Communicator(abc.ABC):
         self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
-        with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
-            numpy_module.zeros, recvbuf
-        ) as recv:
+        with (
+            send_buffer(numpy_module.zeros, sendbuf) as send,
+            recv_buffer(numpy_module.zeros, recvbuf) as recv,
+        ):
             self.comm.Scatter(send, recv, **kwargs)
 
     def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):
-        with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
-            numpy_module.zeros, recvbuf
-        ) as recv:
+        with (
+            send_buffer(numpy_module.zeros, sendbuf) as send,
+            recv_buffer(numpy_module.zeros, recvbuf) as recv,
+        ):
             self.comm.Gather(send, recv, **kwargs)
 
     def scatter(
@@ -753,7 +760,7 @@ class CubedSphereCommunicator(Communicator):
 
     def __init__(
         self,
-        comm,
+        comm: CommABC,
         partitioner: CubedSpherePartitioner,
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
@@ -766,6 +773,11 @@ class CubedSphereCommunicator(Communicator):
             force_cpu: Force all communication to go through central memory.
             timer: Time communication operations.
         """
+        if not issubclass(type(comm), CommABC):
+            raise TypeError(
+                "Communictor needs to be instantiated with communication subsytem"
+                f" derived from `comm_abc.Comm`, got {type(comm)}."
+            )
         if comm.Get_size() != partitioner.total_ranks:
             raise ValueError(
                 f"was given a partitioner for {partitioner.total_ranks} ranks but a "

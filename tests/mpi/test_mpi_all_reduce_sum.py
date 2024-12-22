@@ -8,6 +8,7 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.comm.comm_abc import ReductionOperator
+from ndsl.comm.mpi import MPIComm
 from ndsl.dsl.typing import Float
 from tests.mpi.mpi_comm import MPI
 
@@ -41,7 +42,7 @@ def cube_partitioner(tile_partitioner):
 @pytest.fixture()
 def communicator(cube_partitioner):
     return CubedSphereCommunicator(
-        comm=MPI.COMM_WORLD,
+        comm=MPIComm(),
         partitioner=cube_partitioner,
     )
 
