@@ -7,6 +7,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
+from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.dsl.typing import Float
 from tests.mpi.mpi_comm import MPI
 
@@ -48,10 +49,7 @@ def communicator(cube_partitioner):
 @pytest.mark.skipif(
     MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
 )
-def test_all_reduce_sum(
-    communicator,
-):
-
+def test_all_reduce(communicator):
     backends = ["dace:cpu", "gt:cpu_kfirst", "numpy"]
 
     for backend in backends:
@@ -84,15 +82,15 @@ def test_all_reduce_sum(
             gt4py_backend=backend,
         )
 
-        global_sum_q = communicator.all_reduce_sum(testQuantity_1D)
+        global_sum_q = communicator.all_reduce(testQuantity_1D, ReductionOperator.SUM)
         assert global_sum_q.metadata == testQuantity_1D.metadata
         assert (global_sum_q.data == (testQuantity_1D.data * communicator.size)).all()
 
-        global_sum_q = communicator.all_reduce_sum(testQuantity_2D)
+        global_sum_q = communicator.all_reduce(testQuantity_2D, ReductionOperator.SUM)
         assert global_sum_q.metadata == testQuantity_2D.metadata
         assert (global_sum_q.data == (testQuantity_2D.data * communicator.size)).all()
 
-        global_sum_q = communicator.all_reduce_sum(testQuantity_3D)
+        global_sum_q = communicator.all_reduce(testQuantity_3D, ReductionOperator.SUM)
         assert global_sum_q.metadata == testQuantity_3D.metadata
         assert (global_sum_q.data == (testQuantity_3D.data * communicator.size)).all()
 
@@ -125,19 +123,25 @@ def test_all_reduce_sum(
             units="Some 3D unit",
             gt4py_backend=backend,
         )
-        communicator.all_reduce_sum(testQuantity_1D, testQuantity_1D_out)
+        communicator.all_reduce(
+            testQuantity_1D, ReductionOperator.SUM, testQuantity_1D_out
+        )
         assert testQuantity_1D_out.metadata == testQuantity_1D.metadata
         assert (
             testQuantity_1D_out.data == (testQuantity_1D.data * communicator.size)
         ).all()
 
-        communicator.all_reduce_sum(testQuantity_2D, testQuantity_2D_out)
+        communicator.all_reduce(
+            testQuantity_2D, ReductionOperator.SUM, testQuantity_2D_out
+        )
         assert testQuantity_2D_out.metadata == testQuantity_2D.metadata
         assert (
             testQuantity_2D_out.data == (testQuantity_2D.data * communicator.size)
         ).all()
 
-        communicator.all_reduce_sum(testQuantity_3D, testQuantity_3D_out)
+        communicator.all_reduce(
+            testQuantity_3D, ReductionOperator.SUM, testQuantity_3D_out
+        )
         assert testQuantity_3D_out.metadata == testQuantity_3D.metadata
         assert (
             testQuantity_3D_out.data == (testQuantity_3D.data * communicator.size)
