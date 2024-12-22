@@ -2,11 +2,11 @@ import abc
 from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
-from mpi4py import MPI
 
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
 from ndsl.comm.boundary import Boundary
+from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from ndsl.performance.timer import NullTimer, Timer
@@ -109,10 +109,13 @@ class Communicator(abc.ABC):
         )
         return all_reduce_quantity
 
-    def all_reduce_sum(
-        self, input_quantity: Quantity, output_quantity: Quantity = None
+    def all_reduce(
+        self,
+        input_quantity: Quantity,
+        op: ReductionOperator,
+        output_quantity: Quantity = None,
     ):
-        reduced_quantity_data = self.comm.allreduce(input_quantity.data, MPI.SUM)
+        reduced_quantity_data = self.comm.allreduce(input_quantity.data, op)
         if output_quantity is None:
             all_reduce_quantity = self._create_all_reduce_quantity(
                 input_quantity.metadata, reduced_quantity_data
@@ -125,6 +128,14 @@ class Communicator(abc.ABC):
             input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
 
             output_quantity.data = reduced_quantity_data
+
+    def all_reduce_per_element(
+        self,
+        input_quantity: Quantity,
+        output_quantity: Quantity,
+        op: ReductionOperator,
+    ):
+        self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
         with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
