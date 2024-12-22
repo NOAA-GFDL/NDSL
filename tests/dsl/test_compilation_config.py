@@ -7,9 +7,9 @@ from ndsl import (
     CompilationConfig,
     CubedSphereCommunicator,
     CubedSpherePartitioner,
+    NullComm,
     RunMode,
     TilePartitioner,
-    NullComm,
 )
 
 

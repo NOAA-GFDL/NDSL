@@ -143,18 +143,14 @@ class Communicator(abc.ABC):
         self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
-        with (
-            send_buffer(numpy_module.zeros, sendbuf) as send,
-            recv_buffer(numpy_module.zeros, recvbuf) as recv,
-        ):
-            self.comm.Scatter(send, recv, **kwargs)
+        with send_buffer(numpy_module.zeros, sendbuf) as send:
+            with recv_buffer(numpy_module.zeros, recvbuf) as recv:
+                self.comm.Scatter(send, recv, **kwargs)
 
     def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):
-        with (
-            send_buffer(numpy_module.zeros, sendbuf) as send,
-            recv_buffer(numpy_module.zeros, recvbuf) as recv,
-        ):
-            self.comm.Gather(send, recv, **kwargs)
+        with send_buffer(numpy_module.zeros, sendbuf) as send:
+            with recv_buffer(numpy_module.zeros, recvbuf) as recv:
+                self.comm.Gather(send, recv, **kwargs)
 
     def scatter(
         self,
