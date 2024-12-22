@@ -95,7 +95,7 @@ class MPIComm(Comm):
         ndsl_log.debug(
             "allreduce on rank %s with operator %s", self._comm.Get_rank(), op
         )
-        return self._comm.allreduce(sendobj, op)
+        return self._comm.allreduce(sendobj, self._op_mapping[op])
 
     def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
         ndsl_log.debug(
