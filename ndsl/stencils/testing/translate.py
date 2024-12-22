@@ -5,7 +5,7 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Field, Float  # noqa: F401
+from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 
@@ -32,7 +32,7 @@ def pad_field_in_j(field, nj: int, backend: str):
 
 
 def as_numpy(
-    value: Union[Dict[str, Any], Quantity, np.ndarray]
+    value: Union[Dict[str, Any], Quantity, np.ndarray],
 ) -> Union[np.ndarray, Dict[str, np.ndarray]]:
     def _convert(value: Union[Quantity, np.ndarray]) -> np.ndarray:
         if isinstance(value, Quantity):
@@ -53,6 +53,9 @@ def as_numpy(
 class TranslateFortranData2Py:
     max_error = 1e-14
     near_zero = 1e-18
+    mmr_absolute_eps = -1
+    mmr_relative_fraction = -1
+    mmr_ulp = -1
 
     def __init__(self, grid, stencil_factory: StencilFactory, origin=utils.origin):
         self.origin = origin
@@ -123,8 +126,12 @@ class TranslateFortranData2Py:
                 axis=axis,
                 names=names_4d,
                 backend=self.stencil_factory.backend,
+                dtype=array.dtype,
             )
         else:
+            if len(array.shape) == 4:
+                start = (int(istart), int(jstart), int(kstart), 0)  # type: ignore
+                use_shape.append(array.shape[-1])
             return utils.make_storage_data(
                 array,
                 tuple(use_shape),
@@ -134,6 +141,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 read_only=read_only,
                 backend=self.stencil_factory.backend,
+                dtype=array.dtype,
             )
 
     def storage_vars(self):
@@ -159,16 +167,16 @@ class TranslateFortranData2Py:
         kstart = self.get_index_from_info(varinfo, "kstart", 0)
         return istart, jstart, kstart
 
-    def make_storage_data_input_vars(self, inputs, storage_vars=None):
+    def make_storage_data_input_vars(self, inputs, storage_vars=None, dict_4d=True):
         inputs_in = {**inputs}
         inputs_out = {}
         if storage_vars is None:
             storage_vars = self.storage_vars()
         for p in self.in_vars["parameters"]:
-            if type(inputs_in[p]) in [np.int64, np.int32]:
+            if type(inputs_in[p]) in [int, np.int64, np.int32]:
                 inputs_out[p] = int(inputs_in[p])
             elif type(inputs_in[p]) is bool:
-                inputs_out[p] == inputs_in[p]
+                inputs_out[p] = inputs_in[p]
             else:
                 inputs_out[p] = Float(inputs_in[p])
         for d, info in storage_vars.items():
@@ -185,7 +193,7 @@ class TranslateFortranData2Py:
             )
 
             names_4d = None
-            if len(inputs_in[serialname].shape) == 4:
+            if (len(inputs_in[serialname].shape) == 4) and dict_4d:
                 names_4d = info.get("names_4d", utils.tracer_variables)
 
             dummy_axes = info.get("dummy_axes", None)

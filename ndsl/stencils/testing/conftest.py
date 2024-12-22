@@ -48,6 +48,9 @@ def pytest_addoption(parser):
         "--which_rank", action="store", help="Restrict test to a single rank"
     )
     parser.addoption(
+        "--which_savepoint", action="store", help="Restrict test to a single savepoint"
+    )
+    parser.addoption(
         "--data_path",
         action="store",
         default="./",
@@ -204,6 +207,11 @@ def get_ranks(metafunc, layout):
         return [int(only_rank)]
 
 
+def get_savepoint_restriction(metafunc):
+    svpt = metafunc.config.getoption("which_savepoint")
+    return int(svpt) if svpt else None
+
+
 def get_namelist(namelist_filename):
     return Namelist.from_f90nml(f90nml.read(namelist_filename))
 
@@ -226,11 +234,13 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
     namelist = get_namelist(namelist_filename)
     stencil_config = get_config(backend, None)
     ranks = get_ranks(metafunc, namelist.layout)
+    savepoint_to_replay = get_savepoint_restriction(metafunc)
     grid_mode = metafunc.config.getoption("grid")
     topology_mode = metafunc.config.getoption("topology")
     return _savepoint_cases(
         savepoint_names,
         ranks,
+        savepoint_to_replay,
         stencil_config,
         namelist,
         backend,
@@ -243,6 +253,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
 def _savepoint_cases(
     savepoint_names,
     ranks,
+    savepoint_to_replay,
     stencil_config,
     namelist: Namelist,
     backend: str,
@@ -289,7 +300,11 @@ def _savepoint_cases(
             n_calls = xr.open_dataset(
                 os.path.join(data_path, f"{test_name}-In.nc")
             ).dims["savepoint"]
-            for i_call in range(n_calls):
+            if savepoint_to_replay is not None:
+                savepoint_iterator = range(savepoint_to_replay, savepoint_to_replay + 1)
+            else:
+                savepoint_iterator = range(n_calls)
+            for i_call in savepoint_iterator:
                 return_list.append(
                     SavepointCase(
                         savepoint_name=test_name,
@@ -322,9 +337,11 @@ def parallel_savepoint_cases(
     stencil_config = get_config(backend, communicator)
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
+    savepoint_to_replay = get_savepoint_restriction(metafunc)
     return _savepoint_cases(
         savepoint_names,
         [mpi_rank],
+        savepoint_to_replay,
         stencil_config,
         namelist,
         backend,
