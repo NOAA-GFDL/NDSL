@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+
 try:
     import ndsl.dsl  # noqa: F401
 except ModuleNotFoundError:
