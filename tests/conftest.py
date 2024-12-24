@@ -1,6 +1,10 @@
 import numpy as np
 import pytest
 
+try:
+    import ndsl.dsl  # noqa: F401
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("NDSL cannot be loaded")
 
 try:
     import gt4py
