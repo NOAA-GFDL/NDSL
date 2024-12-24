@@ -1,3 +1,4 @@
+from . import dsl  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
