@@ -128,7 +128,7 @@ class NamelistDefaults:
     rlmn = 30.0  # lower-limter on asymtotic mixing length in satmedmfdiff
     rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
-    cap_k0_land = False  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
+    cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
 
     @classmethod
     def as_dict(cls):
