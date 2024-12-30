@@ -95,3 +95,6 @@ class Comm(abc.ABC):
     @abc.abstractmethod
     def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
         ...
+
+    def Allreduce_inplace(self, obj: T, op: ReductionOperator) -> T:
+        ...

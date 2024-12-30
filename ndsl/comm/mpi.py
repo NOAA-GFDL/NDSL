@@ -97,8 +97,16 @@ class MPIComm(Comm):
         )
         return self._comm.allreduce(sendobj, self._op_mapping[op])
 
-    def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
+    def Allreduce(self, sendobj_or_inplace: T, recvobj: T, op: ReductionOperator) -> T:
         ndsl_log.debug(
-            "allreduce on rank %s with operator %s", self._comm.Get_rank(), op
+            "Allreduce on rank %s with operator %s", self._comm.Get_rank(), op
         )
-        return self._comm.Allreduce(sendobj, recvobj, self._op_mapping[op])
+        return self._comm.Allreduce(sendobj_or_inplace, recvobj, self._op_mapping[op])
+
+    def Allreduce_inplace(self, recvobj: T, op: ReductionOperator) -> T:
+        ndsl_log.debug(
+            "Allreduce (in place) on rank %s with operator %s",
+            self._comm.Get_rank(),
+            op,
+        )
+        return self._comm.Allreduce(mpi4py.MPI.IN_PLACE, recvobj, self._op_mapping[op])

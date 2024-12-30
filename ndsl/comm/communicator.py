@@ -142,6 +142,11 @@ class Communicator(abc.ABC):
     ):
         self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
 
+    def all_reduce_per_element_in_place(
+        self, quantity: Quantity, op: ReductionOperator
+    ):
+        self.comm.Allreduce_inplace(quantity.data, op)
+
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
         with send_buffer(numpy_module.zeros, sendbuf) as send:
             with recv_buffer(numpy_module.zeros, recvbuf) as recv:
