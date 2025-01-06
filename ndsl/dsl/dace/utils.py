@@ -15,15 +15,11 @@ from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
-# ----------------------------------------------------------
-# Rough timer & log for major operations of DaCe build stack
-# ----------------------------------------------------------
 class DaCeProgress:
-    """Timer and log to track build progress"""
+    """Rough timer & log for major operations of DaCe build stack."""
 
     def __init__(self, config: DaceConfig, label: str):
         self.prefix = DaCeProgress.default_prefix(config)
-        self.prefix = f"[{config.get_orchestrate()}]"
         self.label = label
 
     @classmethod
