@@ -1,8 +1,28 @@
 import abc
+import enum
 from typing import List, Optional, TypeVar
 
 
 T = TypeVar("T")
+
+
+@enum.unique
+class ReductionOperator(enum.Enum):
+    OP_NULL = enum.auto()
+    MAX = enum.auto()
+    MIN = enum.auto()
+    SUM = enum.auto()
+    PROD = enum.auto()
+    LAND = enum.auto()
+    BAND = enum.auto()
+    LOR = enum.auto()
+    BOR = enum.auto()
+    LXOR = enum.auto()
+    BXOR = enum.auto()
+    MAXLOC = enum.auto()
+    MINLOC = enum.auto()
+    REPLACE = enum.auto()
+    NO_OP = enum.auto()
 
 
 class Request(abc.ABC):
@@ -69,5 +89,12 @@ class Comm(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def allreduce(self, sendobj: T, op=None) -> T:
+    def allreduce(self, sendobj: T, op: Optional[ReductionOperator] = None) -> T:
+        ...
+
+    @abc.abstractmethod
+    def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
+        ...
+
+    def Allreduce_inplace(self, obj: T, op: ReductionOperator) -> T:
         ...

@@ -9,6 +9,7 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.comm._boundary_utils import get_boundary_slice
+from ndsl.comm.mpi import MPIComm
 from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
@@ -176,7 +177,7 @@ def extent(n_points, dims, nz, ny, nx):
 @pytest.fixture()
 def communicator(cube_partitioner):
     return CubedSphereCommunicator(
-        comm=MPI.COMM_WORLD,
+        comm=MPIComm(),
         partitioner=cube_partitioner,
     )
 

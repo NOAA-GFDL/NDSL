@@ -53,6 +53,15 @@ class QuantityMetadata:
                 f"quantity underlying data is of unexpected type {self.data_type}"
             )
 
+    def duplicate_metadata(self, metadata_copy):
+        metadata_copy.origin = self.origin
+        metadata_copy.extent = self.extent
+        metadata_copy.dims = self.dims
+        metadata_copy.units = self.units
+        metadata_copy.data_type = self.data_type
+        metadata_copy.dtype = self.dtype
+        metadata_copy.gt4py_backend = self.gt4py_backend
+
 
 @dataclasses.dataclass
 class QuantityHaloSpec:
@@ -491,6 +500,11 @@ class Quantity:
     def data(self) -> Union[np.ndarray, cupy.ndarray]:
         """the underlying array of data"""
         return self._data
+
+    @data.setter
+    def data(self, inputData):
+        if type(inputData) in [np.ndarray, cupy.ndarray]:
+            self._data = inputData
 
     @property
     def origin(self) -> Tuple[int, ...]:

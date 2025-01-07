@@ -1,10 +1,11 @@
 try:
+    import mpi4py
     from mpi4py import MPI
 except ImportError:
     MPI = None
-from typing import List, Optional, TypeVar, cast
+from typing import Dict, List, Optional, TypeVar, cast
 
-from ndsl.comm.comm_abc import Comm, Request
+from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 from ndsl.logging import ndsl_log
 
 
@@ -12,6 +13,24 @@ T = TypeVar("T")
 
 
 class MPIComm(Comm):
+    _op_mapping: Dict[ReductionOperator, mpi4py.MPI.Op] = {
+        ReductionOperator.OP_NULL: mpi4py.MPI.OP_NULL,
+        ReductionOperator.MAX: mpi4py.MPI.MAX,
+        ReductionOperator.MIN: mpi4py.MPI.MIN,
+        ReductionOperator.SUM: mpi4py.MPI.SUM,
+        ReductionOperator.PROD: mpi4py.MPI.PROD,
+        ReductionOperator.LAND: mpi4py.MPI.LAND,
+        ReductionOperator.BAND: mpi4py.MPI.BAND,
+        ReductionOperator.LOR: mpi4py.MPI.LOR,
+        ReductionOperator.BOR: mpi4py.MPI.BOR,
+        ReductionOperator.LXOR: mpi4py.MPI.LXOR,
+        ReductionOperator.BXOR: mpi4py.MPI.BXOR,
+        ReductionOperator.MAXLOC: mpi4py.MPI.MAXLOC,
+        ReductionOperator.MINLOC: mpi4py.MPI.MINLOC,
+        ReductionOperator.REPLACE: mpi4py.MPI.REPLACE,
+        ReductionOperator.NO_OP: mpi4py.MPI.NO_OP,
+    }
+
     def __init__(self):
         if MPI is None:
             raise RuntimeError("MPI not available")
@@ -72,8 +91,22 @@ class MPIComm(Comm):
         )
         return self._comm.Split(color, key)
 
-    def allreduce(self, sendobj: T, op=None) -> T:
+    def allreduce(self, sendobj: T, op: Optional[ReductionOperator] = None) -> T:
         ndsl_log.debug(
             "allreduce on rank %s with operator %s", self._comm.Get_rank(), op
         )
-        return self._comm.allreduce(sendobj, op)
+        return self._comm.allreduce(sendobj, self._op_mapping[op])
+
+    def Allreduce(self, sendobj_or_inplace: T, recvobj: T, op: ReductionOperator) -> T:
+        ndsl_log.debug(
+            "Allreduce on rank %s with operator %s", self._comm.Get_rank(), op
+        )
+        return self._comm.Allreduce(sendobj_or_inplace, recvobj, self._op_mapping[op])
+
+    def Allreduce_inplace(self, recvobj: T, op: ReductionOperator) -> T:
+        ndsl_log.debug(
+            "Allreduce (in place) on rank %s with operator %s",
+            self._comm.Get_rank(),
+            op,
+        )
+        return self._comm.Allreduce(mpi4py.MPI.IN_PLACE, recvobj, self._op_mapping[op])

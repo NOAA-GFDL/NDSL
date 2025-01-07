@@ -8,7 +8,7 @@ import pytest
 
 import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
-from ndsl.comm.mpi import MPI
+from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
@@ -304,18 +304,19 @@ def test_parallel_savepoint(
     multimodal_metric,
     xy_indices=True,
 ):
-    if MPI.COMM_WORLD.Get_size() % 6 != 0:
+    mpi_comm = MPIComm()
+    if mpi_comm.Get_size() % 6 != 0:
         layout = (
-            int(MPI.COMM_WORLD.Get_size() ** 0.5),
-            int(MPI.COMM_WORLD.Get_size() ** 0.5),
+            int(mpi_comm.Get_size() ** 0.5),
+            int(mpi_comm.Get_size() ** 0.5),
         )
-        communicator = get_tile_communicator(MPI.COMM_WORLD, layout)
+        communicator = get_tile_communicator(mpi_comm, layout)
     else:
         layout = (
-            int((MPI.COMM_WORLD.Get_size() // 6) ** 0.5),
-            int((MPI.COMM_WORLD.Get_size() // 6) ** 0.5),
+            int((mpi_comm.Get_size() // 6) ** 0.5),
+            int((mpi_comm.Get_size() // 6) ** 0.5),
         )
-        communicator = get_communicator(MPI.COMM_WORLD, layout)
+        communicator = get_communicator(mpi_comm, layout)
     if case.testobj is None:
         pytest.xfail(
             f"no translate object available for savepoint {case.savepoint_name}"
