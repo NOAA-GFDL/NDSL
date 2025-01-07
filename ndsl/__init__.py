@@ -10,7 +10,7 @@ from .dsl.dace.orchestration import orchestrate, orchestrate_function
 from .dsl.dace.utils import (
     ArrayReport,
     DaCeProgress,
-    MaxBandwithBenchmarkProgram,
+    MaxBandwidthBenchmarkProgram,
     StorageReport,
 )
 from .dsl.dace.wrapped_halo_exchange import WrappedHaloUpdater

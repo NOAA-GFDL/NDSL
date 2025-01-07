@@ -239,6 +239,11 @@ class Quantity:
         """the underlying array of data"""
         return self._data
 
+    @data.setter
+    def data(self, inputData):
+        if type(inputData) in [np.ndarray, cupy.ndarray]:
+            self._data = inputData
+
     @property
     def origin(self) -> Tuple[int, ...]:
         """the start of the computational domain"""
@@ -256,6 +261,15 @@ class Quantity:
     @property
     def np(self) -> NumpyModule:
         return self.metadata.np
+
+    def duplicate_metadata(self, metadata_copy):
+        metadata_copy.origin = self.origin
+        metadata_copy.extent = self.extent
+        metadata_copy.dims = self.dims
+        metadata_copy.units = self.units
+        metadata_copy.data_type = self.data_type
+        metadata_copy.dtype = self.dtype
+        metadata_copy.gt4py_backend = self.gt4py_backend
 
     @property
     def __array_interface__(self):

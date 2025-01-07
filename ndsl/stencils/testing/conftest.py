@@ -13,7 +13,7 @@ from ndsl.comm.communicator import (
     CubedSphereCommunicator,
     TileCommunicator,
 )
-from ndsl.comm.mpi import MPI
+from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.namelist import Namelist
@@ -323,7 +323,7 @@ def compute_grid_data(grid, namelist, backend, layout, topology_mode):
         npx=namelist.npx,
         npy=namelist.npy,
         npz=namelist.npz,
-        communicator=get_communicator(MPI.COMM_WORLD, layout, topology_mode),
+        communicator=get_communicator(MPIComm(), layout, topology_mode),
         backend=backend,
     )
 
@@ -377,13 +377,12 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
         metafunc.config
     )
     # get MPI environment
-    comm = MPI.COMM_WORLD
-    mpi_rank = comm.Get_rank()
+    comm = MPIComm()
     savepoint_cases = parallel_savepoint_cases(
         metafunc,
         data_path,
         namelist_filename,
-        mpi_rank,
+        comm.Get_rank(),
         backend=backend,
         comm=comm,
     )
@@ -393,7 +392,7 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
 
 
 def get_communicator(comm, layout, topology_mode):
-    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "cubed-sphere"):
+    if (comm.Get_size() > 1) and (topology_mode == "cubed-sphere"):
         partitioner = CubedSpherePartitioner(TilePartitioner(layout))
         communicator = CubedSphereCommunicator(comm, partitioner)
     else:
