@@ -15,26 +15,22 @@ from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
-# ----------------------------------------------------------
-# Rough timer & log for major operations of DaCe build stack
-# ----------------------------------------------------------
 class DaCeProgress:
-    """Timer and log to track build progress"""
+    """Rough timer & log for major operations of DaCe build stack."""
 
-    def __init__(self, config: DaceConfig, label: str):
+    def __init__(self, config: DaceConfig, label: str) -> None:
         self.prefix = DaCeProgress.default_prefix(config)
-        self.prefix = f"[{config.get_orchestrate()}]"
         self.label = label
 
     @classmethod
     def default_prefix(cls, config: DaceConfig) -> str:
         return f"[{config.get_orchestrate()}]"
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         ndsl_log.debug(f"{self.prefix} {self.label}...")
         self.start = time.time()
 
-    def __exit__(self, _type, _val, _traceback):
+    def __exit__(self, _type, _val, _traceback) -> None:
         elapsed = time.time() - self.start
         ndsl_log.debug(f"{self.prefix} {self.label}...{elapsed}s.")
 
@@ -81,7 +77,7 @@ def memory_static_analysis(
     """Analysis an SDFG for memory pressure.
 
     The results split memory by type (dace.StorageType) and account for
-    allocated, unreferenced and top lovel (e.g. top-most SDFG) memory
+    allocated, unreferenced and top level (e.g. top-most SDFG) memory
     """
     # We report all allocation type
     allocations: Dict[dace.StorageType, StorageReport] = {}
@@ -92,7 +88,7 @@ def memory_static_analysis(
         array_size_in_bytes = arr.total_size * arr.dtype.bytes
         ref = _is_ref(sd, aname)
 
-        # Transient in maps (refrence and not referenced)
+        # Transient in maps (reference and not referenced)
         if sd is not sdfg and arr.transient:
             if arr.pool:
                 allocations[arr.storage].in_pooled_in_bytes += array_size_in_bytes
@@ -111,7 +107,7 @@ def memory_static_analysis(
             else:
                 allocations[arr.storage].unreferenced_in_bytes += array_size_in_bytes
 
-        # SDFG-level memory (refrence, not referenced and pooled)
+        # SDFG-level memory (reference, not referenced and pooled)
         elif sd is sdfg:
             if arr.pool:
                 allocations[arr.storage].in_pooled_in_bytes += array_size_in_bytes
@@ -137,7 +133,7 @@ def memory_static_analysis(
 def report_memory_static_analysis(
     sdfg: dace.sdfg.SDFG,
     allocations: Dict[dace.StorageType, StorageReport],
-    detail_report=False,
+    detail_report: bool = False,
 ) -> str:
     """Create a human readable report form the memory analysis results"""
     report = f"{sdfg.name}:\n"
@@ -145,14 +141,14 @@ def report_memory_static_analysis(
         alloc_in_mb = float(allocs.referenced_in_bytes / (1024 * 1024))
         unref_alloc_in_mb = float(allocs.unreferenced_in_bytes / (1024 * 1024))
         in_pooled_in_mb = float(allocs.in_pooled_in_bytes / (1024 * 1024))
-        toplvlalloc_in_mb = float(allocs.top_level_in_bytes / (1024 * 1024))
-        if alloc_in_mb or toplvlalloc_in_mb > 0:
+        top_level_alloc_in_mb = float(allocs.top_level_in_bytes / (1024 * 1024))
+        if alloc_in_mb or top_level_alloc_in_mb > 0:
             report += (
                 f"{storage}:\n"
                 f"  Alloc ref {alloc_in_mb:.2f} mb\n"
                 f"  Alloc unref {unref_alloc_in_mb:.2f} mb\n"
                 f"  Pooled {in_pooled_in_mb:.2f} mb\n"
-                f"  Top lvl alloc: {toplvlalloc_in_mb:.2f}mb\n"
+                f"  Top lvl alloc: {top_level_alloc_in_mb:.2f}mb\n"
             )
             if detail_report:
                 report += "\n"
@@ -172,7 +168,9 @@ def report_memory_static_analysis(
     return report
 
 
-def memory_static_analysis_from_path(sdfg_path: str, detail_report=False) -> str:
+def memory_static_analysis_from_path(
+    sdfg_path: str, detail_report: bool = False
+) -> str:
     """Open a SDFG and report the memory analysis"""
     sdfg = dace.SDFG.from_file(sdfg_path)
     return report_memory_static_analysis(
@@ -183,53 +181,55 @@ def memory_static_analysis_from_path(sdfg_path: str, detail_report=False) -> str
 
 
 # ----------------------------------------------------------
-# Theoritical bandwith from SDFG
+# Theoretical bandwidth from SDFG
 # ----------------------------------------------------------
-def copy_defn(q_in: FloatField, q_out: FloatField):
+def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         q_in = q_out
 
 
-class MaxBandwithBenchmarkProgram:
+class MaxBandwidthBenchmarkProgram:
     def __init__(self, size, backend) -> None:
         from ndsl.dsl.dace.orchestration import DaCeOrchestration, orchestrate
 
-        dconfig = DaceConfig(None, backend, orchestration=DaCeOrchestration.BuildAndRun)
+        dace_config = DaceConfig(
+            None, backend, orchestration=DaCeOrchestration.BuildAndRun
+        )
         c = CompilationConfig(backend=backend)
-        s = StencilConfig(dace_config=dconfig, compilation_config=c)
+        s = StencilConfig(dace_config=dace_config, compilation_config=c)
         self.copy_stencil = FrozenStencil(
-            func=copy_defn,
+            func=copy_kernel,
             origin=(0, 0, 0),
             domain=size,
             stencil_config=s,
         )
-        orchestrate(obj=self, config=dconfig)
+        orchestrate(obj=self, config=dace_config)
 
-    def __call__(self, A, B, n: int):
+    def __call__(self, A, B, n: int) -> None:
         for i in dace.nounroll(range(n)):
             self.copy_stencil(A, B)
 
 
 def kernel_theoretical_timing(
     sdfg: dace.sdfg.SDFG,
-    hardware_bw_in_GB_s=None,
-    backend=None,
+    hardware_bw_in_GB_s: Optional[float] = None,
+    backend: Optional[str] = None,
 ) -> Dict[str, float]:
     """Compute a lower timing bound for kernels with the following hypothesis:
 
     - Performance is memory bound, e.g. arithmetic intensity isn't counted
     - Hardware bandwidth comes from a GT4Py/DaCe test rather than a spec sheet for
-      for higher accuracy. Best is to run a copy_stencils on a full domain
+      for higher accuracy. Best is to run a copy_stencil on a full domain
     - Memory pressure is mostly in read/write from global memory, inner scalar & shared
       memory is not counted towards memory movement.
     """
-    if not hardware_bw_in_GB_s:
+    if hardware_bw_in_GB_s is None:
         size = np.array(sdfg.arrays["__g_self__w"].shape)
         print(
-            f"Calculating experimental hardware bandwith on {size}"
+            f"Calculating experimental hardware bandwidth on {size}"
             f" arrays at {Float} precision..."
         )
-        bench = MaxBandwithBenchmarkProgram(size, backend)
+        bench = MaxBandwidthBenchmarkProgram(size, backend)
         if backend == "dace:gpu":
             A = cp.ones(size, dtype=Float)
             B = cp.ones(size, dtype=Float)
@@ -248,13 +248,19 @@ def kernel_theoretical_timing(
             bench(A, B, n)
             dt.append((time.time() - s) / n)
         memory_size_in_b = np.prod(size) * np.dtype(Float).itemsize * 8
-        bandwidth_in_bytes_s = memory_size_in_b / np.median(dt)
-        print(
-            f"Hardware bandwith computed: {bandwidth_in_bytes_s/(1024*1024*1024)} GB/s"
-        )
-    else:
-        bandwidth_in_bytes_s = hardware_bw_in_GB_s * 1024 * 1024 * 1024
-        print(f"Given hardware bandwith: {bandwidth_in_bytes_s/(1024*1024*1024)} GB/s")
+        measured_bandwidth_in_bytes_s = memory_size_in_b / np.median(dt)
+
+    bandwidth_in_bytes_s = (
+        measured_bandwidth_in_bytes_s
+        if hardware_bw_in_GB_s is None
+        else hardware_bw_in_GB_s * 1024 * 1024 * 1024
+    )
+    label = (
+        "Hardware bandwidth computed"
+        if hardware_bw_in_GB_s
+        else "Given hardware bandwidth"
+    )
+    print(f"{label}: {bandwidth_in_bytes_s/(1024*1024*1024)} GB/s")
 
     allmaps = [
         (me, state)
@@ -306,12 +312,6 @@ def kernel_theoretical_timing(
                 newresult_in_us = float(newresult_in_us)
             except TypeError:
                 pass
-
-        # Bad expansion
-        if not isinstance(newresult_in_us, sympy.core.numbers.Float) and not isinstance(
-            newresult_in_us, float
-        ):
-            continue
 
         result[node.label] = float(newresult_in_us)
 
