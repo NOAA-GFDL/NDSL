@@ -1,4 +1,4 @@
-Gt4py 
+Gt4py
 ==========
 
 pace-physics includes the Python implementation of GFS physics built using the GT4Py domain-specific language.
