@@ -122,6 +122,8 @@ class NamelistDefaults:
     xkzm_ml = 1.0  # background vertical diffusion for momentum over land
     xkzm_hi = 1.0  # background vertical diffusion for heat q over ice
     xkzm_mi = 1.0  # background vertical diffusion for momentum over ice
+    xkzm_ho = 1.0  # background vertical diffusion for heat q over ocean
+    xkzm_mo = 1.0  # background vertical diffusion for momentum over ocean
     xkzm_s = 1.0  # sigma threshold for background mom. diffusion
     xkzm_lim = 0.01  # background vertical diffusion limit
     xkzminv = 0.15  # diffusivity in inversion layers
@@ -129,7 +131,7 @@ class NamelistDefaults:
     rlmn = 30.0  # lower-limter on asymtotic mixing length in satmedmfdiff
     rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
-    cap_k0_land = False  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
+    cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
     lsoil = 4  # Number of soil levels in land surface model
 
     @classmethod
@@ -324,6 +326,8 @@ class Namelist:
     xkzm_ml: float = NamelistDefaults.xkzm_ml
     xkzm_hi: float = NamelistDefaults.xkzm_hi
     xkzm_mi: float = NamelistDefaults.xkzm_mi
+    xkzm_ho: float = NamelistDefaults.xkzm_ho
+    xkzm_mo: float = NamelistDefaults.xkzm_mo
     xkzm_s: float = NamelistDefaults.xkzm_s
     xkzm_lim: float = NamelistDefaults.xkzm_lim
     xkzminv: float = NamelistDefaults.xkzminv

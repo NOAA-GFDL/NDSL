@@ -184,6 +184,7 @@ class TranslateFortranData2Py:
                 inputs_out[p] = Float(inputs_in[p])
         for d, info in storage_vars.items():
             serialname = info["serialname"] if "serialname" in info else d
+            index_variable = info["index_variable"] if "index_variable" in info else False
             self.update_info(info, inputs_in)
             if "kaxis" in info:
                 inputs_in[serialname] = np.moveaxis(
@@ -201,6 +202,8 @@ class TranslateFortranData2Py:
 
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
+            if index_variable:
+                inputs_in[serialname] -= 1
             inputs_out[d] = self.make_storage_data(
                 np.squeeze(inputs_in[serialname]),
                 istart=istart,
@@ -228,9 +231,12 @@ class TranslateFortranData2Py:
             info = self.out_vars[var]
             self.update_info(info, inputs)
             serialname = info["serialname"] if "serialname" in info else var
+            index_variable = info["index_variable"] if "index_variable" in info else False
             ds = self.grid.default_domain_dict()
             ds.update(info)
             data_result = as_numpy(out_data[var])
+            if index_variable:
+                data_result += 1
             if isinstance(data_result, dict):
                 names_4d = info.get("names_4d", utils.tracer_variables)
                 var4d = np.zeros(
