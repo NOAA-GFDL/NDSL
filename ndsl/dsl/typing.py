@@ -89,3 +89,14 @@ def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     if len(val) != 3:
         raise ValueError(f"expected 3d index, received {val}")
     return cast(Index3D, val)
+
+
+def is_float(dtype: type):
+    """Expected floating point type"""
+    return dtype in [
+        Float,
+        float,
+        np.float16,
+        np.float32,
+        np.float64,
+    ]
