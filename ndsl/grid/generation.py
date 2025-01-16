@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
+from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import (
     N_HALO_DEFAULT,
@@ -3428,7 +3429,11 @@ class MetricTerms:
         max_area = self._np.max(self.area.data[3:-4, 3:-4])[()]
         min_area_c = self._np.min(self.area_c.data[3:-4, 3:-4])[()]
         max_area_c = self._np.max(self.area_c.data[3:-4, 3:-4])[()]
-        self._da_min = float(self._comm.comm.allreduce(min_area, min))
-        self._da_max = float(self._comm.comm.allreduce(max_area, max))
-        self._da_min_c = float(self._comm.comm.allreduce(min_area_c, min))
-        self._da_max_c = float(self._comm.comm.allreduce(max_area_c, max))
+        self._da_min = float(self._comm.comm.allreduce(min_area, ReductionOperator.MIN))
+        self._da_max = float(self._comm.comm.allreduce(max_area, ReductionOperator.MAX))
+        self._da_min_c = float(
+            self._comm.comm.allreduce(min_area_c, ReductionOperator.MIN)
+        )
+        self._da_max_c = float(
+            self._comm.comm.allreduce(max_area_c, ReductionOperator.MAX)
+        )
