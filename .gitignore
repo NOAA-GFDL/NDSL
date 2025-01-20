@@ -8,6 +8,9 @@ driver/examples/comm
 20*-*-*-*-*-*.json
 *.pkl
 
+# example outputs
+examples/mpi/output
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
