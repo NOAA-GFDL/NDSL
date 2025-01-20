@@ -65,7 +65,7 @@ def _determine_compiling_ranks(
         6 7 8
         3 4 5
         0 1 2
-    Using the partitionner we find mapping of the given layout
+    Using the partitioner we find mapping of the given layout
     to all of those. For example on 4x4 layout
         12 13 14 15
         8  9  10 11
@@ -217,7 +217,7 @@ class DaceConfig:
             # Block size/thread count is defaulted to an average value for recent
             # hardware (Pascal and upward). The problem of setting an optimized
             # block/thread is both hardware and problem dependant. Fine tuners
-            # available in DaCe should be relied on for futher tuning of this value.
+            # available in DaCe should be relied on for further tuning of this value.
             dace.config.Config.set(
                 "compiler", "cuda", "default_block_size", value="64,8,1"
             )
