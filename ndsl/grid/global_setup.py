@@ -21,8 +21,8 @@ def gnomonic_grid(grid_type: int, lon, lat, np):
 
     args:
         grid_type: type of grid to apply
-        lon: longitute array with dimensions [x, y]
-        lat: latitude array with dimensionos [x, y]
+        lon: longitude array with dimensions [x, y]
+        lat: latitude array with dimensions [x, y]
     """
     _check_shapes(lon, lat)
     if grid_type == 0:
@@ -142,7 +142,7 @@ def global_mirror_grid(
                 y1, grid_global[ng + npx - (i + 1), ng + npy - (j + 1), 1, nreg]
             )
 
-            # force dateline/greenwich-meridion consistency
+            # force dateline/greenwich-meridian consistency
             if npx % 2 != 0:
                 if i == (npx - 1) // 2:
                     grid_global[ng + i, ng + j, 0, nreg] = 0.0

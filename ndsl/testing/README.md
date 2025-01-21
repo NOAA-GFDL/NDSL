@@ -31,21 +31,21 @@ More options of `pytest` are available when doing `pytest --help`.
 
 ## Metrics
 
-There is three state of a test in `pytest`: FAIL, PASS and XFAIL (expected fail). To clear the PASS status, the output data contained in `NAME-Out.nc` is compared to the computed data via the `TranslateNAME` test. Because this system was developped to port Fortran numerics to many targets (mostly C, but also Python, and CPU/GPU), we can't rely on bit-to-bit comparison and have been developping a couple of metrics.
+There is three state of a test in `pytest`: FAIL, PASS and XFAIL (expected fail). To clear the PASS status, the output data contained in `NAME-Out.nc` is compared to the computed data via the `TranslateNAME` test. Because this system was developed to port Fortran numerics to many targets (mostly C, but also Python, and CPU/GPU), we can't rely on bit-to-bit comparison and have been developing a couple of metrics.
 
 ### Legacy metric
 
-The legacy metric was used throughout the developement of the dynamical core and microphysics scheme at 64-bit precision. It tries to solve differences over big and small amplitutde values with a single formula that goes as follows: $`\|computed-reference|/reference`$ where `reference` has been purged of 0.
+The legacy metric was used throughout the development of the dynamical core and microphysics scheme at 64-bit precision. It tries to solve differences over big and small amplitude values with a single formula that goes as follows: $`\|computed-reference|/reference`$ where `reference` has been purged of 0.
 NaN values are considered no-pass.
-To pass the metric has to be lower than `1e-14`, any value lower than `1e-18` will be considered pass by default. The pass threshold can be overriden (see below).
+To pass the metric has to be lower than `1e-14`, any value lower than `1e-18` will be considered pass by default. The pass threshold can be overridden (see below).
 
 ### Multi-modal metric
 
 Moving to mixed precision code, the legacy metric didn't give enough flexibility to account for 32-bit precision errors that could accumulate. Another metric was built with the intent of breaking the one-fit-all concept and giving back flexibility. The metric is a combination of three differences:
 
 - _Absolute Difference_ ($`|computed-reference|<threshold`$): the absolute difference between the reference value and the computed value. Good for small amplitude, decays to direct comparison in higher amplitude. Default threshold is `1e-13` for 64-bit, `1e-10` at 32-bit.
-- _Relative Difference_ ($`|computed-reference|<threshold*\max{|computed|, |reference|}`$): the difference relative to the maximum value. This can be seen at a % of error. Good for high amplitutde value, decay to direct comparison at smaller amplitude. Default is `0.0001%`
-- _ULP Difference_ ($`|computed-reference|/\spacing{\max{|computed|, |reference|}}<=threshold`$): Unit of Least Precision (ULP) can be shortly describe as a way to quantify the space between two describable floating points. This is useful to measure differences that are in the "noise" of the machine representation. Default threshold is 1, meaning the two values are virtually indistiguinshible.
+- _Relative Difference_ ($`|computed-reference|<threshold*\max{|computed|, |reference|}`$): the difference relative to the maximum value. This can be seen at a % of error. Good for high amplitude value, decay to direct comparison at smaller amplitude. Default is `0.0001%`
+- _ULP Difference_ ($`|computed-reference|/\spacing{\max{|computed|, |reference|}}<=threshold`$): Unit of Least Precision (ULP) can be shortly describe as a way to quantify the space between two describable floating points. This is useful to measure differences that are in the "noise" of the machine representation. Default threshold is 1, meaning the two values are virtually indistinguishable.
 
 ## Results
 

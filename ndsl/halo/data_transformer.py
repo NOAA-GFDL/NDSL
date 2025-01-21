@@ -239,7 +239,7 @@ class HaloDataTransformer(abc.ABC):
         """Construct a module from a numpy-like module.
 
         Args:
-            np_module: numpy-like module to determin child transformer type.
+            np_module: numpy-like module to determine child transformer type.
             exchange_descriptors_x: list of memory information describing an exchange.
                 Used for scalar data and the x-component of vectors.
             exchange_descriptors_y: list of memory information describing an exchange.

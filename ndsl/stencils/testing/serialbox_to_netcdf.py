@@ -143,7 +143,7 @@ def main(
             for varname in set(names_list).difference(["rank"]):
                 # Check that all ranks have the same size. If not, aggregate and
                 # feedback on one rank
-                colapse_all_ranks = False
+                collapse_all_ranks = False
                 data_shape = list(rank_list[0][varname][0].shape)
                 print(f"  Exporting {varname} - {data_shape}")
                 for rank in range(total_ranks):
@@ -159,7 +159,7 @@ def main(
                             print(
                                 f"... different shape for {varname} across ranks, collapsing in on rank."
                             )
-                            colapse_all_ranks = True
+                            collapse_all_ranks = True
                             break
 
                 if savepoint_name in [
@@ -185,7 +185,7 @@ def main(
                         data_vars[varname] = get_data(
                             data_shape, total_ranks, n_savepoints, rank_list, varname
                         )
-                elif colapse_all_ranks:
+                elif collapse_all_ranks:
                     data_vars[varname] = get_data_collapse_all_ranks(
                         total_ranks, n_savepoints, rank_list, varname
                     )

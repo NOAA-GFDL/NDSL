@@ -687,7 +687,7 @@ class MetricTerms:
     @property
     def ec1(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
+        cartesian components of the local unit vector
         in the x-direction at the cell centers
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
@@ -698,8 +698,8 @@ class MetricTerms:
     @property
     def ec2(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the y-direation at the cell centers
+        cartesian components of the local unit vector
+        in the y-direction at the cell centers
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
         if self._ec2 is None:
@@ -709,8 +709,8 @@ class MetricTerms:
     @property
     def ew1(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the x-direation at the left/right cell edges
+        cartesian components of the local unit vector
+        in the x-direction at the left/right cell edges
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
         if self._ew1 is None:
@@ -720,8 +720,8 @@ class MetricTerms:
     @property
     def ew2(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the y-direation at the left/right cell edges
+        cartesian components of the local unit vector
+        in the y-direction at the left/right cell edges
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
         if self._ew2 is None:

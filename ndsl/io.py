@@ -44,7 +44,7 @@ def write_state(state: dict, filename: str) -> None:
 
 
 def _extract_time(value: xr.DataArray) -> cftime.datetime:
-    """Exctract time value from read-in state."""
+    """Extract time value from read-in state."""
     if value.ndim > 0:
         raise ValueError(
             "State must be representative of a single scalar time. " f"Got {value}."

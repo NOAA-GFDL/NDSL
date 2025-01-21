@@ -914,7 +914,7 @@ def test_halo_updater_stability(
     assert len(BUFFER_CACHE) == 1
     assert len(next(iter(BUFFER_CACHE.values()))) == 0
 
-    # Manually call finalize on the transfomers
+    # Manually call finalize on the transformers
     # This should recache all the buffers
     # DSL-816 will refactor that behavior out
     for halo_updater in halo_updaters:

@@ -68,7 +68,7 @@ class LegacyMetric(BaseMetric):
             self._calculated_metric = np.logical_xor(self.computed, self.references)
         else:
             raise TypeError(
-                f"recieved data with unexpected dtype {self.references.dtype}"
+                f"received data with unexpected dtype {self.references.dtype}"
             )
         success = np.logical_or(
             np.logical_and(np.isnan(self.computed), np.isnan(self.references)),
@@ -115,7 +115,7 @@ class LegacyMetric(BaseMetric):
             abs_errs = []
             details = [
                 "All failures:",
-                "Index  Computed  Reference  Absloute E  Metric E",
+                "Index  Computed  Reference  Absolute E  Metric E",
             ]
             for b in range(bad_indices_count):
                 full_index = tuple([f[b] for f in found_indices])
@@ -195,7 +195,7 @@ class MultiModalFloatMetric(BaseMetric):
     floating errors.
 
     ULP is used to clear noise (ULP<=1.0 passes)
-    Absolute errors for large amplitute
+    Absolute errors for large amplitude
     """
 
     _f32_absolute_eps = _Metric(1e-10)
@@ -259,7 +259,7 @@ class MultiModalFloatMetric(BaseMetric):
             )
             self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold.value
 
-            # Combine all distances into sucess or failure
+            # Combine all distances into success or failure
             # Success =
             # - no unexpected NANs (e.g. NaN in the ref MUST BE in computation) OR
             # - absolute distance pass OR
@@ -279,7 +279,7 @@ class MultiModalFloatMetric(BaseMetric):
             return success
         else:
             raise TypeError(
-                f"recieved data with unexpected dtype {self.references.dtype}"
+                f"received data with unexpected dtype {self.references.dtype}"
             )
 
     def _has_override(self) -> bool:
@@ -290,17 +290,17 @@ class MultiModalFloatMetric(BaseMetric):
         )
 
     def one_line_report(self) -> str:
-        metric_threholds = f"{'🔶 ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
-        metric_threholds += f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
-        metric_threholds += f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})"
+        metric_thresholds = f"{'🔶 ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
+        metric_thresholds += f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+        metric_thresholds += f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})"
         if self.check and self._has_override():
-            return f"🔶 No numerical differences with threshold override - metric: {metric_threholds}"
+            return f"🔶 No numerical differences with threshold override - metric: {metric_thresholds}"
         elif self.check:
-            return f"✅ No numerical differences - metric: {metric_threholds}"
+            return f"✅ No numerical differences - metric: {metric_thresholds}"
         else:
             failed_indices = len(np.logical_not(self.success).nonzero()[0])
             all_indices = len(self.references.flatten())
-            return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_threholds}"
+            return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []

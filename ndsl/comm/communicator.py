@@ -304,7 +304,7 @@ class Communicator(abc.ABC):
 
         Args:
             send_state: the model state to be sent containing the subtile data
-            recv_state: the pre-allocated state in which to recieve the full tile
+            recv_state: the pre-allocated state in which to receive the full tile
                 state. Only variables which are scattered will be written to.
         Returns:
             recv_state: on the root rank, the state containing the entire tile
@@ -340,7 +340,7 @@ class Communicator(abc.ABC):
         Args:
             send_state: the model state to be sent containing the entire tile,
                 required only from the root rank
-            recv_state: the pre-allocated state in which to recieve the scattered
+            recv_state: the pre-allocated state in which to receive the scattered
                 state. Only variables which are scattered will be written to.
         Returns:
             rank_state: the state corresponding to this rank's subdomain
@@ -776,7 +776,7 @@ class CubedSphereCommunicator(Communicator):
         """
         if not issubclass(type(comm), CommABC):
             raise TypeError(
-                "Communictor needs to be instantiated with communication subsytem"
+                "Communicator needs to be instantiated with communication subsystem"
                 f" derived from `comm_abc.Comm`, got {type(comm)}."
             )
         if comm.Get_size() != partitioner.total_ranks:
