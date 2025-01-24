@@ -38,7 +38,7 @@ class HaloUpdater:
     - update and start/wait trigger the halo exchange
     - the class creates a "pattern" of exchange that can fit
       any memory given to do/start
-    - temporary references to the Quanitites are held between start and wait
+    - temporary references to the Quantities are held between start and wait
     """
 
     def __init__(
@@ -106,7 +106,7 @@ class HaloUpdater:
             numpy_like_module: module implementing numpy API
             specifications: data specifications to exchange, including
                 number of halo points
-            boundaries: informations on the exchange boundaries.
+            boundaries: information on the exchange boundaries.
             tag: network tag (to differentiate messaging) for this node.
             optional_timer: timing of operations.
 
@@ -161,7 +161,7 @@ class HaloUpdater:
                 Length must match y specifications.
             specifications_y: specifications to exchange along the y axis.
                 Length must match x specifications.
-            boundaries: informations on the exchange boundaries.
+            boundaries: information on the exchange boundaries.
             tag: network tag (to differentiate messaging) for this node.
             optional_timer: timing of operations.
 
@@ -210,7 +210,7 @@ class HaloUpdater:
         quantities_x: List[Quantity],
         quantities_y: Optional[List[Quantity]] = None,
     ):
-        """Exhange the data and blocks until finished."""
+        """Exchange the data and blocks until finished."""
         self.start(quantities_x, quantities_y)
         self.wait()
 
@@ -283,7 +283,7 @@ class HaloUpdater:
             for recv_req in self._recv_requests:
                 recv_req.wait()
 
-        # Unpack buffers (updated by MPI with neighbouring halos)
+        # Unpack buffers (updated by MPI with neighboring halos)
         # to proper quantities
         with self._timer.clock("unpack"):
             for buffer in self._transformers.values():

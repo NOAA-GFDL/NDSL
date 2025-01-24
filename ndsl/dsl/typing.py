@@ -46,7 +46,6 @@ def global_set_floating_point_precision():
         NotImplementedError(
             f"{precision_in_bit} bit precision not implemented or tested"
         )
-    return None
 
 
 # Default float and int types
@@ -55,10 +54,20 @@ Int = np.int_
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]
+FloatField64 = Field[gtscript.IJK, np.float64]
+FloatField32 = Field[gtscript.IJK, np.float32]
 FloatFieldI = Field[gtscript.I, Float]
+FloatFieldI64 = Field[gtscript.I, np.float64]
+FloatFieldI32 = Field[gtscript.I, np.float32]
 FloatFieldJ = Field[gtscript.J, Float]
+FloatFieldJ64 = Field[gtscript.J, np.float64]
+FloatFieldJ32 = Field[gtscript.J, np.float32]
 FloatFieldIJ = Field[gtscript.IJ, Float]
+FloatFieldIJ64 = Field[gtscript.IJ, np.float64]
+FloatFieldIJ32 = Field[gtscript.IJ, np.float32]
 FloatFieldK = Field[gtscript.K, Float]
+FloatFieldK64 = Field[gtscript.K, np.float64]
+FloatFieldK32 = Field[gtscript.K, np.float32]
 IntField = Field[gtscript.IJK, Int]
 IntFieldIJ = Field[gtscript.IJ, Int]
 IntFieldK = Field[gtscript.K, Int]
@@ -80,3 +89,14 @@ def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     if len(val) != 3:
         raise ValueError(f"expected 3d index, received {val}")
     return cast(Index3D, val)
+
+
+def is_float(dtype: type):
+    """Expected floating point type"""
+    return dtype in [
+        Float,
+        float,
+        np.float16,
+        np.float32,
+        np.float64,
+    ]

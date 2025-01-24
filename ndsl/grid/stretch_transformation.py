@@ -21,9 +21,9 @@ def direct_transform(
     """
     The direct_transform subroutine from fv_grid_utils.F90.
     Takes in latitude and longitude in radians.
-    Shrinks tile 6 by stretch factor in area to increse resolution locally.
+    Shrinks tile 6 by stretch factor in area to increase resolution locally.
     Then performs translation of all tiles so that the now-smaller tile 6 is
-    centeres on lon_target, lat_target.
+    centered on lon_target, lat_target.
 
     Args:
         lon (in) in radians

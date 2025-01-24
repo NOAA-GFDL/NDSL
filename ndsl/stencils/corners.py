@@ -54,7 +54,7 @@ class CopyCorners:
     def __call__(self, field: FloatField):
         """
         Fills cell quantity field using corners from itself and multipliers
-        in the dirction specified initialization of the instance of this class.
+        in the direction specified initialization of the instance of this class.
         """
         self._copy_corners(field, field)
 
