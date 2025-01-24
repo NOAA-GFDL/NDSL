@@ -458,6 +458,18 @@ class Communicator(abc.ABC):
         else:
             y_quantities = y_quantity
 
+        # TODO: TO be removed following correction to issue
+        for quantity in x_quantities:
+            if quantity.view.extent[0] < 4 or quantity.view.extent[1] < 4:
+                raise Exception(
+                    "Communicator::vector_halo_update Compute domain must have at least 4 points"
+                )
+        for quantity in y_quantities:
+            if quantity.view.extent[0] < 4 or quantity.view.extent[1] < 4:
+                raise Exception(
+                    "Communicator::vector_halo_update Compute domain must have at least 4 points"
+                )
+
         halo_updater = self.start_vector_halo_update(
             x_quantities, y_quantities, n_points
         )
