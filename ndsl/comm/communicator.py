@@ -458,22 +458,6 @@ class Communicator(abc.ABC):
         else:
             y_quantities = y_quantity
 
-        # TODO: TO be removed following correction to issue
-        for quantity in x_quantities:
-            halo_x = (quantity.data.shape[0] - quantity.view.extent[0]) / 2
-            halo_y = (quantity.data.shape[1] - quantity.view.extent[1]) / 2
-            if quantity.view.extent[0] <= halo_x or quantity.view.extent[1] <= halo_y:
-                raise Exception(
-                    "Communicator::vector_halo_update Compute domain edge size must greater than halo size"
-                )
-        for quantity in y_quantities:
-            halo_x = (quantity.data.shape[0] - quantity.view.extent[0]) / 2
-            halo_y = (quantity.data.shape[1] - quantity.view.extent[1]) / 2
-            if quantity.view.extent[0] <= halo_x or quantity.view.extent[1] <= halo_y:
-                raise Exception(
-                    "Communicator::vector_halo_update Compute domain edge size must greater than halo size"
-                )
-
         halo_updater = self.start_vector_halo_update(
             x_quantities, y_quantities, n_points
         )
