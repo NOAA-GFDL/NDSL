@@ -48,9 +48,35 @@ def global_set_floating_point_precision():
         )
 
 
+def integer_precision() -> int:
+    return int(os.getenv("PACE_INT_PRECISION", "64"))
+
+
+# We redefine the type as a way to distinguish
+# the model definition of a float to other usage of the
+# common numpy type in the rest of the code.
+NDSL_32BIT_INT_TYPE = np.int32
+NDSL_64BIT_INT_TYPE = np.int64
+
+
+def global_set_integer_precision():
+    """Set the global floating point precision for all reference
+    to Float in the codebase. Defaults to 64 bit."""
+    global Int
+    precision_in_bit = integer_precision()
+    if precision_in_bit == 64:
+        return NDSL_64BIT_INT_TYPE
+    elif precision_in_bit == 32:
+        return NDSL_32BIT_INT_TYPE
+    else:
+        NotImplementedError(
+            f"{precision_in_bit} bit precision not implemented or tested"
+        )
+
+
 # Default float and int types
 Float = global_set_floating_point_precision()
-Int = np.int_
+Int = global_set_integer_precision()
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]
