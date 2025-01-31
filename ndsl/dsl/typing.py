@@ -22,7 +22,7 @@ K = gtscript.K  # noqa: E741
 DTypes = Union[bool, np.bool_, int, np.int32, np.int64, float, np.float32, np.float64]
 
 
-def floating_point_precision() -> int:
+def get_precision() -> int:
     return int(os.getenv("PACE_FLOAT_PRECISION", "64"))
 
 
@@ -31,43 +31,19 @@ def floating_point_precision() -> int:
 # common numpy type in the rest of the code.
 NDSL_32BIT_FLOAT_TYPE = np.float32
 NDSL_64BIT_FLOAT_TYPE = np.float64
-
-
-def global_set_floating_point_precision():
-    """Set the global floating point precision for all reference
-    to Float in the codebase. Defaults to 64 bit."""
-    global Float
-    precision_in_bit = floating_point_precision()
-    if precision_in_bit == 64:
-        return NDSL_64BIT_FLOAT_TYPE
-    elif precision_in_bit == 32:
-        return NDSL_32BIT_FLOAT_TYPE
-    else:
-        NotImplementedError(
-            f"{precision_in_bit} bit precision not implemented or tested"
-        )
-
-
-def integer_precision() -> int:
-    return int(os.getenv("PACE_INT_PRECISION", "64"))
-
-
-# We redefine the type as a way to distinguish
-# the model definition of a float to other usage of the
-# common numpy type in the rest of the code.
 NDSL_32BIT_INT_TYPE = np.int32
 NDSL_64BIT_INT_TYPE = np.int64
 
 
-def global_set_integer_precision():
+def global_set_precision():
     """Set the global floating point precision for all reference
     to Float in the codebase. Defaults to 64 bit."""
-    global Int
-    precision_in_bit = integer_precision()
+    global Float, Int
+    precision_in_bit = get_precision()
     if precision_in_bit == 64:
-        return NDSL_64BIT_INT_TYPE
+        return NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE
     elif precision_in_bit == 32:
-        return NDSL_32BIT_INT_TYPE
+        return NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE
     else:
         NotImplementedError(
             f"{precision_in_bit} bit precision not implemented or tested"
@@ -75,8 +51,7 @@ def global_set_integer_precision():
 
 
 # Default float and int types
-Float = global_set_floating_point_precision()
-Int = global_set_integer_precision()
+Float, Int = global_set_precision()
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]
