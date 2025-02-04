@@ -22,6 +22,11 @@ K = gtscript.K  # noqa: E741
 DTypes = Union[bool, np.bool_, int, np.int32, np.int64, float, np.float32, np.float64]
 
 
+# Depreciated version of get_precision, but retained for a PACE dependency
+def floating_point_precision() -> int:
+    return int(os.getenv("PACE_FLOAT_PRECISION", "64"))
+
+
 def get_precision() -> int:
     return int(os.getenv("PACE_FLOAT_PRECISION", "64"))
 
