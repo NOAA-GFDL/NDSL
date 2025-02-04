@@ -41,8 +41,8 @@ NDSL_64BIT_INT_TYPE = np.int64
 
 
 def global_set_precision():
-    """Set the global floating point precision for all reference
-    to Float in the codebase. Defaults to 64 bit."""
+    """Set the global precision for all references of
+    Float and Int in the codebase. Defaults to 64 bit."""
     global Float, Int
     precision_in_bit = get_precision()
     if precision_in_bit == 64:
