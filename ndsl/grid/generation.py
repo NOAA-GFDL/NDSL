@@ -298,7 +298,7 @@ class MetricTerms:
         self._dy_center = None
         self._area = None
         self._area_c = None
-        if eta_file is not None:
+        if eta_file is not None or ak is not None or bk is not None:
             (
                 self._ks,
                 self._ptop,
