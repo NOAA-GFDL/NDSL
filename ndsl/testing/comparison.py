@@ -290,9 +290,9 @@ class MultiModalFloatMetric(BaseMetric):
         )
 
     def one_line_report(self) -> str:
-        metric_thresholds = f"{'🔶 ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
-        metric_thresholds += f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
-        metric_thresholds += f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})"
+        metric_thresholds = f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
+        metric_thresholds += f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+        metric_thresholds += f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})"
         if self.check and self._has_override():
             return f"🔶 No numerical differences with threshold override - metric: {metric_thresholds}"
         elif self.check:
@@ -314,9 +314,9 @@ class MultiModalFloatMetric(BaseMetric):
             report = [
                 f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
                 f"Index   Computed   Reference   "
-                f"{'🔶 ' if not self.absolute_eps.is_default else '' }Absolute E(<{self.absolute_eps.value:.2e})  "
-                f"{'🔶 ' if not self.relative_fraction.is_default else '' }Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
-                f"{'🔶 ' if not self.ulp_threshold.is_default else '' }ULP E(<{self.ulp_threshold.value})",
+                f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
+                f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+                f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})",
             ]
             # Summary and worst result
             for iBad in range(bad_indices_count):

@@ -234,7 +234,7 @@ def test_sequential_savepoint(
         ref_data_out[varname] = [ref_data]
 
     # Reporting & data save
-    _report_results(case.savepoint_name, results)
+    _report_results(case.savepoint_name, case.rank, results)
     if len(failing_names) > 0:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
@@ -368,7 +368,9 @@ def test_parallel_savepoint(
                 metric = MultiModalFloatMetric(
                     reference_values=ref_data[varname][0],
                     computed_values=output_data,
-                    eps=case.testobj.max_error,
+                    absolute_eps_override=case.testobj.mmr_absolute_eps,
+                    relative_fraction_override=case.testobj.mmr_relative_fraction,
+                    ulp_override=case.testobj.mmr_ulp,
                     ignore_near_zero_errors=ignore_near_zero,
                     near_zero=case.testobj.near_zero,
                 )
@@ -386,7 +388,7 @@ def test_parallel_savepoint(
             passing_names.append(failing_names.pop())
 
     # Reporting & data save
-    _report_results(case.savepoint_name, results)
+    _report_results(case.savepoint_name, case.rank, results)
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
         nct_filename = os.path.join(
@@ -414,17 +416,23 @@ def test_parallel_savepoint(
         pytest.fail("No tests passed")
 
 
-def _report_results(savepoint_name: str, results: Dict[str, BaseMetric]) -> None:
+def _report_results(
+    savepoint_name: str,
+    rank: int,
+    results: Dict[str, BaseMetric],
+) -> None:
     os.makedirs(OUTDIR, exist_ok=True)
 
     # Summary
-    with open(f"{OUTDIR}/summary-{savepoint_name}.log", "w") as f:
+    with open(f"{OUTDIR}/summary-{savepoint_name}-{rank}.log", "w") as f:
         for varname, metric in results.items():
             f.write(f"{varname}: {metric.one_line_report()}\n")
 
     # Detailed log
     for varname, metric in results.items():
-        log_filename = os.path.join(OUTDIR, f"details-{savepoint_name}-{varname}.log")
+        log_filename = os.path.join(
+            OUTDIR, f"details-{savepoint_name}-{varname}-{rank}.log"
+        )
         metric.report(log_filename)
 
 
