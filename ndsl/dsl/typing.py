@@ -92,6 +92,9 @@ IntFieldK64 = Field[gtscript.K, np.int64]
 IntFieldK32 = Field[gtscript.K, np.int32]
 
 BoolField = Field[gtscript.IJK, Bool]
+BoolFieldI = Field[gtscript.I, Bool]
+BoolFieldJ = Field[gtscript.J, Bool]
+BoolFieldK = Field[gtscript.K, Bool]
 BoolFieldIJ = Field[gtscript.IJ, Bool]
 
 Index3D = Tuple[int, int, int]
