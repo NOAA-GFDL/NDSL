@@ -50,7 +50,7 @@ def global_set_precision():
     elif precision_in_bit == 32:
         return NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE
     else:
-        NotImplementedError(
+        raise NotImplementedError(
             f"{precision_in_bit} bit precision not implemented or tested"
         )
 
