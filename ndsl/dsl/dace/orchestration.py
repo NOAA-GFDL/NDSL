@@ -438,7 +438,7 @@ class _LazyComputepathMethod:
 def orchestrate(
     *,
     obj: object,
-    config: DaceConfig,
+    config: Optional[DaceConfig],
     method_to_orchestrate: str = "__call__",
     dace_compiletime_args: Optional[Sequence[str]] = None,
 ):
@@ -455,6 +455,9 @@ def orchestrate(
         dace_compiletime_args: list of names of arguments to be flagged has
                                dace.compiletime for orchestration to behave
     """
+    if config is None:
+        raise ValueError("DaCe config cannot be None")
+
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
