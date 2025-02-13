@@ -44,7 +44,7 @@ def _get_factories(
 
     compilation_config = CompilationConfig(
         backend=backend,
-        rebuild=True,
+        rebuild=False,
         validate_args=True,
         format_source=False,
         device_sync=False,
