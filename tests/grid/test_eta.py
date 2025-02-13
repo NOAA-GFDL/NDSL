@@ -22,8 +22,8 @@ This test checks to ensure that ak and bk
 values are read-in and stored properly.
 In addition, this test checks to ensure that
 the function set_hybrid_pressure_coefficients
-fail as expected if the computed eta values
-vary non-mononitically and if the eta_file
+fails as expected if the computed eta values
+vary non-monotonically and if the eta_file
 is not provided.
 """
 
@@ -171,7 +171,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     eta_file is specified in test_config_not_mono.yaml
     file and the ak and bk values in the eta_file
     have been changed nonsensically to result in
-    erronenous eta values.
+    erroneous eta values.
     """
 
     working_dir = str(os.getcwd())
@@ -216,7 +216,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
         if os.path.isfile(out_eta_file):
             os.remove(out_eta_file)
         if str(error) == "ETA values are not monotonically increasing":
-            pytest.xfail("testing eta values are not monotomincally increasing")
+            pytest.xfail("testing eta values are not monotonically increasing")
         else:
             pytest.fail(
                 "ERROR in testing eta values not are not monotonically increasing"

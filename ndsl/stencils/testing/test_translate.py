@@ -76,15 +76,15 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         "ignore_near_zero_errors is either a list or a dict"
                     )
             if "multimodal" in match:
-                parsed_mutimodal = match["multimodal"]
-                if "absolute_epsilon" in parsed_mutimodal:
-                    testobj.mmr_absolute_eps = float(parsed_mutimodal["absolute_eps"])
-                if "relative_fraction" in parsed_mutimodal:
+                parsed_multimodal = match["multimodal"]
+                if "absolute_epsilon" in parsed_multimodal:
+                    testobj.mmr_absolute_eps = float(parsed_multimodal["absolute_eps"])
+                if "relative_fraction" in parsed_multimodal:
                     testobj.mmr_relative_fraction = float(
-                        parsed_mutimodal["relative_fraction"]
+                        parsed_multimodal["relative_fraction"]
                     )
-                if "ulp_threshold" in parsed_mutimodal:
-                    testobj.mmr_ulp = float(parsed_mutimodal["ulp_threshold"])
+                if "ulp_threshold" in parsed_multimodal:
+                    testobj.mmr_ulp = float(parsed_multimodal["ulp_threshold"])
             if "skip_test" in match:
                 testobj.skip_test = bool(match["skip_test"])
         elif len(matches) > 1:
@@ -422,7 +422,7 @@ def _report_results(savepoint_name: str, results: Dict[str, BaseMetric]) -> None
         for varname, metric in results.items():
             f.write(f"{varname}: {metric.one_line_report()}\n")
 
-    # Detailled log
+    # Detailed log
     for varname, metric in results.items():
         log_filename = os.path.join(OUTDIR, f"details-{savepoint_name}-{varname}.log")
         metric.report(log_filename)

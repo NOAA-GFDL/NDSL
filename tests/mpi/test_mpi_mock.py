@@ -38,7 +38,7 @@ def send_recv(comm, numpy):
         comm.Send(data, dest=rank + 1)
     if rank > 0:
         if isinstance(comm, DummyComm):
-            print(f"recieving data from {rank - 1} to {rank}")
+            print(f"receiving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
 
@@ -55,7 +55,7 @@ def send_recv_big_data(comm, numpy):
         comm.Send(data, dest=rank + 1)
     if rank > 0:
         if isinstance(comm, DummyComm):
-            print(f"recieving data from {rank - 1} to {rank}")
+            print(f"receiving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
 
@@ -101,7 +101,7 @@ def send_f_contiguous_buffer(comm, numpy):
         comm.Send(data, dest=rank + 1)
     if rank > 0:
         if isinstance(comm, DummyComm):
-            print(f"recieving data from {rank - 1} to {rank}")
+            print(f"receiving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
 
@@ -156,7 +156,7 @@ def recv_to_subarray(comm, numpy):
         comm.Send(data, dest=rank + 1)
     if rank > 0:
         if isinstance(comm, DummyComm):
-            print(f"recieving data from {rank - 1} to {rank}")
+            print(f"receiving data from {rank - 1} to {rank}")
         try:
             comm.Recv(recv_buffer[1:-1, 1:-1, 1:-1], source=rank - 1)
         except Exception as err:

@@ -90,7 +90,7 @@ def safe_mpi_allocate(
     """Make sure the allocation use an allocator that works with MPI
 
     For G2G transfer, MPICH requires the allocation to not be done
-    with managedmemory. Since we can't know what state `cupy` is in
+    with managed memory. Since we can't know what state `cupy` is in
     with switch for the default pooled allocator.
 
     If allocator comes from cupy, it must be cupy.empty or cupy.zeros.

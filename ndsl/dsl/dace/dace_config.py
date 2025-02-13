@@ -11,7 +11,7 @@ from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.gt4py_utils import is_gpu_backend
-from ndsl.dsl.typing import floating_point_precision
+from ndsl.dsl.typing import get_precision
 from ndsl.optional_imports import cupy as cp
 
 
@@ -65,7 +65,7 @@ def _determine_compiling_ranks(
         6 7 8
         3 4 5
         0 1 2
-    Using the partitionner we find mapping of the given layout
+    Using the partitioner we find mapping of the given layout
     to all of those. For example on 4x4 layout
         12 13 14 15
         8  9  10 11
@@ -217,7 +217,7 @@ class DaceConfig:
             # Block size/thread count is defaulted to an average value for recent
             # hardware (Pascal and upward). The problem of setting an optimized
             # block/thread is both hardware and problem dependant. Fine tuners
-            # available in DaCe should be relied on for futher tuning of this value.
+            # available in DaCe should be relied on for further tuning of this value.
             dace.config.Config.set(
                 "compiler", "cuda", "default_block_size", value="64,8,1"
             )
@@ -264,7 +264,7 @@ class DaceConfig:
                 "compiler", "cuda", "syncdebug", value=dace_debug_env_var
             )
 
-            if floating_point_precision() == 32:
+            if get_precision() == 32:
                 # When using 32-bit float, we flip the default dtypes to be all
                 # C, e.g. 32 bit.
                 dace.Config.set(
