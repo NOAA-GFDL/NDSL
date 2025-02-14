@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Union, cast
+from typing import Any, Tuple, Union, cast
 
 import gt4py.cartesian.gtscript as gtscript
 import numpy as np
@@ -40,7 +40,9 @@ NDSL_32BIT_INT_TYPE = np.int32
 NDSL_64BIT_INT_TYPE = np.int64
 
 
-def global_set_precision() -> type:
+def global_set_precision() -> Tuple[
+    type[np.floating[Any]], type[np.signedinteger[Any]]
+]:
     """Set the global precision for all references of
     Float and Int in the codebase. Defaults to 64 bit."""
     global Float, Int
