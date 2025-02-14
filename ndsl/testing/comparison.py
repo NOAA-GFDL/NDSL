@@ -1,7 +1,23 @@
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
+
+
+def _fixed_width_float_16e(value: np.floating[Any]) -> str:
+    """Account for extra '-' character"""
+    if value > 0:
+        return f" {value:.16e}"
+    else:
+        return f"{value:.16e}"
+
+
+def _fixed_width_float_2e(value: np.floating[Any]) -> str:
+    """Account for extra '-' character"""
+    if value > 0:
+        return f" {value:.2e}"
+    else:
+        return f"{value:.2e}"
 
 
 class BaseMetric:
@@ -305,33 +321,40 @@ class MultiModalFloatMetric(BaseMetric):
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
         report.append(self.one_line_report())
-        if not self.check:
-            found_indices = np.logical_not(self.success).nonzero()
-            # List all errors to terminal and file
-            bad_indices_count = len(found_indices[0])
-            full_count = len(self.references.flatten())
-            failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
-            report = [
-                f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
-                f"Index   Computed   Reference   "
-                f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
-                f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
-                f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})",
-            ]
-            # Summary and worst result
-            for iBad in range(bad_indices_count):
-                fi = tuple([f[iBad] for f in found_indices])
-                ulp_dist = (
-                    self.ulp_distance[fi]
-                    if np.isnan(self.ulp_distance[fi])
-                    else int(self.ulp_distance[fi])
-                )
-                report.append(
-                    f"{str(fi)}  {self.computed[fi]:.16e}  {self.references[fi]:.16e}  "
-                    f"{self.absolute_distance[fi]:.2e} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
-                    f"{self.relative_distance[fi] * 100:.2e} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
-                    f"{ulp_dist:02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
-                )
+        failed_indices = np.logical_not(self.success).nonzero()
+        # List all errors to terminal and file
+        bad_indices_count = len(failed_indices[0])
+        full_count = len(self.references.flatten())
+        failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
+        report = [
+            f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
+            f"Index   Computed   Reference   "
+            f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
+            f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+            f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})",
+        ]
+        # Summary and worst result
+        indices_flatten = np.argsort(self.ulp_distance.flatten())
+        for iFlat in indices_flatten[::-1]:
+            fi = np.unravel_index(iFlat, shape=self.ulp_distance.shape)
+            ulp_dist = (
+                self.ulp_distance[fi]
+                if np.isnan(self.ulp_distance[fi])
+                else int(self.ulp_distance[fi])
+            )
+            index_as_string = "("
+            for i in fi:
+                index_as_string += f"{i:02},"
+            index_as_string = index_as_string[:-1]
+            index_as_string += ")"
+            report.append(
+                f"{index_as_string}  "
+                f"{_fixed_width_float_16e(self.computed[fi])}  "
+                f"{_fixed_width_float_16e(self.references[fi])}  "
+                f"{_fixed_width_float_2e(self.absolute_distance[fi])} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
+                f"{_fixed_width_float_2e(self.relative_distance[fi] * 100)} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
+                f"{ulp_dist:02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
+            )
 
         if file_path:
             with open(file_path, "w") as fd:
