@@ -442,16 +442,20 @@ def save_netcdf(
     inputs_list: List[Dict[str, List[np.ndarray]]],
     output_list: List[Dict[str, List[np.ndarray]]],
     ref_data: Dict[str, List[np.ndarray]],
-    failing_names,
+    failing_names: List[str],
     out_filename,
 ):
     import xarray as xr
 
     data_vars = {}
-    for i, varname in enumerate(failing_names):
+    indices = np.argsort(failing_names)
+    for index in indices:
+        varname = failing_names[index]
         # Read in dimensions and attributes
         if hasattr(testobj, "outputs"):
-            dims = [dim_name + f"_{i}" for dim_name in testobj.outputs[varname]["dims"]]
+            dims = [
+                dim_name + f"_{index}" for dim_name in testobj.outputs[varname]["dims"]
+            ]
             attrs = {"units": testobj.outputs[varname]["units"]}
         else:
             dims = [
