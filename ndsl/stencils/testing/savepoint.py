@@ -41,6 +41,7 @@ class SavepointCase:
     i_call: int
     testobj: Translate
     grid: Grid
+    sort_report: str
 
     def __str__(self):
         return f"{self.savepoint_name}-rank={self.rank}-call={self.i_call}"

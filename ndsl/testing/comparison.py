@@ -226,6 +226,7 @@ class MultiModalFloatMetric(BaseMetric):
         absolute_eps_override: float = -1,
         relative_fraction_override: float = -1,
         ulp_override: float = -1,
+        sort_report: str = "ulp",
         **kwargs,
     ):
         super().__init__(reference_values, computed_values)
@@ -251,6 +252,7 @@ class MultiModalFloatMetric(BaseMetric):
 
         self.success = self._compute_all_metrics()
         self.check = np.all(self.success)
+        self.sort_report = sort_report
 
     def _compute_all_metrics(
         self,
@@ -334,7 +336,18 @@ class MultiModalFloatMetric(BaseMetric):
             f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})",
         ]
         # Summary and worst result
-        indices_flatten = np.argsort(self.ulp_distance.flatten())
+        if self.sort_report == "ulp":
+            indices_flatten = np.argsort(self.ulp_distance.flatten())
+        elif self.sort_report == "absolute":
+            indices_flatten = np.argsort(self.absolute_distance.flatten())
+        elif self.sort_report == "relative":
+            indices_flatten = np.argsort(self.relative_distance.flatten())
+        elif self.sort_report == "index":
+            indices_flatten = list(range(self.ulp_distance.size - 1, -1, -1))
+        else:
+            RuntimeError(
+                f"[Translate test] Unknown {self.sort_report} report sorting option."
+            )
         for iFlat in indices_flatten[::-1]:
             fi = np.unravel_index(iFlat, shape=self.ulp_distance.shape)
             ulp_dist = (
