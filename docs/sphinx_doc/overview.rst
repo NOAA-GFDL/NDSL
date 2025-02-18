@@ -8,7 +8,7 @@ Python `3.11.x` is required for NDSL and all its third party dependencies for in
 
 NDSL submodules `gt4py` and `dace` to point to vetted versions, use `git clone --recurse-submodule` to update the git submodules.
 
-NDSL is __NOT__ available on `pypi`. Installation of the package has to be local, via `pip install ./NDSL` (`-e` supported). The packages has a few options:
+NDSL is __NOT__ available on `pypi`. Installation of the package has to be local, via `pip install ./NDSL` (`-e` supported). The packages have a few options:
 
 - `ndsl[test]`: installs the test packages (based on `pytest`)
 - `ndsl[develop]`: installs tools for development and tests.

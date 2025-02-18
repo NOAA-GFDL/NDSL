@@ -2,7 +2,7 @@
 Testing
 =======
 
-Savepoint tests are run automatically on every commit to the main branch.
+Savepoint tests run automatically on every commit to the main branch.
 Savepoint data are generated from `fv3gfs-fortran`_ and can also be downloaded:
 
 .. code-block:: console
@@ -13,7 +13,7 @@ Savepoint data are generated from `fv3gfs-fortran`_ and can also be downloaded:
 
 Savepoint data are used in the "translate" tests and in checkpointer tests.
 Developers should be aware that the "translate" tests are an older, initial design of the test infrastructure which has grown organically and may be difficult to understand or modify, but currently covers smaller parts of the code not tested independently by the checkpointer tests.
-In the long run we suggest increasing the number of checkpoints and adding new checkpointer tests, and eventually removing the translate tests, which are considered deprecated.
+In the long run we suggest increasing the number of checkpoints and adding new checkpointer tests, eventually removing the translate tests, which are considered deprecated.
 
 #. Individual translate tests
 
@@ -24,7 +24,7 @@ In the long run we suggest increasing the number of checkpoints and adding new c
 
 #. Checkpointer tests
 
-    This tests the full model run where checkpoints are inserted throughout the model.
+    These test the full model run where checkpoints are inserted throughout the model.
     See ``tests/savepoint/test_checkpoints.py`` for an example.
     Checkpointers are given model state along with a label, and may implement any behavior they wish.
     For example, checkpointers have been written to:
@@ -42,7 +42,7 @@ In the long run we suggest increasing the number of checkpoints and adding new c
 -----------
 Limitations
 -----------
-While individual translate test can be run on all backends, checkpointer tests do not work for orchestrated DaCe backend.
+While individual translate tests can be run on all backends, checkpointer tests do not work for the orchestrated DaCe backend.
 This is a limitation due to DaCe not accepting keyword arguments or a list of :py:class:`pace.util.Quantity`, causing the checkpointer calls to be overly complicated.
 A possible workaround is to follow the HaloUpdater example to wrap the variables at init time and called during DaCe callbacks.
 A better solution would be to have DaCe accept a list of :py:class:`pace.util.Quantity`.
