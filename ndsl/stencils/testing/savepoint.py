@@ -37,14 +37,13 @@ class SavepointCase:
 
     savepoint_name: str
     data_dir: str
-    rank: int
     i_call: int
     testobj: Translate
     grid: Grid
     sort_report: str
 
     def __str__(self):
-        return f"{self.savepoint_name}-rank={self.rank}-call={self.i_call}"
+        return f"{self.savepoint_name}-rank={self.grid.rank}-call={self.i_call}"
 
     @property
     def exists(self) -> bool:
@@ -52,14 +51,14 @@ class SavepointCase:
             xr.open_dataset(
                 os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc")
             ).sizes["rank"]
-            > self.rank
+            > self.grid.rank
         )
 
     @property
     def ds_in(self) -> xr.Dataset:
         return (
             xr.open_dataset(os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc"))
-            .isel(rank=self.rank)
+            .isel(rank=self.grid.rank)
             .isel(savepoint=self.i_call)
         )
 
@@ -69,6 +68,6 @@ class SavepointCase:
             xr.open_dataset(
                 os.path.join(self.data_dir, f"{self.savepoint_name}-Out.nc")
             )
-            .isel(rank=self.rank)
+            .isel(rank=self.grid.rank)
             .isel(savepoint=self.i_call)
         )

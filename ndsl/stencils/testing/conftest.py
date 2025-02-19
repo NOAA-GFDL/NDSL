@@ -318,7 +318,6 @@ def _savepoint_cases(
                     SavepointCase(
                         savepoint_name=test_name,
                         data_dir=data_path,
-                        rank=rank,
                         i_call=i_call,
                         testobj=testobj,
                         grid=grid,

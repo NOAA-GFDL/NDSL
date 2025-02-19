@@ -178,7 +178,7 @@ def test_sequential_savepoint(
     if case.testobj.skip_test:
         return
     if not case.exists:
-        pytest.skip(f"Data at rank {case.rank} does not exists")
+        pytest.skip(f"Data at rank {case.grid.rank} does not exists")
     input_data = dataset_to_dict(case.ds_in)
     input_names = (
         case.testobj.serialnames(case.testobj.in_vars["data_vars"])
@@ -235,7 +235,7 @@ def test_sequential_savepoint(
         ref_data_out[varname] = [ref_data]
 
     # Reporting & data save
-    _report_results(case.savepoint_name, case.rank, results)
+    _report_results(case.savepoint_name, case.grid.rank, results)
     if len(failing_names) > 0:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
@@ -342,7 +342,7 @@ def test_parallel_savepoint(
     if (grid == "compute") and not case.testobj.compute_grid_option:
         pytest.xfail(f"Grid compute option not used for test {case.savepoint_name}")
     if not case.exists:
-        pytest.skip(f"Data at rank {case.rank} does not exists")
+        pytest.skip(f"Data at rank {case.grid.rank} does not exists")
     input_data = dataset_to_dict(case.ds_in)
     # run python version of functionality
     output = case.testobj.compute_parallel(input_data, communicator)
@@ -390,7 +390,7 @@ def test_parallel_savepoint(
             passing_names.append(failing_names.pop())
 
     # Reporting & data save
-    _report_results(case.savepoint_name, case.rank, results)
+    _report_results(case.savepoint_name, case.grid.rank, results)
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
         nct_filename = os.path.join(
