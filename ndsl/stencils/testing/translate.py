@@ -51,6 +51,12 @@ def as_numpy(
 
 
 class TranslateFortranData2Py:
+    """Translate test main class
+
+    The translate test will will test a set of inputs and outputs, after having processed
+    the inputs via the user provided `compute_func`.
+    """
+
     max_error = 1e-14
     near_zero = 1e-18
     mmr_absolute_eps = -1
@@ -73,6 +79,8 @@ class TranslateFortranData2Py:
         self.make_storage_data_input_vars(inputs)
 
     def compute_func(self, **inputs):
+        """Compute function to transform the dictionary of `inputs`.
+        Must return a dictionnary of updated variables"""
         raise NotImplementedError("Implement a child class compute method")
 
     def compute(self, inputs):
@@ -81,6 +89,10 @@ class TranslateFortranData2Py:
 
     # assume inputs already has been turned into gt4py storages (or Quantities)
     def compute_from_storage(self, inputs):
+        """Run `compute_func` and return an updated `inputs` dictionary with
+        the returned results of `compute_func`.
+
+        Hypothesis: `inputs` are `gt4py.storages`"""
         outputs = self.compute_func(**inputs)
         if outputs is not None:
             inputs.update(outputs)
@@ -109,6 +121,10 @@ class TranslateFortranData2Py:
         read_only: bool = False,
         full_shape: bool = False,
     ) -> Dict[str, "Field"]:
+        """Copy input data into a gt4py.storage with given shape.
+
+        `array` is copied. Takes care of the device upload if necessary.
+        """
         use_shape = list(self.maxshape)
         if dummy_axes:
             for axis in dummy_axes:
@@ -168,6 +184,8 @@ class TranslateFortranData2Py:
         return istart, jstart, kstart
 
     def make_storage_data_input_vars(self, inputs, storage_vars=None, dict_4d=True):
+        """From a set of raw inputs, use the `in_vars` dictionnary to update inputs to
+        their configured shape."""
         inputs_in = {**inputs}
         inputs_out = {}
         if storage_vars is None:
