@@ -490,6 +490,7 @@ class Namelist:
     nf_omega: int = NamelistDefaults.nf_omega
     fv_sg_adj: int = NamelistDefaults.fv_sg_adj
     n_sponge: int = NamelistDefaults.n_sponge
+    daily_mean: bool = False # flag to replace cosz with daily mean value in physics
 
     @classmethod
     def from_f90nml(cls, namelist: f90nml.Namelist):
