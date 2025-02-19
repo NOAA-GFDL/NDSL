@@ -11,14 +11,23 @@ def local_pkg(name: str, relative_path: str) -> str:
     return path
 
 
-test_requirements = ["pytest", "pytest-subtests", "coverage"]
-develop_requirements = test_requirements + ["pre-commit"]
 demos_requirements = ["ipython", "ipykernel"]
+docs_requirements = [
+    "recommonmark",
+    "sphinx>=1.4",
+    "sphinx-argparse",
+    "sphinx_rtd_theme",
+    "sphinx-gallery",
+]
+test_requirements = ["pytest", "pytest-subtests", "coverage"]
+
+develop_requirements = test_requirements + docs_requirements + ["pre-commit"]
 
 extras_requires = {
-    "test": test_requirements,
-    "develop": develop_requirements,
     "demos": demos_requirements,
+    "develop": develop_requirements,
+    "docs": docs_requirements,
+    "test": test_requirements,
 }
 
 requirements: List[str] = [
