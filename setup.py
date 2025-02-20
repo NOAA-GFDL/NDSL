@@ -10,15 +10,17 @@ def local_pkg(name: str, relative_path: str) -> str:
     path = f"{name} @ file://{Path(os.path.abspath(__file__)).parent / relative_path}"
     return path
 
-
-test_requirements = ["pytest", "pytest-subtests", "coverage"]
-develop_requirements = test_requirements + ["pre-commit"]
+docs_requirements = ["mkdocs-material"]
 demos_requirements = ["ipython", "ipykernel"]
+test_requirements = ["pytest", "pytest-subtests", "coverage"]
+
+develop_requirements = test_requirements + docs_requirements + ["pre-commit"]
 
 extras_requires = {
-    "test": test_requirements,
-    "develop": develop_requirements,
     "demos": demos_requirements,
+    "develop": develop_requirements,
+    "docs": docs_requirements,
+    "test": test_requirements,
 }
 
 requirements: List[str] = [

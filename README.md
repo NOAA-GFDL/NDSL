@@ -18,7 +18,9 @@ NDSL submodules `gt4py` and `dace` to point to vetted versions, use `git clone -
 NDSL is __NOT__ available on `pypi`. Installation of the package has to be local, via `pip install ./NDSL` (`-e` supported). The packages has a few options:
 
 - `ndsl[test]`: installs the test packages (based on `pytest`)
-- `ndsl[develop]`: installs tools for development and tests.
+- `ndsl[demos]`: installs extra requirements to run [NDSL exmpales](./examples/NDSL/)
+- `ndsl[docs]`: installs extra requirements to build the docs
+- `ndsl[develop]`: installs tools for development, docs, and tests.
 
 Tests are available via:
 
@@ -45,11 +47,28 @@ For GPU backends (the above plus):
 
 ## Development
 
-TBD: Code/contribution guideline
+### Code/contribution guidelines
 
-TBD: Documentation
+TBD
 
-Point of Contacts:
+### Documentation
+
+We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and optionally serve it as a static site.
+
+To view the documentation, install NDSL with the `docs` or `develop` extras. Then just run
+
+```bash
+mkdocs serve
+```
+
+Contributing to the documentation is straight forward:
+
+1. Add and/or change files in the [docs/](./docs/) folder as necessary.
+2. [Optional] If you have changes to the navigation, modify [mkdocs.yml](mkdocs.yml).
+3. [Optional] Start the development server and look how your changes are rendered.
+4. Submit a pull request with your changes.
+
+## Point of Contacts
 
 - NOAA: Rusty Benson: rusty.benson -at- noaa.gov
 - NASA: Florian Deconinck florian.g.deconinck -at- nasa.gov
