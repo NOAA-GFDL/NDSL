@@ -67,9 +67,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key][
-                                    "near_zero"
-                                ] = float(match["all_other_near_zero"])
+                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
+                                    float(match["all_other_near_zero"])
+                                )
 
                 else:
                     raise TypeError(
@@ -249,6 +249,7 @@ def test_sequential_savepoint(
             [output],
             ref_data_out,
             failing_names,
+            passing_names,
             nc_filename,
         )
     if failing_names != []:
@@ -438,21 +439,21 @@ def _report_results(
         metric.report(log_filename)
 
 
-def save_netcdf(
+def _save_datatree(
     testobj,
     # first list over rank, second list over savepoint
     inputs_list: List[Dict[str, List[np.ndarray]]],
     output_list: List[Dict[str, List[np.ndarray]]],
     ref_data: Dict[str, List[np.ndarray]],
-    failing_names: List[str],
-    out_filename,
+    names: List[str],
 ):
     import xarray as xr
 
-    data_vars = {}
-    indices = np.argsort(failing_names)
+    datasets = {}
+    indices = np.argsort(names)
     for index in indices:
-        varname = failing_names[index]
+        data_vars = {}
+        varname = names[index]
         # Read in dimensions and attributes
         if hasattr(testobj, "outputs"):
             dims = [
@@ -491,6 +492,37 @@ def save_netcdf(
         )
         data_vars[f"{varname}_absolute_error"] = absolute_errors
         data_vars[f"{varname}_absolute_error"].attrs = attrs
+        datasets[varname] = xr.Dataset(data_vars=data_vars)
 
+    return xr.DataTree.from_dict(datasets)
+
+
+def save_netcdf(
+    testobj,
+    # first list over rank, second list over savepoint
+    inputs_list: List[Dict[str, List[np.ndarray]]],
+    output_list: List[Dict[str, List[np.ndarray]]],
+    ref_data: Dict[str, List[np.ndarray]],
+    failing_names: List[str],
+    passing_names: List[str],
+    out_filename,
+):
+    import xarray as xr
+
+    datasets = {}
+    datasets["Fail"] = _save_datatree(
+        testobj=testobj,
+        inputs_list=inputs_list,
+        output_list=output_list,
+        ref_data=ref_data,
+        names=failing_names,
+    )
+    datasets["Pass"] = _save_datatree(
+        testobj=testobj,
+        inputs_list=inputs_list,
+        output_list=output_list,
+        ref_data=ref_data,
+        names=passing_names,
+    )
+    xr.DataTree.from_dict(datasets).to_netcdf(out_filename)
     print(f"File saved to {out_filename}")
-    xr.Dataset(data_vars=data_vars).to_netcdf(out_filename)
