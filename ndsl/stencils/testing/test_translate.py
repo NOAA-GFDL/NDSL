@@ -67,9 +67,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
-                                    float(match["all_other_near_zero"])
-                                )
+                                testobj.ignore_near_zero_errors[key][
+                                    "near_zero"
+                                ] = float(match["all_other_near_zero"])
 
                 else:
                     raise TypeError(
@@ -235,8 +235,9 @@ def test_sequential_savepoint(
         ref_data_out[varname] = [ref_data]
 
     # Reporting & data save
-    _report_results(case.savepoint_name, case.grid.rank, results)
-    if len(failing_names) > 0:
+    if not case.no_report:
+        _report_results(case.savepoint_name, case.grid.rank, results)
+    if len(failing_names) > 0 and not case.no_report:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
         nc_filename = os.path.join(OUTDIR, f"translate-{case.savepoint_name}.nc")
@@ -424,7 +425,8 @@ def _report_results(
     rank: int,
     results: Dict[str, BaseMetric],
 ) -> None:
-    os.makedirs(OUTDIR, exist_ok=True)
+    detail_dir = f"{OUTDIR}/details"
+    os.makedirs(detail_dir, exist_ok=True)
 
     # Summary
     with open(f"{OUTDIR}/summary-{savepoint_name}-{rank}.log", "w") as f:
@@ -434,7 +436,7 @@ def _report_results(
     # Detailed log
     for varname, metric in results.items():
         log_filename = os.path.join(
-            OUTDIR, f"details-{savepoint_name}-{varname}-{rank}.log"
+            detail_dir, f"{savepoint_name}-{varname}-{rank}.log"
         )
         metric.report(log_filename)
 
