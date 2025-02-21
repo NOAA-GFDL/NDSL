@@ -8,6 +8,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
+from ndsl.stencils.testing.savepoint import DataLoader
 
 
 try:
@@ -74,6 +75,9 @@ class TranslateFortranData2Py:
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: Dict[str, Any] = {}
         self.skip_test: bool = False
+
+    def extra_data_load(self, data_loader: DataLoader):
+        pass
 
     def setup(self, inputs):
         self.make_storage_data_input_vars(inputs)

@@ -14,7 +14,7 @@ from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
 from ndsl.quantity import Quantity
 from ndsl.restart._legacy_restart import RESTART_PROPERTIES
-from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
+from ndsl.stencils.testing.savepoint import DataLoader, SavepointCase, dataset_to_dict
 from ndsl.testing.comparison import BaseMetric, LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
 
@@ -191,6 +191,9 @@ def test_sequential_savepoint(
             f"Variable {e} was described in the translate test but cannot be found in the NetCDF"
         )
     original_input_data = copy.deepcopy(input_data)
+    # give the user a chance to load data from other savepoints to allow
+    # for gathering required data from multiple sources (constants, etc.)
+    case.testobj.extra_data_load(DataLoader(case.grid.rank, case.data_dir))
     # run python version of functionality
     output = case.testobj.compute(input_data)
     failing_names: List[str] = []

@@ -21,11 +21,32 @@ def _process_if_scalar(value: np.ndarray) -> Union[np.ndarray, float, int]:
         return value
 
 
+class DataLoader:
+    def __init__(self, rank: int, data_path: str):
+        self._data_path = data_path
+        self._rank = rank
+
+    def load(
+        self,
+        name: str,
+        postfix: str = "",
+        i_call: int = 0,
+    ) -> Dict[str, Union[np.ndarray, float, int]]:
+        return dataset_to_dict(
+            xr.open_dataset(os.path.join(self._data_path, f"{name}{postfix}.nc"))
+            .isel(rank=self._rank)
+            .isel(savepoint=i_call)
+        )
+
+
 class Translate(Protocol):
     def collect_input_data(self, ds: xr.Dataset) -> dict:
         ...
 
     def compute(self, data: dict):
+        ...
+
+    def extra_data_load(self, data_loader: DataLoader):
         ...
 
 
