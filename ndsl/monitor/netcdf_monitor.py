@@ -6,6 +6,7 @@ import fsspec
 import numpy as np
 
 from ndsl.comm.communicator import Communicator
+from ndsl.dsl.typing import Float
 from ndsl.filesystem import get_fs
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
@@ -164,12 +165,12 @@ class NetCDFMonitor:
                     set(state.keys()), self._expected_vars
                 )
             )
-        state = self._communicator.tile.gather_state(state, transfer_type=np.float32)
+        state = self._communicator.tile.gather_state(state, transfer_type=Float)
         if state is not None:  # we are on root rank
             self._writer.append(state)
 
     def store_constant(self, state: Dict[str, Quantity]) -> None:
-        state = self._communicator.gather_state(state, transfer_type=np.float32)
+        state = self._communicator.gather_state(state, transfer_type=Float)
         if state is not None:  # we are on root rank
             constants_filename = str(
                 Path(self._path) / NetCDFMonitor._CONSTANT_FILENAME
