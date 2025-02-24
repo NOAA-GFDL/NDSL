@@ -126,6 +126,7 @@ else:
     raise RuntimeError("Constant selector failed, bad code.")
 
 SECONDS_PER_DAY = Float(86400.0)
+SBC = 5.670400e-8  # Stefan-Boltzmann constant (W/m^2/K^4)
 DZ_MIN = Float(2.0)
 CV_AIR = CP_AIR - RDGAS  # Heat capacity of dry air at constant volume
 RDG = -RDGAS / GRAV
