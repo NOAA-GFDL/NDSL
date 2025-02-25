@@ -208,7 +208,7 @@ def test_sequential_savepoint(
         try:
             ref_data = all_ref_data[varname]
         except KeyError:
-            raise KeyError(f'Output "{varname}" couldn\'t be found in output data')
+            raise KeyError(f"Output {varname} couldn't be found in output data")
         if hasattr(case.testobj, "subset_output"):
             ref_data = case.testobj.subset_output(varname, ref_data)
         with subtests.test(varname=varname):
