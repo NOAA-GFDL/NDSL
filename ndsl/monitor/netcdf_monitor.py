@@ -115,7 +115,7 @@ class NetCDFMonitor:
         path: str,
         communicator: Communicator,
         time_chunk_size: int = 1,
-        precision: str="Float",
+        precision: str = "Float",
     ):
         """Create a NetCDFMonitor.
 
@@ -137,11 +137,15 @@ class NetCDFMonitor:
         elif precision == "float32":
             self._transfer_type = np.float32
         elif precision == "float64":
+            if np.float32 == Float:
+                raise ValueError(
+                    f"Cannot output float64 with PACE_FLOAT_PRECISION set to {Float}"
+                )
             self._transfer_type = np.float64
         else:
             raise ValueError(
                 "precision must be set to one of 'Float', 'float32', or 'float64"
-                f"got {self.precision}"
+                f"got {precision}"
             )
 
     @property
@@ -177,12 +181,16 @@ class NetCDFMonitor:
                     set(state.keys()), self._expected_vars
                 )
             )
-        state = self._communicator.tile.gather_state(state, transfer_type=self._transfer_type)
+        state = self._communicator.tile.gather_state(
+            state, transfer_type=self._transfer_type
+        )
         if state is not None:  # we are on root rank
             self._writer.append(state)
 
     def store_constant(self, state: Dict[str, Quantity]) -> None:
-        state = self._communicator.gather_state(state, transfer_type=self._transfer_type)
+        state = self._communicator.gather_state(
+            state, transfer_type=self._transfer_type
+        )
         if state is not None:  # we are on root rank
             constants_filename = str(
                 Path(self._path) / NetCDFMonitor._CONSTANT_FILENAME
