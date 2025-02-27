@@ -88,9 +88,7 @@ if CONST_VERSION == ConstantVersions.GEOS:
     """Acceleration due to gravity [m/s^2].04"""
     RGRAV = Float(1.0) / GRAV
     """Inverse of gravitational acceleration"""
-    RDGAS = Float(8314.47) / Float(
-        28.965
-    )
+    RDGAS = Float(8314.47) / Float(28.965)
     """Gas constant for dry air [J/kg/deg] ~287.04"""
     RVGAS = Float(8314.47) / Float(18.015)
     """Gas constant for water vapor [J/kg/deg]"""
@@ -187,17 +185,11 @@ D2ICE = DC_VAP + DC_ICE
 LI0 = HLF - DC_ICE * TICE
 EPS = RDGAS / RVGAS
 EPSM1 = EPS - Float(1.0)
-LV0 = (
-    HLV - DC_VAP * TICE
-)
+LV0 = HLV - DC_VAP * TICE
 """3.13905782e6, evaporation latent heat coefficient at 0 degrees Kelvin"""
-LI00 = (
-    HLF - DC_ICE * TICE
-)
+LI00 = HLF - DC_ICE * TICE
 """-2.7105966e5, fusion latent heat coefficient at 0 degrees Kelvin"""
-LI2 = (
-    LV0 + LI00
-)
+LI2 = LV0 + LI00
 """2.86799816e6, sublimation latent heat coefficient at 0 degrees Kelvin"""
 E00 = Float(611.21)
 """Saturation vapor pressure at 0 degrees Celsius (Pa)"""
@@ -209,7 +201,7 @@ TICE0 = TICE - Float(0.01)
 T_MIN = Float(178.0)
 """Minimum temperature to freeze-dry all water vapor"""
 T_SAT_MIN = TICE - Float(160.0)
-LAT2 = np.power((HLV + HLF), 2, dtype=Float)  
+LAT2 = np.power((HLV + HLF), 2, dtype=Float)
 """Used in bigg mechanism"""
 TTP = 2.7316e2
 """Temperature of H2O triple point"""
