@@ -161,4 +161,5 @@ TICE0 = TICE - Float(0.01)
 T_MIN = Float(178.0)  # Minimum temperature to freeze-dry all water vapor
 T_SAT_MIN = TICE - Float(160.0)
 LAT2 = np.power((HLV + HLF), 2, dtype=Float)  # used in bigg mechanism
-TTP = 2.7316e2  # Temperature of H2O triple point
+TTP = 2.7316e2
+"""Temperature of H2O triple point"""
