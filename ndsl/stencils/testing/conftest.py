@@ -97,6 +97,12 @@ def pytest_addoption(parser):
         default="ulp",
         help='Sort the report by "index" (ascending) or along the metric: "ulp", "absolute", "relative" (descending). Default to "ulp"',
     )
+    parser.addoption(
+        "--no_report",
+        action="store_true",
+        default=False,
+        help="Do not generate logging report or NetCDF in .translate-errors",
+    )
 
 
 def pytest_configure(config):
@@ -244,6 +250,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
     grid_mode = metafunc.config.getoption("grid")
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
+    no_report = metafunc.config.getoption("no_report")
     return _savepoint_cases(
         savepoint_names,
         ranks,
@@ -255,6 +262,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
         grid_mode,
         topology_mode,
         sort_report=sort_report,
+        no_report=no_report,
     )
 
 
@@ -269,6 +277,7 @@ def _savepoint_cases(
     grid_mode: str,
     topology_mode: bool,
     sort_report: str,
+    no_report: bool,
 ):
     return_list = []
     for rank in ranks:
@@ -322,6 +331,7 @@ def _savepoint_cases(
                         testobj=testobj,
                         grid=grid,
                         sort_report=sort_report,
+                        no_report=no_report,
                     )
                 )
     return return_list
@@ -343,6 +353,7 @@ def parallel_savepoint_cases(
     namelist = get_namelist(namelist_filename)
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
+    no_report = metafunc.config.getoption("no_report")
     communicator = get_communicator(comm, namelist.layout, topology_mode)
     stencil_config = get_config(backend, communicator)
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
@@ -359,6 +370,7 @@ def parallel_savepoint_cases(
         grid_mode,
         topology_mode,
         sort_report=sort_report,
+        no_report=no_report,
     )
 
 
@@ -425,11 +437,6 @@ def failure_stride(pytestconfig):
 @pytest.fixture()
 def multimodal_metric(pytestconfig):
     return bool(pytestconfig.getoption("multimodal_metric"))
-
-
-@pytest.fixture()
-def sort_report(pytestconfig):
-    return pytestconfig.getoption("report_sort")
 
 
 @pytest.fixture()

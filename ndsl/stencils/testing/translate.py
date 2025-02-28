@@ -8,6 +8,7 @@ from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
+from ndsl.stencils.testing.savepoint import DataLoader
 
 
 try:
@@ -75,24 +76,36 @@ class TranslateFortranData2Py:
         self.ignore_near_zero_errors: Dict[str, Any] = {}
         self.skip_test: bool = False
 
-    def setup(self, inputs):
+    def extra_data_load(self, data_loader: DataLoader):
+        pass
+
+    def setup(self, inputs) -> None:
+        """Transform inputs to gt4py.storages specification (correct device, layout)"""
         self.make_storage_data_input_vars(inputs)
 
-    def compute_func(self, **inputs):
+    def compute_func(self, **inputs) -> Optional[dict[str, Any]]:
         """Compute function to transform the dictionary of `inputs`.
         Must return a dictionnary of updated variables"""
         raise NotImplementedError("Implement a child class compute method")
 
-    def compute(self, inputs):
+    def compute(self, inputs) -> dict[str, Any]:
+        """Transform inputs from NetCDF to gt4py.storagers, run compute_func then slice
+        the outputs based on specifications.
+
+        Return: Dictonnary of storages reshaped for comparison
+        """
         self.setup(inputs)
         return self.slice_output(self.compute_from_storage(inputs))
 
     # assume inputs already has been turned into gt4py storages (or Quantities)
-    def compute_from_storage(self, inputs):
+    def compute_from_storage(self, inputs) -> dict[str, Any]:
         """Run `compute_func` and return an updated `inputs` dictionary with
         the returned results of `compute_func`.
 
-        Hypothesis: `inputs` are `gt4py.storages`"""
+        Hypothesis: `inputs` are `gt4py.storages`
+
+        Return: Outputs in the form of a Dict[str, gt4py.storages]
+        """
         outputs = self.compute_func(**inputs)
         if outputs is not None:
             inputs.update(outputs)
@@ -120,10 +133,12 @@ class TranslateFortranData2Py:
         names_4d: Optional[List[str]] = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> Dict[str, "Field"]:
+    ) -> "Field":
         """Copy input data into a gt4py.storage with given shape.
 
         `array` is copied. Takes care of the device upload if necessary.
+
+        Return: Array in the form of a Dict[str, gt4py.storages]
         """
         use_shape = list(self.maxshape)
         if dummy_axes:
@@ -183,9 +198,14 @@ class TranslateFortranData2Py:
         kstart = self.get_index_from_info(varinfo, "kstart", 0)
         return istart, jstart, kstart
 
-    def make_storage_data_input_vars(self, inputs, storage_vars=None, dict_4d=True):
-        """From a set of raw inputs, use the `in_vars` dictionnary to update inputs to
-        their configured shape."""
+    def make_storage_data_input_vars(
+        self, inputs, storage_vars=None, dict_4d=True
+    ) -> None:
+        """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionnary to update inputs to
+        their configured shape.
+
+        Return: None
+        """
         inputs_in = {**inputs}
         inputs_out = {}
         if storage_vars is None:
@@ -232,7 +252,7 @@ class TranslateFortranData2Py:
         inputs.clear()
         inputs.update(inputs_out)
 
-    def slice_output(self, inputs, out_data=None):
+    def slice_output(self, inputs, out_data=None) -> dict[str, Any]:
         utils.device_sync(backend=self.stencil_factory.backend)
         if out_data is None:
             out_data = inputs
