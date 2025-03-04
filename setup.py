@@ -26,7 +26,7 @@ requirements: List[str] = [
     local_pkg("dace", "external/dace"),
     "mpi4py==3.1.5",
     "cftime",
-    "xarray",
+    "xarray>=2025.01.2",  # datatree + fixes
     "f90nml>=1.1.0",
     "fsspec",
     "netcdf4==1.7.1",
