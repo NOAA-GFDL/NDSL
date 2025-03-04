@@ -115,7 +115,7 @@ class NetCDFMonitor:
         path: str,
         communicator: Communicator,
         time_chunk_size: int = 1,
-        precision: str = "Float",
+        precision=Float,
     ):
         """Create a NetCDFMonitor.
 
@@ -132,11 +132,11 @@ class NetCDFMonitor:
         self._time_chunk_size = time_chunk_size
         self.__writer: Optional[_ChunkedNetCDFWriter] = None
         self._expected_vars: Optional[Set[str]] = None
-        if precision == "Float":
+        if precision == Float:
             self._transfer_type = Float
-        elif precision == "float32":
+        elif precision == np.float32:
             self._transfer_type = np.float32
-        elif precision == "float64":
+        elif precision == np.float64:
             if np.float32 == Float:
                 raise ValueError(
                     f"Cannot output float64 with PACE_FLOAT_PRECISION set to {Float}"
