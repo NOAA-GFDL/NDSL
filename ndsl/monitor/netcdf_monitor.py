@@ -136,7 +136,7 @@ class NetCDFMonitor:
         self._transfer_type = precision
         if self._transfer_type == np.float32 and get_precision() > 32:
             warn(
-                "NetCDF save: requested 32-bit float but precision of NDSL is {get_precision()}, cast will occur with possible loss of precision"
+                f"NetCDF save: requested 32-bit float but precision of NDSL is {get_precision()}, cast will occur with possible loss of precision"
             )
 
     @property
