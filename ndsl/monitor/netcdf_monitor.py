@@ -1,12 +1,13 @@
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
+from warnings import warn
 
 import fsspec
 import numpy as np
 
 from ndsl.comm.communicator import Communicator
-from ndsl.dsl.typing import Float
+from ndsl.dsl.typing import Float, get_precision
 from ndsl.filesystem import get_fs
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
@@ -132,20 +133,10 @@ class NetCDFMonitor:
         self._time_chunk_size = time_chunk_size
         self.__writer: Optional[_ChunkedNetCDFWriter] = None
         self._expected_vars: Optional[Set[str]] = None
-        if precision == Float:
-            self._transfer_type = Float
-        elif precision == np.float32:
-            self._transfer_type = np.float32
-        elif precision == np.float64:
-            if np.float32 == Float:
-                raise ValueError(
-                    f"Cannot output float64 with PACE_FLOAT_PRECISION set to {Float}"
-                )
-            self._transfer_type = np.float64
-        else:
-            raise ValueError(
-                "precision must be set to one of 'Float', 'float32', or 'float64"
-                f"got {precision}"
+        self._transfer_type = precision
+        if self._transfer_type == np.float32 and get_precision() > 32:
+            warn(
+                "NetCDF save: requested 32-bit float but precision of NDSL is {get_precision()}, cast will occur with possible loss of precision"
             )
 
     @property
