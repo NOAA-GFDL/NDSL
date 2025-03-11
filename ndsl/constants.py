@@ -161,9 +161,8 @@ DZ_MIN = Float(2.0)
 CV_AIR = CP_AIR - RDGAS
 """Heat capacity of dry air at constant volume"""
 RDG = -RDGAS / GRAV
-CNST_0P20 = Float(0.2)
 K1K = RDGAS / CV_AIR
-CNST_0P20 = Float(0.2)
+CNST_0P20 = np.float64(0.2)
 CV_VAP = Float(3.0) * RVGAS
 """Heat capacity of water vapor at constant volume"""
 ZVIR = RVGAS / RDGAS - Float(1)
