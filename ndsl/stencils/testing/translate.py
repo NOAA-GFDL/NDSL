@@ -211,7 +211,7 @@ class TranslateFortranData2Py:
         if storage_vars is None:
             storage_vars = self.storage_vars()
         for p in self.in_vars["parameters"]:
-            inputs_out[p] = int(inputs_in[p])
+            inputs_out[p] = inputs_in[p]
         for d, info in storage_vars.items():
             serialname = info["serialname"] if "serialname" in info else d
             self.update_info(info, inputs_in)
