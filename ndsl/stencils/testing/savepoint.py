@@ -16,7 +16,7 @@ def dataset_to_dict(ds: xr.Dataset) -> Dict[str, Union[np.ndarray, float, int]]:
 
 def _process_if_scalar(value: np.ndarray) -> Union[np.ndarray, float, int]:
     if len(value.shape) == 0:
-        return value.item()
+        return value.max()  # trick to make sure we get the right type back
     else:
         return value
 
