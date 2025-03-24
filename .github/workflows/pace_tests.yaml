@@ -4,7 +4,7 @@ on:
 
 jobs:
   pace_main_tests:
-    uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
+    uses: romanc/pace/.github/workflows/main_unit_tests.yaml@romanc/dependency-update
     with:
       component_trigger:  true
       component_name: NDSL
