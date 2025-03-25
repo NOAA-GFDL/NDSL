@@ -342,7 +342,7 @@ class GridData:
         if fc is not None:
             self._fC = GridData._fC_from_data(fc, horizontal_data.lat)
         else:
-            self._fc = None
+            self._fC = None
         if fc_agrid is not None:
             self._fC_agrid = GridData._fC_from_data(fc_agrid, horizontal_data.lat)
         else:
