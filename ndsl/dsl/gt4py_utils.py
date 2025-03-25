@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import gt4py
 import numpy as np
@@ -140,9 +140,7 @@ def make_storage_data(
                     default_mask = (True, True, False)
                     shape = (1, shape[axis])
                 else:
-                    default_mask = tuple(
-                        [i == axis for i in range(max_dim)]
-                    )  # type: ignore
+                    default_mask = tuple([i == axis for i in range(max_dim)])  # type: ignore
             elif dummy or axis != 2:
                 default_mask = (True, True, True)
             else:
