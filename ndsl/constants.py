@@ -102,6 +102,7 @@ if CONST_VERSION == ConstantVersions.GEOS:
     TFREEZE = Float(273.16)
     """Freezing temperature of fresh water [K]"""
     SAT_ADJUST_THRESHOLD = Float(1.0e-6)
+    DZ_MIN = Float(6.0)
 elif CONST_VERSION == ConstantVersions.UFS:
     RADIUS = Float(6.3712e6)
     """Radius of the Earth [m]"""
@@ -126,6 +127,7 @@ elif CONST_VERSION == ConstantVersions.UFS:
     TFREEZE = Float(273.15)
     """Freezing temperature of fresh water [K]"""
     SAT_ADJUST_THRESHOLD = Float(1.0e-8)
+    DZ_MIN = Float(2.0)
 elif CONST_VERSION == ConstantVersions.GFDL:
     RADIUS = Float(6371.0e3)
     """Radius of the Earth [m] #6371.0e3"""
@@ -151,13 +153,13 @@ elif CONST_VERSION == ConstantVersions.GFDL:
     TFREEZE = Float(273.16)
     """Freezing temperature of fresh water [K]"""
     SAT_ADJUST_THRESHOLD = Float(1.0e-8)
+    DZ_MIN = Float(2.0)
 else:
     raise RuntimeError("Constant selector failed, bad code.")
 
 SECONDS_PER_DAY = Float(86400.0)
 SBC = 5.670400e-8
 """Stefan-Boltzmann constant (W/m^2/K^4)"""
-DZ_MIN = Float(2.0)
 CV_AIR = CP_AIR - RDGAS
 """Heat capacity of dry air at constant volume"""
 RDG = -RDGAS / GRAV
