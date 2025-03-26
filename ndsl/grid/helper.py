@@ -332,13 +332,21 @@ class GridData:
         vertical_data: VerticalGridData,
         contravariant_data: ContravariantGridData,
         angle_data: AngleGridData,
+        fc=None,
+        fc_agrid=None,
     ):
         self._horizontal_data = horizontal_data
         self._vertical_data = vertical_data
         self._contravariant_data = contravariant_data
         self._angle_data = angle_data
-        self._fC = None
-        self._fC_agrid = None
+        if fc is not None:
+            self._fC = GridData._fC_from_data(fc, horizontal_data.lat)
+        else:
+            self._fC = None
+        if fc_agrid is not None:
+            self._fC_agrid = GridData._fC_from_data(fc_agrid, horizontal_data.lat)
+        else:
+            self._fC_agrid = None
 
     @classmethod
     def new_from_metric_terms(cls, metric_terms: MetricTerms):
@@ -369,9 +377,7 @@ class GridData:
         return self._horizontal_data.lat_agrid
 
     @staticmethod
-    def _fC_from_lat(lat: Quantity) -> Quantity:
-        np = lat.np
-        data = 2.0 * constants.OMEGA * np.sin(lat.data)
+    def _fC_from_data(data, lat: Quantity) -> Quantity:
         return Quantity(
             data,
             units="1/s",
@@ -380,6 +386,12 @@ class GridData:
             extent=lat.extent,
             gt4py_backend=lat.gt4py_backend,
         )
+
+    @staticmethod
+    def _fC_from_lat(lat: Quantity) -> Quantity:
+        np = lat.np
+        data = Float(2.0) * constants.OMEGA * np.sin(lat.data, dtype=Float)
+        return GridData._fC_from_data(data, lat)
 
     @property
     def fC(self):
