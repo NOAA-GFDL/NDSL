@@ -10,7 +10,9 @@ theme:
 nav:
   - Home: index.md
   - User documentation: user/index.md
-  - Porting Fortran code: porting/index.md
+  - Porting:
+    - General Conceptas: porting/index.md
+    - Testing Infrastructure: porting/translate/index.md
   - Under the hood: dev/index.md
 
 
@@ -37,6 +39,7 @@ markdown_extensions:
       - name: mermaid
         class: mermaid
         format: !!python/name:pymdownx.superfences.fence_code_format
+  # image inclusion
 
 plugins:
   # add search box to the header, configuration in theme

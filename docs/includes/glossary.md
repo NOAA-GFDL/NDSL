@@ -14,3 +14,4 @@
 *[FV3]: GFDL Finite­-Volume Cubed-Sphere Dynamical Core
 
 <!-- other -->
+*[ULP]: Unit in the last place: The smallest allowed difference between two floating-point numbers.
