@@ -13,7 +13,9 @@ nav:
   - Porting:
     - General Concepts: porting/index.md
     - Testing Infrastructure: porting/translate/index.md
-  - Under the hood: dev/index.md
+  - Under the hood: 
+    - Technical Documentation: dev/index.md
+    - DaCe: dev/dace.md
 
 
 markdown_extensions:
