@@ -40,7 +40,7 @@ markdown_extensions:
       # support for mermaid graphs
       - name: mermaid
         class: mermaid
-        format: !!python/name:pymdownx.superfences.fence_code_format
+        format: python/name:pymdownx.superfences.fence_code_format
   # image inclusion
 
 plugins:
