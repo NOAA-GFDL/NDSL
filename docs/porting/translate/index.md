@@ -38,7 +38,7 @@ The same applies for scalar inputs with parameters:
 ![image4.png](image4.png)
 
 
-**Modifying output variables** 
+**Modifying output variables**
 
 This can be required either if not all output is serialized, the naming is different or we need the same data as the input:
 ![image4.png](image4.png)

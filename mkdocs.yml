@@ -13,7 +13,7 @@ nav:
   - Porting:
     - General Concepts: porting/index.md
     - Testing Infrastructure: porting/translate/index.md
-  - Under the hood: 
+  - Under the hood:
     - Technical Documentation: dev/index.md
     - DaCe: dev/dace.md
 

@@ -10,6 +10,7 @@ def local_pkg(name: str, relative_path: str) -> str:
     path = f"{name} @ file://{Path(os.path.abspath(__file__)).parent / relative_path}"
     return path
 
+
 docs_requirements = ["mkdocs-material"]
 demos_requirements = ["ipython", "ipykernel"]
 test_requirements = ["pytest", "pytest-subtests", "coverage"]

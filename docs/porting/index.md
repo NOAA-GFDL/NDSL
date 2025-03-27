@@ -69,7 +69,7 @@ def precompute(cappa: FloatField, _pfac: FloatFieldIJ):
     # small computation directly in the stencil
     with computation(PARALLEL), interval(...):
         # a variable used only in one stencil can be defined here
-        tmpvar = cappa[1,0,0] + 1 
+        tmpvar = cappa[1,0,0] + 1
     with computation(PARALLEL), interval(0, 1):
         _pfac = tmpvar[0,0,1]
 
