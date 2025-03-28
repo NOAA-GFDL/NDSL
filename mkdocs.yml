@@ -16,6 +16,7 @@ nav:
   - Under the hood:
     - Technical Documentation: dev/index.md
     - DaCe: dev/dace.md
+    - GT4Py: dev/gt4py.md
 
 
 markdown_extensions:
