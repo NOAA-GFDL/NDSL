@@ -129,6 +129,12 @@ class NamelistDefaults:
     rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
     cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
+    ncld = 1  # choice of cloud scheme
+    c0s_shal = 0.002  # c_e for shallow convection (Han and Pan, 2011, eq(6))
+    c1_shal = 5.e-4  # conversion parameter of detrainment from liquid water into convetive precipitaiton
+    clam_shal = 0.3  # conversion parameter of detrainment from liquid water into grid-scale cloud water
+    pgcon_shal = 0.55  # control the reduction in momentum transport
+    asolfac_shal = 0.89  # aerosol-aware parameter based on Lim & Hong (2012): asolfac= cx / c0s(=.002), cx = min([-0.7 ln(Nccn) + 24]*1.e-4, c0s), Nccn: CCN number concentration in cm^(-3), Until a realistic Nccn is provided, typical Nccns are assumed, as Nccn=100 for sea and Nccn=7000 for land
 
     @classmethod
     def as_dict(cls):
@@ -329,8 +335,12 @@ class Namelist:
     rlmx: float = NamelistDefaults.rlmx
     do_dk_hb19: bool = NamelistDefaults.do_dk_hb19
     cap_k0_land: bool = NamelistDefaults.cap_k0_land
-    # c0s_shal: Any
-    # c1_shal: Any
+    c0s_shal: float = NamelistDefaults.c0s_shal
+    c1_shal: float = NamelistDefaults.c1_shal
+    clam_shal: float = NamelistDefaults.clam_shal
+    pgcon_shal: float = NamelistDefaults.pgcon_shal
+    asolfac_shal: float = NamelistDefaults.asolfac_shal
+    ncld: int = NamelistDefaults.ncld
     # cal_pre: Any
     # cdmbgwd: Any
     # cnvcld: Any
@@ -357,7 +367,6 @@ class Namelist:
     # ivegsrc: Any
     # ldiag3d: Any
     # lwhtr: Any
-    # ncld: int
     # nst_anl: Any
     # pdfcld: Any
     # pre_rad: Any
