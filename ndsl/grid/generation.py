@@ -3331,12 +3331,12 @@ class MetricTerms:
             self._np,
         )
 
-        edge_w = quantity_cast_to_model_float(self.quantity_factory, edge_w_64)
-        edge_e = quantity_cast_to_model_float(self.quantity_factory, edge_e_64)
-        edge_s = quantity_cast_to_model_float(self.quantity_factory, edge_s_64)
-        edge_n = quantity_cast_to_model_float(self.quantity_factory, edge_n_64)
-
-        return edge_w, edge_e, edge_s, edge_n
+        return (
+            edge_w_64,
+            edge_e_64,
+            edge_s_64,
+            edge_n_64,
+        )
 
     def _calculate_edge_a2c_vect_factors(self):
         edge_vect_s_64 = self.quantity_factory.zeros(

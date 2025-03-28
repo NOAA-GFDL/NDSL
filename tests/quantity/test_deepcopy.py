@@ -17,9 +17,7 @@ def test_deepcopy_copy_is_editable_by_view():
     )
     quantity_copy = copy.deepcopy(quantity)
     # assertion below is only valid if we're overwriting the entire data through view
-    assert np.product(quantity_copy.view[:].shape) == np.product(
-        quantity_copy.data.shape
-    )
+    assert np.prod(quantity_copy.view[:].shape) == np.prod(quantity_copy.data.shape)
     quantity_copy.view[:] = 1.0
     np.testing.assert_array_equal(quantity.data, 0.0)
     np.testing.assert_array_equal(quantity_copy.data, 1.0)

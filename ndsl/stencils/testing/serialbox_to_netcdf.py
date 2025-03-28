@@ -140,7 +140,8 @@ def main(
         data_vars = {}
         if n_savepoints > 0:
             encoding = {}
-            for varname in set(names_list).difference(["rank"]):
+            names_indices = np.sort(list(set(names_list).difference(["rank"])))
+            for varname in names_indices:
                 # Check that all ranks have the same size. If not, aggregate and
                 # feedback on one rank
                 collapse_all_ranks = False

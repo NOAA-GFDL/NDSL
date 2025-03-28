@@ -350,6 +350,8 @@ class MultiModalFloatMetric(BaseMetric):
             )
         for iFlat in indices_flatten[::-1]:
             fi = np.unravel_index(iFlat, shape=self.ulp_distance.shape)
+            if np.isnan(self.computed[fi]) and np.isnan(self.references[fi]):
+                continue
             ulp_dist = (
                 self.ulp_distance[fi]
                 if np.isnan(self.ulp_distance[fi])
