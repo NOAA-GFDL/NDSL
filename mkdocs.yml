@@ -1,0 +1,53 @@
+site_name: NDSL Documentation
+
+theme:
+  name: material
+  features:
+    - search.suggest
+    - search.highlight
+    - search.share
+
+nav:
+  - Home: index.md
+  - User documentation: user/index.md
+  - Porting:
+    - General Concepts: porting/index.md
+    - Testing Infrastructure: porting/translate/index.md
+  - Under the hood:
+    - Technical Documentation: dev/index.md
+    - DaCe: dev/dace.md
+    - GT4Py: dev/gt4py.md
+
+
+markdown_extensions:
+  # simple glossary file
+  - abbr
+  # support for colored notes / warnings / tips / examples
+  - admonition
+  # support for footnotes
+  - footnotes
+  # support for syntax highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      auto_append:
+        # hover tooltips for abbreviations (simple glossary)
+        - docs/includes/glossary.md
+  - pymdownx.superfences:
+      custom_fences:
+      # support for mermaid graphs
+      - name: mermaid
+        class: mermaid
+        format: python/name:pymdownx.superfences.fence_code_format
+  # image inclusion
+
+plugins:
+  # add search box to the header, configuration in theme
+  - search
+
+watch:
+  # reload when the glossary file is updated
+  - docs/includes
