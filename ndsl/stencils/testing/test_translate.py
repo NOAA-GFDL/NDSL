@@ -407,14 +407,15 @@ def test_parallel_savepoint(
                 input_data_on_host[key] = gt_utils.asarray(_input)
             save_netcdf(
                 case.testobj,
-                [input_data_on_host],
-                [output],
-                ref_data,
-                failing_names,
-                nct_filename,
+                inputs_list=[input_data_on_host],
+                output_list=[output],
+                ref_data=ref_data,
+                failing_names=failing_names,
+                passing_names=passing_names,
+                out_filename=nct_filename,
             )
         except Exception as error:
-            print(f"TestParallel SaveNetCDF Error: {error}")
+            print(f"TestParallel SaveNetCDF Error at rank {case.grid.rank}: {error}")
     if failing_names != []:
         pytest.fail(
             f"Only the following variables passed: {passing_names}", pytrace=False
@@ -460,7 +461,7 @@ def _save_datatree(
         data_vars = {}
         varname = names[index]
         # Read in dimensions and attributes
-        if hasattr(testobj, "outputs"):
+        if hasattr(testobj, "outputs") and testobj.outputs != {}:
             dims = [
                 dim_name + f"_{index}" for dim_name in testobj.outputs[varname]["dims"]
             ]
