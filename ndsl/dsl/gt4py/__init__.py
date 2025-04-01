@@ -2,9 +2,9 @@
 from gt4py.cartesian.gtscript import (
     BACKWARD,
     FORWARD,
-    GlobalTable,
     PARALLEL,
     THIS_K,
+    GlobalTable,
     abs,
     acos,
     acosh,

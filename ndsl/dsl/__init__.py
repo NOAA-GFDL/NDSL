@@ -1,8 +1,9 @@
-from ndsl.comm.mpi import MPI
-
 # Literal precision for both GT4Py & NDSL
 import os
 import sys
+
+from ndsl.comm.mpi import MPI
+
 
 gt4py_config_module = "gt4py.cartesian.config"
 if gt4py_config_module in sys.modules:
@@ -17,8 +18,6 @@ os.environ["GT4PY_LITERAL_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 
 # Set cache names for default gt backends workflow
 import gt4py.cartesian.config  # noqa: E402
-
-from ndsl.comm.mpi import MPI  # noqa: E402
 
 
 if MPI is not None:
