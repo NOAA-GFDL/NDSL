@@ -153,6 +153,7 @@ dmypy.json
 
 # GT4Py
 **/.gt_cache*/
+**/.gt4py_cache/
 
 # Tests
 .my_cache_path/*
@@ -169,7 +170,6 @@ RESTART/
 _dacegraphs
 
 **/testing/output/*
-*.png
 *.nc
 
 # VSCode

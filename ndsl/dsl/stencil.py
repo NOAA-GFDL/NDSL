@@ -31,6 +31,7 @@ from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
+from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.testing.comparison import LegacyMetric
 
@@ -374,6 +375,8 @@ class FrozenStencil(SDFGConvertible):
             setattr(self, "__call__", nothing_function)
 
     def __call__(self, *args, **kwargs) -> None:
+        if self.stencil_config.verbose:
+            ndsl_log.debug(f"Running {self._func_name}")
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)

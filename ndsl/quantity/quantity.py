@@ -3,6 +3,7 @@ from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
+from mpi4py import MPI
 
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float, is_float
@@ -152,6 +153,10 @@ class Quantity:
             gt4py_backend=gt4py_backend,
         )
 
+    def to_netcdf(self, path: str, name="var", rank: int = -1) -> None:
+        if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
+            self.data_array.to_dataset(name=name).to_netcdf(f"{path}__r{rank}.nc4")
+
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
         return QuantityHaloSpec(
             n_halo,
@@ -255,8 +260,16 @@ class Quantity:
         return self.metadata.extent
 
     @property
-    def data_array(self) -> xr.DataArray:
-        return xr.DataArray(self.view[:], dims=self.dims, attrs=self.attrs)
+    def data_array(self, full_data=False) -> xr.DataArray:
+        """Returns an Xarray.DataArray of the view (domain)
+
+        Args:
+            full_data: Return the entire data (halo included) instead of the view
+        """
+        if full_data:
+            return xr.DataArray(self.data[:], dims=self.dims, attrs=self.attrs)
+        else:
+            return xr.DataArray(self.view[:], dims=self.dims, attrs=self.attrs)
 
     @property
     def np(self) -> NumpyModule:

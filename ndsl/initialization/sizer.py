@@ -66,6 +66,17 @@ class SubtileGridSizer(GridSizer):
         )
         nx = x_slice.stop - x_slice.start
         ny = y_slice.stop - y_slice.start
+
+        # TODO: Remove after vector halo update issue resolved
+        if nx <= n_halo:
+            raise Exception(
+                "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
+            )
+        if ny <= n_halo:
+            raise Exception(
+                "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
+            )
+
         return cls(nx, ny, nz, n_halo, extra_dim_lengths)
 
     @classmethod

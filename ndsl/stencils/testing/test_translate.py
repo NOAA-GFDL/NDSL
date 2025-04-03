@@ -14,7 +14,7 @@ from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
 from ndsl.quantity import Quantity
 from ndsl.restart._legacy_restart import RESTART_PROPERTIES
-from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
+from ndsl.stencils.testing.savepoint import DataLoader, SavepointCase, dataset_to_dict
 from ndsl.testing.comparison import BaseMetric, LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
 
@@ -178,7 +178,7 @@ def test_sequential_savepoint(
     if case.testobj.skip_test:
         return
     if not case.exists:
-        pytest.skip(f"Data at rank {case.rank} does not exists")
+        pytest.skip(f"Data at rank {case.grid.rank} does not exists")
     input_data = dataset_to_dict(case.ds_in)
     input_names = (
         case.testobj.serialnames(case.testobj.in_vars["data_vars"])
@@ -191,6 +191,9 @@ def test_sequential_savepoint(
             f"Variable {e} was described in the translate test but cannot be found in the NetCDF"
         )
     original_input_data = copy.deepcopy(input_data)
+    # give the user a chance to load data from other savepoints to allow
+    # for gathering required data from multiple sources (constants, etc.)
+    case.testobj.extra_data_load(DataLoader(case.grid.rank, case.data_dir))
     # run python version of functionality
     output = case.testobj.compute(input_data)
     failing_names: List[str] = []
@@ -205,7 +208,7 @@ def test_sequential_savepoint(
         try:
             ref_data = all_ref_data[varname]
         except KeyError:
-            raise KeyError(f'Output "{varname}" couldn\'t be found in output data')
+            raise KeyError(f"Output {varname} couldn't be found in output data")
         if hasattr(case.testobj, "subset_output"):
             ref_data = case.testobj.subset_output(varname, ref_data)
         with subtests.test(varname=varname):
@@ -218,6 +221,7 @@ def test_sequential_savepoint(
                     absolute_eps_override=case.testobj.mmr_absolute_eps,
                     relative_fraction_override=case.testobj.mmr_relative_fraction,
                     ulp_override=case.testobj.mmr_ulp,
+                    sort_report=case.sort_report,
                 )
             else:
                 metric = LegacyMetric(
@@ -234,8 +238,9 @@ def test_sequential_savepoint(
         ref_data_out[varname] = [ref_data]
 
     # Reporting & data save
-    _report_results(case.savepoint_name, results)
-    if len(failing_names) > 0:
+    if not case.no_report:
+        _report_results(case.savepoint_name, case.grid.rank, results)
+    if len(failing_names) > 0 and not case.no_report:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
         nc_filename = os.path.join(OUTDIR, f"translate-{case.savepoint_name}.nc")
@@ -248,6 +253,7 @@ def test_sequential_savepoint(
             [output],
             ref_data_out,
             failing_names,
+            passing_names,
             nc_filename,
         )
     if failing_names != []:
@@ -341,7 +347,7 @@ def test_parallel_savepoint(
     if (grid == "compute") and not case.testobj.compute_grid_option:
         pytest.xfail(f"Grid compute option not used for test {case.savepoint_name}")
     if not case.exists:
-        pytest.skip(f"Data at rank {case.rank} does not exists")
+        pytest.skip(f"Data at rank {case.grid.rank} does not exists")
     input_data = dataset_to_dict(case.ds_in)
     # run python version of functionality
     output = case.testobj.compute_parallel(input_data, communicator)
@@ -368,9 +374,12 @@ def test_parallel_savepoint(
                 metric = MultiModalFloatMetric(
                     reference_values=ref_data[varname][0],
                     computed_values=output_data,
-                    eps=case.testobj.max_error,
+                    absolute_eps_override=case.testobj.mmr_absolute_eps,
+                    relative_fraction_override=case.testobj.mmr_relative_fraction,
+                    ulp_override=case.testobj.mmr_ulp,
                     ignore_near_zero_errors=ignore_near_zero,
                     near_zero=case.testobj.near_zero,
+                    sort_report=case.sort_report,
                 )
             else:
                 metric = LegacyMetric(
@@ -386,7 +395,7 @@ def test_parallel_savepoint(
             passing_names.append(failing_names.pop())
 
     # Reporting & data save
-    _report_results(case.savepoint_name, results)
+    _report_results(case.savepoint_name, case.grid.rank, results)
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
         nct_filename = os.path.join(
@@ -398,14 +407,15 @@ def test_parallel_savepoint(
                 input_data_on_host[key] = gt_utils.asarray(_input)
             save_netcdf(
                 case.testobj,
-                [input_data_on_host],
-                [output],
-                ref_data,
-                failing_names,
-                nct_filename,
+                inputs_list=[input_data_on_host],
+                output_list=[output],
+                ref_data=ref_data,
+                failing_names=failing_names,
+                passing_names=passing_names,
+                out_filename=nct_filename,
             )
         except Exception as error:
-            print(f"TestParallel SaveNetCDF Error: {error}")
+            print(f"TestParallel SaveNetCDF Error at rank {case.grid.rank}: {error}")
     if failing_names != []:
         pytest.fail(
             f"Only the following variables passed: {passing_names}", pytrace=False
@@ -414,36 +424,47 @@ def test_parallel_savepoint(
         pytest.fail("No tests passed")
 
 
-def _report_results(savepoint_name: str, results: Dict[str, BaseMetric]) -> None:
-    os.makedirs(OUTDIR, exist_ok=True)
+def _report_results(
+    savepoint_name: str,
+    rank: int,
+    results: Dict[str, BaseMetric],
+) -> None:
+    detail_dir = f"{OUTDIR}/details"
+    os.makedirs(detail_dir, exist_ok=True)
 
     # Summary
-    with open(f"{OUTDIR}/summary-{savepoint_name}.log", "w") as f:
+    with open(f"{OUTDIR}/summary-{savepoint_name}-{rank}.log", "w") as f:
         for varname, metric in results.items():
             f.write(f"{varname}: {metric.one_line_report()}\n")
 
     # Detailed log
     for varname, metric in results.items():
-        log_filename = os.path.join(OUTDIR, f"details-{savepoint_name}-{varname}.log")
+        log_filename = os.path.join(
+            detail_dir, f"{savepoint_name}-{varname}-{rank}.log"
+        )
         metric.report(log_filename)
 
 
-def save_netcdf(
+def _save_datatree(
     testobj,
     # first list over rank, second list over savepoint
     inputs_list: List[Dict[str, List[np.ndarray]]],
     output_list: List[Dict[str, List[np.ndarray]]],
     ref_data: Dict[str, List[np.ndarray]],
-    failing_names,
-    out_filename,
+    names: List[str],
 ):
     import xarray as xr
 
-    data_vars = {}
-    for i, varname in enumerate(failing_names):
+    datasets = {}
+    indices = np.argsort(names)
+    for index in indices:
+        data_vars = {}
+        varname = names[index]
         # Read in dimensions and attributes
-        if hasattr(testobj, "outputs"):
-            dims = [dim_name + f"_{i}" for dim_name in testobj.outputs[varname]["dims"]]
+        if hasattr(testobj, "outputs") and testobj.outputs != {}:
+            dims = [
+                dim_name + f"_{index}" for dim_name in testobj.outputs[varname]["dims"]
+            ]
             attrs = {"units": testobj.outputs[varname]["units"]}
         else:
             dims = [
@@ -477,6 +498,37 @@ def save_netcdf(
         )
         data_vars[f"{varname}_absolute_error"] = absolute_errors
         data_vars[f"{varname}_absolute_error"].attrs = attrs
+        datasets[varname] = xr.Dataset(data_vars=data_vars)
 
+    return xr.DataTree.from_dict(datasets)
+
+
+def save_netcdf(
+    testobj,
+    # first list over rank, second list over savepoint
+    inputs_list: List[Dict[str, List[np.ndarray]]],
+    output_list: List[Dict[str, List[np.ndarray]]],
+    ref_data: Dict[str, List[np.ndarray]],
+    failing_names: List[str],
+    passing_names: List[str],
+    out_filename,
+):
+    import xarray as xr
+
+    datasets = {}
+    datasets["Fail"] = _save_datatree(
+        testobj=testobj,
+        inputs_list=inputs_list,
+        output_list=output_list,
+        ref_data=ref_data,
+        names=failing_names,
+    )
+    datasets["Pass"] = _save_datatree(
+        testobj=testobj,
+        inputs_list=inputs_list,
+        output_list=output_list,
+        ref_data=ref_data,
+        names=passing_names,
+    )
+    xr.DataTree.from_dict(datasets).to_netcdf(out_filename)
     print(f"File saved to {out_filename}")
-    xr.Dataset(data_vars=data_vars).to_netcdf(out_filename)
