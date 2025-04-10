@@ -131,7 +131,7 @@ class NamelistDefaults:
     cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
     ncld = 1  # choice of cloud scheme
     c0s_shal = 0.002  # c_e for shallow convection (Han and Pan, 2011, eq(6))
-    c1_shal = 5.e-4  # conversion parameter of detrainment from liquid water into convetive precipitaiton
+    c1_shal = 5.0e-4  # conversion parameter of detrainment from liquid water into convetive precipitaiton
     clam_shal = 0.3  # conversion parameter of detrainment from liquid water into grid-scale cloud water
     pgcon_shal = 0.55  # control the reduction in momentum transport
     asolfac_shal = 0.89  # aerosol-aware parameter based on Lim & Hong (2012): asolfac= cx / c0s(=.002), cx = min([-0.7 ln(Nccn) + 24]*1.e-4, c0s), Nccn: CCN number concentration in cm^(-3), Until a realistic Nccn is provided, typical Nccns are assumed, as Nccn=100 for sea and Nccn=7000 for land

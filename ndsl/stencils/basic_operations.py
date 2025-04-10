@@ -65,7 +65,7 @@ def select_k(
     in_field: FloatField,
     out_field: FloatFieldIJ,
     k_mask: IntField,
-    k_select: IntFieldIJ
+    k_select: IntFieldIJ,
 ):
     """
     Saves a specific k-index of a 3D field to a
@@ -81,7 +81,7 @@ def select_k(
     with computation(FORWARD), interval(...):
         if k_mask == k_select:
             out_field = in_field
-    
+
 
 @gtscript.function
 def sign(a, b):
