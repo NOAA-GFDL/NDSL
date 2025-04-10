@@ -227,7 +227,7 @@ class CubedToLatLon:
             )
 
             # TODO:
-            # To break the depedency to pyFV3 we allow ourselves to not have a type
+            # To break the dependency to pyFV3 we allow ourselves to not have a type
             # hint around state and we check for u and v to make sure we don't
             # have bad input.
             # This entire code should be retired when WrappedHaloUpdater is no longer

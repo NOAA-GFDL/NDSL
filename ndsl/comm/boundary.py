@@ -28,7 +28,7 @@ class Boundary:
         return self._view(quantity, n_points, interior=True)
 
     def recv_view(self, quantity: Quantity, n_points: int):
-        """Return a sliced view of points which should be recieved at this boundary.
+        """Return a sliced view of points which should be received at this boundary.
 
         Args:
             quantity: quantity for which to return a slice
@@ -37,7 +37,7 @@ class Boundary:
         return self._view(quantity, n_points, interior=False)
 
     def send_slice(self, specification: QuantityHaloSpec) -> Tuple[slice]:
-        """Return the index slices which shoud be sent at this boundary.
+        """Return the index slices which should be sent at this boundary.
 
         Args:
             specification: data specifications for the halo. Including shape

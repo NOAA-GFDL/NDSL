@@ -42,7 +42,7 @@ class NamelistDefaults:
     qi_gen = 1.82e-6  # max cloud ice generation during remapping step
     qi_lim = 1.0  # cloud ice limiter to prevent large ice build up
     qi0_max = 1.0e-4  # max cloud ice value (by other sources)
-    rad_snow = True  # consider snow in cloud fraciton calculation
+    rad_snow = True  # consider snow in cloud fraction calculation
     rad_rain = True  # consider rain in cloud fraction calculation
     rad_graupel = True  # consider graupel in cloud fraction calculation
     tintqs = False  # use temperature in the saturation mixing in PDF
@@ -110,7 +110,7 @@ class NamelistDefaults:
     z_slope_liq = True  # Use linear mono slope for autoconversions
     tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
     alin = 842.0  # "a" in lin1983
-    clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to ehance ql -- > qs)
+    clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)
     isatmedmf = 0  # which version of satmedmfvdif to use
     dspheat = False  # flag for tke dissipative heating
     xkzm_h = 1.0  # background vertical diffusion for heat q over ocean
@@ -125,8 +125,8 @@ class NamelistDefaults:
     xkzm_lim = 0.01  # background vertical diffusion limit
     xkzminv = 0.15  # diffusivity in inversion layers
     xkgdx = 25.0e3  # background vertical diffusion threshold
-    rlmn = 30.0  # lower-limter on asymtotic mixing length in satmedmfdiff
-    rlmx = 300.0  # upper-limter on asymtotic mixing length in satmedmfdiff
+    rlmn = 30.0  # lower-limiter on asymtotic mixing length in satmedmfdiff
+    rlmx = 300.0  # upper-limiter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
     cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
     ncld = 1  # choice of cloud scheme
@@ -503,6 +503,8 @@ class Namelist:
     nf_omega: int = NamelistDefaults.nf_omega
     fv_sg_adj: int = NamelistDefaults.fv_sg_adj
     n_sponge: int = NamelistDefaults.n_sponge
+    daily_mean: bool = False
+    """Flag to replace cosz with daily mean value in physics"""
 
     @classmethod
     def from_f90nml(cls, namelist: f90nml.Namelist):

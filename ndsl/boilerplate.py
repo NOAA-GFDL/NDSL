@@ -16,6 +16,7 @@ from ndsl import (
     TileCommunicator,
     TilePartitioner,
 )
+from ndsl.optional_imports import cupy as cp
 
 
 def _get_factories(
@@ -43,7 +44,7 @@ def _get_factories(
 
     compilation_config = CompilationConfig(
         backend=backend,
-        rebuild=True,
+        rebuild=False,
         validate_args=True,
         format_source=False,
         device_sync=False,
@@ -74,13 +75,15 @@ def _get_factories(
 
     grid_indexing = GridIndexing.from_sizer_and_communicator(sizer, comm)
     stencil_factory = StencilFactory(config=stencil_config, grid_indexing=grid_indexing)
-    quantity_factory = QuantityFactory(sizer, np)
+    quantity_factory = QuantityFactory(
+        sizer, cp if stencil_config.is_gpu_backend else np
+    )
 
     return stencil_factory, quantity_factory
 
 
-def get_factories_single_tile_orchestrated_cpu(
-    nx, ny, nz, nhalo
+def get_factories_single_tile_orchestrated(
+    nx, ny, nz, nhalo, on_cpu: bool = True
 ) -> Tuple[StencilFactory, QuantityFactory]:
     """Build a Stencil & Quantity factory for orchestrated CPU, on a single tile topology."""
     return _get_factories(
@@ -88,22 +91,21 @@ def get_factories_single_tile_orchestrated_cpu(
         ny=ny,
         nz=nz,
         nhalo=nhalo,
-        backend="dace:cpu",
+        backend="dace:cpu" if on_cpu else "dace:gpu",
         orchestration=DaCeOrchestration.BuildAndRun,
         topology="tile",
     )
 
 
-def get_factories_single_tile_numpy(
-    nx, ny, nz, nhalo
+def get_factories_single_tile(
+    nx, ny, nz, nhalo, backend: str = "numpy"
 ) -> Tuple[StencilFactory, QuantityFactory]:
-    """Build a Stencil & Quantity factory for Numpy, on a single tile topology."""
     return _get_factories(
         nx=nx,
         ny=ny,
         nz=nz,
         nhalo=nhalo,
-        backend="numpy",
+        backend=backend,
         orchestration=DaCeOrchestration.Python,
         topology="tile",
     )

@@ -189,8 +189,14 @@ class LocalComm(Comm):
         self._split_comms[color].append(new_comm)
         return new_comm
 
-    def allreduce(self, sendobj, op=None) -> Any:
+    def allreduce(self, sendobj, op=None, recvobj=None) -> Any:
         raise NotImplementedError(
-            "sendrecv fundamentally cannot be written for LocalComm, "
+            "allreduce fundamentally cannot be written for LocalComm, "
+            "as it requires synchronicity"
+        )
+
+    def Allreduce(self, sendobj, recvobj, op) -> Any:
+        raise NotImplementedError(
+            "Allreduce fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"
         )

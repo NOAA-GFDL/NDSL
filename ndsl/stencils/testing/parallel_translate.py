@@ -17,6 +17,9 @@ from ndsl.stencils.testing.translate import (
 class ParallelTranslate:
     max_error = TranslateFortranData2Py.max_error
     near_zero = TranslateFortranData2Py.near_zero
+    mmr_absolute_eps = TranslateFortranData2Py.mmr_absolute_eps
+    mmr_relative_fraction = TranslateFortranData2Py.mmr_relative_fraction
+    mmr_ulp = TranslateFortranData2Py.mmr_ulp
     compute_grid_option = False
     tests_grid = False
     inputs: Dict[str, Any] = {}

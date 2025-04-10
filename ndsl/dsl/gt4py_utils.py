@@ -68,7 +68,7 @@ def _mask_to_dimensions(
 
 def _translate_origin(origin: Sequence[int], mask: Tuple[bool, ...]) -> Sequence[int]:
     if len(origin) == int(sum(mask)):
-        # Correct length. Assumedd to be correctly specified.
+        # Correct length. Assumed to be correctly specified.
         return origin
 
     assert len(mask) == 3
@@ -140,9 +140,7 @@ def make_storage_data(
                     default_mask = (True, True, False)
                     shape = (1, shape[axis])
                 else:
-                    default_mask = tuple(
-                        [i == axis for i in range(max_dim)]
-                    )  # type: ignore
+                    default_mask = tuple([i == axis for i in range(max_dim)])  # type: ignore
             elif dummy or axis != 2:
                 default_mask = (True, True, True)
             else:
@@ -151,16 +149,44 @@ def make_storage_data(
 
     if n_dims == 1:
         data = _make_storage_data_1d(
-            data, shape, start, dummy, axis, read_only, backend=backend
+            data,
+            shape,
+            start,
+            dummy,
+            axis,
+            read_only,
+            dtype=dtype,
+            backend=backend,
         )
     elif n_dims == 2:
         data = _make_storage_data_2d(
-            data, shape, start, dummy, axis, read_only, backend=backend
+            data,
+            shape,
+            start,
+            dummy,
+            axis,
+            read_only,
+            dtype=dtype,
+            backend=backend,
+        )
+    elif n_dims >= 4:
+        data = _make_storage_data_Nd(
+            data,
+            shape,
+            start,
+            dtype=dtype,
+            backend=backend,
         )
     elif n_dims >= 4:
         data = _make_storage_data_Nd(data, shape, start, backend=backend)
     else:
-        data = _make_storage_data_3d(data, shape, start, backend=backend)
+        data = _make_storage_data_3d(
+            data,
+            shape,
+            start,
+            dtype=dtype,
+            backend=backend,
+        )
 
     storage = gt4py.storage.from_array(
         data,
@@ -180,11 +206,12 @@ def _make_storage_data_1d(
     axis: int = 2,
     read_only: bool = True,
     *,
+    dtype: DTypes = Float,
     backend: str,
 ) -> Field:
     # axis refers to a repeated axis, dummy refers to a singleton axis
     axis = min(axis, len(shape) - 1)
-    buffer = zeros(shape[axis], backend=backend)
+    buffer = zeros(shape[axis], dtype=dtype, backend=backend)
     if dummy:
         axis = list(set((0, 1, 2)).difference(dummy))[0]
 
@@ -216,6 +243,7 @@ def _make_storage_data_2d(
     axis: int = 2,
     read_only: bool = True,
     *,
+    dtype: DTypes = Float,
     backend: str,
 ) -> Field:
     # axis refers to which axis should be repeated (when making a full 3d data),
@@ -229,7 +257,7 @@ def _make_storage_data_2d(
 
     start1, start2 = start[0:2]
     size1, size2 = data.shape
-    buffer = zeros(shape2d, backend=backend)
+    buffer = zeros(shape2d, dtype=dtype, backend=backend)
     buffer[start1 : start1 + size1, start2 : start2 + size2] = asarray(
         data, type(buffer)
     )
@@ -249,11 +277,12 @@ def _make_storage_data_3d(
     shape: Tuple[int, ...],
     start: Tuple[int, ...] = (0, 0, 0),
     *,
+    dtype: DTypes = Float,
     backend: str,
 ) -> Field:
     istart, jstart, kstart = start
     isize, jsize, ksize = data.shape
-    buffer = zeros(shape, backend=backend)
+    buffer = zeros(shape, dtype=dtype, backend=backend)
     buffer[
         istart : istart + isize,
         jstart : jstart + jsize,
@@ -267,11 +296,12 @@ def _make_storage_data_Nd(
     shape: Tuple[int, ...],
     start: Tuple[int, ...] = None,
     *,
+    dtype: DTypes = Float,
     backend: str,
 ) -> Field:
     if start is None:
         start = tuple([0] * data.ndim)
-    buffer = zeros(shape, backend=backend)
+    buffer = zeros(shape, dtype=dtype, backend=backend)
     idx = tuple([slice(start[i], start[i] + data.shape[i]) for i in range(len(start))])
     buffer[idx] = asarray(data, type(buffer))
     return buffer

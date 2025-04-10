@@ -6,6 +6,8 @@ import numpy as np
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
 from ndsl.comm.boundary import Boundary
+from ndsl.comm.comm_abc import Comm as CommABC
+from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from ndsl.performance.timer import NullTimer, Timer
@@ -44,7 +46,11 @@ def to_numpy(array, dtype=None) -> np.ndarray:
 
 class Communicator(abc.ABC):
     def __init__(
-        self, comm, partitioner, force_cpu: bool = False, timer: Optional[Timer] = None
+        self,
+        comm: CommABC,
+        partitioner,
+        force_cpu: bool = False,
+        timer: Optional[Timer] = None,
     ):
         self.comm = comm
         self.partitioner: Partitioner = partitioner
@@ -61,7 +67,7 @@ class Communicator(abc.ABC):
     @abc.abstractmethod
     def from_layout(
         cls,
-        comm,
+        comm: CommABC,
         layout: Tuple[int, int],
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
@@ -93,17 +99,63 @@ class Communicator(abc.ABC):
         # this is a method so we can profile it separately from other device syncs
         device_synchronize()
 
+    def _create_all_reduce_quantity(
+        self, input_metadata: QuantityMetadata, input_data
+    ) -> Quantity:
+        """Create a Quantity for all_reduce data and metadata"""
+        all_reduce_quantity = Quantity(
+            input_data,
+            dims=input_metadata.dims,
+            units=input_metadata.units,
+            origin=input_metadata.origin,
+            extent=input_metadata.extent,
+            gt4py_backend=input_metadata.gt4py_backend,
+            allow_mismatch_float_precision=False,
+        )
+        return all_reduce_quantity
+
+    def all_reduce(
+        self,
+        input_quantity: Quantity,
+        op: ReductionOperator,
+        output_quantity: Quantity = None,
+    ):
+        reduced_quantity_data = self.comm.allreduce(input_quantity.data, op)
+        if output_quantity is None:
+            all_reduce_quantity = self._create_all_reduce_quantity(
+                input_quantity.metadata, reduced_quantity_data
+            )
+            return all_reduce_quantity
+        else:
+            if output_quantity.data.shape != input_quantity.data.shape:
+                raise TypeError("Shapes not matching")
+
+            input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
+
+            output_quantity.data = reduced_quantity_data
+
+    def all_reduce_per_element(
+        self,
+        input_quantity: Quantity,
+        output_quantity: Quantity,
+        op: ReductionOperator,
+    ):
+        self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
+
+    def all_reduce_per_element_in_place(
+        self, quantity: Quantity, op: ReductionOperator
+    ):
+        self.comm.Allreduce_inplace(quantity.data, op)
+
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
-        with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
-            numpy_module.zeros, recvbuf
-        ) as recv:
-            self.comm.Scatter(send, recv, **kwargs)
+        with send_buffer(numpy_module.zeros, sendbuf) as send:
+            with recv_buffer(numpy_module.zeros, recvbuf) as recv:
+                self.comm.Scatter(send, recv, **kwargs)
 
     def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):
-        with send_buffer(numpy_module.zeros, sendbuf) as send, recv_buffer(
-            numpy_module.zeros, recvbuf
-        ) as recv:
-            self.comm.Gather(send, recv, **kwargs)
+        with send_buffer(numpy_module.zeros, sendbuf) as send:
+            with recv_buffer(numpy_module.zeros, recvbuf) as recv:
+                self.comm.Gather(send, recv, **kwargs)
 
     def scatter(
         self,
@@ -252,7 +304,7 @@ class Communicator(abc.ABC):
 
         Args:
             send_state: the model state to be sent containing the subtile data
-            recv_state: the pre-allocated state in which to recieve the full tile
+            recv_state: the pre-allocated state in which to receive the full tile
                 state. Only variables which are scattered will be written to.
         Returns:
             recv_state: on the root rank, the state containing the entire tile
@@ -288,7 +340,7 @@ class Communicator(abc.ABC):
         Args:
             send_state: the model state to be sent containing the entire tile,
                 required only from the root rank
-            recv_state: the pre-allocated state in which to recieve the scattered
+            recv_state: the pre-allocated state in which to receive the scattered
                 state. Only variables which are scattered will be written to.
         Returns:
             rank_state: the state corresponding to this rank's subdomain
@@ -709,7 +761,7 @@ class CubedSphereCommunicator(Communicator):
 
     def __init__(
         self,
-        comm,
+        comm: CommABC,
         partitioner: CubedSpherePartitioner,
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
@@ -722,6 +774,11 @@ class CubedSphereCommunicator(Communicator):
             force_cpu: Force all communication to go through central memory.
             timer: Time communication operations.
         """
+        if not issubclass(type(comm), CommABC):
+            raise TypeError(
+                "Communicator needs to be instantiated with communication subsystem"
+                f" derived from `comm_abc.Comm`, got {type(comm)}."
+            )
         if comm.Get_size() != partitioner.total_ranks:
             raise ValueError(
                 f"was given a partitioner for {partitioner.total_ranks} ranks but a "
