@@ -377,13 +377,17 @@ class FrozenStencil(SDFGConvertible):
             setattr(self, "__call__", nothing_function)
 
     def __call__(self, *args, **kwargs) -> None:
+        # Verbose stencil execution
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
+
+        # Marshall arguments
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)
-
         args_as_kwargs = dict(zip(self._argument_names, args))
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -391,8 +395,12 @@ class FrozenStencil(SDFGConvertible):
                     f"rank {self.comm.Get_rank()} has differences {differences} "
                     f"before calling {self._func_name}"
                 )
+
+        # Debugger actions if turned on
         if ndsl_debugger:
             ndsl_debugger.save_as_dataset(args_as_kwargs, self._func_name, True)
+
+        # Execute stencil
         if self.stencil_config.compilation_config.validate_args:
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
@@ -413,9 +421,13 @@ class FrozenStencil(SDFGConvertible):
                 **self._stencil_run_kwargs,
                 exec_info=self._timing_collector.exec_info,
             )
+
+        # Debugger actions if turned on
         if ndsl_debugger:
             ndsl_debugger.save_as_dataset(args_as_kwargs, self._func_name, False)
             ndsl_debugger.increment_call_count(self._func_name)
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
