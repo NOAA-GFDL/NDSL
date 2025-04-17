@@ -25,6 +25,7 @@ np.set_printoptions(threshold=4096)
 OUTDIR = "./.translate-outputs"
 GPU_MAX_ERR = 1e-10
 GPU_NEAR_ZERO = 1e-15
+N_THRESHOLD_SAMPLES = int(os.getenv("NDSL_TEST_N_THRESHOLD_SAMPLES", 0))
 
 
 def platform():
@@ -96,9 +97,6 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                 + ", platform="
                 + platform()
             )
-
-
-N_THRESHOLD_SAMPLES = int(os.getenv("PACE_TEST_N_THRESHOLD_SAMPLES", 0))
 
 
 def get_thresholds(testobj, input_data):
