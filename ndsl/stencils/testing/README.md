@@ -83,4 +83,4 @@ Upon failure, the test will drop a `netCDF` file in a `./.translate-errors` dire
 
 ## Environment variables
 
-- `PACE_TEST_N_THRESHOLD_SAMPLES`: Upon failure the system will try to perturb the output in an attempt to check for numerical instability. This means re-running the test for N samples. Default is `10`, `0` or less turns this feature off.
+- `NDSL_TEST_N_THRESHOLD_SAMPLES`: Upon failure the system will try to perturb the output in an attempt to check for numerical instability. This means re-running the test for N samples. Default is `0`, which turns this feature off.

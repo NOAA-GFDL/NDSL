@@ -85,14 +85,14 @@ class TranslateFortranData2Py:
 
     def compute_func(self, **inputs) -> Optional[dict[str, Any]]:
         """Compute function to transform the dictionary of `inputs`.
-        Must return a dictionnary of updated variables"""
+        Must return a dictionary of updated variables"""
         raise NotImplementedError("Implement a child class compute method")
 
     def compute(self, inputs) -> dict[str, Any]:
-        """Transform inputs from NetCDF to gt4py.storagers, run compute_func then slice
+        """Transform inputs from NetCDF to gt4py.storages, run compute_func then slice
         the outputs based on specifications.
 
-        Return: Dictonnary of storages reshaped for comparison
+        Return: Dictionary of storages reshaped for comparison
         """
         self.setup(inputs)
         return self.slice_output(self.compute_from_storage(inputs))
@@ -201,7 +201,7 @@ class TranslateFortranData2Py:
     def make_storage_data_input_vars(
         self, inputs, storage_vars=None, dict_4d=True
     ) -> None:
-        """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionnary to update inputs to
+        """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionary to update inputs to
         their configured shape.
 
         Return: None
