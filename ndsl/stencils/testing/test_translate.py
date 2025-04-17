@@ -98,7 +98,7 @@ def process_override(threshold_overrides, testobj, test_name, backend):
             )
 
 
-N_THRESHOLD_SAMPLES = int(os.getenv("PACE_TEST_N_THRESHOLD_SAMPLES", 10))
+N_THRESHOLD_SAMPLES = int(os.getenv("PACE_TEST_N_THRESHOLD_SAMPLES", 0))
 
 
 def get_thresholds(testobj, input_data):
