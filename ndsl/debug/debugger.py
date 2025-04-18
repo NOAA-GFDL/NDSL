@@ -42,7 +42,9 @@ class Debugger:
 
             path = f"{self.dir_name}/debug/tracks/{name}/R{self.rank}/"
             os.makedirs(path, exist_ok=True)
-            path = f"{path}/{count}_{source_as_name}-{'In' if is_in else 'Out'}.nc4"
+            path = (
+                f"{path}/{count}_{name}_{source_as_name}-{'In' if is_in else 'Out'}.nc4"
+            )
             try:
                 self._to_xarray(data).to_netcdf(path)
             except ValueError as e:
