@@ -1,3 +1,4 @@
+import os
 import xarray as xr
 from ndsl.debug.mode import DebugMode
 import dataclasses
@@ -13,48 +14,69 @@ class Debugger:
     mode: DebugMode = DebugMode.NDebug
     do_input_dump: bool = False
     do_output_dump: bool = False
-    calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
+    stencils_or_class: list[str] = dataclasses.field(default_factory=list)
+    track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     dir_name: str = "./"
+
     # Runtime data
     rank: int = -1
-    stencils_or_class: list[str] = dataclasses.field(default_factory=list)
+    calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
+    track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
 
-    def can_save(self, savename: str) -> bool:
-        """Is this savename configured for data (input ot output) save"""
-        if self.do_output_dump and not self.do_input_dump:
-            return False
+    def _to_xarray(self, data) -> xr.DataArray:
+        if isinstance(data, Quantity):
+            return xr.DataArray(data.data)
+        elif not hasattr(data, "shape"):
+            return xr.DataArray(data)
+        else:
+            return xr.DataArray(
+                data, dims=[f"dim_{i}_{s}" for i, s in enumerate(data.shape)]
+            )
 
-        if savename in self.stencils_or_class:
-            return True
+    def track_data(self, data_as_dict, source_as_name, is_in) -> None:
+        for name, data in data_as_dict.items():
+            if name not in self.track_parameter_by_name:
+                continue
 
-        return False
+            if name not in self.track_parameter_count:
+                self.track_parameter_count[name] = 0
+            count = self.track_parameter_count[name]
 
-    def save_as_dataset(self, data_as_dict, savename, is_in):
+            path = f"{self.dir_name}/debug/tracks/{name}/R{self.rank}/"
+            os.makedirs(path, exist_ok=True)
+            path = f"{path}/{count}_{source_as_name}-{'In' if is_in else 'Out'}.nc4"
+            try:
+                self._to_xarray(data).to_netcdf(path)
+            except ValueError as e:
+                from ndsl import ndsl_log
+
+                ndsl_log.error(f"[DebugInfo] Failure to save {data}: {e}")
+
+            self.track_parameter_count[name] += 1
+
+    def save_as_dataset(self, data_as_dict, savename, is_in) -> None:
         """Save dictionnary of data to NetCDF
 
         Note: Unknown types in the dictionnary won't be saved.
         """
-        if not self.can_save(savename):
+        if not self.do_output_dump and not self.do_input_dump:
+            return
+
+        if savename not in self.stencils_or_class:
             return
 
         data_arrays = {}
         for name, data in data_as_dict.items():
-            if isinstance(data, Quantity):
-                data_arrays[name] = xr.DataArray(data.data)
-            elif not hasattr(data, "shape"):
-                data_arrays[name] = xr.DataArray(data)
-            else:
-                data_arrays[name] = xr.DataArray(
-                    data, dims=[f"dim_{i}_{s}" for i, s in enumerate(data.shape)]
-                )
+            data_arrays[name] = self._to_xarray(data)
 
         call_count = (
             self.calls_count[savename] if savename in self.calls_count.keys() else 0
         )
+        path = f"{self.dir_name}/debug/savepoints/R{self.rank}/"
+        os.makedirs(path, exist_ok=True)
+        path = f"{path}/{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
         try:
-            xr.Dataset(data_arrays).to_netcdf(
-                f"{self.dir_name}/{savename}-R{self.rank}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
-            )
+            xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
             from ndsl import ndsl_log
 

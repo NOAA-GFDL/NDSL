@@ -7,9 +7,9 @@ from functools import wraps
 def instrument(func) -> Callable:
     @wraps(func)
     def wrapper(self, *args: Any, **kwargs: Any):
-        savename = func.__qualname__
-        if not ndsl_debugger.can_save(savename):
+        if ndsl_debugger is None:
             return func(self, *args, **kwargs)
+        savename = func.__qualname__
         params = inspect.signature(func).parameters
         data_as_dict = {}
 
@@ -31,8 +31,10 @@ def instrument(func) -> Callable:
             if name in params:
                 data_as_dict[name] = value
         ndsl_debugger.save_as_dataset(data_as_dict, func.__qualname__, is_in=True)
+        ndsl_debugger.track_data(data_as_dict, func.__qualname__, is_in=True)
         r = func(self, *args, **kwargs)
         ndsl_debugger.save_as_dataset(data_as_dict, func.__qualname__, is_in=False)
+        ndsl_debugger.track_data(data_as_dict, func.__qualname__, is_in=False)
         ndsl_debugger.increment_call_count(savename)
         return r
 
