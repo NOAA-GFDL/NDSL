@@ -12,8 +12,6 @@ class Debugger:
 
     # Configuration
     mode: DebugMode = DebugMode.NDebug
-    do_input_dump: bool = False
-    do_output_dump: bool = False
     stencils_or_class: list[str] = dataclasses.field(default_factory=list)
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     dir_name: str = "./"
@@ -59,9 +57,6 @@ class Debugger:
 
         Note: Unknown types in the dictionnary won't be saved.
         """
-        if not self.do_output_dump and not self.do_input_dump:
-            return
-
         if savename not in self.stencils_or_class:
             return
 
