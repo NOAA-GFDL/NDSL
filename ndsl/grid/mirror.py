@@ -63,7 +63,7 @@ def mirror_grid(
                 y1, mirror_data["local"][i, j, 1]
             )
 
-            # force dateline/greenwich-meridion consistency
+            # force dateline/greenwich-meridian consistency
             if npx % 2 != 0:
                 if x_center_tile and i == ng + i_mid:
                     mirror_data["local"][i, j, 0] = 0.0

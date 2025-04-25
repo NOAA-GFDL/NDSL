@@ -284,10 +284,20 @@ class AngleGridData:
     sin_sg2: Quantity
     sin_sg3: Quantity
     sin_sg4: Quantity
+    sin_sg5: Quantity
+    sin_sg6: Quantity
+    sin_sg7: Quantity
+    sin_sg8: Quantity
+    sin_sg9: Quantity
     cos_sg1: Quantity
     cos_sg2: Quantity
     cos_sg3: Quantity
     cos_sg4: Quantity
+    cos_sg5: Quantity
+    cos_sg6: Quantity
+    cos_sg7: Quantity
+    cos_sg8: Quantity
+    cos_sg9: Quantity
 
     @classmethod
     def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "AngleGridData":
@@ -296,10 +306,20 @@ class AngleGridData:
             sin_sg2=metric_terms.sin_sg2,
             sin_sg3=metric_terms.sin_sg3,
             sin_sg4=metric_terms.sin_sg4,
+            sin_sg5=metric_terms.sin_sg5,
+            sin_sg6=metric_terms.sin_sg6,
+            sin_sg7=metric_terms.sin_sg7,
+            sin_sg8=metric_terms.sin_sg8,
+            sin_sg9=metric_terms.sin_sg9,
             cos_sg1=metric_terms.cos_sg1,
             cos_sg2=metric_terms.cos_sg2,
             cos_sg3=metric_terms.cos_sg3,
             cos_sg4=metric_terms.cos_sg4,
+            cos_sg5=metric_terms.cos_sg5,
+            cos_sg6=metric_terms.cos_sg6,
+            cos_sg7=metric_terms.cos_sg7,
+            cos_sg8=metric_terms.cos_sg8,
+            cos_sg9=metric_terms.cos_sg9,
         )
 
 
@@ -312,13 +332,21 @@ class GridData:
         vertical_data: VerticalGridData,
         contravariant_data: ContravariantGridData,
         angle_data: AngleGridData,
+        fc=None,
+        fc_agrid=None,
     ):
         self._horizontal_data = horizontal_data
         self._vertical_data = vertical_data
         self._contravariant_data = contravariant_data
         self._angle_data = angle_data
-        self._fC = None
-        self._fC_agrid = None
+        if fc is not None:
+            self._fC = GridData._fC_from_data(fc, horizontal_data.lat)
+        else:
+            self._fC = None
+        if fc_agrid is not None:
+            self._fC_agrid = GridData._fC_from_data(fc_agrid, horizontal_data.lat)
+        else:
+            self._fC_agrid = None
 
     @classmethod
     def new_from_metric_terms(cls, metric_terms: MetricTerms):
@@ -349,9 +377,7 @@ class GridData:
         return self._horizontal_data.lat_agrid
 
     @staticmethod
-    def _fC_from_lat(lat: Quantity) -> Quantity:
-        np = lat.np
-        data = 2.0 * constants.OMEGA * np.sin(lat.data)
+    def _fC_from_data(data, lat: Quantity) -> Quantity:
         return Quantity(
             data,
             units="1/s",
@@ -360,6 +386,12 @@ class GridData:
             extent=lat.extent,
             gt4py_backend=lat.gt4py_backend,
         )
+
+    @staticmethod
+    def _fC_from_lat(lat: Quantity) -> Quantity:
+        np = lat.np
+        data = Float(2.0) * constants.OMEGA * np.sin(lat.data, dtype=Float)
+        return GridData._fC_from_data(data, lat)
 
     @property
     def fC(self):
@@ -619,6 +651,26 @@ class GridData:
         return self._angle_data.sin_sg4
 
     @property
+    def sin_sg5(self):
+        return self._angle_data.sin_sg5
+
+    @property
+    def sin_sg6(self):
+        return self._angle_data.sin_sg6
+
+    @property
+    def sin_sg7(self):
+        return self._angle_data.sin_sg7
+
+    @property
+    def sin_sg8(self):
+        return self._angle_data.sin_sg8
+
+    @property
+    def sin_sg9(self):
+        return self._angle_data.sin_sg9
+
+    @property
     def cos_sg1(self):
         return self._angle_data.cos_sg1
 
@@ -633,6 +685,26 @@ class GridData:
     @property
     def cos_sg4(self):
         return self._angle_data.cos_sg4
+
+    @property
+    def cos_sg5(self):
+        return self._angle_data.cos_sg5
+
+    @property
+    def cos_sg6(self):
+        return self._angle_data.cos_sg6
+
+    @property
+    def cos_sg7(self):
+        return self._angle_data.cos_sg7
+
+    @property
+    def cos_sg8(self):
+        return self._angle_data.cos_sg8
+
+    @property
+    def cos_sg9(self):
+        return self._angle_data.cos_sg9
 
 
 @dataclasses.dataclass(frozen=True)

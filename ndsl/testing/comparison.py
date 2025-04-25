@@ -1,7 +1,23 @@
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
+
+
+def _fixed_width_float_16e(value: np.floating[Any]) -> str:
+    """Account for extra '-' character"""
+    if value > 0:
+        return f" {value:.16e}"
+    else:
+        return f"{value:.16e}"
+
+
+def _fixed_width_float_2e(value: np.floating[Any]) -> str:
+    """Account for extra '-' character"""
+    if value > 0:
+        return f" {value:.2e}"
+    else:
+        return f"{value:.2e}"
 
 
 class BaseMetric:
@@ -21,6 +37,9 @@ class BaseMetric:
         ...
 
     def report(self, file_path: Optional[str] = None) -> List[str]:
+        ...
+
+    def one_line_report(self) -> str:
         ...
 
 
@@ -65,7 +84,7 @@ class LegacyMetric(BaseMetric):
             self._calculated_metric = np.logical_xor(self.computed, self.references)
         else:
             raise TypeError(
-                f"recieved data with unexpected dtype {self.references.dtype}"
+                f"received data with unexpected dtype {self.references.dtype}"
             )
         success = np.logical_or(
             np.logical_and(np.isnan(self.computed), np.isnan(self.references)),
@@ -91,13 +110,16 @@ class LegacyMetric(BaseMetric):
             )
         return success
 
+    def one_line_report(self) -> str:
+        if self.check:
+            return "✅ No numerical differences"
+        else:
+            return "❌ Numerical failures"
+
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
-        if self.check:
-            report.append("✅ No numerical differences")
-        else:
-            report.append("❌ Numerical failures")
-
+        report.append(self.one_line_report())
+        if not self.check:
             found_indices = np.logical_not(self.success).nonzero()
             computed_failures = self.computed[found_indices]
             reference_failures = self.references[found_indices]
@@ -109,7 +131,7 @@ class LegacyMetric(BaseMetric):
             abs_errs = []
             details = [
                 "All failures:",
-                "Index  Computed  Reference  Absloute E  Metric E",
+                "Index  Computed  Reference  Absolute E  Metric E",
             ]
             for b in range(bad_indices_count):
                 full_index = tuple([f[b] for f in found_indices])
@@ -166,6 +188,21 @@ class LegacyMetric(BaseMetric):
         return "\n".join(report)
 
 
+class _Metric:
+    def __init__(self, value):
+        self._value: float = value
+        self.is_default = True
+
+    @property
+    def value(self) -> float:
+        return self._value
+
+    @value.setter
+    def value(self, _value: float):
+        self._value = _value
+        self.is_default = False
+
+
 class MultiModalFloatMetric(BaseMetric):
     """Combination of absolute, relative & ULP comparison for floats
 
@@ -174,19 +211,22 @@ class MultiModalFloatMetric(BaseMetric):
     floating errors.
 
     ULP is used to clear noise (ULP<=1.0 passes)
-    Absolute errors for large amplitute
+    Absolute errors for large amplitude
     """
 
-    _f32_absolute_eps = 1e-10
-    _f64_absolute_eps = 1e-13
-    relative_fraction = 0.000001  # 0.0001%
-    ulp_threshold = 1.0
+    _f32_absolute_eps = _Metric(1e-10)
+    _f64_absolute_eps = _Metric(1e-13)
+    relative_fraction = _Metric(0.000001)  # 0.0001%
+    ulp_threshold = _Metric(1.0)
 
     def __init__(
         self,
         reference_values: np.ndarray,
         computed_values: np.ndarray,
-        eps: float,
+        absolute_eps_override: float = -1,
+        relative_fraction_override: float = -1,
+        ulp_override: float = -1,
+        sort_report: str = "ulp",
         **kwargs,
     ):
         super().__init__(reference_values, computed_values)
@@ -197,13 +237,22 @@ class MultiModalFloatMetric(BaseMetric):
         self.ulp_distance = np.empty_like(self.references)
         self.ulp_distance_metric = np.empty_like(self.references, dtype=np.bool_)
 
-        if self.references.dtype is (np.float32, np.int32):
-            self.absolute_eps = max(eps, self._f32_absolute_eps)
+        if self.references.dtype in [np.float32, np.int32]:
+            self.absolute_eps = _Metric(self._f32_absolute_eps.value)
         else:
-            self.absolute_eps = max(eps, self._f64_absolute_eps)
+            self.absolute_eps = _Metric(self._f64_absolute_eps.value)
+
+        # Assign overrides if needed
+        if absolute_eps_override > self.absolute_eps.value:
+            self.absolute_eps.value = absolute_eps_override
+        if relative_fraction_override > self.relative_fraction.value:
+            self.relative_fraction.value = relative_fraction_override
+        if ulp_override > self.ulp_threshold.value:
+            self.ulp_threshold.value = ulp_override
 
         self.success = self._compute_all_metrics()
         self.check = np.all(self.success)
+        self.sort_report = sort_report
 
     def _compute_all_metrics(
         self,
@@ -214,65 +263,113 @@ class MultiModalFloatMetric(BaseMetric):
             )
             # Absolute distance
             self.absolute_distance = np.absolute(self.computed - self.references)
-            self.absolute_distance_metric = self.absolute_distance < self.absolute_eps
+            self.absolute_distance_metric = (
+                self.absolute_distance < self.absolute_eps.value
+            )
             # Relative distance (in pct)
             self.relative_distance = np.divide(self.absolute_distance, max_values)
             self.relative_distance_metric = (
-                self.absolute_distance < self.relative_fraction * max_values
+                self.absolute_distance < self.relative_fraction.value * max_values
             )
             # ULP distance
             self.ulp_distance = np.divide(
                 self.absolute_distance, np.spacing(max_values)
             )
-            self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold
+            self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold.value
 
-            # Combine all distances into sucess or failure
-            # Success = no NANs & ( abs or rel or ulp )
-            naninf_success = not np.logical_and(
+            # Combine all distances into success or failure
+            # Success =
+            # - no unexpected NANs (e.g. NaN in the ref MUST BE in computation) OR
+            # - absolute distance pass OR
+            # - relative distance pass OR
+            # - ulp distance pass
+            naninf_success = np.logical_and(
                 np.isnan(self.computed), np.isnan(self.references)
-            ).all()
+            )
             metric_success = np.logical_or(
                 self.relative_distance_metric, self.absolute_distance_metric
             )
             metric_success = np.logical_or(metric_success, self.ulp_distance_metric)
-            success = np.logical_and(naninf_success, metric_success)
+            success = np.logical_or(naninf_success, metric_success)
             return success
         elif self.references.dtype in (np.bool_, bool):
             success = np.logical_xor(self.computed, self.references)
             return success
         else:
             raise TypeError(
-                f"recieved data with unexpected dtype {self.references.dtype}"
+                f"received data with unexpected dtype {self.references.dtype}"
             )
+
+    def _has_override(self) -> bool:
+        return (
+            not self.relative_fraction.is_default
+            or not self.absolute_eps.is_default
+            or not self.ulp_threshold.is_default
+        )
+
+    def one_line_report(self) -> str:
+        metric_thresholds = f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
+        metric_thresholds += f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+        metric_thresholds += f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})"
+        if self.check and self._has_override():
+            return f"🔶 No numerical differences with threshold override - metric: {metric_thresholds}"
+        elif self.check:
+            return f"✅ No numerical differences - metric: {metric_thresholds}"
+        else:
+            failed_indices = len(np.logical_not(self.success).nonzero()[0])
+            all_indices = len(self.references.flatten())
+            return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
     def report(self, file_path: Optional[str] = None) -> List[str]:
         report = []
-        if self.check:
-            report.append("✅ No numerical differences")
+        report.append(self.one_line_report())
+        failed_indices = np.logical_not(self.success).nonzero()
+        # List all errors to terminal and file
+        bad_indices_count = len(failed_indices[0])
+        full_count = len(self.references.flatten())
+        failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
+        report = [
+            f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
+            f"Index   Computed   Reference   "
+            f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
+            f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
+            f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})",
+        ]
+        # Summary and worst result
+        if self.sort_report == "ulp":
+            indices_flatten = np.argsort(self.ulp_distance.flatten())
+        elif self.sort_report == "absolute":
+            indices_flatten = np.argsort(self.absolute_distance.flatten())
+        elif self.sort_report == "relative":
+            indices_flatten = np.argsort(self.relative_distance.flatten())
+        elif self.sort_report == "index":
+            indices_flatten = list(range(self.ulp_distance.size - 1, -1, -1))
         else:
-            report.append("❌ Numerical failures")
-
-            found_indices = np.logical_not(self.success).nonzero()
-            # List all errors to terminal and file
-            bad_indices_count = len(found_indices[0])
-            full_count = len(self.references.flatten())
-            failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
-            report = [
-                f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
-                f"Index   Computed   Reference   "
-                f"Absolute E(<{self.absolute_eps:.2e})  "
-                f"Relative E(<{self.relative_fraction * 100:.2e}%)   "
-                f"ULP E(<{self.ulp_threshold})",
-            ]
-            # Summary and worst result
-            for iBad in range(bad_indices_count):
-                fi = tuple([f[iBad] for f in found_indices])
-                report.append(
-                    f"{str(fi)}  {self.computed[fi]:.16e}  {self.references[fi]:.16e}  "
-                    f"{self.absolute_distance[fi]:.2e} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
-                    f"{self.relative_distance[fi] * 100:.2e} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
-                    f"{int(self.ulp_distance[fi]):02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
-                )
+            RuntimeError(
+                f"[Translate test] Unknown {self.sort_report} report sorting option."
+            )
+        for iFlat in indices_flatten[::-1]:
+            fi = np.unravel_index(iFlat, shape=self.ulp_distance.shape)
+            if np.isnan(self.computed[fi]) and np.isnan(self.references[fi]):
+                continue
+            ulp_dist = (
+                self.ulp_distance[fi]
+                if np.isnan(self.ulp_distance[fi])
+                else int(self.ulp_distance[fi])
+            )
+            index_as_string = "("
+            for i in fi:
+                index_as_string += f"{i:02},"
+            index_as_string = index_as_string[:-1]
+            index_as_string += ")"
+            report.append(
+                f"{index_as_string}  "
+                f"{_fixed_width_float_16e(self.computed[fi])}  "
+                f"{_fixed_width_float_16e(self.references[fi])}  "
+                f"{_fixed_width_float_2e(self.absolute_distance[fi])} {'✅' if self.absolute_distance_metric[fi] else '❌'}  "
+                f"{_fixed_width_float_2e(self.relative_distance[fi] * 100)} {'✅' if self.relative_distance_metric[fi] else '❌'}  "
+                f"{ulp_dist:02} {'✅' if self.ulp_distance_metric[fi] else '❌'}  "
+            )
 
         if file_path:
             with open(file_path, "w") as fd:

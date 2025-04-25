@@ -5,7 +5,7 @@ from typing import Any, BinaryIO, List, Optional, TypeVar
 
 import numpy as np
 
-from ndsl.comm.comm_abc import Comm, Request
+from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
 
 T = TypeVar("T")
@@ -147,8 +147,11 @@ class CachingCommReader(Comm):
         new_data = self._data.get_split()
         return CachingCommReader(data=new_data)
 
-    def allreduce(self, sendobj, op=None) -> Any:
+    def allreduce(self, sendobj, op: Optional[ReductionOperator] = None) -> Any:
         return self._data.get_generic_obj()
+
+    def Allreduce(self, sendobj, recvobj, op: ReductionOperator) -> Any:
+        raise NotImplementedError("CachingCommReader.Allreduce")
 
     @classmethod
     def load(cls, file: BinaryIO) -> "CachingCommReader":
@@ -229,7 +232,10 @@ class CachingCommWriter(Comm):
     def dump(self, file: BinaryIO):
         self._data.dump(file)
 
-    def allreduce(self, sendobj, op=None) -> Any:
+    def allreduce(self, sendobj, op: Optional[ReductionOperator] = None) -> Any:
         result = self._comm.allreduce(sendobj, op)
         self._data.generic_obj_buffers.append(copy.deepcopy(result))
         return result
+
+    def Allreduce(self, sendobj, recvobj, op: ReductionOperator) -> Any:
+        raise NotImplementedError("CachingCommWriter.Allreduce")

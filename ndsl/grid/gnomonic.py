@@ -595,8 +595,8 @@ def get_rectangle_area(p1, p2, p3, p4, radius, np):
     counterclockwise order, return an array of spherical rectangle areas.
     NOTE, this is not the exact same order of operations as the Fortran code
     This results in some errors in the last digit, but the spherical_angle
-    is an exact match. The errors in the last digit multipled out by the radius
-    end up causing relative errors larger than 1e-14, but still wtihin 1e-12.
+    is an exact match. The errors in the last digit multiplied out by the radius
+    end up causing relative errors larger than 1e-14, but still within 1e-12.
     """
     total_angle = spherical_angle(p2, p3, p1, np)
     for (
@@ -702,7 +702,7 @@ def spherical_cos(p_center, p2, p3, np):
 
 def get_unit_vector_direction(p1, p2, np):
     """
-    Returms the unit vector pointing from a set of lonlat points p1 to lonlat points p2
+    Returns the unit vector pointing from a set of lonlat points p1 to lonlat points p2
     """
     xyz1 = lon_lat_to_xyz(p1[:, :, 0], p1[:, :, 1], np)
     xyz2 = lon_lat_to_xyz(p2[:, :, 0], p2[:, :, 1], np)

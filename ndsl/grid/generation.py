@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
+from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import (
     N_HALO_DEFAULT,
@@ -297,7 +298,7 @@ class MetricTerms:
         self._dy_center = None
         self._area = None
         self._area_c = None
-        if eta_file is not None:
+        if eta_file is not None or ak is not None or bk is not None:
             (
                 self._ks,
                 self._ptop,
@@ -686,7 +687,7 @@ class MetricTerms:
     @property
     def ec1(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
+        cartesian components of the local unit vector
         in the x-direction at the cell centers
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
@@ -697,8 +698,8 @@ class MetricTerms:
     @property
     def ec2(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the y-direation at the cell centers
+        cartesian components of the local unit vector
+        in the y-direction at the cell centers
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
         if self._ec2 is None:
@@ -708,8 +709,8 @@ class MetricTerms:
     @property
     def ew1(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the x-direation at the left/right cell edges
+        cartesian components of the local unit vector
+        in the x-direction at the left/right cell edges
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
         if self._ew1 is None:
@@ -719,8 +720,8 @@ class MetricTerms:
     @property
     def ew2(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the y-direation at the left/right cell edges
+        cartesian components of the local unit vector
+        in the y-direction at the left/right cell edges
         3d array whose last dimension is length 3 and indicates cartesian x/y/z value
         """
         if self._ew2 is None:
@@ -3330,12 +3331,12 @@ class MetricTerms:
             self._np,
         )
 
-        edge_w = quantity_cast_to_model_float(self.quantity_factory, edge_w_64)
-        edge_e = quantity_cast_to_model_float(self.quantity_factory, edge_e_64)
-        edge_s = quantity_cast_to_model_float(self.quantity_factory, edge_s_64)
-        edge_n = quantity_cast_to_model_float(self.quantity_factory, edge_n_64)
-
-        return edge_w, edge_e, edge_s, edge_n
+        return (
+            edge_w_64,
+            edge_e_64,
+            edge_s_64,
+            edge_n_64,
+        )
 
     def _calculate_edge_a2c_vect_factors(self):
         edge_vect_s_64 = self.quantity_factory.zeros(
@@ -3428,7 +3429,11 @@ class MetricTerms:
         max_area = self._np.max(self.area.data[3:-4, 3:-4])[()]
         min_area_c = self._np.min(self.area_c.data[3:-4, 3:-4])[()]
         max_area_c = self._np.max(self.area_c.data[3:-4, 3:-4])[()]
-        self._da_min = float(self._comm.comm.allreduce(min_area, min))
-        self._da_max = float(self._comm.comm.allreduce(max_area, max))
-        self._da_min_c = float(self._comm.comm.allreduce(min_area_c, min))
-        self._da_max_c = float(self._comm.comm.allreduce(max_area_c, max))
+        self._da_min = float(self._comm.comm.allreduce(min_area, ReductionOperator.MIN))
+        self._da_max = float(self._comm.comm.allreduce(max_area, ReductionOperator.MAX))
+        self._da_min_c = float(
+            self._comm.comm.allreduce(min_area_c, ReductionOperator.MIN)
+        )
+        self._da_max_c = float(
+            self._comm.comm.allreduce(max_area_c, ReductionOperator.MAX)
+        )

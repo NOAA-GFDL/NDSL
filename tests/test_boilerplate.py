@@ -35,10 +35,10 @@ def test_boilerplate_import_numpy():
 
     Dev Note: the import inside the function are part of the test.
     """
-    from ndsl.boilerplate import get_factories_single_tile_numpy
+    from ndsl.boilerplate import get_factories_single_tile
 
     # Boilerplate
-    stencil_factory, quantity_factory = get_factories_single_tile_numpy(
+    stencil_factory, quantity_factory = get_factories_single_tile(
         nx=5, ny=5, nz=2, nhalo=1
     )
 
@@ -50,10 +50,10 @@ def test_boilerplate_import_orchestrated_cpu():
 
     Dev Note: the import inside the function are part of the test.
     """
-    from ndsl.boilerplate import get_factories_single_tile_orchestrated_cpu
+    from ndsl.boilerplate import get_factories_single_tile_orchestrated
 
     # Boilerplate
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated_cpu(
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         nx=5, ny=5, nz=2, nhalo=1
     )
 
