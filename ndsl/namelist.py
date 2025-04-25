@@ -127,7 +127,7 @@ class NamelistDefaults:
     rlmx = 300.0  # upper-limiter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
     cap_k0_land = False  # flag for applying limiter on background diff in inversion layer over land in satmedmfdiff
-    sw_dynamics = False # flag for turning on shallow water conditions in the dynamical core
+    sw_dynamics = False  # flag for turning on shallow water conditions in dyn core
 
     @classmethod
     def as_dict(cls):
