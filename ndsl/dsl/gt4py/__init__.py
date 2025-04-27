@@ -11,6 +11,7 @@ from gt4py.cartesian.gtscript import (
     BACKWARD,
     cbrt,
     ceil,
+    compile_assert,
     computation,
     cos,
     cosh,
