@@ -68,9 +68,7 @@ def average_in(
     """
     Averages every element of q_out
     with every element of the adjustment
-    field over the interval, replacing
-    the elements of q_out by the result
-    of the averaging
+    field, overwriting q_out.
 
     Args:
         adjustment: adjustment field

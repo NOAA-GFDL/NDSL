@@ -158,9 +158,9 @@ else:
     raise RuntimeError("Constant selector failed, bad code.")
 
 SECONDS_PER_DAY = Float(86400.0)
-SBC = 5.670400e-8
+SBC = Float(5.670400e-8)
 """Stefan-Boltzmann constant (W/m^2/K^4)"""
-RHO_H2O = 1000.
+RHO_H2O = Float(1000.)
 """Density of water in kg/m^3"""
 CV_AIR = CP_AIR - RDGAS
 """Heat capacity of dry air at constant volume"""
