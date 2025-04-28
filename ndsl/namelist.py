@@ -492,6 +492,7 @@ class Namelist:
     fv_sg_adj: int = NamelistDefaults.fv_sg_adj
     n_sponge: int = NamelistDefaults.n_sponge
     daily_mean: bool = False
+    sw_dynamics: bool = NamelistDefaults.sw_dynamics
     """Flag to replace cosz with daily mean value in physics"""
 
     @classmethod
