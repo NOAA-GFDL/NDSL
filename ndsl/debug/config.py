@@ -1,3 +1,25 @@
+"""
+This module provides configuration for the global debugger `ndsl_debugger`
+
+When loading, the configuration will be searched in the global environment variable
+`NDSL_DEBUG_CONFIG`
+
+Configuration is a yaml file of the shape
+```yaml
+mode: Runtime
+stencils_or_class:
+  - copy_corners_x_nord
+  - copy_corners_y_nord
+  - DGridShallowWaterLagrangianDynamics.__call__
+track_parameter_by_name:
+  - fy
+```
+
+Global variable:
+    ndsl_debugger: Debugger accessible throughout the middleware, default to `None`
+        if there is no configuration
+"""
+
 import os
 
 import yaml
