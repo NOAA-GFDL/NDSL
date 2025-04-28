@@ -27,14 +27,13 @@ def tridiag_solve(
     ! # 0  , . . . , 0 ,   0   ,   0   ,  a(k) ,  b(k) # #x(k-1)#   #d(k-1)#!
     ! ###                                            ### ###  ###   ###  ###!
 
-    Inputs:
-        a: lower-diagonal matrix coefficients
-        b: diagonal matrix coefficients
-        c: upper-diagonal matrix coefficients
-        d: Result vector
-    Outputs:
-        x: The vector to solve for
-        delta: d post-pivot
+    Args:
+        a (in): lower-diagonal matrix coefficients
+        b (in): diagonal matrix coefficients
+        c (in): upper-diagonal matrix coefficients
+        d (in): Result vector
+        x (out): The vector to solve for
+        delta (out): d post-pivot
     """
     with computation(FORWARD):  # Forward sweep
         with interval(0, 1):
@@ -59,17 +58,16 @@ def masked_tridiag_solve(
     mask: BoolFieldIJ,
 ):
     """
-    Same as above but restricted to a subset of horizontal points
+    Same as tridiag_solve but restricted to a subset of horizontal points
 
-    Inputs:
-        a: lower-diagonal matrix coefficients
-        b: diagonal matrix coefficients
-        c: upper-diagonal matrix coefficients
-        d: Result vector
-        mask: 
-    Outputs:
-        x: The vector to solve for
-        delta: d post-pivot
+    Args:
+        a (in): lower-diagonal matrix coefficients
+        b (in): diagonal matrix coefficients
+        c (in): upper-diagonal matrix coefficients
+        d (in): Result vector
+        mask (in): Columns to execute the stencil on
+        x (out): The vector to solve for
+        delta (out): d post-pivot
     """
     with computation(FORWARD):  # Forward sweep
         with interval(0, 1):
