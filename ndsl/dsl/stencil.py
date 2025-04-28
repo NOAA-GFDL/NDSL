@@ -296,6 +296,7 @@ class FrozenStencil(SDFGConvertible):
             externals = {}
         self.externals = externals
         self._func_name = func.__name__
+        self._func_qualname = func.__qualname__
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
@@ -399,8 +400,8 @@ class FrozenStencil(SDFGConvertible):
         # Debugger actions if turned on
         if ndsl_debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_name, is_in=True)
-            ndsl_debugger.track_data(all_args, self._func_name, is_in=True)
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
         if self.stencil_config.compilation_config.validate_args:
@@ -427,9 +428,9 @@ class FrozenStencil(SDFGConvertible):
         # Debugger actions if turned on
         if ndsl_debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_name, is_in=False)
-            ndsl_debugger.track_data(all_args, self._func_name, is_in=False)
-            ndsl_debugger.increment_call_count(self._func_name)
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.increment_call_count(self._func_qualname)
 
         # Ranks comparison tool
         if self.comm is not None:
