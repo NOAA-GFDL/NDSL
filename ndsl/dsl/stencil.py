@@ -28,6 +28,7 @@ from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
 from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
@@ -35,7 +36,6 @@ from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.testing.comparison import LegacyMetric
-from ndsl.debug import ndsl_debugger
 
 
 try:
@@ -313,9 +313,9 @@ class FrozenStencil(SDFGConvertible):
                 ),
             )
 
-        assert len(self._argument_names) > 0, (
-            "A stencil with no arguments? You may be double decorating"
-        )
+        assert (
+            len(self._argument_names) > 0
+        ), "A stencil with no arguments? You may be double decorating"
 
         # Keep compilation at __init__ if we are not orchestrated.
         # If we orchestrate, move the compilation at call time to make sure
@@ -353,14 +353,14 @@ class FrozenStencil(SDFGConvertible):
             ):
                 unblock_waiting_tiles(MPI.COMM_WORLD)
 
-        self._timing_collector.build_info[_stencil_object_name(self.stencil_object)] = (
-            build_info
-        )
+        self._timing_collector.build_info[
+            _stencil_object_name(self.stencil_object)
+        ] = build_info
         field_info = self.stencil_object.field_info
 
-        self._field_origins: Dict[str, Tuple[int, ...]] = (
-            FrozenStencil._compute_field_origins(field_info, self.origin)
-        )
+        self._field_origins: Dict[
+            str, Tuple[int, ...]
+        ] = FrozenStencil._compute_field_origins(field_info, self.origin)
         """mapping from field names to field origins"""
 
         self._stencil_run_kwargs: Dict[str, Any] = {

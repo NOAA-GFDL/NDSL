@@ -1,7 +1,8 @@
-from typing import Any, Callable
-from ndsl.debug.config import ndsl_debugger
 import inspect
 from functools import wraps
+from typing import Any, Callable
+
+from ndsl.debug.config import ndsl_debugger
 
 
 def instrument(func) -> Callable:

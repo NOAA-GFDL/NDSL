@@ -1,7 +1,9 @@
-import os
-import xarray as xr
-from ndsl.debug.mode import DebugMode
 import dataclasses
+import os
+
+import xarray as xr
+
+from ndsl.debug.mode import DebugMode
 from ndsl.quantity import Quantity
 
 
