@@ -1,6 +1,7 @@
 from gt4py.cartesian.gtscript import BACKWARD, FORWARD, computation, interval
 
-from ndsl.dsl.typing import FloatField, BoolFieldIJ
+from ndsl.dsl.typing import BoolFieldIJ, FloatField
+
 
 def tridiag_solve(
     a: FloatField,
@@ -47,6 +48,7 @@ def tridiag_solve(
             x = delta
         with interval(0, -1):
             x = delta - x * x[0, 0, 1]
+
 
 def masked_tridiag_solve(
     a: FloatField,

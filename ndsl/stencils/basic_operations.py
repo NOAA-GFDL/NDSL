@@ -77,6 +77,7 @@ def average_in(
     with computation(PARALLEL), interval(...):
         q_out = (q_out + adjustement) * 0.5
 
+
 @gtscript.function
 def sign(a, b):
     """
