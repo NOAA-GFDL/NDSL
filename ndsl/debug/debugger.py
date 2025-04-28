@@ -23,13 +23,14 @@ class Debugger:
 
     def _to_xarray(self, data) -> xr.DataArray:
         if isinstance(data, Quantity):
-            return xr.DataArray(data.data)
+            mem = data.data
+            shp = data.data.shape
         elif not hasattr(data, "shape"):
             return xr.DataArray(data)
         else:
-            return xr.DataArray(
-                data, dims=[f"dim_{i}_{s}" for i, s in enumerate(data.shape)]
-            )
+            mem = data
+            shp = data.shape
+        return xr.DataArray(mem, dims=[f"dim_{i}_{s}" for i, s in enumerate(shp)])
 
     def track_data(self, data_as_dict, source_as_name, is_in) -> None:
         for name, data in data_as_dict.items():
