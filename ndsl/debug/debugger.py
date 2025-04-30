@@ -17,6 +17,7 @@ class Debugger:
     mode: DebugMode = DebugMode.NDebug
     stencils_or_class: list[str] = dataclasses.field(default_factory=list)
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
+    save_compute_domain_only: bool = False
     dir_name: str = "./"
 
     # Runtime data
@@ -26,8 +27,12 @@ class Debugger:
 
     def _to_xarray(self, data, name) -> xr.DataArray:
         if isinstance(data, Quantity):
-            mem = data.data
-            shp = data.data.shape
+            if self.save_compute_domain_only:
+                mem = data.view[:]
+                shp = data.view[:].shape
+            else:
+                mem = data.data
+                shp = data.shape
         elif hasattr(data, "shape"):
             mem = data
             shp = data.shape
