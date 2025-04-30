@@ -302,10 +302,8 @@ def _pcolormesh_cube_all_handles(
 ):
     if lat.shape != lon.shape:
         raise ValueError("lat and lon should have the same shape")
-    print("ONE", type(ax))
     if ax is None:
         ax = plt.gca()
-    print("TWO", type(ax))
     central_longitude = ax.projection.proj4_params["lon_0"]
     array = np.where(
         _mask_antimeridian_quads(lon.T, central_longitude), array.T, np.nan
