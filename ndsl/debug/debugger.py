@@ -5,6 +5,7 @@ import xarray as xr
 
 from ndsl.debug.mode import DebugMode
 from ndsl.quantity import Quantity
+from ndsl.logging import ndsl_log
 
 
 @dataclasses.dataclass
@@ -23,15 +24,21 @@ class Debugger:
     calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
     track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
 
-    def _to_xarray(self, data) -> xr.DataArray:
+    def _to_xarray(self, data, name) -> xr.DataArray:
         if isinstance(data, Quantity):
             mem = data.data
             shp = data.data.shape
-        elif not hasattr(data, "shape"):
-            return xr.DataArray(data)
-        else:
+        elif hasattr(data, "shape"):
             mem = data
             shp = data.shape
+        else:
+            # Global catch-all attempt
+            try:
+                d = xr.DataArray(data)
+            except ValueError as e:
+                ndsl_log.error(f"[DebugInfo] Failure to save {name}: {e}")
+                return xr.DataArray([0])
+            return d
         return xr.DataArray(mem, dims=[f"dim_{i}_{s}" for i, s in enumerate(shp)])
 
     def track_data(self, data_as_dict, source_as_name, is_in) -> None:
@@ -49,7 +56,7 @@ class Debugger:
                 f"{path}/{count}_{name}_{source_as_name}-{'In' if is_in else 'Out'}.nc4"
             )
             try:
-                self._to_xarray(data).to_netcdf(path)
+                self._to_xarray(data, name).to_netcdf(path)
             except ValueError as e:
                 from ndsl import ndsl_log
 
@@ -67,7 +74,7 @@ class Debugger:
 
         data_arrays = {}
         for name, data in data_as_dict.items():
-            data_arrays[name] = self._to_xarray(data)
+            data_arrays[name] = self._to_xarray(data, name)
 
         call_count = (
             self.calls_count[savename] if savename in self.calls_count.keys() else 0
@@ -78,8 +85,6 @@ class Debugger:
         try:
             xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
-            from ndsl import ndsl_log
-
             ndsl_log.error(f"[DebugInfo] Failure to save {savename}: {e}")
 
     def increment_call_count(self, savename: str):
