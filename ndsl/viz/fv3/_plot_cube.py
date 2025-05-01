@@ -15,7 +15,7 @@ from ._plot_helpers import (
     _align_plot_var_dims,
 )
 from ._masking import _mask_antimeridian_quads
-from ..vcm.cubedsphere.grid_metadata import (
+from .grid_metadata import (
     GridMetadata,
     GridMetadataFV3,
     GridMetadataScream,
