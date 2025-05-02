@@ -8,7 +8,7 @@ from matplotlib.axes import Axes
 
 
 def plot_daily_and_hourly_hist(
-    time_list: Sequence[Union[datetime.datetime, np.datetime64]]
+    time_list: Sequence[Union[datetime.datetime, np.datetime64]],
 ) -> plt.figure:
     """Given a sequence of datetimes (anything that can be handled by pandas) create
     and return 2-subplot figure with histograms of daily and hourly counts."""
@@ -24,7 +24,7 @@ def plot_daily_hist(ax: Axes, time_list: Sequence[datetime.datetime]):
     """Given list of datetimes, plot histogram of count per calendar day on ax"""
     ser = pd.Series(time_list)
     groupby_list = [ser.dt.year, ser.dt.month, ser.dt.day]
-    ser.groupby(groupby_list).count().plot(ax=ax, kind="bar", title=f"Daily count")
+    ser.groupby(groupby_list).count().plot(ax=ax, kind="bar", title="Daily count")
     ax.set_ylabel("Count")
 
 

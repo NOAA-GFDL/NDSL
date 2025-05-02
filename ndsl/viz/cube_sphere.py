@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 
 from ndsl import Quantity, ndsl_log
 from ndsl.comm.communicator import Communicator
-from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM
 from ndsl.grid import GridData
 from ndsl.viz.fv3 import pcolormesh_cube
 
