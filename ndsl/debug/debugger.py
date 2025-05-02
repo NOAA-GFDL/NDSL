@@ -1,13 +1,13 @@
 import dataclasses
+import numbers
 import os
 
+import pandas as pd
 import xarray as xr
 
 from ndsl.debug.mode import DebugMode
-from ndsl.quantity import Quantity
 from ndsl.logging import ndsl_log
-import pandas as pd
-import numbers
+from ndsl.quantity import Quantity
 
 
 @dataclasses.dataclass

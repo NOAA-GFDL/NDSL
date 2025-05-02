@@ -1,11 +1,12 @@
-import dataclasses
 import abc
+import dataclasses
 
 
 class GridMetadata(abc.ABC):
     @property
     @abc.abstractmethod
-    def coord_vars(self) -> dict: ...
+    def coord_vars(self) -> dict:
+        ...
 
 
 @dataclasses.dataclass

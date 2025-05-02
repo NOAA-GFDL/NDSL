@@ -1,35 +1,34 @@
-from ._constants import (
-    COORD_X_CENTER,
-    COORD_Y_CENTER,
-    COORD_X_OUTER,
-    COORD_Y_OUTER,
-    VAR_LON_CENTER,
-    VAR_LAT_CENTER,
-    VAR_LON_OUTER,
-    VAR_LAT_OUTER,
-)
-from ._plot_helpers import (
-    infer_cmap_params,
-    _get_var_label,
-    _align_grid_var_dims,
-    _align_plot_var_dims,
-)
-from ._masking import _mask_antimeridian_quads
-from .grid_metadata import (
-    GridMetadata,
-    GridMetadataFV3,
-    GridMetadataScream,
-)
-import xarray as xr
-import numpy as np
-from matplotlib import pyplot as plt
+import os
 import warnings
 from functools import partial
-import os
+
+import numpy as np
+import xarray as xr
+from matplotlib import pyplot as plt
+
+from ._constants import (
+    COORD_X_CENTER,
+    COORD_X_OUTER,
+    COORD_Y_CENTER,
+    COORD_Y_OUTER,
+    VAR_LAT_CENTER,
+    VAR_LAT_OUTER,
+    VAR_LON_CENTER,
+    VAR_LON_OUTER,
+)
+from ._masking import _mask_antimeridian_quads
+from ._plot_helpers import (
+    _align_grid_var_dims,
+    _align_plot_var_dims,
+    _get_var_label,
+    infer_cmap_params,
+)
+from .grid_metadata import GridMetadata, GridMetadataFV3, GridMetadataScream
+
 
 try:
-    from cartopy import crs as ccrs
     import cartopy
+    from cartopy import crs as ccrs
 except ImportError:
     pass
 

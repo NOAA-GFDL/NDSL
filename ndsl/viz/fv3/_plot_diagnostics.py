@@ -8,13 +8,15 @@ fv3viz such as plot_cube.
 
 
 """
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-from scipy.stats import binned_statistic
 import xarray as xr
+from scipy.stats import binned_statistic
 
-from ._constants import INIT_TIME_DIM, COORD_X_CENTER, COORD_Y_CENTER
+from ._constants import COORD_X_CENTER, COORD_Y_CENTER, INIT_TIME_DIM
+
 
 STACK_DIMS = ["tile", INIT_TIME_DIM, COORD_X_CENTER, COORD_Y_CENTER]
 
@@ -87,7 +89,7 @@ def plot_time_series(
     ylabel=None,
     title=None,
 ):
-    """ Plot one or more variables as a time series.
+    """Plot one or more variables as a time series.
 
     Args:
         ds (xr.dataset):

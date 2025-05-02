@@ -1,11 +1,12 @@
-from matplotlib import pyplot as plt
-from cartopy import crs as ccrs
-from ndsl import Quantity, ndsl_log
-from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM
-from ndsl.comm.communicator import Communicator
-from ndsl.viz.fv3 import pcolormesh_cube
-from ndsl.grid import GridData
 import numpy as np
+from cartopy import crs as ccrs
+from matplotlib import pyplot as plt
+
+from ndsl import Quantity, ndsl_log
+from ndsl.comm.communicator import Communicator
+from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM
+from ndsl.grid import GridData
+from ndsl.viz.fv3 import pcolormesh_cube
 
 
 def plot_cube_sphere(

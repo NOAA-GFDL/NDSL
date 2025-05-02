@@ -2,7 +2,7 @@ import numpy as np
 
 
 def _mask_antimeridian_quads(lonb: np.ndarray, central_longitude: float):
-    """ Computes mask of cubed-sphere tile grid quadrilaterals bisected by a
+    """Computes mask of cubed-sphere tile grid quadrilaterals bisected by a
     projection system's antimeridian, in order to avoid cartopy plotting
     artifacts
 
@@ -47,7 +47,7 @@ def _mask_antimeridian_quads(lonb: np.ndarray, central_longitude: float):
 
 
 def _periodic_equal_or_less_than(x1, x2, period=360.0):
-    """ Compute whether x1 is less than or equal to x2, where
+    """Compute whether x1 is less than or equal to x2, where
     the difference between the two is the shortest distance on a periodic domain
 
     Args:
@@ -72,7 +72,7 @@ def _periodic_equal_or_less_than(x1, x2, period=360.0):
 
 
 def _periodic_greater_than(x1, x2, period=360.0):
-    """ Compute whether x1 is greater than x2, where
+    """Compute whether x1 is greater than x2, where
     the difference between the two is the shortest distance on a periodic domain
 
     Args:
@@ -97,7 +97,7 @@ def _periodic_greater_than(x1, x2, period=360.0):
 
 
 def _periodic_difference(x1, x2, period=360.0):
-    """ Compute difference between x1 and x2, where
+    """Compute difference between x1 and x2, where
     the difference is the shortest distance on a periodic domain
 
     Args:

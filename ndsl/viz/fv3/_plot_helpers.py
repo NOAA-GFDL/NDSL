@@ -1,7 +1,7 @@
+import textwrap
 from typing import Optional, Tuple
 
 import numpy as np
-import textwrap
 
 
 def _align_grid_var_dims(da, required_dims):
@@ -38,7 +38,7 @@ def _align_plot_var_dims(da, coord_y_center, coord_x_center):
 
 
 def _min_max_from_percentiles(x, min_percentile=2, max_percentile=98):
-    """ Use +/- small percentile to determine bounds for colorbar. Avoids the case
+    """Use +/- small percentile to determine bounds for colorbar. Avoids the case
     where an outlier in the data causes the color scale to be washed out.
 
     Args:
@@ -121,7 +121,7 @@ def _infer_color_limits(
 
 
 def _get_var_label(attrs: dict, var_name: str, max_line_length: int = 30):
-    """ Get the label for the variable on the colorbar
+    """Get the label for the variable on the colorbar
 
     Args:
         attrs (dict):
