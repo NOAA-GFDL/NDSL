@@ -26,9 +26,7 @@ def plot_cube_sphere(
     lon = comm.gather(grid_data.lon)
 
     if comm.rank == 0:
-        fig, ax = plt.subplots(
-            1, 1, subplot_kw={"projection": ccrs.LambertCylindrical()}
-        )
+        fig, ax = plt.subplots(1, 1, subplot_kw={"projection": ccrs.Robinson()})
         pcolormesh_cube(
             lat.view[:] * 180.0 / np.pi,
             lon.view[:] * 180.0 / np.pi,
