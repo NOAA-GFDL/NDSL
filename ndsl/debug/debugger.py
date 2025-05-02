@@ -6,6 +6,8 @@ import xarray as xr
 from ndsl.debug.mode import DebugMode
 from ndsl.quantity import Quantity
 from ndsl.logging import ndsl_log
+import pandas as pd
+import numbers
 
 
 @dataclasses.dataclass
@@ -36,14 +38,15 @@ class Debugger:
         elif hasattr(data, "shape"):
             mem = data
             shp = data.shape
+        elif (
+            pd.api.types.is_numeric_dtype(data)
+            or pd.api.types.is_string_dtype(data)
+            or isinstance(data, numbers.Number)
+        ):
+            return xr.DataArray(data)
         else:
-            # Global catch-all attempt
-            try:
-                d = xr.DataArray(data)
-            except ValueError as e:
-                ndsl_log.error(f"[DebugInfo] Failure to save {name}: {e}")
-                return xr.DataArray([0])
-            return d
+            ndsl_log.error(f"[Debugger] Cannot save data of type {type(data)}")
+            return xr.DataArray([0])
         return xr.DataArray(mem, dims=[f"dim_{i}_{s}" for i, s in enumerate(shp)])
 
     def track_data(self, data_as_dict, source_as_name, is_in) -> None:
@@ -65,7 +68,7 @@ class Debugger:
             except ValueError as e:
                 from ndsl import ndsl_log
 
-                ndsl_log.error(f"[DebugInfo] Failure to save {data}: {e}")
+                ndsl_log.error(f"[Debugger] Failure to save {data}: {e}")
 
             self.track_parameter_count[name] += 1
 
@@ -79,7 +82,13 @@ class Debugger:
 
         data_arrays = {}
         for name, data in data_as_dict.items():
-            data_arrays[name] = self._to_xarray(data, name)
+            if dataclasses.is_dataclass(data):
+                for field in dataclasses.fields(data):
+                    data_arrays[f"{name}.{field.name}"] = self._to_xarray(
+                        getattr(data, field.name), field.name
+                    )
+            else:
+                data_arrays[name] = self._to_xarray(data, name)
 
         call_count = (
             self.calls_count[savename] if savename in self.calls_count.keys() else 0
