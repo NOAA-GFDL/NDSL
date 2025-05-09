@@ -262,11 +262,11 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
 )
 @requires_xarray
 def test_to_data_array(quantity):
-    assert quantity.data_array.attrs == quantity.attrs
-    assert quantity.data_array.dims == quantity.dims
-    assert quantity.data_array.shape == quantity.extent
-    np.testing.assert_array_equal(quantity.data_array.values, quantity.view[:])
+    assert quantity.field_as_xarray.attrs == quantity.attrs
+    assert quantity.field_as_xarray.dims == quantity.dims
+    assert quantity.field_as_xarray.shape == quantity.extent
+    np.testing.assert_array_equal(quantity.field_as_xarray.values, quantity.view[:])
     if quantity.extent == quantity.data.shape:
-        assert (
-            quantity.data_array.data.ctypes.data == quantity.data.ctypes.data
-        ), "data memory address is not equal"
+        assert quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data, (
+            "data memory address is not equal"
+        )

@@ -22,7 +22,7 @@ FMS_TO_CFTIME_TYPE = {
 
 def to_xarray_dataset(state) -> xr.Dataset:
     data_vars = {
-        name: value.data_array for name, value in state.items() if name != "time"
+        name: value.data_as_xarray for name, value in state.items() if name != "time"
     }
     if "time" in state:
         data_vars["time"] = state["time"]
@@ -47,7 +47,7 @@ def _extract_time(value: xr.DataArray) -> cftime.datetime:
     """Extract time value from read-in state."""
     if value.ndim > 0:
         raise ValueError(
-            "State must be representative of a single scalar time. " f"Got {value}."
+            f"State must be representative of a single scalar time. Got {value}."
         )
     time = value.item()
     if not isinstance(time, cftime.datetime):
