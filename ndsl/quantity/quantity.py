@@ -240,6 +240,10 @@ class Quantity:
         return self._compute_domain_view
 
     @property
+    def field(self) -> np.ndarray | cupy.ndarray:
+        return self._compute_domain_view[:]
+
+    @property
     def data(self) -> Union[np.ndarray, cupy.ndarray]:
         """the underlying array of data"""
         return self._data
@@ -260,16 +264,14 @@ class Quantity:
         return self.metadata.extent
 
     @property
-    def data_array(self, full_data=False) -> xr.DataArray:
-        """Returns an Xarray.DataArray of the view (domain)
+    def field_as_xarray(self) -> xr.DataArray:
+        """Returns an Xarray.DataArray of the field (domain)"""
+        return xr.DataArray(self.field, dims=self.dims, attrs=self.attrs)
 
-        Args:
-            full_data: Return the entire data (halo included) instead of the view
-        """
-        if full_data:
-            return xr.DataArray(self.data[:], dims=self.dims, attrs=self.attrs)
-        else:
-            return xr.DataArray(self.view[:], dims=self.dims, attrs=self.attrs)
+    @property
+    def data_as_xarray(self) -> xr.DataArray:
+        """Returns an Xarray.DataArray of the underlying array"""
+        return xr.DataArray(self.data, dims=self.dims, attrs=self.attrs)
 
     @property
     def np(self) -> NumpyModule:
