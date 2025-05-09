@@ -153,9 +153,16 @@ class Quantity:
             gt4py_backend=gt4py_backend,
         )
 
-    def to_netcdf(self, path: str, name="var", rank: int = -1) -> None:
+    def to_netcdf(self, path: str, name="var", rank: int = -1, all_data=False) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
-            self.data_array.to_dataset(name=name).to_netcdf(f"{path}__r{rank}.nc4")
+            if all_data:
+                self.data_as_xarray.to_dataset(name=name).to_netcdf(
+                    f"{path}__r{rank}.nc4"
+                )
+            else:
+                self.field_as_xarray.to_dataset(name=name).to_netcdf(
+                    f"{path}__r{rank}.nc4"
+                )
 
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
         return QuantityHaloSpec(
