@@ -133,6 +133,7 @@ class NamelistDefaults:
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
     cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
     lsoil = 4  # Number of soil levels in land surface model
+    sw_dynamics = False  # flag for turning on shallow water conditions in dyn core
 
     @classmethod
     def as_dict(cls):
@@ -503,6 +504,7 @@ class Namelist:
     n_sponge: int = NamelistDefaults.n_sponge
     lsoil: int = NamelistDefaults.lsoil
     daily_mean: bool = False
+    sw_dynamics: bool = NamelistDefaults.sw_dynamics
     """Flag to replace cosz with daily mean value in physics"""
 
     @classmethod
