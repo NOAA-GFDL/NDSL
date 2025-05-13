@@ -111,6 +111,9 @@ class NamelistDefaults:
     tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
     alin = 842.0  # "a" in lin1983
     clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)
+    mom4ice = False
+    lsm = 1
+    redrag = False
     isatmedmf = 0  # which version of satmedmfvdif to use
     dspheat = False  # flag for tke dissipative heating
     xkzm_h = 1.0  # background vertical diffusion for heat q over ocean
@@ -119,6 +122,8 @@ class NamelistDefaults:
     xkzm_ml = 1.0  # background vertical diffusion for momentum over land
     xkzm_hi = 1.0  # background vertical diffusion for heat q over ice
     xkzm_mi = 1.0  # background vertical diffusion for momentum over ice
+    xkzm_ho = 1.0  # background vertical diffusion for heat q over ocean
+    xkzm_mo = 1.0  # background vertical diffusion for momentum over ocean
     xkzm_s = 1.0  # sigma threshold for background mom. diffusion
     xkzm_lim = 0.01  # background vertical diffusion limit
     xkzminv = 0.15  # diffusivity in inversion layers
@@ -126,7 +131,8 @@ class NamelistDefaults:
     rlmn = 30.0  # lower-limiter on asymtotic mixing length in satmedmfdiff
     rlmx = 300.0  # upper-limiter on asymtotic mixing length in satmedmfdiff
     do_dk_hb19 = False  # flag for using hb19 background diff formula in satmedmfdiff
-    cap_k0_land = False  # flag for applying limiter on background diff in inversion layer over land in satmedmfdiff
+    cap_k0_land = True  # flag for applying limter on background diff in inversion layer over land in satmedmfdiff
+    lsoil = 4  # Number of soil levels in land surface model
 
     @classmethod
     def as_dict(cls):
@@ -309,6 +315,9 @@ class Namelist:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
+    mom4ice: bool = NamelistDefaults.mom4ice
+    lsm: int = NamelistDefaults.lsm
+    redrag: bool = NamelistDefaults.redrag
     isatmedmf: int = NamelistDefaults.isatmedmf
     dspheat: bool = NamelistDefaults.dspheat
     xkzm_h: float = NamelistDefaults.xkzm_h
@@ -317,6 +326,8 @@ class Namelist:
     xkzm_ml: float = NamelistDefaults.xkzm_ml
     xkzm_hi: float = NamelistDefaults.xkzm_hi
     xkzm_mi: float = NamelistDefaults.xkzm_mi
+    xkzm_ho: float = NamelistDefaults.xkzm_ho
+    xkzm_mo: float = NamelistDefaults.xkzm_mo
     xkzm_s: float = NamelistDefaults.xkzm_s
     xkzm_lim: float = NamelistDefaults.xkzm_lim
     xkzminv: float = NamelistDefaults.xkzminv
@@ -490,6 +501,7 @@ class Namelist:
     nf_omega: int = NamelistDefaults.nf_omega
     fv_sg_adj: int = NamelistDefaults.fv_sg_adj
     n_sponge: int = NamelistDefaults.n_sponge
+    lsoil: int = NamelistDefaults.lsoil
     daily_mean: bool = False
     """Flag to replace cosz with daily mean value in physics"""
 
