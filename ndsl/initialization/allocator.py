@@ -112,6 +112,28 @@ class QuantityFactory:
         base.data[:] = base.np.asarray(data)
         return base
 
+    def from_compute_array(
+        self,
+        data: np.ndarray,
+        dims: Sequence[str],
+        units: str,
+        allow_mismatch_float_precision: bool = False,
+    ):
+        """
+        Create a Quantity from a numpy array.
+
+        That numpy array must correspond to the correct shape and extent
+        of the compute domain for the given dims.
+        """
+        base = self.zeros(
+            dims=dims,
+            units=units,
+            dtype=data.dtype,
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
+        )
+        base.view[:] = base.np.asarray(data)
+        return base
+
     def _allocate(
         self,
         allocator: Callable,

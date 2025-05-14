@@ -83,6 +83,23 @@ def select_k(
             out_field = in_field
 
 
+def average_in(
+    q_out: FloatField,
+    adjustement: FloatField,
+):
+    """
+    Averages every element of q_out
+    with every element of the adjustment
+    field, overwriting q_out.
+
+    Args:
+        adjustment: adjustment field
+        q_out: output field
+    """
+    with computation(PARALLEL), interval(...):
+        q_out = (q_out + adjustement) * 0.5
+
+
 @gtscript.function
 def sign(a, b):
     """

@@ -111,6 +111,9 @@ class NamelistDefaults:
     tice = 273.16  # set tice = 165. to turn off ice - phase phys (kessler emulator)
     alin = 842.0  # "a" in lin1983
     clin = 4.8  # "c" in lin 1983, 4.8 -- > 6. (to enhance ql -- > qs)
+    mom4ice = False
+    lsm = 1
+    redrag = False
     isatmedmf = 0  # which version of satmedmfvdif to use
     dspheat = False  # flag for tke dissipative heating
     xkzm_h = 1.0  # background vertical diffusion for heat q over ocean
@@ -135,6 +138,8 @@ class NamelistDefaults:
     clam_shal = 0.3  # conversion parameter of detrainment from liquid water into grid-scale cloud water
     pgcon_shal = 0.55  # control the reduction in momentum transport
     asolfac_shal = 0.89  # aerosol-aware parameter based on Lim & Hong (2012): asolfac= cx / c0s(=.002), cx = min([-0.7 ln(Nccn) + 24]*1.e-4, c0s), Nccn: CCN number concentration in cm^(-3), Until a realistic Nccn is provided, typical Nccns are assumed, as Nccn=100 for sea and Nccn=7000 for land
+    lsoil = 4  # Number of soil levels in land surface model
+    sw_dynamics = False  # flag for turning on shallow water conditions in dyn core
 
     @classmethod
     def as_dict(cls):
@@ -317,6 +322,9 @@ class Namelist:
     tice: float = NamelistDefaults.tice
     alin: float = NamelistDefaults.alin
     clin: float = NamelistDefaults.clin
+    mom4ice: bool = NamelistDefaults.mom4ice
+    lsm: int = NamelistDefaults.lsm
+    redrag: bool = NamelistDefaults.redrag
     isatmedmf: int = NamelistDefaults.isatmedmf
     dspheat: bool = NamelistDefaults.dspheat
     xkzm_h: float = NamelistDefaults.xkzm_h
@@ -503,7 +511,9 @@ class Namelist:
     nf_omega: int = NamelistDefaults.nf_omega
     fv_sg_adj: int = NamelistDefaults.fv_sg_adj
     n_sponge: int = NamelistDefaults.n_sponge
+    lsoil: int = NamelistDefaults.lsoil
     daily_mean: bool = False
+    sw_dynamics: bool = NamelistDefaults.sw_dynamics
     """Flag to replace cosz with daily mean value in physics"""
 
     @classmethod
