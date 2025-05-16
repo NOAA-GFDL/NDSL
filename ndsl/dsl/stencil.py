@@ -336,8 +336,8 @@ class FrozenStencil(SDFGConvertible):
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
 
-            # Field Bundle might have dropped a placeholder type that we know
-            # have to resolve to the proper type
+            # Field Bundle might have dropped a placeholder type that we now
+            # have to resolve to the proper type.
             for name, types in func.__annotations__.items():
                 if isinstance(types, MarkupFieldBundleType):
                     func.__annotations__[name] = FieldBundleType.T(
