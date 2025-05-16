@@ -78,6 +78,7 @@ def select_k(
         k_mask: a field that lists each k-index
         k_select: the k-value to extract from in_field
     """
+    # TODO: refactor this using THIS_K instead of a mask
     with computation(FORWARD), interval(...):
         if k_mask == k_select:
             out_field = in_field
