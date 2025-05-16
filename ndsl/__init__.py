@@ -28,7 +28,7 @@ from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
-from .quantity import Quantity
+from .quantity import FieldBundle, FieldBundleType, Quantity
 from .testing.dummy_comm import DummyComm
 from .types import Allocator
 from .utils import MetaEnumStr
