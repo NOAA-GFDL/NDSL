@@ -1,7 +1,7 @@
 import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
+from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval
 
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
 
 
 def copy_defn(q_in: FloatField, q_out: FloatField):
@@ -59,6 +59,29 @@ def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField):
     """
     with computation(PARALLEL), interval(...):
         q_out = q_out / adjustment
+
+
+def select_k(
+    in_field: FloatField,
+    out_field: FloatFieldIJ,
+    k_mask: IntField,
+    k_select: IntFieldIJ,
+):
+    """
+    Saves a specific k-index of a 3D field to a
+    new 2D array. The k-value can be different
+    for each i,j point.
+
+    Args:
+        in_field: A 3D array to select from
+        out_field: A 2D field to save values in
+        k_mask: a field that lists each k-index
+        k_select: the k-value to extract from in_field
+    """
+    # TODO: refactor this using THIS_K instead of a mask
+    with computation(FORWARD), interval(...):
+        if k_mask == k_select:
+            out_field = in_field
 
 
 def average_in(

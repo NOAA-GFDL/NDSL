@@ -45,6 +45,7 @@ from gt4py.cartesian.gtscript import (
     sin,
     sinh,
     sqrt,
+    stencil,
     tan,
     tanh,
     trunc,
