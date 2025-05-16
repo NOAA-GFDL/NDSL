@@ -1,11 +1,11 @@
-from ndsl.quantity.field_bundle import FieldBundle, FieldBundleType
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.typing import FloatField
-from ndsl.dsl.gt4py import computation, PARALLEL, interval
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.typing import FloatField
+from ndsl.quantity.field_bundle import FieldBundle, FieldBundleType
 
 
-def assign_4d_field_stcl(field_4d: FieldBundleType.T("Tracers")):  # type: ignore
+def assign_4d_field_stcl(field_4d: FieldBundleType.T("Tracers")):  # type: ignore # noqa
     with computation(PARALLEL), interval(...):
         field_4d[0, 0, 0][1] = 63.63
         field_4d[0, 0, 0][3] = 63.63

@@ -1,12 +1,14 @@
 import copy
+from dataclasses import dataclass
 from typing import Any, Dict, Tuple
-from ndsl.quantity.quantity import Quantity
-from ndsl.initialization.allocator import QuantityFactory
+
 from ndsl.dsl.typing import Float
+from ndsl.initialization.allocator import QuantityFactory
+from ndsl.quantity.quantity import Quantity
+
 
 import gt4py.cartesian.gtscript as gtscript  # isort: skip
 
-from dataclasses import dataclass
 
 # ToDo: This is 4th dimensions restricted. We need a concept
 #       of data dimensions index here to be able to extend to N dimensions

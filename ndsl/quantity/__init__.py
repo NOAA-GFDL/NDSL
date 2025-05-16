@@ -1,4 +1,3 @@
-from .field_bundle import FieldBundle, FieldBundleType
 from .metadata import QuantityHaloSpec, QuantityMetadata
 from .quantity import Quantity
 
