@@ -33,6 +33,7 @@ from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
+from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
@@ -334,6 +335,14 @@ class FrozenStencil(SDFGConvertible):
                 and compilation_config.run_mode != RunMode.Run
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
+
+            # Field Bundle might have dropped a placeholder type that we now
+            # have to resolve to the proper type.
+            for name, types in func.__annotations__.items():
+                if isinstance(types, MarkupFieldBundleType):
+                    func.__annotations__[name] = FieldBundleType.T(
+                        types.name, do_markup=False
+                    )
 
             self.stencil_object = gtscript.stencil(
                 definition=func,
