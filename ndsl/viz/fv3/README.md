@@ -1,4 +1,4 @@
-# Acknoledgment
+# Acknowledgment
 
 This code was lifted from <https://github.com/ai2cm/fv3net> and developped by AI2 under the MIT license (see below).
 

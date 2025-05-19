@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import os
 import warnings
 from functools import partial
 
+import cartopy
 import numpy as np
 import xarray as xr
+from cartopy import crs as ccrs
 from matplotlib import pyplot as plt
 
 from ._constants import (
@@ -25,12 +29,6 @@ from ._plot_helpers import (
 )
 from .grid_metadata import GridMetadata, GridMetadataFV3, GridMetadataScream
 
-
-try:
-    import cartopy
-    from cartopy import crs as ccrs
-except ImportError:
-    pass
 
 if os.getenv("CARTOPY_EXTERNAL_DOWNLOADER") != "natural_earth":
     # workaround to host our own global-scale coastline shapefile instead
@@ -63,7 +61,7 @@ def plot_cube(
     row: str = None,
     col: str = None,
     col_wrap: int = None,
-    projection: "ccrs.Projection" = None,
+    projection: ccrs.Projection = None,
     colorbar: bool = True,
     cmap_percentiles_lim: bool = True,
     cbar_label: str = None,
