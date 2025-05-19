@@ -296,8 +296,8 @@ class MetricTerms:
         self._dy_agrid = None
         self._dx_center = None
         self._dy_center = None
-        self._area = None
-        self._area64 = None
+        self._area: Optional[Quantity] = None
+        self._area64: Optional[Quantity] = None
         self._area_c = None
         if eta_file is not None or ak is not None or bk is not None:
             (
