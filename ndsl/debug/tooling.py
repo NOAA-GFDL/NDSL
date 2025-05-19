@@ -31,11 +31,11 @@ def instrument(func) -> Callable:
         for name, value in kwargs.items():
             if name in params:
                 data_as_dict[name] = value
-        if ndsl_debugger:
+        if ndsl_debugger is not None:
             ndsl_debugger.save_as_dataset(data_as_dict, func.__qualname__, is_in=True)
             ndsl_debugger.track_data(data_as_dict, func.__qualname__, is_in=True)
         r = func(self, *args, **kwargs)
-        if ndsl_debugger:
+        if ndsl_debugger is not None:
             ndsl_debugger.save_as_dataset(data_as_dict, func.__qualname__, is_in=False)
             ndsl_debugger.track_data(data_as_dict, func.__qualname__, is_in=False)
             ndsl_debugger.increment_call_count(savename)
