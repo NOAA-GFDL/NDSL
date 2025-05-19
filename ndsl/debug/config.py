@@ -6,7 +6,6 @@ When loading, the configuration will be searched in the global environment varia
 
 Configuration is a yaml file of the shape
 ```yaml
-mode: Runtime
 stencils_or_class:
   - copy_corners_x_nord
   - copy_corners_y_nord
@@ -35,7 +34,12 @@ ndsl_debugger = None
 def _set_debugger():
     config = os.getenv("NDSL_DEBUG_CONFIG", "")
     if not os.path.exists(config):
-        return
+        if config != "":
+            ndsl_log.warning(
+                f"NDSL_DEBUG_CONFIG set but path {config} does not exists."
+            )
+        else:
+            return
     with open(config) as file:
         config_dict = yaml.load(file.read(), Loader=yaml.SafeLoader)
     global ndsl_debugger

@@ -1,11 +1,11 @@
 import dataclasses
 import numbers
 import os
+import pathlib
 
 import pandas as pd
 import xarray as xr
 
-from ndsl.debug.mode import DebugMode
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 
@@ -16,7 +16,6 @@ class Debugger:
     of doing automatic data save on external configuration."""
 
     # Configuration
-    mode: DebugMode = DebugMode.NDebug
     stencils_or_class: list[str] = dataclasses.field(default_factory=list)
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     save_compute_domain_only: bool = False
@@ -58,9 +57,9 @@ class Debugger:
                 self.track_parameter_count[name] = 0
             count = self.track_parameter_count[name]
 
-            path = f"{self.dir_name}/debug/tracks/{name}/R{self.rank}/"
+            path = pathlib.Path(f"{self.dir_name}/debug/tracks/{name}/R{self.rank}/")
             os.makedirs(path, exist_ok=True)
-            path = (
+            path = pathlib.Path(
                 f"{path}/{count}_{name}_{source_as_name}-{'In' if is_in else 'Out'}.nc4"
             )
             try:
@@ -93,9 +92,11 @@ class Debugger:
         call_count = (
             self.calls_count[savename] if savename in self.calls_count.keys() else 0
         )
-        path = f"{self.dir_name}/debug/savepoints/R{self.rank}/"
+        path = pathlib.Path(f"{self.dir_name}/debug/savepoints/R{self.rank}/")
         os.makedirs(path, exist_ok=True)
-        path = f"{path}/{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
+        path = pathlib.Path(
+            f"{path}/{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
+        )
         try:
             xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
