@@ -29,8 +29,8 @@ class Debugger:
     def _to_xarray(self, data, name) -> xr.DataArray:
         if isinstance(data, Quantity):
             if self.save_compute_domain_only:
-                mem = data.view[:]
-                shp = data.view[:].shape
+                mem = data.field
+                shp = data.field.shape
             else:
                 mem = data.data
                 shp = data.shape
