@@ -391,7 +391,7 @@ class FrozenStencil(SDFGConvertible):
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
 
-        # Marshall arguments
+        # Marshal arguments
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)
