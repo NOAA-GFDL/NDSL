@@ -619,7 +619,3 @@ def _plot_scream_axes(
     )
     ax.set_global()
     return p_handle
-
-
-if __name__ == "__main__":
-    print("HELLO WORLD")
