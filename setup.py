@@ -38,6 +38,7 @@ requirements: List[str] = [
     "dask",  # for xarray
     "numpy==1.26.4",
     "matplotlib",  # for plotting in boilerplate
+    "cartopy",  # for plotting in ndsl.viz
 ]
 
 

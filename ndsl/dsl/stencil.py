@@ -21,12 +21,14 @@ import gt4py
 import numpy as np
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
+from gt4py.cartesian.stencil_object import StencilObject
 
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
 from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
@@ -295,10 +297,11 @@ class FrozenStencil(SDFGConvertible):
             externals = {}
         self.externals = externals
         self._func_name = func.__name__
+        self._func_qualname = func.__qualname__
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object = None
+        self.stencil_object: StencilObject | None = None
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
@@ -350,7 +353,7 @@ class FrozenStencil(SDFGConvertible):
                 dtypes={float: Float},
                 **stencil_kwargs,
                 build_info=(build_info := {}),
-            )
+            )  # type: ignore
 
             if (
                 compilation_config.use_minimal_caching
@@ -384,13 +387,17 @@ class FrozenStencil(SDFGConvertible):
             setattr(self, "__call__", nothing_function)
 
     def __call__(self, *args, **kwargs) -> None:
+        # Verbose stencil execution
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
+
+        # Marshal arguments
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)
-
         args_as_kwargs = dict(zip(self._argument_names, args))
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -398,6 +405,14 @@ class FrozenStencil(SDFGConvertible):
                     f"rank {self.comm.Get_rank()} has differences {differences} "
                     f"before calling {self._func_name}"
                 )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+
+        # Execute stencil
         if self.stencil_config.compilation_config.validate_args:
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
@@ -410,7 +425,7 @@ class FrozenStencil(SDFGConvertible):
                 domain=self.domain,
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
-            )
+            )  # type: ignore
         else:
             self.stencil_object.run(
                 **args_as_kwargs,
@@ -418,6 +433,15 @@ class FrozenStencil(SDFGConvertible):
                 **self._stencil_run_kwargs,
                 exec_info=self._timing_collector.exec_info,
             )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.increment_call_count(self._func_qualname)
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
