@@ -1,5 +1,4 @@
 import pytest
-from gt4py.cartesian.gtscript import PARALLEL, Field, computation, interval
 from gt4py.storage import empty, ones
 
 from ndsl import (
@@ -12,6 +11,7 @@ from ndsl import (
 )
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.orchestration import orchestrate
+from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 
 
 def _make_storage(

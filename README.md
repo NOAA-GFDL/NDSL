@@ -18,7 +18,7 @@ NDSL submodules `gt4py` and `dace` to point to vetted versions, use `git clone -
 NDSL is __NOT__ available on `pypi`. Installation of the package has to be local, via `pip install ./NDSL` (`-e` supported). The packages has a few options:
 
 - `ndsl[test]`: installs the test packages (based on `pytest`)
-- `ndsl[demos]`: installs extra requirements to run [NDSL exmpales](./examples/NDSL/)
+- `ndsl[demos]`: installs extra requirements to run [NDSL examples](./examples/NDSL/)
 - `ndsl[docs]`: installs extra requirements to build the docs
 - `ndsl[develop]`: installs tools for development, docs, and tests.
 

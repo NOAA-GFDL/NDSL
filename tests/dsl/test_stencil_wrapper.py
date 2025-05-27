@@ -4,7 +4,6 @@ import unittest.mock
 import gt4py.cartesian.gtscript
 import numpy as np
 import pytest
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 from ndsl import (
     CompilationConfig,
@@ -14,6 +13,7 @@ from ndsl import (
     Quantity,
     StencilConfig,
 )
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
 from ndsl.dsl.typing import Float, FloatField
