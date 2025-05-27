@@ -105,7 +105,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
     in the yaml configuration file.
     """
 
-    eta_file = "NULL"
+    eta_file = Path("NULL")
 
     backend = "numpy"
 
