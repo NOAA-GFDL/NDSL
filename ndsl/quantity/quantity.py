@@ -3,12 +3,12 @@ from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 from mpi4py import MPI
 
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy, dace, gt4py
-from ndsl.optional_imports import xarray as xr
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
