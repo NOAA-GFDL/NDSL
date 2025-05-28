@@ -69,7 +69,8 @@ def read_state(filename: str) -> dict:
     """
     out_dict = {}
     with filesystem.open(filename, "rb") as f:
-        ds = xr.open_dataset(f, use_cftime=True)
+        time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+        ds = xr.open_dataset(f, decode_times=time_coder)
         for name, value in ds.data_vars.items():
             if name == "time":
                 out_dict[name] = _extract_time(value)
