@@ -26,12 +26,6 @@ if cupy is not None:
     except cupy.cuda.runtime.CUDARuntimeError:
         cupy = None
 
-
-try:
-    import gt4py
-except ImportError:
-    gt4py = None
-
 try:
     import dace
 except ImportError:

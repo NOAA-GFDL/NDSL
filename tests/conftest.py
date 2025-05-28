@@ -7,10 +7,6 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError("NDSL cannot be loaded")
 try:
-    import gt4py
-except ModuleNotFoundError:
-    gt4py = None
-try:
     import cupy
 except ModuleNotFoundError:
     cupy = None
@@ -23,8 +19,6 @@ def backend(request):
             raise ModuleNotFoundError("cupy must be installed to run gpu tests")
         else:
             pytest.skip("cupy is not available for GPU backend")
-    elif gt4py is None and request.param.startswith("gt4py"):
-        pytest.skip("gt4py backend is not available")
     elif request.config.getoption("--gpu-only") and not request.param.endswith("cupy"):
         pytest.skip("running gpu tests only")
     else:

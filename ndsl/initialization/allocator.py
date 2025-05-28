@@ -1,11 +1,11 @@
 from typing import Callable, Optional, Sequence
 
+import gt4py
 import numpy as np
 
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization.sizer import GridSizer
-from ndsl.optional_imports import gt4py
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
