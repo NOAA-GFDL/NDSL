@@ -39,7 +39,7 @@ class _Snapshots:
             data_vars[f"{variable_name}"] = make_dims(
                 savepoint_dim, variable_name, self._arrays[variable_name]
             )
-            return xr.Dataset(data_vars=data_vars)
+        return xr.Dataset(data_vars=data_vars)
 
 
 class SnapshotCheckpointer(Checkpointer):
