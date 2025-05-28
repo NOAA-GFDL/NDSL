@@ -9,6 +9,10 @@ concurrency:
 
 jobs:
   ndsl_unit_tests:
+    strategy:
+      matrix:
+        extras: ["test", "test,zarr"]
+      fail-fast: false # don't cancel on job if the other one is failing
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/noaa-gfdl/miniforge:mpich
@@ -20,7 +24,7 @@ jobs:
             submodules: 'recursive'
 
         - name: Install Python packages
-          run: pip3 install .[test]
+          run: pip3 install .[${{ matrix.extras }}]
 
         - name: prepare input eta files
           run: python tests/grid/generate_eta_files.py
