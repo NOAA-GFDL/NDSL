@@ -23,14 +23,13 @@ jobs:
           run: pip3 install .[test]
 
         - name: prepare input eta files
-          run: |
-            python tests/grid/generate_eta_files.py
+          run: python tests/grid/generate_eta_files.py
 
         - name: Run serial-cpu tests
-          run: coverage run --rcfile=setup.cfg -m pytest -x tests
+          run: coverage run --rcfile=setup.cfg -m pytest tests
 
         - name: Run parallel-cpu tests
-          run: mpiexec -np 6 --oversubscribe coverage run --rcfile=setup.cfg -m mpi4py -m pytest -x tests/mpi
+          run: mpiexec -np 6 --oversubscribe coverage run --rcfile=setup.cfg -m mpi4py -m pytest tests/mpi
 
         - name: Output code coverage
           run: |
