@@ -7,12 +7,8 @@ import numpy as np
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import DTypes, Field, Float
 from ndsl.logging import ndsl_log
+from ndsl.optional_imports import cupy as cp
 
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 # If True, automatically transfers memory between CPU and GPU (see gt4py.storage)
 managed_memory = True

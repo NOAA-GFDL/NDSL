@@ -7,12 +7,6 @@ import cftime
 import pytest
 import xarray as xr
 
-
-try:
-    import zarr
-except ModuleNotFoundError:
-    zarr = None
-
 from ndsl import CubedSpherePartitioner, DummyComm, Quantity, TilePartitioner
 from ndsl.constants import (
     X_DIM,
@@ -24,9 +18,12 @@ from ndsl.constants import (
     Z_DIM,
 )
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
+from ndsl.optional_imports import RaiseWhenAccessed, zarr
 
 
-requires_zarr = pytest.mark.skipif(zarr is None, reason="zarr is not installed")
+requires_zarr = pytest.mark.skipif(
+    isinstance(zarr, RaiseWhenAccessed), reason="zarr is not installed"
+)
 
 logger = logging.getLogger("test_zarr_monitor")
 

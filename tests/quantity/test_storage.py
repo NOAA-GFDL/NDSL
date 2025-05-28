@@ -2,12 +2,7 @@ import numpy as np
 import pytest
 
 from ndsl import Quantity
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
+from ndsl.optional_imports import cupy as cp
 
 
 @pytest.fixture

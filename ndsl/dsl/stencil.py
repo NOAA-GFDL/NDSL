@@ -39,12 +39,6 @@ from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
-try:
-    import cupy as cp
-except ImportError:
-    cp = np
-
-
 def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
     report_head = f"comparing against numpy for func {function_name}, gt_id {gt_id}:"
     report_segments = []

@@ -16,13 +16,8 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.optional_imports import cupy as cp
 from ndsl.performance import Timer
-
-
-try:
-    import cupy as cp
-except ModuleNotFoundError:
-    cp = None
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])

@@ -12,7 +12,7 @@ try:
     import serialbox
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "Serialbox couldn't be imported, make sure it's in your PYTHONPATH or you env"
+        "Serialbox couldn't be imported, make sure it's in your PYTHONPATH or your env"
     )
 
 
