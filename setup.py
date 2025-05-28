@@ -18,10 +18,12 @@ test_requirements = ["pytest", "pytest-subtests", "coverage"]
 develop_requirements = test_requirements + docs_requirements + ["pre-commit"]
 
 extras_requires = {
+    "cupy": ["cupy"],
     "demos": demos_requirements,
     "develop": develop_requirements,
     "docs": docs_requirements,
     "test": test_requirements,
+    "zarr": ["zarr"],
 }
 
 requirements: List[str] = [
