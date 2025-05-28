@@ -1,6 +1,7 @@
 import warnings
 from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
+import dace
 import gt4py
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +10,7 @@ from mpi4py import MPI
 
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float, is_float
-from ndsl.optional_imports import cupy, dace
+from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
@@ -303,13 +304,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        if dace:
-            return dace.data.create_datadescriptor(self.data)
-        else:
-            raise ImportError(
-                "Attempt to use DaCe orchestrated backend but "
-                "DaCe module is not available."
-            )
+        return dace.data.create_datadescriptor(self.data)
 
     def transpose(
         self,
