@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools >= 64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ndsl"
+version = "2025.05.00"
+dynamic = ["dependencies"]
+requires-python = ">=3.11"
+authors = [{name = "NOAA/NASA"}]
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.optional-dependencies]
+docs = ["mkdocs-material"]
+demos = ["ipython", "ipykernel"]
+test = ["pytest", "pytest-subtests", "coverage"]
+develop = [
+    "ndsl[docs]", 
+    "ndsl[demos]", 
+    "ndsl[test]", 
+    "pre-commit"
+]
+extras = [
+    "ndsl[docs]",
+    "ndsl[demos]",
+    "ndsl[test]",
+    "ndsl[develop]",
+]
+
+[project.scripts]
+ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
+
+[project.urls]
+Repository = "https://github.com/NOAA-GFDL/NDSL"
+
+[tool.setuptools.packages.find]
+include = ["ndsl", "ndsl.*"]
+
+[tool.setuptools]
+include-package-data = true
