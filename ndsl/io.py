@@ -1,9 +1,9 @@
 from typing import TextIO
 
 import cftime
+import xarray as xr
 
 import ndsl.filesystem as filesystem
-from ndsl.optional_imports import xarray as xr
 from ndsl.quantity import Quantity
 
 

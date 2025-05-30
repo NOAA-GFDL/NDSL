@@ -1,11 +1,11 @@
 from typing import Callable, Optional, Sequence
 
 import numpy as np
+from gt4py import storage as gt_storage
 
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization.sizer import GridSizer
-from ndsl.optional_imports import gt4py
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
@@ -20,13 +20,13 @@ class StorageNumpy:
         self.backend = backend
 
     def empty(self, *args, **kwargs) -> np.ndarray:
-        return gt4py.storage.empty(*args, backend=self.backend, **kwargs)
+        return gt_storage.empty(*args, backend=self.backend, **kwargs)
 
     def ones(self, *args, **kwargs) -> np.ndarray:
-        return gt4py.storage.ones(*args, backend=self.backend, **kwargs)
+        return gt_storage.ones(*args, backend=self.backend, **kwargs)
 
     def zeros(self, *args, **kwargs) -> np.ndarray:
-        return gt4py.storage.zeros(*args, backend=self.backend, **kwargs)
+        return gt_storage.zeros(*args, backend=self.backend, **kwargs)
 
 
 class QuantityFactory:

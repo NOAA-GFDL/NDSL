@@ -17,8 +17,9 @@ from typing import (
 )
 
 import dace
-import gt4py
 import numpy as np
+from gt4py.cartesian import config as gt_config
+from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
@@ -37,12 +38,6 @@ from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = np
 
 
 def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
@@ -309,8 +304,8 @@ class FrozenStencil(SDFGConvertible):
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
-                    gt_root=gt4py.cartesian.config.cache_settings["root_path"],
-                    gt_cache=gt4py.cartesian.config.cache_settings["dir_name"],
+                    gt_root=gt_config.cache_settings["root_path"],
+                    gt_cache=gt_config.cache_settings["dir_name"],
                 ),
             )
 
@@ -499,7 +494,7 @@ class FrozenStencil(SDFGConvertible):
             if field_info[field_name]
             and bool(
                 field_info[field_name].access
-                & gt4py.cartesian.definitions.AccessKind.WRITE  # type: ignore
+                & gt_definitions.AccessKind.WRITE  # type: ignore
             )
         ]
         return write_fields

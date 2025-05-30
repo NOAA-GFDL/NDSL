@@ -1,14 +1,17 @@
 import warnings
 from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
+import dace
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
+from gt4py import storage as gt_storage
+from gt4py.cartesian import backend as gt_backend
 from mpi4py import MPI
 
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float, is_float
-from ndsl.optional_imports import cupy, dace, gt4py
-from ndsl.optional_imports import xarray as xr
+from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
@@ -77,7 +80,7 @@ class Quantity:
             )
 
         if gt4py_backend is not None:
-            gt4py_backend_cls = gt4py.cartesian.backend.from_name(gt4py_backend)
+            gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
             assert gt4py_backend_cls is not None
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
@@ -199,7 +202,7 @@ class Quantity:
 
     def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
-        storage = gt4py.storage.from_array(
+        storage = gt_storage.from_array(
             data,
             data.dtype,
             backend=gt4py_backend,
@@ -302,13 +305,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        if dace:
-            return dace.data.create_datadescriptor(self.data)
-        else:
-            raise ImportError(
-                "Attempt to use DaCe orchestrated backend but "
-                "DaCe module is not available."
-            )
+        return dace.data.create_datadescriptor(self.data)
 
     def transpose(
         self,

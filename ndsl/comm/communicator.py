@@ -10,15 +10,10 @@ from ndsl.comm.comm_abc import Comm as CommABC
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
+from ndsl.optional_imports import cupy
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
-
-
-try:
-    import cupy
-except ImportError:
-    cupy = None
 
 
 def to_numpy(array, dtype=None) -> np.ndarray:

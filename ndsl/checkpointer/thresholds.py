@@ -9,12 +9,6 @@ from ndsl.checkpointer.base import Checkpointer
 from ndsl.quantity import Quantity
 
 
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
-
-
 SavepointName = str
 VariableName = str
 ArrayLike = Union[Quantity, np.ndarray]

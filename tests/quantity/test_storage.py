@@ -2,16 +2,7 @@ import numpy as np
 import pytest
 
 from ndsl import Quantity
-
-
-try:
-    import gt4py
-except ImportError:
-    gt4py = None
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
+from ndsl.optional_imports import cupy as cp
 
 
 @pytest.fixture
@@ -72,7 +63,6 @@ def test_numpy(quantity, backend):
         assert quantity.np is np
 
 
-@pytest.mark.skipif(gt4py is None, reason="requires gt4py")
 def test_modifying_numpy_data_modifies_view_and_field():
     shape = (6, 6)
     data = np.zeros(shape, dtype=float)
@@ -99,7 +89,6 @@ def test_modifying_numpy_data_modifies_view_and_field():
     assert quantity.data[4, 4] == 3
 
 
-@pytest.mark.skipif(gt4py is None, reason="requires gt4py")
 def test_data_and_field_access_right_full_array_and_compute_domain():
     """Test halo read/write align with data (full array) and field (compute domain)"""
     shape = (6, 6)

@@ -1,6 +1,4 @@
-import gt4py.cartesian.gtscript as gtscript
-from gt4py.cartesian.gtscript import FORWARD, PARALLEL, computation, interval
-
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
 
 
@@ -18,11 +16,8 @@ def copy_defn(q_in: FloatField, q_out: FloatField):
 
 def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField):
     """
-    Multiplies every element of q_out
-    by every element of the adjustment
-    field over the interval, replacing
-    the elements of q_out by the result
-    of the multiplication.
+    Multiplies every element of q_out by every element of the adjustment field over the
+    interval, replacing the elements of q_out by the result of the multiplication.
 
     Args:
         adjustment: adjustment field
@@ -34,8 +29,7 @@ def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField):
 
 def set_value_defn(q_out: FloatField, value: Float):
     """
-    Sets every element of q_out to the
-    value specified by value argument.
+    Sets every element of q_out to the value specified by value argument.
 
     Args:
         q_out: output field
@@ -47,11 +41,8 @@ def set_value_defn(q_out: FloatField, value: Float):
 
 def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField):
     """
-    Divides every element of q_out
-    by every element of the adjustment
-    field over the interval, replacing
-    the elements of q_out by the result
-    of the multiplication.
+    Divides every element of q_out by every element of the adjustment field over the
+    interval, replacing the elements of q_out by the result of the multiplication.
 
     Args:
         adjustment: adjustment field
@@ -68,9 +59,8 @@ def select_k(
     k_select: IntFieldIJ,
 ):
     """
-    Saves a specific k-index of a 3D field to a
-    new 2D array. The k-value can be different
-    for each i,j point.
+    Saves a specific k-index of a 3D field to a new 2D array. The k-value can be
+    different for each i,j point.
 
     Args:
         in_field: A 3D array to select from
@@ -86,51 +76,37 @@ def select_k(
 
 def average_in(
     q_out: FloatField,
-    adjustement: FloatField,
+    adjustment: FloatField,
 ):
     """
-    Averages every element of q_out
-    with every element of the adjustment
-    field, overwriting q_out.
+    Averages every element of q_out with every element of the adjustment field,
+    overwriting q_out.
 
     Args:
         adjustment: adjustment field
         q_out: output field
     """
     with computation(PARALLEL), interval(...):
-        q_out = (q_out + adjustement) * 0.5
+        q_out = (q_out + adjustment) * 0.5
 
 
-@gtscript.function
+@function
 def sign(a, b):
     """
-    Defines asignb as the absolute value
-    of a, and checks if b is positive
-    or negative, assigning the analogus
-    sign value to asignb. asignb is returned
+    Defines a_sign_b as the absolute value of a, and checks if b is positive or
+    negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
 
     Args:
         a: A number
         b: A number
     """
-    asignb = abs(a)
-    if b > 0:
-        asignb = asignb
-    else:
-        asignb = -asignb
-    return asignb
+    a_sign_b = abs(a)
+    return a_sign_b if b > 0 else -a_sign_b
 
 
-@gtscript.function
+@function
 def dim(a, b):
     """
-    Performs a check on the difference
-    between the values in arguments
-    a and b. The variable diff is set
-    to the difference between a and b
-    when the difference is positive,
-    otherwise it is set to zero. The
-    function returns the diff variable.
+    Calculates a - b, camped to 0, i.e. max(a - b, 0).
     """
-    diff = a - b if a - b > 0 else 0
-    return diff
+    return max(a - b, 0)
