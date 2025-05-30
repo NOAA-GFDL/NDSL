@@ -34,8 +34,6 @@ For CPU backends:
 - 3.11.x >= Python < 3.12.x
 - Compilers:
   - GNU 11.2+
-- Libraries:
-  - Boost headers 1.76+ (no lib installed, just headers)
 
 For GPU backends (the above plus):
 
