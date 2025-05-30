@@ -7,7 +7,7 @@ from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity.quantity import Quantity
 
 
-import gt4py.cartesian.gtscript as gtscript  # isort: skip
+from gt4py.cartesian import gtscript  # isort: skip
 
 
 # ToDo: This is 4th dimensions restricted. We need a concept
@@ -44,7 +44,7 @@ class FieldBundle:
             bundle_name: name of the bundle, accessible via `name`.
             quantity: data inputs as a nD array.
             mapping: sparse dict of [name, index] to be able to call tracers by name.
-            register_type: boolean to register the type as part of initilization.
+            register_type: boolean to register the type as part of initialization.
         """
         if len(quantity.shape) != 4:
             raise NotImplementedError("FieldBundle implementation restricted to 4D")

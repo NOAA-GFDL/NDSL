@@ -1,8 +1,9 @@
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
-import gt4py
 import numpy as np
+from gt4py import storage as gt_storage
+from gt4py.cartesian import backend as gt_backend
 
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import DTypes, Field, Float
@@ -184,7 +185,7 @@ def make_storage_data(
             backend=backend,
         )
 
-    storage = gt4py.storage.from_array(
+    storage = gt_storage.from_array(
         data,
         dtype,
         backend=backend,
@@ -336,7 +337,7 @@ def make_storage_from_shape(
             mask = (False, False, True)  # Assume 1D is a k-field
         else:
             mask = (n_dims * (True,)) + ((3 - n_dims) * (False,))
-    storage = gt4py.storage.zeros(
+    storage = gt_storage.zeros(
         shape,
         dtype,
         backend=backend,
@@ -444,7 +445,7 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
 
 
 def is_gpu_backend(backend: str) -> bool:
-    return gt4py.cartesian.backend.from_name(backend).storage_info["device"] == "gpu"
+    return gt_backend.from_name(backend).storage_info["device"] == "gpu"
 
 
 def zeros(shape, dtype=Float, *, backend: str):

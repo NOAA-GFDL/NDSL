@@ -1,8 +1,8 @@
 import os
 from typing import Tuple, TypeAlias, Union, cast
 
-import gt4py.cartesian.gtscript as gtscript
 import numpy as np
+from gt4py.cartesian import gtscript
 
 
 # A Field

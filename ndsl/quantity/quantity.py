@@ -2,10 +2,11 @@ import warnings
 from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
 import dace
-import gt4py
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from gt4py import storage as gt_storage
+from gt4py.cartesian import backend as gt_backend
 from mpi4py import MPI
 
 import ndsl.constants as constants
@@ -79,7 +80,7 @@ class Quantity:
             )
 
         if gt4py_backend is not None:
-            gt4py_backend_cls = gt4py.cartesian.backend.from_name(gt4py_backend)
+            gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
             assert gt4py_backend_cls is not None
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
@@ -201,7 +202,7 @@ class Quantity:
 
     def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
-        storage = gt4py.storage.from_array(
+        storage = gt_storage.from_array(
             data,
             data.dtype,
             backend=gt4py_backend,
