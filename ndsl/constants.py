@@ -158,8 +158,10 @@ else:
     raise RuntimeError("Constant selector failed, bad code.")
 
 SECONDS_PER_DAY = Float(86400.0)
-SBC = 5.670400e-8
+SBC = Float(5.670400e-8)
 """Stefan-Boltzmann constant (W/m^2/K^4)"""
+RHO_H2O = Float(1000.0)
+"""Density of water in kg/m^3"""
 CV_AIR = CP_AIR - RDGAS
 """Heat capacity of dry air at constant volume"""
 RDG = -RDGAS / GRAV
@@ -200,11 +202,13 @@ PSAT = Float(610.78)
 """Saturation vapor pressure at H2O 3pt (Pa)"""
 T_WFR = TICE - Float(40.0)
 """homogeneous freezing temperature"""
-TICE0 = TICE - Float(0.01)
+TICE0 = Float(2.7315e2)
+""" Temp at 0C"""
 T_MIN = Float(178.0)
 """Minimum temperature to freeze-dry all water vapor"""
 T_SAT_MIN = TICE - Float(160.0)
+"""Minimum temperature used in saturation calculations"""
 LAT2 = np.power((HLV + HLF), 2, dtype=Float)
 """Used in bigg mechanism"""
-TTP = 2.7316e2
+TTP = Float(2.7316e2)
 """Temperature of H2O triple point"""

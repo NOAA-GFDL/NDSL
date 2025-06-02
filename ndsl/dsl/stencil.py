@@ -17,29 +17,27 @@ from typing import (
 )
 
 import dace
-import gt4py
 import numpy as np
+from gt4py.cartesian import config as gt_config
+from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
+from gt4py.cartesian.stencil_object import StencilObject
 
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
 from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
+from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = np
 
 
 def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
@@ -294,10 +292,11 @@ class FrozenStencil(SDFGConvertible):
             externals = {}
         self.externals = externals
         self._func_name = func.__name__
+        self._func_qualname = func.__qualname__
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object = None
+        self.stencil_object: StencilObject | None = None
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
@@ -305,8 +304,8 @@ class FrozenStencil(SDFGConvertible):
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
-                    gt_root=gt4py.cartesian.config.cache_settings["root_path"],
-                    gt_cache=gt4py.cartesian.config.cache_settings["dir_name"],
+                    gt_root=gt_config.cache_settings["root_path"],
+                    gt_cache=gt_config.cache_settings["dir_name"],
                 ),
             )
 
@@ -335,13 +334,21 @@ class FrozenStencil(SDFGConvertible):
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
 
+            # Field Bundle might have dropped a placeholder type that we now
+            # have to resolve to the proper type.
+            for name, types in func.__annotations__.items():
+                if isinstance(types, MarkupFieldBundleType):
+                    func.__annotations__[name] = FieldBundleType.T(
+                        types.name, do_markup=False
+                    )
+
             self.stencil_object = gtscript.stencil(
                 definition=func,
                 externals=externals,
                 dtypes={float: Float},
                 **stencil_kwargs,
                 build_info=(build_info := {}),
-            )
+            )  # type: ignore
 
             if (
                 compilation_config.use_minimal_caching
@@ -375,13 +382,17 @@ class FrozenStencil(SDFGConvertible):
             setattr(self, "__call__", nothing_function)
 
     def __call__(self, *args, **kwargs) -> None:
+        # Verbose stencil execution
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
+
+        # Marshal arguments
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)
-
         args_as_kwargs = dict(zip(self._argument_names, args))
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -389,6 +400,14 @@ class FrozenStencil(SDFGConvertible):
                     f"rank {self.comm.Get_rank()} has differences {differences} "
                     f"before calling {self._func_name}"
                 )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+
+        # Execute stencil
         if self.stencil_config.compilation_config.validate_args:
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
@@ -401,7 +420,7 @@ class FrozenStencil(SDFGConvertible):
                 domain=self.domain,
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
-            )
+            )  # type: ignore
         else:
             self.stencil_object.run(
                 **args_as_kwargs,
@@ -409,6 +428,15 @@ class FrozenStencil(SDFGConvertible):
                 **self._stencil_run_kwargs,
                 exec_info=self._timing_collector.exec_info,
             )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.increment_call_count(self._func_qualname)
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -466,7 +494,7 @@ class FrozenStencil(SDFGConvertible):
             if field_info[field_name]
             and bool(
                 field_info[field_name].access
-                & gt4py.cartesian.definitions.AccessKind.WRITE  # type: ignore
+                & gt_definitions.AccessKind.WRITE  # type: ignore
             )
         ]
         return write_fields

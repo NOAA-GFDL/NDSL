@@ -1,14 +1,17 @@
 import warnings
 from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
+import dace
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
+from gt4py import storage as gt_storage
+from gt4py.cartesian import backend as gt_backend
 from mpi4py import MPI
 
 import ndsl.constants as constants
 from ndsl.dsl.typing import Float, is_float
-from ndsl.optional_imports import cupy, dace, gt4py
-from ndsl.optional_imports import xarray as xr
+from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
@@ -77,7 +80,7 @@ class Quantity:
             )
 
         if gt4py_backend is not None:
-            gt4py_backend_cls = gt4py.cartesian.backend.from_name(gt4py_backend)
+            gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
             assert gt4py_backend_cls is not None
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
@@ -153,9 +156,16 @@ class Quantity:
             gt4py_backend=gt4py_backend,
         )
 
-    def to_netcdf(self, path: str, name="var", rank: int = -1) -> None:
+    def to_netcdf(self, path: str, name="var", rank: int = -1, all_data=False) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
-            self.data_array.to_dataset(name=name).to_netcdf(f"{path}__r{rank}.nc4")
+            if all_data:
+                self.data_as_xarray.to_dataset(name=name).to_netcdf(
+                    f"{path}__r{rank}.nc4"
+                )
+            else:
+                self.field_as_xarray.to_dataset(name=name).to_netcdf(
+                    f"{path}__r{rank}.nc4"
+                )
 
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
         return QuantityHaloSpec(
@@ -192,7 +202,7 @@ class Quantity:
 
     def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
-        storage = gt4py.storage.from_array(
+        storage = gt_storage.from_array(
             data,
             data.dtype,
             backend=gt4py_backend,
@@ -240,6 +250,10 @@ class Quantity:
         return self._compute_domain_view
 
     @property
+    def field(self) -> np.ndarray | cupy.ndarray:
+        return self._compute_domain_view[:]
+
+    @property
     def data(self) -> Union[np.ndarray, cupy.ndarray]:
         """the underlying array of data"""
         return self._data
@@ -260,16 +274,14 @@ class Quantity:
         return self.metadata.extent
 
     @property
-    def data_array(self, full_data=False) -> xr.DataArray:
-        """Returns an Xarray.DataArray of the view (domain)
+    def field_as_xarray(self) -> xr.DataArray:
+        """Returns an Xarray.DataArray of the field (domain)"""
+        return xr.DataArray(self.field, dims=self.dims, attrs=self.attrs)
 
-        Args:
-            full_data: Return the entire data (halo included) instead of the view
-        """
-        if full_data:
-            return xr.DataArray(self.data[:], dims=self.dims, attrs=self.attrs)
-        else:
-            return xr.DataArray(self.view[:], dims=self.dims, attrs=self.attrs)
+    @property
+    def data_as_xarray(self) -> xr.DataArray:
+        """Returns an Xarray.DataArray of the underlying array"""
+        return xr.DataArray(self.data, dims=self.dims, attrs=self.attrs)
 
     @property
     def np(self) -> NumpyModule:
@@ -293,13 +305,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        if dace:
-            return dace.data.create_datadescriptor(self.data)
-        else:
-            raise ImportError(
-                "Attempt to use DaCe orchestrated backend but "
-                "DaCe module is not available."
-            )
+        return dace.data.create_datadescriptor(self.data)
 
     def transpose(
         self,

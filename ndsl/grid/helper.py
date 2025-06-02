@@ -7,7 +7,7 @@ import xarray as xr
 # TODO: if we can remove translate tests in favor of checkpointer tests,
 # we can remove this "disallowed" import (ndsl.util does not depend on ndsl.dsl)
 try:
-    from ndsl.dsl.gt4py_utils import split_cartesian_into_storages
+    from ndsl.dsl.gt4py_utils import is_gpu_backend, split_cartesian_into_storages
 except ImportError:
     split_cartesian_into_storages = None
 import ndsl.constants as constants
@@ -93,7 +93,7 @@ class HorizontalGridData:
             lon_agrid=metric_terms.lon_agrid,
             lat_agrid=metric_terms.lat_agrid,
             area=metric_terms.area,
-            area_64=metric_terms.area,
+            area_64=metric_terms.area64,
             rarea=metric_terms.rarea,
             rarea_c=metric_terms.rarea_c,
             dx=metric_terms.dx,
@@ -233,7 +233,10 @@ class VerticalGridData:
         """
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
-        return Float(self.ak.view[0])
+        if is_gpu_backend(self.ak.gt4py_backend):
+            return Float(self.ak.view[0].get())
+        else:
+            return Float(self.ak.view[0])
 
 
 @dataclasses.dataclass(frozen=True)

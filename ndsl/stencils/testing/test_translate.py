@@ -6,10 +6,10 @@ from typing import Any, Dict, List
 import numpy as np
 import pytest
 
-import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
 from ndsl.quantity import Quantity
@@ -25,6 +25,7 @@ np.set_printoptions(threshold=4096)
 OUTDIR = "./.translate-outputs"
 GPU_MAX_ERR = 1e-10
 GPU_NEAR_ZERO = 1e-15
+N_THRESHOLD_SAMPLES = int(os.getenv("NDSL_TEST_N_THRESHOLD_SAMPLES", 0))
 
 
 def platform():
@@ -89,16 +90,13 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                 testobj.skip_test = bool(match["skip_test"])
         elif len(matches) > 1:
             raise Exception(
-                "misconfigured threshold overrides file, more than 1 specification for "
+                "Misconfigured threshold overrides file, more than 1 specification for "
                 + test_name
                 + " with backend="
                 + backend
                 + ", platform="
                 + platform()
             )
-
-
-N_THRESHOLD_SAMPLES = int(os.getenv("PACE_TEST_N_THRESHOLD_SAMPLES", 10))
 
 
 def get_thresholds(testobj, input_data):
@@ -158,7 +156,7 @@ def test_sequential_savepoint(
 ):
     if case.testobj is None:
         pytest.xfail(
-            f"no translate object available for savepoint {case.savepoint_name}"
+            f"No translate object available for savepoint {case.savepoint_name}."
         )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(backend=backend),
@@ -178,7 +176,7 @@ def test_sequential_savepoint(
     if case.testobj.skip_test:
         return
     if not case.exists:
-        pytest.skip(f"Data at rank {case.grid.rank} does not exists")
+        pytest.skip(f"Data at rank {case.grid.rank} does not exist.")
     input_data = dataset_to_dict(case.ds_in)
     input_names = (
         case.testobj.serialnames(case.testobj.in_vars["data_vars"])
@@ -188,7 +186,7 @@ def test_sequential_savepoint(
         input_data = {name: input_data[name] for name in input_names}
     except KeyError as e:
         raise KeyError(
-            f"Variable {e} was described in the translate test but cannot be found in the NetCDF"
+            f"Variable {e} was described in the translate test but cannot be found in the NetCDF."
         )
     original_input_data = copy.deepcopy(input_data)
     # give the user a chance to load data from other savepoints to allow
@@ -208,7 +206,7 @@ def test_sequential_savepoint(
         try:
             ref_data = all_ref_data[varname]
         except KeyError:
-            raise KeyError(f"Output {varname} couldn't be found in output data")
+            raise KeyError(f"Output {varname} couldn't be found in output data.")
         if hasattr(case.testobj, "subset_output"):
             ref_data = case.testobj.subset_output(varname, ref_data)
         with subtests.test(varname=varname):

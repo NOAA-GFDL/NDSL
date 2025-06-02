@@ -1,8 +1,6 @@
-try:
-    from mpi4py import MPI
-except ImportError:
-    MPI = None
+from mpi4py import MPI
 
-if MPI is not None and MPI.COMM_WORLD.Get_size() == 1:
+
+if MPI.COMM_WORLD.Get_size() == 1:
     # not run as a parallel test, disable MPI tests
     MPI = None

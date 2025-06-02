@@ -6,15 +6,11 @@ import numpy as np
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
+from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.savepoint import DataLoader
 
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 logger = logging.getLogger(__name__)
 
@@ -85,14 +81,14 @@ class TranslateFortranData2Py:
 
     def compute_func(self, **inputs) -> Optional[dict[str, Any]]:
         """Compute function to transform the dictionary of `inputs`.
-        Must return a dictionnary of updated variables"""
+        Must return a dictionary of updated variables"""
         raise NotImplementedError("Implement a child class compute method")
 
     def compute(self, inputs) -> dict[str, Any]:
-        """Transform inputs from NetCDF to gt4py.storagers, run compute_func then slice
+        """Transform inputs from NetCDF to gt4py.storages, run compute_func then slice
         the outputs based on specifications.
 
-        Return: Dictonnary of storages reshaped for comparison
+        Return: Dictionary of storages reshaped for comparison
         """
         self.setup(inputs)
         return self.slice_output(self.compute_from_storage(inputs))
@@ -201,7 +197,7 @@ class TranslateFortranData2Py:
     def make_storage_data_input_vars(
         self, inputs, storage_vars=None, dict_4d=True
     ) -> None:
-        """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionnary to update inputs to
+        """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionary to update inputs to
         their configured shape.
 
         Return: None
@@ -214,6 +210,9 @@ class TranslateFortranData2Py:
             inputs_out[p] = inputs_in[p]
         for d, info in storage_vars.items():
             serialname = info["serialname"] if "serialname" in info else d
+            index_variable = (
+                info["index_variable"] if "index_variable" in info else False
+            )
             self.update_info(info, inputs_in)
             if "kaxis" in info:
                 inputs_in[serialname] = np.moveaxis(
@@ -231,6 +230,8 @@ class TranslateFortranData2Py:
 
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
+            if index_variable:
+                inputs_in[serialname] -= 1
             inputs_out[d] = self.make_storage_data(
                 np.squeeze(inputs_in[serialname]),
                 istart=istart,
@@ -258,9 +259,16 @@ class TranslateFortranData2Py:
             info = self.out_vars[var]
             self.update_info(info, inputs)
             serialname = info["serialname"] if "serialname" in info else var
+            index_variable = (
+                info["index_variable"] if "index_variable" in info else False
+            )
             ds = self.grid.default_domain_dict()
             ds.update(info)
             data_result = as_numpy(out_data[var])
+            if index_variable:
+                if isinstance(data_result, dict):
+                    raise TypeError(f"Variable {serialname} is a 4D dict, not an index")
+                data_result += 1
             if isinstance(data_result, dict):
                 names_4d = info.get("names_4d", utils.tracer_variables)
                 var4d = np.zeros(

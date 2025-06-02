@@ -32,12 +32,7 @@ from ndsl.dsl.dace.utils import (
     report_memory_static_analysis,
 )
 from ndsl.logging import ndsl_log
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
+from ndsl.optional_imports import cupy as cp
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -111,7 +106,6 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
-        skip=["ConstantPropagation"],
     ).apply_pass(sdfg, {})
 
 

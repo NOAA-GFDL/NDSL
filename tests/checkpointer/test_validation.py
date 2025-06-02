@@ -3,13 +3,10 @@ import tempfile
 
 import numpy as np
 import pytest
+import xarray as xr
 
 from ndsl.checkpointer import SavepointThresholds, Threshold, ValidationCheckpointer
 from ndsl.checkpointer.validation import _clip_pace_array_to_target
-from ndsl.optional_imports import xarray as xr
-
-
-requires_xarray = pytest.mark.skipif(xr is None, reason="xarray is not installed")
 
 
 def get_dataset(
@@ -30,7 +27,6 @@ def get_dataset(
     return xr.Dataset(data_vars=data_vars)
 
 
-@requires_xarray
 def test_validation_validates_onevar_onecall():
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
@@ -65,7 +61,6 @@ def test_validation_validates_onevar_onecall():
         pytest.param(1.0, 0.99, id="absolute_failure"),
     ],
 )
-@requires_xarray
 def test_validation_asserts_onevar_onecall(relative_threshold, absolute_threshold):
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
@@ -110,7 +105,6 @@ def test_validation_asserts_onevar_onecall(relative_threshold, absolute_threshol
         pytest.param(1.0, 0.99, id="absolute_threshold"),
     ],
 )
-@requires_xarray
 def test_validation_passes_onevar_two_calls(relative_threshold, absolute_threshold):
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
@@ -161,7 +155,6 @@ def test_validation_passes_onevar_two_calls(relative_threshold, absolute_thresho
         pytest.param(1.0, 0.99, id="absolute_failure"),
     ],
 )
-@requires_xarray
 def test_validation_asserts_onevar_two_calls(relative_threshold, absolute_threshold):
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
@@ -214,7 +207,6 @@ def test_validation_asserts_onevar_two_calls(relative_threshold, absolute_thresh
         pytest.param(1.0, 0.99, id="absolute_failure"),
     ],
 )
-@requires_xarray
 def test_validation_asserts_twovar_onecall(relative_threshold, absolute_threshold):
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12

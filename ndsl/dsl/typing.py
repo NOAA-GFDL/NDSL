@@ -1,8 +1,8 @@
 import os
 from typing import Tuple, TypeAlias, Union, cast
 
-import gt4py.cartesian.gtscript as gtscript
 import numpy as np
+from gt4py.cartesian import gtscript
 
 
 # A Field
@@ -20,11 +20,6 @@ K = gtscript.K  # noqa: E741
 
 # Union of valid data types (from gt4py.cartesian.gtscript)
 DTypes = Union[bool, np.bool_, int, np.int32, np.int64, float, np.float32, np.float64]
-
-
-# Depreciated version of get_precision, but retained for a PACE dependency
-def floating_point_precision() -> int:
-    return int(os.getenv("PACE_FLOAT_PRECISION", "64"))
 
 
 def get_precision() -> int:

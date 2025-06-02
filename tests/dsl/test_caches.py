@@ -1,5 +1,8 @@
+import os
+import shutil
+
 import pytest
-from gt4py.cartesian.gtscript import PARALLEL, Field, computation, interval
+from gt4py.cartesian import config as gt_config
 from gt4py.storage import empty, ones
 
 from ndsl import (
@@ -12,6 +15,7 @@ from ndsl import (
 )
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.orchestration import orchestrate
+from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 
 
 def _make_storage(
@@ -83,11 +87,6 @@ class OrchestratedProgram:
     MPI is not None, reason="relocatibility checked with a one-rank setup"
 )
 def test_relocatability_orchestration(backend):
-    import os
-    import shutil
-
-    from gt4py.cartesian import config as gt_config
-
     original_root_directory = gt_config.cache_settings["root_path"]
     working_dir = str(os.getcwd())
 
@@ -142,14 +141,8 @@ def test_relocatability_orchestration(backend):
     MPI is not None, reason="relocatibility checked with a one-rank setup"
 )
 def test_relocatability(backend: str):
-    import os
-    import shutil
-
-    import gt4py
-    from gt4py.cartesian import config as gt_config
-
     # Restore original dir name
-    gt4py.cartesian.config.cache_settings["dir_name"] = os.environ.get(
+    gt_config.cache_settings["dir_name"] = os.environ.get(
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"
     )
 

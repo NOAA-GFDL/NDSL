@@ -38,6 +38,7 @@ requirements: List[str] = [
     "dask",  # for xarray
     "numpy==1.26.4",
     "matplotlib",  # for plotting in boilerplate
+    "cartopy",  # for plotting in ndsl.viz
 ]
 
 
@@ -59,7 +60,7 @@ setup(
     packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
     include_package_data=True,
     url="https://github.com/NOAA-GFDL/NDSL",
-    version="2025.03.00",
+    version="2025.05.00",
     zip_safe=False,
     entry_points={
         "console_scripts": [
