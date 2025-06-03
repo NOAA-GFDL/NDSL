@@ -1,7 +1,7 @@
 import dataclasses
 import functools
 import warnings
-from typing import Optional, Tuple
+from pathlib import Path
 
 import numpy as np
 
@@ -94,7 +94,7 @@ def quantity_cast_to_model_float(
 
 @dataclasses.dataclass
 class GridDefinition:
-    dims: Tuple[str, ...]
+    dims: tuple[str, ...]
     units: str
 
 
@@ -238,9 +238,9 @@ class MetricTerms:
         dy_const: float = 1000.0,
         deglat: float = 15.0,
         extdgrid: bool = False,
-        eta_file: Optional[str] = None,
-        ak: Optional[np.ndarray] = None,
-        bk: Optional[np.ndarray] = None,
+        eta_file: Path | None = None,
+        ak: np.ndarray | None = None,
+        bk: np.ndarray | None = None,
     ):
         self._grid_type = grid_type
         self._dx_const = dx_const
@@ -296,8 +296,8 @@ class MetricTerms:
         self._dy_agrid = None
         self._dx_center = None
         self._dy_center = None
-        self._area: Optional[Quantity] = None
-        self._area64: Optional[Quantity] = None
+        self._area: Quantity | None = None
+        self._area64: Quantity | None = None
         self._area_c = None
         if eta_file is not None or ak is not None or bk is not None:
             (
@@ -464,7 +464,7 @@ class MetricTerms:
         quantity_factory,
         communicator,
         grid_type,
-        eta_file: str = "None",
+        eta_file: Path | None = None,
     ) -> "MetricTerms":
         """
         Generates a metric terms object, using input from data contained in an
@@ -498,7 +498,7 @@ class MetricTerms:
         dx_const: float = 1000.0,
         dy_const: float = 1000.0,
         deglat: float = 15.0,
-        eta_file: str = "None",
+        eta_file: Path | None = None,
     ) -> "MetricTerms":
         sizer = SubtileGridSizer.from_tile_params(
             nx_tile=npx - 1,
@@ -2184,9 +2184,9 @@ class MetricTerms:
 
     def _set_hybrid_pressure_coefficients(
         self,
-        eta_file,
-        ak_data: Optional[np.ndarray] = None,
-        bk_data: Optional[np.ndarray] = None,
+        eta_file: Path | None = None,
+        ak_data: np.ndarray | None = None,
+        bk_data: np.ndarray | None = None,
     ):
         ks = self.quantity_factory.zeros(
             [],
