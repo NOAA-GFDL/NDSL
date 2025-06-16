@@ -479,8 +479,8 @@ class MetricTerms:
         )
 
         rad_conv = PI / 180.0
-        terms._grid_64.view[:, :, 0] = rad_conv * x.T
-        terms._grid_64.view[:, :, 1] = rad_conv * y.T
+        terms._grid_64.view[:, :, 0] = rad_conv * x
+        terms._grid_64.view[:, :, 1] = rad_conv * y
 
         terms._comm.halo_update(terms._grid_64, n_points=terms._halo)
 
