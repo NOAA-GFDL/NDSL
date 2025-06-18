@@ -240,7 +240,7 @@ class MetricTerms:
         dy_const: float = 1000.0,
         deglat: float = 15.0,
         extdgrid: bool = False,
-        eta_file: Path | None = None,
+        eta_file: str | Path | None = None,
         ak: np.ndarray | None = None,
         bk: np.ndarray | None = None,
     ):
@@ -278,7 +278,7 @@ class MetricTerms:
         # This will carry the public version of the grid
         # for the selected floating point precision
         self._grid = None
-        npx, npy, ndims = self._tile_partitioner.global_extent(self._grid_64)
+        npx, npy, _ = self._tile_partitioner.global_extent(self._grid_64)
         self._npx = npx
         self._npy = npy
         self._npz = self.quantity_factory.sizer.get_extent(Z_DIM)[0]
@@ -302,12 +302,17 @@ class MetricTerms:
         self._area64: Quantity | None = None
         self._area_c = None
         if eta_file is not None or ak is not None or bk is not None:
+            if type(eta_file) is str:
+                # Temporary cast. Tob be removed once
+                eta_file = Path(eta_file)
             (
                 self._ks,
                 self._ptop,
                 self._ak,
                 self._bk,
-            ) = self._set_hybrid_pressure_coefficients(eta_file, ak, bk)
+            ) = self._set_hybrid_pressure_coefficients(
+                eta_file, ak, bk  # type: ignore
+            )
         else:
             self._ks = self.quantity_factory.zeros(
                 [],
