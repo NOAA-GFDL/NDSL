@@ -324,7 +324,7 @@ def test_array_chunks(layout, tile_array_shape, array_dims, target):
     assert result == target
 
 
-def _assert_no_nulls(dataset: "xr.Dataset"):
+def _assert_no_nulls(dataset: xr.Dataset):
     number_of_null = dataset["var"].isnull().sum().item()
     total_size = dataset["var"].size
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import functools
 import warnings
@@ -465,7 +467,7 @@ class MetricTerms:
         communicator,
         grid_type,
         eta_file: str = "None",
-    ) -> "MetricTerms":
+    ) -> MetricTerms:
         """
         Generates a metric terms object, using input from data contained in an
         externally generated tile file
@@ -499,7 +501,7 @@ class MetricTerms:
         dy_const: float = 1000.0,
         deglat: float = 15.0,
         eta_file: str = "None",
-    ) -> "MetricTerms":
+    ) -> MetricTerms:
         sizer = SubtileGridSizer.from_tile_params(
             nx_tile=npx - 1,
             ny_tile=npy - 1,

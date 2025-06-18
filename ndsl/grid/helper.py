@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import pathlib
 
@@ -86,7 +88,7 @@ class HorizontalGridData:
     edge_n: Quantity
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "HorizontalGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> HorizontalGridData:
         return cls(
             lon=metric_terms.lon,
             lat=metric_terms.lat,
@@ -145,7 +147,7 @@ class VerticalGridData:
         self._p_interface = None
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "VerticalGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> VerticalGridData:
         return cls(
             ak=metric_terms.ak,
             bk=metric_terms.bk,
@@ -258,9 +260,7 @@ class ContravariantGridData:
     rsin2: Quantity
 
     @classmethod
-    def new_from_metric_terms(
-        cls, metric_terms: MetricTerms
-    ) -> "ContravariantGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> ContravariantGridData:
         return cls(
             cosa=metric_terms.cosa,
             cosa_u=metric_terms.cosa_u,
@@ -303,7 +303,7 @@ class AngleGridData:
     cos_sg9: Quantity
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "AngleGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> AngleGridData:
         return cls(
             sin_sg1=metric_terms.sin_sg1,
             sin_sg2=metric_terms.sin_sg2,
@@ -752,7 +752,7 @@ class DriverGridData:
     grid_type: int
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "DriverGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> DriverGridData:
         return cls.new_from_grid_variables(
             vlon=metric_terms.vlon,
             vlat=metric_terms.vlon,
@@ -777,7 +777,7 @@ class DriverGridData:
         es1: Quantity,
         ew2: Quantity,
         grid_type: int = 0,
-    ) -> "DriverGridData":
+    ) -> DriverGridData:
         try:
             vlon1, vlon2, vlon3 = split_quantity_along_last_dim(vlon)
             vlat1, vlat2, vlat3 = split_quantity_along_last_dim(vlat)

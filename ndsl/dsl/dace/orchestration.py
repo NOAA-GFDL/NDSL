@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
@@ -370,7 +372,7 @@ class _LazyComputepathMethod:
     bound_callables: Dict[Tuple[int, int], "SDFGEnabledCallable"] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
-        def __init__(self, lazy_method: "_LazyComputepathMethod", obj_to_bind):
+        def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
             methodwrapper = dace.method(lazy_method.func)
             self.obj_to_bind = obj_to_bind
             self.lazy_method = lazy_method

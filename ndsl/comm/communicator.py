@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 
@@ -55,7 +57,7 @@ class Communicator(abc.ABC):
         self.timer: Timer = timer if timer is not None else NullTimer()
 
     @abc.abstractproperty
-    def tile(self) -> "TileCommunicator":
+    def tile(self) -> TileCommunicator:
         pass
 
     @classmethod
@@ -661,7 +663,7 @@ class TileCommunicator(Communicator):
         layout: Tuple[int, int],
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
-    ) -> "TileCommunicator":
+    ) -> TileCommunicator:
         partitioner = TilePartitioner(layout=layout)
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
 
@@ -794,7 +796,7 @@ class CubedSphereCommunicator(Communicator):
         layout: Tuple[int, int],
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
-    ) -> "CubedSphereCommunicator":
+    ) -> CubedSphereCommunicator:
         partitioner = CubedSpherePartitioner(tile=TilePartitioner(layout=layout))
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
 

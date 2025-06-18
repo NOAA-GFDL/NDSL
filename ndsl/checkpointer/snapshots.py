@@ -31,7 +31,7 @@ class _Snapshots:
         self._arrays[variable_name].append(python_data)
 
     @property
-    def dataset(self) -> "xr.Dataset":
+    def dataset(self) -> xr.Dataset:
         data_vars = {}
         for variable_name, savepoint_list in self._savepoints.items():
             savepoint_dim = f"sp_{variable_name}"
@@ -58,7 +58,7 @@ class SnapshotCheckpointer(Checkpointer):
             self._snapshots.store(savepoint_name, name, array_data)
 
     @property
-    def dataset(self) -> "xr.Dataset":
+    def dataset(self) -> xr.Dataset:
         return self._snapshots.dataset
 
     def cleanup(self):

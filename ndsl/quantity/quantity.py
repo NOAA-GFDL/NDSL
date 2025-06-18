@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import warnings
 from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
 
@@ -133,7 +135,7 @@ class Quantity:
         origin: Sequence[int] = None,
         extent: Sequence[int] = None,
         gt4py_backend: Union[str, None] = None,
-    ) -> "Quantity":
+    ) -> Quantity:
         """
         Initialize a Quantity from an xarray.DataArray.
 
@@ -311,7 +313,7 @@ class Quantity:
         self,
         target_dims: Sequence[Union[str, Iterable[str]]],
         allow_mismatch_float_precision: bool = False,
-    ) -> "Quantity":
+    ) -> Quantity:
         """Change the dimension order of this Quantity.
 
         Args:
