@@ -317,7 +317,7 @@ def _savepoint_cases(
             )
             n_calls = xr.open_dataset(
                 os.path.join(data_path, f"{test_name}-In.nc")
-            ).dims["savepoint"]
+            ).sizes["savepoint"]
             if savepoint_to_replay is not None:
                 savepoint_iterator = range(savepoint_to_replay, savepoint_to_replay + 1)
             else:
