@@ -106,6 +106,7 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
+        skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
 
@@ -139,18 +140,11 @@ def _build_sdfg(
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
 
-        with DaCeProgress(config, "Simplify (1/2)"):
-            _simplify(sdfg, validate=False, verbose=True)
-
         # Perform pre-expansion fine tuning
         with DaCeProgress(config, "Split regions"):
             splittable_region_expansion(sdfg, verbose=True)
 
-        # Expand the stencil computation Library Nodes with the right expansion
-        with DaCeProgress(config, "Expand"):
-            sdfg.expand_library_nodes()
-
-        with DaCeProgress(config, "Simplify (2/2)"):
+        with DaCeProgress(config, "Simplify"):
             _simplify(sdfg, validate=False, verbose=True)
 
         # Move all memory that can be into a pool to lower memory pressure.
@@ -422,9 +416,9 @@ class _LazyComputepathMethod:
         """Return SDFGEnabledCallable wrapping original obj.method from cache.
         Update cache first if need be"""
         if (id(obj), id(self.func)) not in _LazyComputepathMethod.bound_callables:
-            _LazyComputepathMethod.bound_callables[
-                (id(obj), id(self.func))
-            ] = _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))] = (
+                _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            )
 
         return _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))]
 
