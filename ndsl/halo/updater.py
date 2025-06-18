@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple
 
@@ -43,7 +45,7 @@ class HaloUpdater:
 
     def __init__(
         self,
-        comm: "Communicator",
+        comm: Communicator,
         tag: int,
         transformers: Dict[int, HaloDataTransformer],
         timer: Timer,
@@ -90,13 +92,13 @@ class HaloUpdater:
     @classmethod
     def from_scalar_specifications(
         cls,
-        comm: "Communicator",
+        comm: Communicator,
         numpy_like_module: NumpyModule,
         specifications: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
         optional_timer: Optional[Timer] = None,
-    ) -> "HaloUpdater":
+    ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and
         queue the slices to exchange.
@@ -142,14 +144,14 @@ class HaloUpdater:
     @classmethod
     def from_vector_specifications(
         cls,
-        comm: "Communicator",
+        comm: Communicator,
         numpy_like_module: NumpyModule,
         specifications_x: Iterable[QuantityHaloSpec],
         specifications_y: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
         optional_timer: Optional[Timer] = None,
-    ) -> "HaloUpdater":
+    ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and queue
         the slices to exchange.

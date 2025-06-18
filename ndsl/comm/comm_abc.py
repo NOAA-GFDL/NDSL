@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import enum
 from typing import List, Optional, TypeVar
@@ -85,7 +87,7 @@ class Comm(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def Split(self, color, key) -> "Comm":
+    def Split(self, color, key) -> Comm:
         ...
 
     @abc.abstractmethod

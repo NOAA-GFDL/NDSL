@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import inspect
@@ -605,7 +607,7 @@ class GridIndexing:
     @classmethod
     def from_sizer_and_communicator(
         cls, sizer: GridSizer, comm: Communicator
-    ) -> "GridIndexing":
+    ) -> GridIndexing:
         # TODO: if this class is refactored to split off the *_edge booleans,
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
@@ -831,7 +833,7 @@ class GridIndexing:
             shape[i] += n
         return tuple(shape)
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "GridIndexing":
+    def restrict_vertical(self, k_start=0, nk=None) -> GridIndexing:
         """
         Returns a copy of itself with modified vertical origin and domain.
 
@@ -969,7 +971,7 @@ class StencilFactory:
             skip_passes=skip_passes,
         )
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "StencilFactory":
+    def restrict_vertical(self, k_start=0, nk=None) -> StencilFactory:
         return StencilFactory(
             config=self.config,
             grid_indexing=self.grid_indexing.restrict_vertical(k_start=k_start, nk=nk),

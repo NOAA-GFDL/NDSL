@@ -449,7 +449,7 @@ class Grid:
         )
 
     @property
-    def grid_indexing(self) -> "GridIndexing":
+    def grid_indexing(self) -> GridIndexing:
         return GridIndexing(
             domain=tuple(int(item) for item in self.domain_shape_compute()),
             n_halo=self.halo,
@@ -460,7 +460,7 @@ class Grid:
         )
 
     @property
-    def damping_coefficients(self) -> "DampingCoefficients":
+    def damping_coefficients(self) -> DampingCoefficients:
         if self._damping_coefficients is not None:
             return self._damping_coefficients
         self._damping_coefficients = DampingCoefficients(
@@ -473,11 +473,11 @@ class Grid:
         )
         return self._damping_coefficients
 
-    def set_damping_coefficients(self, damping_coefficients: "DampingCoefficients"):
+    def set_damping_coefficients(self, damping_coefficients: DampingCoefficients):
         self._damping_coefficients = damping_coefficients
 
     @property
-    def grid_data(self) -> "GridData":
+    def grid_data(self) -> GridData:
         if self._grid_data is not None:
             return self._grid_data
 
@@ -835,7 +835,7 @@ class Grid:
             )
         return self._driver_grid_data
 
-    def set_grid_data(self, grid_data: "GridData"):
+    def set_grid_data(self, grid_data: GridData):
         self._grid_data = grid_data
 
     def make_grid_data(self, npx, npy, npz, communicator, backend):
