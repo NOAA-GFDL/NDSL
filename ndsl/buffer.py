@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
 
@@ -40,7 +42,7 @@ class Buffer:
     @classmethod
     def pop_from_cache(
         cls, allocator: Allocator, shape: Iterable[int], dtype: type
-    ) -> "Buffer":
+    ) -> Buffer:
         """Retrieve or insert then retrieve of buffer from cache.
 
         Args:
@@ -61,7 +63,7 @@ class Buffer:
             return cls(key, array)
 
     @staticmethod
-    def push_to_cache(buffer: "Buffer"):
+    def push_to_cache(buffer: Buffer):
         """Push the buffer back into the cache.
 
         Args:

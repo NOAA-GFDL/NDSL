@@ -129,7 +129,7 @@ class TranslateFortranData2Py:
         names_4d: Optional[List[str]] = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> "Field":
+    ) -> Field:
         """Copy input data into a gt4py.storage with given shape.
 
         `array` is copied. Takes care of the device upload if necessary.

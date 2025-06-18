@@ -3,12 +3,10 @@ import xarray as xr
 
 
 """
-This notebook uses the python xarray module
-to create an eta_file containing ak and bk coefficients
-for km=79 and km=91.  The coefficients are written out to
-eta79.nc and eta91.nc netcdf files respectively
+This script uses the python xarray module to create an eta_file containing ak and bk coefficients for km=79 and km=91.
+The coefficients are written out to `eta79.nc` and `eta91.nc` netcdf files respectively.
 
-To run this script:  `python3 ./generate_eta_files.py`
+To run this script:  `python ./generate_eta_files.py`
 """
 
 # km = 79
@@ -395,5 +393,3 @@ bk = xr.DataArray(
 )
 coefficients = xr.Dataset(data_vars={"ak": ak, "bk": bk})
 coefficients.to_netcdf("eta91.nc")
-
-# km =
