@@ -71,7 +71,7 @@ class MPIComm(Comm):
     def Irecv(self, recvbuf, source, tag: int = 0, **kwargs) -> Request:
         return self._comm.Irecv(recvbuf, source, tag=tag, **kwargs)
 
-    def Split(self, color, key) -> "Comm":
+    def Split(self, color, key) -> Comm:
         return self._comm.Split(color, key)
 
     def allreduce(self, sendobj: T, op: Optional[ReductionOperator] = None) -> T:

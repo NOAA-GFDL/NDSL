@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import os
 from typing import Any, Dict, Optional, Tuple
@@ -56,7 +58,7 @@ def _smallest_rank_middle(x: int, y: int, layout: Tuple[int, int]):
 
 
 def _determine_compiling_ranks(
-    config: "DaceConfig",
+    config: DaceConfig,
     partitioner: Partitioner,
 ) -> bool:
     """

@@ -1,10 +1,11 @@
 import math
-import os
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from pathlib import Path
 
 import numpy as np
 import xarray as xr
+
+from ndsl import logging
 
 
 ETA_0 = 0.252
@@ -29,8 +30,8 @@ class HybridPressureCoefficients:
     bk: np.ndarray
 
 
-def _load_ak_bk_from_file(eta_file: str) -> Tuple[np.ndarray, np.ndarray]:
-    if not os.path.isfile(eta_file):
+def _load_ak_bk_from_file(eta_file: Path) -> tuple[np.ndarray, np.ndarray]:
+    if not Path.is_file(eta_file):
         raise ValueError(f"eta file {eta_file} does not exist")
 
     # read file into ak, bk arrays
@@ -43,9 +44,9 @@ def _load_ak_bk_from_file(eta_file: str) -> Tuple[np.ndarray, np.ndarray]:
 
 def set_hybrid_pressure_coefficients(
     km: int,
-    eta_file: str,
-    ak_data: Optional[np.ndarray] = None,
-    bk_data: Optional[np.ndarray] = None,
+    eta_file: Path | None = None,
+    ak_data: np.ndarray | None = None,
+    bk_data: np.ndarray | None = None,
 ) -> HybridPressureCoefficients:
     """
     Sets the coefficients describing the hybrid pressure coordinates.
@@ -61,8 +62,16 @@ def set_hybrid_pressure_coefficients(
         a HybridPressureCoefficients dataclass
     """
     if ak_data is None or bk_data is None:
+        if eta_file is None:
+            raise ValueError(
+                "Please specify either and `eta_file` or eta data as `ak_data` and `bk_data`."
+            )
         ak, bk = _load_ak_bk_from_file(eta_file)
     else:
+        if eta_file is not None:
+            logging.ndsl_log.warning(
+                f"Ignoring eta_file {eta_file} since `ak_data` and `bk_data` were given."
+            )
         ak, bk = ak_data, bk_data
 
     # check size of ak and bk array is km+1
@@ -96,7 +105,7 @@ def vertical_coordinate(eta_value) -> np.ndarray:
     return (eta_value - ETA_0) * math.pi * 0.5
 
 
-def compute_eta(ak, bk) -> Tuple[np.ndarray, np.ndarray]:
+def compute_eta(ak, bk) -> tuple[np.ndarray, np.ndarray]:
     """
     Equation (1) JRMS2006
     eta is the vertical coordinate and eta_v is an auxiliary vertical coordinate
