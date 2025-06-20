@@ -1,9 +1,11 @@
+# flake8: noqa
 from pathlib import Path
 
 import numpy as np
 import pytest
 import xarray as xr
 
+import tests.grid.generate_eta_files
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
@@ -189,3 +191,9 @@ def test_set_hybrid_pressure_coefficients_not_mono():
 
     # cleanup
     Path.unlink(out_eta_file, missing_ok=True)
+
+
+@pytest.mark.parametrize("km", [79, 91])
+def test_remove_eta_files(km):
+    eta_file = Path.cwd() / f"eta{km}.nc"
+    Path.unlink(eta_file, missing_ok=True)
