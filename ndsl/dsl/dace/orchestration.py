@@ -27,7 +27,6 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
-from ndsl.dsl.dace.sdfg_opt_passes import splittable_region_expansion
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -121,12 +120,17 @@ def _build_sdfg(
     if is_compiling:
         # Make the transients array persistents
         if config.is_gpu_backend():
+            # TODO
+            # The following should happen on the stree level
             _to_gpu(sdfg)
+
             make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.GPU)
 
             # Upload args to device
             _upload_to_device(list(args) + list(kwargs.values()))
         else:
+            # TODO
+            # The following should happen on the stree level
             for _sd, _aname, arr in sdfg.arrays_recursive():
                 if arr.shape == (1,):
                     arr.storage = DaceStorageType.Register
@@ -141,10 +145,6 @@ def _build_sdfg(
         for k, tup in dace_program.resolver.closure_arrays.items():
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
-
-        # Perform pre-expansion fine tuning
-        with DaCeProgress(config, "Split regions"):
-            splittable_region_expansion(sdfg, verbose=True)
 
         with DaCeProgress(config, "Simplify"):
             _simplify(sdfg, validate=False, verbose=True)
