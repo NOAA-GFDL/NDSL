@@ -205,7 +205,7 @@ def plot_cube(
             fig, ax = plt.subplots(1, 1, subplot_kw={"projection": projection})
         else:
             fig = ax.figure
-        handle = _plot_func_short(array, ax=ax)
+        handle = _plot_func_short(array, ax=ax)  # type: ignore
         axes = np.array(ax)
         handles = [handle]
         facet_grid = None

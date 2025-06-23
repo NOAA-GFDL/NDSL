@@ -146,9 +146,11 @@ class QuantityFactory:
         extent = self.sizer.get_extent(dims)
         shape = self.sizer.get_shape(dims)
         dimensions = [
-            axis
-            if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
-            else str(shape[index])
+            (
+                axis
+                if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
+                else str(shape[index])
+            )
             for index, (dim, axis) in enumerate(
                 zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
             )

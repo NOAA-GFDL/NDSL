@@ -3,19 +3,19 @@ default_language_version:
 
 repos:
 -   repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 25.1.0
     hooks:
     - id: black
       additional_dependencies: ["click==8.0.4"]
 
 -   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.4.2
+    rev: v5.10.1
     hooks:
     - id: isort
       args: ["--profile", "black"]
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
+    rev: v1.16.1
     hooks:
     - id: mypy
       name: mypy-ndsl
@@ -27,14 +27,14 @@ repos:
         ndsl/ndsl/gt4py_utils.py |
         )$
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v5.0.0
     hooks:
     - id: check-toml
     - id: check-yaml
     - id: end-of-file-fixer
     - id: trailing-whitespace
 -   repo: https://github.com/pycqa/flake8
-    rev: 3.9.2
+    rev: 7.3.0
     hooks:
     - id: flake8
       name: flake8
