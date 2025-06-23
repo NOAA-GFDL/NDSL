@@ -68,9 +68,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key][
-                                    "near_zero"
-                                ] = float(match["all_other_near_zero"])
+                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
+                                    float(match["all_other_near_zero"])
+                                )
 
                 else:
                     raise TypeError(
