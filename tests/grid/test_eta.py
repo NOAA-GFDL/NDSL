@@ -50,7 +50,7 @@ def write_non_mono_eta_file(in_eta_file, out_eta_file):
 
 
 @pytest.mark.parametrize("km", [79, 91])
-def test_set_hybrid_pressure_coefficients_correct(km):
+def test_set_hybrid_pressure_coefficients_correct(km, eta_file_path):
     """
     This test checks to see that the ak and bk arrays are read-in correctly and are
     stored as expected. Both values of km=79 and km=91 are tested and both tests are
@@ -58,7 +58,7 @@ def test_set_hybrid_pressure_coefficients_correct(km):
     directly from the NetCDF file.
     """
 
-    eta_file = Path.cwd() / f"eta{km}.nc"
+    eta_file = eta_file_path / f"eta{km}.nc"
 
     backend = "numpy"
 
@@ -92,7 +92,8 @@ def test_set_hybrid_pressure_coefficients_correct(km):
 
     ak_results = metric_terms.ak.data
     bk_results = metric_terms.bk.data
-    ak_answers, bk_answers = set_answers(f"eta{km}.nc")
+    # ak_answers, bk_answers = set_answers(f"eta{km}.nc")
+    ak_answers, bk_answers = set_answers(eta_file)
 
     assert ak_answers.size == ak_results.size, "Unexpected size of bk"
     assert bk_answers.size == bk_results.size, "Unexpected size of ak"
@@ -143,7 +144,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         )
 
 
-def test_set_hybrid_pressure_coefficients_not_mono():
+def test_set_hybrid_pressure_coefficients_not_mono(eta_file_path):
     """
     This test checks to see that the program fails when the computed eta values
     increase non-monotonically. For the latter test, the eta_file is specified in
@@ -151,7 +152,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     changed nonsensically to result in erroneous eta values.
     """
 
-    in_eta_file = Path.cwd() / "eta79.nc"
+    in_eta_file = eta_file_path / "eta79.nc"
     out_eta_file = Path.cwd() / "eta_not_mono_79.nc"
     write_non_mono_eta_file(in_eta_file, out_eta_file)
     eta_file = out_eta_file
@@ -193,7 +194,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     Path.unlink(out_eta_file, missing_ok=True)
 
 
-@pytest.mark.parametrize("km", [79, 91])
-def test_remove_eta_files(km):
-    eta_file = Path.cwd() / f"eta{km}.nc"
-    Path.unlink(eta_file, missing_ok=True)
+# @pytest.mark.parametrize("km", [79, 91])
+# def test_remove_eta_files(km):
+#     eta_file = Path.cwd() / f"eta{km}.nc"
+#     Path.unlink(eta_file, missing_ok=True)
