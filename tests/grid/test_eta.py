@@ -90,7 +90,6 @@ def test_set_hybrid_pressure_coefficients_correct(km, eta_file_path):
 
     ak_results = metric_terms.ak.data
     bk_results = metric_terms.bk.data
-    # ak_answers, bk_answers = set_answers(f"eta{km}.nc")
     ak_answers, bk_answers = set_answers(eta_file)
 
     assert ak_answers.size == ak_results.size, "Unexpected size of bk"
@@ -190,9 +189,3 @@ def test_set_hybrid_pressure_coefficients_not_mono(eta_file_path):
 
     # cleanup
     Path.unlink(out_eta_file, missing_ok=True)
-
-
-# @pytest.mark.parametrize("km", [79, 91])
-# def test_remove_eta_files(km):
-#     eta_file = Path.cwd() / f"eta{km}.nc"
-#     Path.unlink(eta_file, missing_ok=True)
