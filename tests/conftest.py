@@ -1,9 +1,5 @@
-import shutil
-
 import numpy as np
 import pytest
-
-from tests.grid.generate_eta_files import generate_eta_79, generate_eta_91
 
 
 try:
@@ -74,13 +70,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "cpu_only" in item.keywords:
                 item.add_marker(skip_cpu_only)
-
-
-@pytest.fixture(scope="session")
-def eta_file_path(tmp_path_factory):
-    tmp_path = tmp_path_factory.mktemp("test_eta_files")
-    generate_eta_79(path=tmp_path)
-    generate_eta_91(path=tmp_path)
-    yield tmp_path
-    print("Removing tmp eta file path")
-    shutil.rmtree(tmp_path)

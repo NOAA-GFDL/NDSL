@@ -1,8 +1,8 @@
+import shutil
 from pathlib import Path
 
 import numpy as np
 import pytest
-import xarray as xr
 
 from ndsl import (
     CubedSphereCommunicator,
@@ -12,6 +12,7 @@ from ndsl import (
     SubtileGridSizer,
     TilePartitioner,
 )
+from ndsl.data.eta import eta_79_km, eta_91_km, non_mono_eta_79_km
 from ndsl.grid import MetricTerms
 
 
@@ -23,32 +24,15 @@ is not provided.
 """
 
 
-def set_answers(eta_file):
-    """
-    Read in the expected values of ak and bk arrays from the input eta NetCDF files.
-    """
-
-    data = xr.open_dataset(eta_file)
-    return data["ak"].values, data["bk"].values
+@pytest.fixture
+def temp_dir(tmp_path):
+    yield tmp_path
+    print("Removing tmp_path")
+    shutil.rmtree(tmp_path)
 
 
-def write_non_mono_eta_file(in_eta_file, out_eta_file):
-    """
-    Reads in file eta79.nc and alters randomly chosen ak/bk values.
-
-    This tests the expected failure of set_eta_hybrid_coefficients for coefficients
-    that lead to non-monotonically increasing eta values.
-    """
-
-    data = xr.open_dataset(in_eta_file)
-    data["ak"].values[10] = data["ak"].values[0]
-    data["bk"].values[20] = 0.0
-
-    data.to_netcdf(out_eta_file)
-
-
-@pytest.mark.parametrize("km", [79, 91])
-def test_set_hybrid_pressure_coefficients_correct(km, eta_file_path):
+@pytest.mark.parametrize("km, eta_data", [(79, eta_79_km), (91, eta_91_km)])
+def test_set_hybrid_pressure_coefficients_correct(km, eta_data, temp_dir):
     """
     This test checks to see that the ak and bk arrays are read-in correctly and are
     stored as expected. Both values of km=79 and km=91 are tested and both tests are
@@ -56,7 +40,8 @@ def test_set_hybrid_pressure_coefficients_correct(km, eta_file_path):
     directly from the NetCDF file.
     """
 
-    eta_file = eta_file_path / f"eta{km}.nc"
+    eta_file = temp_dir / f"eta{km}.nc"
+    eta_data.to_netcdf(path=eta_file)
 
     backend = "numpy"
 
@@ -90,7 +75,7 @@ def test_set_hybrid_pressure_coefficients_correct(km, eta_file_path):
 
     ak_results = metric_terms.ak.data
     bk_results = metric_terms.bk.data
-    ak_answers, bk_answers = set_answers(eta_file)
+    ak_answers, bk_answers = eta_data["ak"].values, eta_data["bk"].values
 
     assert ak_answers.size == ak_results.size, "Unexpected size of bk"
     assert bk_answers.size == bk_results.size, "Unexpected size of ak"
@@ -141,7 +126,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         )
 
 
-def test_set_hybrid_pressure_coefficients_not_mono(eta_file_path):
+def test_set_hybrid_pressure_coefficients_not_mono(temp_dir):
     """
     This test checks to see that the program fails when the computed eta values
     increase non-monotonically. For the latter test, the eta_file is specified in
@@ -149,10 +134,8 @@ def test_set_hybrid_pressure_coefficients_not_mono(eta_file_path):
     changed nonsensically to result in erroneous eta values.
     """
 
-    in_eta_file = eta_file_path / "eta79.nc"
-    out_eta_file = Path.cwd() / "eta_not_mono_79.nc"
-    write_non_mono_eta_file(in_eta_file, out_eta_file)
-    eta_file = out_eta_file
+    eta_file = temp_dir / "eta_not_mono_79.nc"
+    non_mono_eta_79_km.to_netcdf(path=eta_file)
 
     backend = "numpy"
 
@@ -186,6 +169,3 @@ def test_set_hybrid_pressure_coefficients_not_mono(eta_file_path):
             communicator=communicator,
             eta_file=eta_file,
         )
-
-    # cleanup
-    Path.unlink(out_eta_file, missing_ok=True)
