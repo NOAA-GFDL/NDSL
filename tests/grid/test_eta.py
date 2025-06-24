@@ -1,11 +1,9 @@
-# flake8: noqa
 from pathlib import Path
 
 import numpy as np
 import pytest
 import xarray as xr
 
-import tests.grid.generate_eta_files
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
