@@ -19,6 +19,7 @@ from dace.transformation.helpers import get_parent_map
 from dace.transformation.passes.simplify import SimplifyPass
 from gt4py import storage
 
+import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
