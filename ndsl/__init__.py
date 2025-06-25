@@ -14,7 +14,6 @@ from .dsl.dace.utils import (
     MaxBandwidthBenchmarkProgram,
     StorageReport,
 )
-from .dsl.dace.replacements import *
 from .dsl.dace.wrapped_halo_exchange import WrappedHaloUpdater
 from .dsl.stencil import FrozenStencil, GridIndexing, StencilFactory, TimingCollector
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig

@@ -22,6 +22,7 @@ from ndsl.dsl.dace.dace_config import (
     DaCeOrchestration,
     FrozenCompiledSDFG,
 )
+import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
