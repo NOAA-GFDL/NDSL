@@ -1,4 +1,5 @@
 import argparse
+import copy
 import os
 import shutil
 from typing import Any, Dict, Optional
@@ -106,8 +107,17 @@ def main(
             serializer = get_serializer(data_path, rank, data_name)
             serializer_list.append(serializer)
             savepoints = serializer.get_savepoint(savepoint_name)
+            rank_names_list = list(serializer.fields_at_savepoint(savepoints[0]))
             rank_data: Dict[str, Any] = {}
             for name in set(names_list):
+                if name not in rank_names_list:
+                    data = copy.deepcopy(rank_list[rank - 1][name][0])
+                    data[:] = np.nan
+                    rank_data[name] = [data]
+                    print(
+                        f"Skipping {name} for rank {rank} - no data, will fill with NaN"
+                    )
+                    continue
                 rank_data[name] = []
                 for savepoint in savepoints:
                     rank_data[name].append(
