@@ -19,22 +19,7 @@ from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 from ndsl.dsl.stencil import CompareToNumpyStencil, FrozenStencil
-
-
-def _make_storage(
-    func,
-    grid_indexing: GridIndexing,
-    stencil_config: StencilConfig,
-    *,
-    dtype=float,
-    aligned_index=(0, 0, 0),
-):
-    return func(
-        backend=stencil_config.compilation_config.backend,
-        shape=grid_indexing.domain,
-        dtype=dtype,
-        aligned_index=aligned_index,
-    )
+from tests.dsl import utils
 
 
 def _stencil(inp: Field[float], out: Field[float], scalar: float):
@@ -75,8 +60,8 @@ class OrchestratedProgram:
             backend, orchestration
         )
         orchestrate(obj=self, config=stencil_config.dace_config)
-        self.inp = _make_storage(ones, grid_indexing, stencil_config, dtype=float)
-        self.out = _make_storage(empty, grid_indexing, stencil_config, dtype=float)
+        self.inp = utils.make_storage(ones, grid_indexing, stencil_config, dtype=float)
+        self.out = utils.make_storage(empty, grid_indexing, stencil_config, dtype=float)
 
     def __call__(self):
         self.stencil(self.inp, self.out, self.inp[0, 0, 0])
