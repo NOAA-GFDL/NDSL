@@ -41,7 +41,11 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                 spec["platform"] = platform()
             if "backend" not in spec:
                 spec["backend"] = backend
-        matches = [spec for spec in override if spec["backend"] == backend and spec["platform"] == platform()]
+        matches = [
+            spec
+            for spec in override
+            if spec["backend"] == backend and spec["platform"] == platform()
+        ]
         if len(matches) == 1:
             match = matches[0]
             if "max_error" in match:
@@ -57,23 +61,29 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                 elif isinstance(parsed_ignore_zero, dict):
                     for key in parsed_ignore_zero.keys():
                         testobj.ignore_near_zero_errors[key] = {}
-                        testobj.ignore_near_zero_errors[key]["near_zero"] = float(parsed_ignore_zero[key])
+                        testobj.ignore_near_zero_errors[key]["near_zero"] = float(
+                            parsed_ignore_zero[key]
+                        )
                     if "all_other_near_zero" in match:
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key]["near_zero"] = float(
-                                    match["all_other_near_zero"]
+                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
+                                    float(match["all_other_near_zero"])
                                 )
 
                 else:
-                    raise TypeError("ignore_near_zero_errors is either a list or a dict")
+                    raise TypeError(
+                        "ignore_near_zero_errors is either a list or a dict"
+                    )
             if "multimodal" in match:
                 parsed_multimodal = match["multimodal"]
                 if "absolute_epsilon" in parsed_multimodal:
                     testobj.mmr_absolute_eps = float(parsed_multimodal["absolute_eps"])
                 if "relative_fraction" in parsed_multimodal:
-                    testobj.mmr_relative_fraction = float(parsed_multimodal["relative_fraction"])
+                    testobj.mmr_relative_fraction = float(
+                        parsed_multimodal["relative_fraction"]
+                    )
                 if "ulp_threshold" in parsed_multimodal:
                     testobj.mmr_ulp = float(parsed_multimodal["ulp_threshold"])
             if "skip_test" in match:
@@ -119,9 +129,13 @@ def _get_thresholds(compute_function, input_data) -> None:
         ):
             samples = [out[varname] for out in output_list]
             pointwise_max_abs_errors = np.max(samples, axis=0) - np.min(samples, axis=0)
-            max_rel_diff = np.nanmax(pointwise_max_abs_errors / np.min(np.abs(samples), axis=0))
+            max_rel_diff = np.nanmax(
+                pointwise_max_abs_errors / np.min(np.abs(samples), axis=0)
+            )
             max_abs_diff = np.nanmax(pointwise_max_abs_errors)
-            print(f"{varname}: max rel diff {max_rel_diff}, max abs diff {max_abs_diff}")
+            print(
+                f"{varname}: max rel diff {max_rel_diff}, max abs diff {max_abs_diff}"
+            )
 
 
 @pytest.mark.sequential
@@ -141,7 +155,9 @@ def test_sequential_savepoint(
     xy_indices=True,
 ):
     if case.testobj is None:
-        pytest.xfail(f"No translate object available for savepoint {case.savepoint_name}.")
+        pytest.xfail(
+            f"No translate object available for savepoint {case.savepoint_name}."
+        )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(backend=backend),
         dace_config=DaceConfig(
@@ -154,7 +170,9 @@ def test_sequential_savepoint(
         case.testobj.max_error = max(case.testobj.max_error, GPU_MAX_ERR)
         case.testobj.near_zero = max(case.testobj.near_zero, GPU_NEAR_ZERO)
     if threshold_overrides is not None:
-        process_override(threshold_overrides, case.testobj, case.savepoint_name, backend)
+        process_override(
+            threshold_overrides, case.testobj, case.savepoint_name, backend
+        )
     if case.testobj.skip_test:
         return
     if not case.exists:
@@ -166,7 +184,11 @@ def test_sequential_savepoint(
         from ndsl.logging import ndsl_log
 
         out_data = (
-            xr.open_dataset(os.path.join(case.data_dir, f"{case.testobj.override_input_netcdf_name}.nc"))
+            xr.open_dataset(
+                os.path.join(
+                    case.data_dir, f"{case.testobj.override_input_netcdf_name}.nc"
+                )
+            )
             .isel(rank=case.grid.rank)
             .isel(savepoint=case.i_call)
         )
@@ -178,12 +200,15 @@ def test_sequential_savepoint(
         input_data = dataset_to_dict(case.ds_in)
 
     input_names = (
-        case.testobj.serialnames(case.testobj.in_vars["data_vars"]) + case.testobj.in_vars["parameters"]
+        case.testobj.serialnames(case.testobj.in_vars["data_vars"])
+        + case.testobj.in_vars["parameters"]
     )
     try:
         input_data = {name: input_data[name] for name in input_names}
     except KeyError as e:
-        raise KeyError(f"Variable {e} was described in the translate test but cannot be found in the NetCDF.")
+        raise KeyError(
+            f"Variable {e} was described in the translate test but cannot be found in the NetCDF."
+        )
     original_input_data = copy.deepcopy(input_data)
     # give the user a chance to load data from other savepoints to allow
     # for gathering required data from multiple sources (constants, etc.)
@@ -198,7 +223,11 @@ def test_sequential_savepoint(
         from ndsl.logging import ndsl_log
 
         out_data = (
-            xr.open_dataset(os.path.join(case.data_dir, f"{case.testobj.override_output_netcdf_name}.nc"))
+            xr.open_dataset(
+                os.path.join(
+                    case.data_dir, f"{case.testobj.override_output_netcdf_name}.nc"
+                )
+            )
             .isel(rank=case.grid.rank)
             .isel(savepoint=case.i_call)
         )
@@ -268,7 +297,9 @@ def test_sequential_savepoint(
             nc_filename,
         )
     if failing_names != []:
-        pytest.fail(f"Only the following variables passed: {passing_names}", pytrace=False)
+        pytest.fail(
+            f"Only the following variables passed: {passing_names}", pytrace=False
+        )
     if len(passing_names) == 0:
         pytest.fail("No tests passed")
 
@@ -333,7 +364,9 @@ def test_parallel_savepoint(
         )
         communicator = get_communicator(mpi_comm, layout)
     if case.testobj is None:
-        pytest.xfail(f"no translate object available for savepoint {case.savepoint_name}")
+        pytest.xfail(
+            f"no translate object available for savepoint {case.savepoint_name}"
+        )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(backend=backend),
         dace_config=DaceConfig(
@@ -346,7 +379,9 @@ def test_parallel_savepoint(
         case.testobj.max_error = max(case.testobj.max_error, GPU_MAX_ERR)
         case.testobj.near_zero = max(case.testobj.near_zero, GPU_NEAR_ZERO)
     if threshold_overrides is not None:
-        process_override(threshold_overrides, case.testobj, case.savepoint_name, backend)
+        process_override(
+            threshold_overrides, case.testobj, case.savepoint_name, backend
+        )
     if case.testobj.skip_test:
         return
     if (grid == "compute") and not case.testobj.compute_grid_option:
@@ -403,7 +438,9 @@ def test_parallel_savepoint(
     _report_results(case.savepoint_name, case.grid.rank, results)
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
-        nct_filename = os.path.join(OUTDIR, f"translate-{case.savepoint_name}-{case.grid.rank}.nc")
+        nct_filename = os.path.join(
+            OUTDIR, f"translate-{case.savepoint_name}-{case.grid.rank}.nc"
+        )
         try:
             input_data_on_host = {}
             for key, _input in input_data.items():
@@ -420,7 +457,9 @@ def test_parallel_savepoint(
         except Exception as error:
             print(f"TestParallel SaveNetCDF Error at rank {case.grid.rank}: {error}")
     if failing_names != []:
-        pytest.fail(f"Only the following variables passed: {passing_names}", pytrace=False)
+        pytest.fail(
+            f"Only the following variables passed: {passing_names}", pytrace=False
+        )
     if len(passing_names) == 0:
         pytest.fail("No tests passed")
 
@@ -440,7 +479,9 @@ def _report_results(
 
     # Detailed log
     for varname, metric in results.items():
-        log_filename = os.path.join(detail_dir, f"{savepoint_name}-{varname}-{rank}.log")
+        log_filename = os.path.join(
+            detail_dir, f"{savepoint_name}-{varname}-{rank}.log"
+        )
         metric.report(log_filename)
 
 
@@ -466,10 +507,14 @@ def _save_datatree(
                     f"Expecting `outputs` on translate test to be a dict, got {type(testobj.outputs)}."
                     " Are you overriding `self.outputs`?"
                 )
-            dims = [dim_name + f"_{index}" for dim_name in testobj.outputs[varname]["dims"]]
+            dims = [
+                dim_name + f"_{index}" for dim_name in testobj.outputs[varname]["dims"]
+            ]
             attrs = {"units": testobj.outputs[varname]["units"]}
         else:
-            dims = [f"dim_{varname}_{j}" for j in range(len(ref_data[varname][0].shape))]
+            dims = [
+                f"dim_{varname}_{j}" for j in range(len(ref_data[varname][0].shape))
+            ]
             attrs = {"units": "unknown"}
 
         # Try to save inputs
@@ -493,7 +538,9 @@ def _save_datatree(
             dims=("rank",) + tuple([f"{d}_out" for d in dims]),
             attrs=attrs,
         )
-        absolute_errors = data_vars[f"{varname}_reference"] - data_vars[f"{varname}_computed"]
+        absolute_errors = (
+            data_vars[f"{varname}_reference"] - data_vars[f"{varname}_computed"]
+        )
         data_vars[f"{varname}_absolute_error"] = absolute_errors
         data_vars[f"{varname}_absolute_error"].attrs = attrs
         datasets[varname] = xr.Dataset(data_vars=data_vars)
