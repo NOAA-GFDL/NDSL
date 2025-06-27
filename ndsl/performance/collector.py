@@ -25,21 +25,18 @@ class AbstractPerformanceCollector(Protocol):
     total_timer: Timer
     timestep_timer: Timer
 
-    def collect_performance(self):
-        ...
+    def collect_performance(self): ...
 
     def write_out_performance(
         self,
         backend: str,
         is_orchestrated: bool,
         dt_atmos: float,
-    ):
-        ...
+    ): ...
 
     def write_out_rank_0(
         self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
-    ):
-        ...
+    ): ...
 
     @classmethod
     def start_cuda_profiler(cls):
