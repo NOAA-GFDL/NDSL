@@ -67,7 +67,7 @@ class OrchestratedProgram:
         self.stencil(self.inp, self.out, self.inp[0, 0, 0])
 
 
-@pytest.mark.parametrize("backend", [pytest.param("dace:cpu")])
+@pytest.mark.parametrize("backend", ["dace:cpu"])
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1, reason="relocatibility checked with a one-rank setup"
 )
@@ -118,7 +118,7 @@ def test_relocatability_orchestration(backend: str) -> None:
     gt_config.cache_settings["root_path"] = original_root_directory
 
 
-@pytest.mark.parametrize("backend", [pytest.param("dace:cpu")])
+@pytest.mark.parametrize("backend", ["dace:cpu"])
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1, reason="relocatibility checked with a one-rank setup"
 )
