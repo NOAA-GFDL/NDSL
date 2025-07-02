@@ -421,9 +421,9 @@ class _LazyComputepathMethod:
         """Return SDFGEnabledCallable wrapping original obj.method from cache.
         Update cache first if need be"""
         if (id(obj), id(self.func)) not in _LazyComputepathMethod.bound_callables:
-            _LazyComputepathMethod.bound_callables[
-                (id(obj), id(self.func))
-            ] = _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))] = (
+                _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            )
 
         return _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))]
 

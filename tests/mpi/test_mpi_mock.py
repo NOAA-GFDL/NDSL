@@ -304,7 +304,7 @@ def test_worker(comm, dummy_results, mpi_results, numpy):
             if isinstance(mpi, numpy.ndarray):
                 numpy.testing.assert_array_equal(np.asarray(dummy), np.asarray(mpi))
             elif isinstance(mpi, Exception):
-                assert type(dummy) == type(mpi)
+                assert type(dummy) is type(mpi)
                 assert dummy.args == mpi.args
             else:
                 assert dummy == mpi

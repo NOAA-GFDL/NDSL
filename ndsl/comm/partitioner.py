@@ -61,8 +61,9 @@ class Partitioner(abc.ABC):
         self.layout = None
 
     @abc.abstractmethod
-    def boundary(self, boundary_type: int, rank: int) -> Optional[bd.SimpleBoundary]:
-        ...
+    def boundary(
+        self, boundary_type: int, rank: int
+    ) -> Optional[bd.SimpleBoundary]: ...
 
     @abc.abstractmethod
     def tile_index(self, rank: int):

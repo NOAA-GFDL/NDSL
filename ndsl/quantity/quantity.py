@@ -88,9 +88,11 @@ class Quantity:
 
             dimensions: Tuple[Union[str, int], ...] = tuple(
                 [
-                    axis
-                    if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
-                    else str(data.shape[index])
+                    (
+                        axis
+                        if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
+                        else str(data.shape[index])
+                    )
                     for index, (dim, axis) in enumerate(
                         zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
                     )
