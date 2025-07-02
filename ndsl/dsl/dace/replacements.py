@@ -2,11 +2,12 @@
 during parsing and replace them with an SDFG compatible representation. This
 allow custom NDSL system to be natively orchestratable."""
 
-from ndsl.dsl.typing import Float, Int
-from dace.frontend.python.replacements import _datatype_converter, UfuncInput
+from dace import SDFG, SDFGState, dtypes
 from dace.frontend.common import op_repository as oprepo
 from dace.frontend.python.newast import ProgramVisitor
-from dace import SDFG, SDFGState, dtypes
+from dace.frontend.python.replacements import UfuncInput, _datatype_converter
+
+from ndsl.dsl.typing import Float, Int
 
 
 @oprepo.replaces("Float")
