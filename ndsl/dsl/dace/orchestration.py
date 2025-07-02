@@ -118,6 +118,9 @@ def _build_sdfg(
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
 
     if is_compiling:
+        with DaCeProgress(config, "Validate original SDFG"):
+            sdfg.validate()
+
         # Make the transients array persistents
         if config.is_gpu_backend():
             # TODO
