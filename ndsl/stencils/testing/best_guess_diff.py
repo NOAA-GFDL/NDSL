@@ -1,9 +1,9 @@
 import argparse
+import pathlib
 
+import numpy as np
 import xarray as xr
 import yaml
-import numpy as np
-import pathlib
 
 
 def get_parser():
