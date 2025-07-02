@@ -65,6 +65,7 @@ setup(
     entry_points={
         "console_scripts": [
             "ndsl-serialbox_to_netcdf = ndsl.stencils.testing.serialbox_to_netcdf:entry_point",
+            "best_guess_diff = ndsl.stencils.testing.best_guess_diff:entry_point",
         ]
     },
 )
