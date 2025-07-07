@@ -23,7 +23,7 @@ def stencil_definition(a: FloatField):
         a = 0.0
 
 
-def test_skip_passes_becomes_oir_pipeline():
+def test_skip_passes_becomes_oir_pipeline() -> None:
     backend = "numpy"
     dace_config = DaceConfig(None, backend)
     config = StencilConfig(
