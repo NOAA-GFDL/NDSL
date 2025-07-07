@@ -19,9 +19,6 @@ from ndsl.dsl.typing import Field, FloatField
 BACKENDS = ["numpy", "dace:cpu"]
 
 
-BACKENDS = ["numpy", "dace:cpu"]
-
-
 def copy_stencil(q_in: FloatField, q_out: FloatField):
     with computation(PARALLEL), interval(...):
         q_out = q_in
