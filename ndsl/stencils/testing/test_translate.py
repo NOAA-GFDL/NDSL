@@ -140,7 +140,7 @@ def _get_thresholds(compute_function, input_data) -> None:
 
 @pytest.mark.sequential
 @pytest.mark.skipif(
-    MPI is not None and MPI.COMM_WORLD.Get_size() > 1,
+    MPI.COMM_WORLD.Get_size() > 1,
     reason="Running in parallel with mpi",
 )
 def test_sequential_savepoint(
@@ -293,7 +293,7 @@ def get_tile_communicator(comm, layout):
 
 @pytest.mark.parallel
 @pytest.mark.skipif(
-    MPI is None or MPI.COMM_WORLD.Get_size() == 1,
+    MPI.COMM_WORLD.Get_size() == 1,
     reason="Not running in parallel with mpi",
 )
 def test_parallel_savepoint(
