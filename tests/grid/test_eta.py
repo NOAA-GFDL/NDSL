@@ -32,7 +32,7 @@ def test_set_hybrid_pressure_coefficients_correct(levels):
     directly from the NetCDF file.
     """
 
-    eta_file = Path.cwd () / "tests" / "data" / "eta" / f"eta{levels}.nc"
+    eta_file = Path.cwd() / "tests" / "data" / "eta" / f"eta{levels}.nc"
     eta_data = xr.open_dataset(eta_file)
 
     backend = "numpy"
