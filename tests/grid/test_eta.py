@@ -23,8 +23,8 @@ is not provided.
 """
 
 
-@pytest.mark.parametrize("km", [79, 91])
-def test_set_hybrid_pressure_coefficients_correct(km):
+@pytest.mark.parametrize("levels", [79, 91])
+def test_set_hybrid_pressure_coefficients_correct(levels):
     """
     This test checks to see that the ak and bk arrays are read-in correctly and are
     stored as expected. Both values of km=79 and km=91 are tested and both tests are
@@ -32,14 +32,14 @@ def test_set_hybrid_pressure_coefficients_correct(km):
     directly from the NetCDF file.
     """
 
-    eta_file = str(Path.cwd()) + "/ndsl/data/" + f"eta{km}.nc"
+    eta_file = Path.cwd () / "tests" / "data" / "eta" / f"eta{levels}.nc"
     eta_data = xr.open_dataset(eta_file)
 
     backend = "numpy"
 
     layout = (1, 1)
 
-    nz = km
+    nz = levels
     ny = 48
     nx = 48
     nhalo = 3
@@ -126,7 +126,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     changed nonsensically to result in erroneous eta values.
     """
 
-    eta_file = str(Path.cwd()) + "/ndsl/data/non_mono_eta79.nc"
+    eta_file = str(Path.cwd()) + "/tests/data/eta/non_mono_eta79.nc"
 
     backend = "numpy"
 
