@@ -15,11 +15,6 @@ except ModuleNotFoundError as err:
     zarr = RaiseWhenAccessed(err)
 
 try:
-    import xarray
-except ModuleNotFoundError as err:
-    xarray = None
-
-try:
     import cupy
 except ImportError:
     cupy = None
@@ -30,14 +25,3 @@ if cupy is not None:
         cupy.cuda.runtime.deviceSynchronize()
     except cupy.cuda.runtime.CUDARuntimeError:
         cupy = None
-
-
-try:
-    import gt4py
-except ImportError:
-    gt4py = None
-
-try:
-    import dace
-except ImportError:
-    dace = None

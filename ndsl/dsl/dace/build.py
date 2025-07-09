@@ -106,7 +106,7 @@ def get_sdfg_path(
     return sdfg_dir_path
 
 
-def set_distributed_caches(config: "DaceConfig"):
+def set_distributed_caches(config: DaceConfig):
     """In Run mode, check required file then point current rank cache to source cache"""
 
     # Execute specific initialization per orchestration state

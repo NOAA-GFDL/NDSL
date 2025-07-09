@@ -62,9 +62,9 @@ def _ndsl_logger_on_rank_0() -> logging.Logger:
     return name_log
 
 
-ndsl_log: Annotated[
-    logging.Logger, "NDSL Python logger, logs on all rank"
-] = _ndsl_logger()
+ndsl_log: Annotated[logging.Logger, "NDSL Python logger, logs on all rank"] = (
+    _ndsl_logger()
+)
 
 ndsl_log_on_rank_0: Annotated[
     logging.Logger, "NDSL Python logger, logs on rank 0 only"

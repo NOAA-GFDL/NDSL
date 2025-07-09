@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 from dataclasses import dataclass
 from enum import Enum
@@ -238,7 +240,7 @@ class HaloDataTransformer(abc.ABC):
         np_module: NumpyModule,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Optional[Sequence[HaloExchangeSpec]] = None,
-    ) -> "HaloDataTransformer":
+    ) -> HaloDataTransformer:
         """Construct a module from a numpy-like module.
 
         Args:

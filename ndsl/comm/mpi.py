@@ -1,9 +1,6 @@
-try:
-    import mpi4py
-    from mpi4py import MPI
-except ImportError:
-    MPI = None
 from typing import Dict, List, Optional, TypeVar, cast
+
+from mpi4py import MPI
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
@@ -12,22 +9,22 @@ T = TypeVar("T")
 
 
 class MPIComm(Comm):
-    _op_mapping: Dict[ReductionOperator, mpi4py.MPI.Op] = {
-        ReductionOperator.OP_NULL: mpi4py.MPI.OP_NULL,
-        ReductionOperator.MAX: mpi4py.MPI.MAX,
-        ReductionOperator.MIN: mpi4py.MPI.MIN,
-        ReductionOperator.SUM: mpi4py.MPI.SUM,
-        ReductionOperator.PROD: mpi4py.MPI.PROD,
-        ReductionOperator.LAND: mpi4py.MPI.LAND,
-        ReductionOperator.BAND: mpi4py.MPI.BAND,
-        ReductionOperator.LOR: mpi4py.MPI.LOR,
-        ReductionOperator.BOR: mpi4py.MPI.BOR,
-        ReductionOperator.LXOR: mpi4py.MPI.LXOR,
-        ReductionOperator.BXOR: mpi4py.MPI.BXOR,
-        ReductionOperator.MAXLOC: mpi4py.MPI.MAXLOC,
-        ReductionOperator.MINLOC: mpi4py.MPI.MINLOC,
-        ReductionOperator.REPLACE: mpi4py.MPI.REPLACE,
-        ReductionOperator.NO_OP: mpi4py.MPI.NO_OP,
+    _op_mapping: Dict[ReductionOperator, MPI.Op] = {
+        ReductionOperator.OP_NULL: MPI.OP_NULL,
+        ReductionOperator.MAX: MPI.MAX,
+        ReductionOperator.MIN: MPI.MIN,
+        ReductionOperator.SUM: MPI.SUM,
+        ReductionOperator.PROD: MPI.PROD,
+        ReductionOperator.LAND: MPI.LAND,
+        ReductionOperator.BAND: MPI.BAND,
+        ReductionOperator.LOR: MPI.LOR,
+        ReductionOperator.BOR: MPI.BOR,
+        ReductionOperator.LXOR: MPI.LXOR,
+        ReductionOperator.BXOR: MPI.BXOR,
+        ReductionOperator.MAXLOC: MPI.MAXLOC,
+        ReductionOperator.MINLOC: MPI.MINLOC,
+        ReductionOperator.REPLACE: MPI.REPLACE,
+        ReductionOperator.NO_OP: MPI.NO_OP,
     }
 
     def __init__(self):
@@ -74,7 +71,7 @@ class MPIComm(Comm):
     def Irecv(self, recvbuf, source, tag: int = 0, **kwargs) -> Request:
         return self._comm.Irecv(recvbuf, source, tag=tag, **kwargs)
 
-    def Split(self, color, key) -> "Comm":
+    def Split(self, color, key) -> Comm:
         return self._comm.Split(color, key)
 
     def allreduce(self, sendobj: T, op: Optional[ReductionOperator] = None) -> T:
@@ -84,4 +81,4 @@ class MPIComm(Comm):
         return self._comm.Allreduce(sendobj_or_inplace, recvobj, self._op_mapping[op])
 
     def Allreduce_inplace(self, recvobj: T, op: ReductionOperator) -> T:
-        return self._comm.Allreduce(mpi4py.MPI.IN_PLACE, recvobj, self._op_mapping[op])
+        return self._comm.Allreduce(MPI.IN_PLACE, recvobj, self._op_mapping[op])

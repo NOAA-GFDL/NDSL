@@ -5,14 +5,6 @@ from ndsl import Quantity
 from ndsl.quantity.bounds import _shift_slice
 
 
-try:
-    import xarray as xr
-except ModuleNotFoundError:
-    xr = None
-
-requires_xarray = pytest.mark.skipif(xr is None, reason="xarray is not installed")
-
-
 @pytest.fixture(params=["empty", "one", "five"])
 def extent_1d(request, backend, n_halo):
     if request.param == "empty":
@@ -168,7 +160,7 @@ def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
         pytest.skip("cannot edit an empty domain")
     quantity.data[:] = 0.0
     quantity.view[:] = 1
-    assert quantity.np.sum(quantity.data) == extent_1d ** n_dims
+    assert quantity.np.sum(quantity.data) == extent_1d**n_dims
     if n_dims > 1:
         quantity.np.testing.assert_array_equal(quantity.data[:n_halo, :], 0.0)
         quantity.np.testing.assert_array_equal(
@@ -260,7 +252,6 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
         ),
     ],
 )
-@requires_xarray
 def test_to_data_array(quantity):
     assert quantity.field_as_xarray.attrs == quantity.attrs
     assert quantity.field_as_xarray.dims == quantity.dims

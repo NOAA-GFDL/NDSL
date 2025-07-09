@@ -70,8 +70,8 @@ def test_build_cache_path(
 
 
 @pytest.mark.skipif(
-    MPI is None or MPI.COMM_WORLD.Get_size() != 6,
-    reason="mpi4py is not available or pytest was not run in parallel",
+    MPI is None,
+    reason="pytest is not run in parallel",
 )
 def test_unblock_waiting_tiles():
     comm = MPI.COMM_WORLD

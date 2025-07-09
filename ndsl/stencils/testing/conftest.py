@@ -317,7 +317,7 @@ def _savepoint_cases(
             )
             n_calls = xr.open_dataset(
                 os.path.join(data_path, f"{test_name}-In.nc")
-            ).dims["savepoint"]
+            ).sizes["savepoint"]
             if savepoint_to_replay is not None:
                 savepoint_iterator = range(savepoint_to_replay, savepoint_to_replay + 1)
             else:
@@ -376,7 +376,7 @@ def parallel_savepoint_cases(
 
 def pytest_generate_tests(metafunc):
     backend = metafunc.config.getoption("backend")
-    if MPI is not None and MPI.COMM_WORLD.Get_size() > 1:
+    if MPI.COMM_WORLD.Get_size() > 1:
         if metafunc.function.__name__ == "test_parallel_savepoint":
             generate_parallel_stencil_tests(metafunc, backend=backend)
     elif metafunc.function.__name__ == "test_sequential_savepoint":

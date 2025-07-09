@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 
@@ -10,15 +12,10 @@ from ndsl.comm.comm_abc import Comm as CommABC
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
+from ndsl.optional_imports import cupy
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
-
-
-try:
-    import cupy
-except ImportError:
-    cupy = None
 
 
 def to_numpy(array, dtype=None) -> np.ndarray:
@@ -60,7 +57,7 @@ class Communicator(abc.ABC):
         self.timer: Timer = timer if timer is not None else NullTimer()
 
     @abc.abstractproperty
-    def tile(self) -> "TileCommunicator":
+    def tile(self) -> TileCommunicator:
         pass
 
     @classmethod
@@ -666,7 +663,7 @@ class TileCommunicator(Communicator):
         layout: Tuple[int, int],
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
-    ) -> "TileCommunicator":
+    ) -> TileCommunicator:
         partitioner = TilePartitioner(layout=layout)
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
 
@@ -799,7 +796,7 @@ class CubedSphereCommunicator(Communicator):
         layout: Tuple[int, int],
         force_cpu: bool = False,
         timer: Optional[Timer] = None,
-    ) -> "CubedSphereCommunicator":
+    ) -> CubedSphereCommunicator:
         partitioner = CubedSpherePartitioner(tile=TilePartitioner(layout=layout))
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
 

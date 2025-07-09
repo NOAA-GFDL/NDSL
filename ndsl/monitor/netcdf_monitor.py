@@ -5,13 +5,13 @@ from warnings import warn
 
 import fsspec
 import numpy as np
+import xarray as xr
 
 from ndsl.comm.communicator import Communicator
 from ndsl.dsl.typing import Float, get_precision
 from ndsl.filesystem import get_fs
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
-from ndsl.optional_imports import xarray as xr
 from ndsl.quantity import Quantity
 
 

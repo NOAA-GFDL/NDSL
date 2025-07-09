@@ -4,16 +4,11 @@ import pytest
 
 try:
     import ndsl.dsl  # noqa: F401
-except ModuleNotFoundError:
-    raise ModuleNotFoundError("NDSL cannot be loaded")
-try:
-    import gt4py
-except ModuleNotFoundError:
-    gt4py = None
-try:
-    import cupy
-except ModuleNotFoundError:
-    cupy = None
+except ModuleNotFoundError as error:
+    error.msg = f"NDSL cannot be loaded because {error.msg}"
+    raise error
+
+from ndsl.optional_imports import cupy
 
 
 @pytest.fixture(params=["numpy", "cupy"])
@@ -21,10 +16,7 @@ def backend(request):
     if cupy is None and request.param.endswith("cupy"):
         if request.config.getoption("--gpu-only"):
             raise ModuleNotFoundError("cupy must be installed to run gpu tests")
-        else:
-            pytest.skip("cupy is not available for GPU backend")
-    elif gt4py is None and request.param.startswith("gt4py"):
-        pytest.skip("gt4py backend is not available")
+        pytest.skip("cupy is not available for GPU backend")
     elif request.config.getoption("--gpu-only") and not request.param.endswith("cupy"):
         pytest.skip("running gpu tests only")
     else:

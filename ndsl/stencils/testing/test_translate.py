@@ -6,10 +6,10 @@ from typing import Any, Dict, List
 import numpy as np
 import pytest
 
-import ndsl.dsl.gt4py_utils as gt_utils
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
 from ndsl.quantity import Quantity
@@ -68,9 +68,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
                         for key in testobj.out_vars.keys():
                             if key not in testobj.ignore_near_zero_errors:
                                 testobj.ignore_near_zero_errors[key] = {}
-                                testobj.ignore_near_zero_errors[key][
-                                    "near_zero"
-                                ] = float(match["all_other_near_zero"])
+                                testobj.ignore_near_zero_errors[key]["near_zero"] = (
+                                    float(match["all_other_near_zero"])
+                                )
 
                 else:
                     raise TypeError(
@@ -140,7 +140,7 @@ def _get_thresholds(compute_function, input_data) -> None:
 
 @pytest.mark.sequential
 @pytest.mark.skipif(
-    MPI is not None and MPI.COMM_WORLD.Get_size() > 1,
+    MPI.COMM_WORLD.Get_size() > 1,
     reason="Running in parallel with mpi",
 )
 def test_sequential_savepoint(
@@ -293,7 +293,7 @@ def get_tile_communicator(comm, layout):
 
 @pytest.mark.parallel
 @pytest.mark.skipif(
-    MPI is None or MPI.COMM_WORLD.Get_size() == 1,
+    MPI.COMM_WORLD.Get_size() == 1,
     reason="Not running in parallel with mpi",
 )
 def test_parallel_savepoint(

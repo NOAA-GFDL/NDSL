@@ -6,15 +6,11 @@ import numpy as np
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
+from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.savepoint import DataLoader
 
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +129,7 @@ class TranslateFortranData2Py:
         names_4d: Optional[List[str]] = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> "Field":
+    ) -> Field:
         """Copy input data into a gt4py.storage with given shape.
 
         `array` is copied. Takes care of the device upload if necessary.

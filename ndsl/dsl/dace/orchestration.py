@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
@@ -32,12 +34,7 @@ from ndsl.dsl.dace.utils import (
     report_memory_static_analysis,
 )
 from ndsl.logging import ndsl_log
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
+from ndsl.optional_imports import cupy as cp
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -375,7 +372,7 @@ class _LazyComputepathMethod:
     bound_callables: Dict[Tuple[int, int], "SDFGEnabledCallable"] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
-        def __init__(self, lazy_method: "_LazyComputepathMethod", obj_to_bind):
+        def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
             methodwrapper = dace.method(lazy_method.func)
             self.obj_to_bind = obj_to_bind
             self.lazy_method = lazy_method
@@ -427,9 +424,9 @@ class _LazyComputepathMethod:
         """Return SDFGEnabledCallable wrapping original obj.method from cache.
         Update cache first if need be"""
         if (id(obj), id(self.func)) not in _LazyComputepathMethod.bound_callables:
-            _LazyComputepathMethod.bound_callables[
-                (id(obj), id(self.func))
-            ] = _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))] = (
+                _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            )
 
         return _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))]
 

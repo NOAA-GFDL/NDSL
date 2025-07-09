@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import pickle
@@ -82,7 +84,7 @@ class CachingCommData:
         pickle.dump(self, file)
 
     @classmethod
-    def load(self, file: BinaryIO) -> "CachingCommData":
+    def load(self, file: BinaryIO) -> CachingCommData:
         return pickle.load(file)
 
 
@@ -143,7 +145,7 @@ class CachingCommReader(Comm):
     def sendrecv(self, sendbuf, dest, **kwargs):
         raise NotImplementedError()
 
-    def Split(self, color, key) -> "CachingCommReader":
+    def Split(self, color, key) -> CachingCommReader:
         new_data = self._data.get_split()
         return CachingCommReader(data=new_data)
 
@@ -154,7 +156,7 @@ class CachingCommReader(Comm):
         raise NotImplementedError("CachingCommReader.Allreduce")
 
     @classmethod
-    def load(cls, file: BinaryIO) -> "CachingCommReader":
+    def load(cls, file: BinaryIO) -> CachingCommReader:
         data = CachingCommData.load(file)
         return cls(data)
 
@@ -223,7 +225,7 @@ class CachingCommWriter(Comm):
     def sendrecv(self, sendbuf, dest, **kwargs):
         raise NotImplementedError()
 
-    def Split(self, color, key) -> "CachingCommWriter":
+    def Split(self, color, key) -> CachingCommWriter:
         new_comm = self._comm.Split(color=color, key=key)
         new_wrapper = CachingCommWriter(new_comm)
         self._data.split_data.append(new_wrapper._data)

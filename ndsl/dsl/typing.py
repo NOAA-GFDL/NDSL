@@ -1,8 +1,8 @@
 import os
 from typing import Tuple, TypeAlias, Union, cast
 
-import gt4py.cartesian.gtscript as gtscript
 import numpy as np
+from gt4py.cartesian import gtscript
 
 
 # A Field
@@ -38,7 +38,7 @@ NDSL_64BIT_INT_TYPE: TypeAlias = np.int64
 def global_set_precision() -> Tuple[TypeAlias, TypeAlias]:
     """Set the global precision for all references of
     Float and Int in the codebase. Defaults to 64 bit."""
-    global Float, Int
+    global Float, Int  # noqa: F824 global ... is unused
     precision_in_bit = get_precision()
     if precision_in_bit == 64:
         return NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE

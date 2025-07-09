@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import inspect
@@ -17,8 +19,9 @@ from typing import (
 )
 
 import dace
-import gt4py
 import numpy as np
+from gt4py.cartesian import config as gt_config
+from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
@@ -37,12 +40,6 @@ from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = np
 
 
 def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
@@ -309,8 +306,8 @@ class FrozenStencil(SDFGConvertible):
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
-                    gt_root=gt4py.cartesian.config.cache_settings["root_path"],
-                    gt_cache=gt4py.cartesian.config.cache_settings["dir_name"],
+                    gt_root=gt_config.cache_settings["root_path"],
+                    gt_cache=gt_config.cache_settings["dir_name"],
                 ),
             )
 
@@ -362,14 +359,14 @@ class FrozenStencil(SDFGConvertible):
             ):
                 unblock_waiting_tiles(MPI.COMM_WORLD)
 
-        self._timing_collector.build_info[
-            _stencil_object_name(self.stencil_object)
-        ] = build_info
+        self._timing_collector.build_info[_stencil_object_name(self.stencil_object)] = (
+            build_info
+        )
         field_info = self.stencil_object.field_info
 
-        self._field_origins: Dict[
-            str, Tuple[int, ...]
-        ] = FrozenStencil._compute_field_origins(field_info, self.origin)
+        self._field_origins: Dict[str, Tuple[int, ...]] = (
+            FrozenStencil._compute_field_origins(field_info, self.origin)
+        )
         """mapping from field names to field origins"""
 
         self._stencil_run_kwargs: Dict[str, Any] = {
@@ -499,7 +496,7 @@ class FrozenStencil(SDFGConvertible):
             if field_info[field_name]
             and bool(
                 field_info[field_name].access
-                & gt4py.cartesian.definitions.AccessKind.WRITE  # type: ignore
+                & gt_definitions.AccessKind.WRITE  # type: ignore
             )
         ]
         return write_fields
@@ -610,7 +607,7 @@ class GridIndexing:
     @classmethod
     def from_sizer_and_communicator(
         cls, sizer: GridSizer, comm: Communicator
-    ) -> "GridIndexing":
+    ) -> GridIndexing:
         # TODO: if this class is refactored to split off the *_edge booleans,
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
@@ -836,7 +833,7 @@ class GridIndexing:
             shape[i] += n
         return tuple(shape)
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "GridIndexing":
+    def restrict_vertical(self, k_start=0, nk=None) -> GridIndexing:
         """
         Returns a copy of itself with modified vertical origin and domain.
 
@@ -974,7 +971,7 @@ class StencilFactory:
             skip_passes=skip_passes,
         )
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "StencilFactory":
+    def restrict_vertical(self, k_start=0, nk=None) -> StencilFactory:
         return StencilFactory(
             config=self.config,
             grid_indexing=self.grid_indexing.restrict_vertical(k_start=k_start, nk=nk),
