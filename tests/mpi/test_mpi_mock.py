@@ -293,9 +293,7 @@ def dummy_results(worker_function, dummy_list, numpy):
     return result_list
 
 
-@pytest.mark.skipif(
-    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
-)
+@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_worker(comm, dummy_results, mpi_results, numpy):
     comm.barrier()  # synchronize the test "dots" across ranks
     if comm.Get_rank() == 0:
