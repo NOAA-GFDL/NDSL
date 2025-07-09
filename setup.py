@@ -29,22 +29,4 @@ requirements: List[str] = [
 ]
 
 
-setup(
-    install_requires=requirements,
-<<<<<<< HEAD
-=======
-    extras_require=extras_requires,
-    name="ndsl",
-    license="Apache 2.0 license",
-    packages=find_namespace_packages(include=["ndsl", "ndsl.*"]),
-    include_package_data=True,
-    url="https://github.com/NOAA-GFDL/NDSL",
-    version="2025.05.00",
-    zip_safe=False,
-    entry_points={
-        "console_scripts": [
-            "ndsl-serialbox_to_netcdf = ndsl.stencils.testing.serialbox_to_netcdf:entry_point",
-        ]
-    },
->>>>>>> develop
-)
+setup(install_requires=requirements)
