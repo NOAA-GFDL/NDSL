@@ -22,9 +22,6 @@ jobs:
         - name: Install Python packages
           run: pip3 install .[test]
 
-        - name: prepare input eta files
-          run: python tests/grid/generate_eta_files.py
-
         - name: Run serial-cpu tests
           run: coverage run --rcfile=setup.cfg -m pytest tests
 

@@ -61,11 +61,7 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 
 ### Running tests
 
-Tests are available via `pytest` (don't forget to install the `test` or `develop` extras). Before you run tests, make sure to create expected input files:
-
-```bash
-python tests/grid/generate_eta_files.py
-```
+Tests are available via `pytest` (don't forget to install the `test` or `develop` extras).
 
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
