@@ -23,32 +23,8 @@ is not provided.
 """
 
 
-def set_answers(eta_file):
-    """
-    Read in the expected values of ak and bk arrays from the input eta NetCDF files.
-    """
-
-    data = xr.open_dataset(eta_file)
-    return data["ak"].values, data["bk"].values
-
-
-def write_non_mono_eta_file(in_eta_file, out_eta_file):
-    """
-    Reads in file eta79.nc and alters randomly chosen ak/bk values.
-
-    This tests the expected failure of set_eta_hybrid_coefficients for coefficients
-    that lead to non-monotonically increasing eta values.
-    """
-
-    data = xr.open_dataset(in_eta_file)
-    data["ak"].values[10] = data["ak"].values[0]
-    data["bk"].values[20] = 0.0
-
-    data.to_netcdf(out_eta_file)
-
-
-@pytest.mark.parametrize("km", [79, 91])
-def test_set_hybrid_pressure_coefficients_correct(km):
+@pytest.mark.parametrize("levels", [79, 91])
+def test_set_hybrid_pressure_coefficients_correct(levels):
     """
     This test checks to see that the ak and bk arrays are read-in correctly and are
     stored as expected. Both values of km=79 and km=91 are tested and both tests are
@@ -56,13 +32,14 @@ def test_set_hybrid_pressure_coefficients_correct(km):
     directly from the NetCDF file.
     """
 
-    eta_file = Path.cwd() / f"eta{km}.nc"
+    eta_file = Path.cwd() / "tests" / "data" / "eta" / f"eta{levels}.nc"
+    eta_data = xr.open_dataset(eta_file)
 
     backend = "numpy"
 
     layout = (1, 1)
 
-    nz = km
+    nz = levels
     ny = 48
     nx = 48
     nhalo = 3
@@ -90,7 +67,7 @@ def test_set_hybrid_pressure_coefficients_correct(km):
 
     ak_results = metric_terms.ak.data
     bk_results = metric_terms.bk.data
-    ak_answers, bk_answers = set_answers(f"eta{km}.nc")
+    ak_answers, bk_answers = eta_data["ak"].values, eta_data["bk"].values
 
     assert ak_answers.size == ak_results.size, "Unexpected size of bk"
     assert bk_answers.size == bk_results.size, "Unexpected size of ak"
@@ -149,10 +126,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
     changed nonsensically to result in erroneous eta values.
     """
 
-    in_eta_file = Path.cwd() / "eta79.nc"
-    out_eta_file = Path.cwd() / "eta_not_mono_79.nc"
-    write_non_mono_eta_file(in_eta_file, out_eta_file)
-    eta_file = out_eta_file
+    eta_file = str(Path.cwd()) + "/tests/data/eta/non_mono_eta79.nc"
 
     backend = "numpy"
 
@@ -186,6 +160,3 @@ def test_set_hybrid_pressure_coefficients_not_mono():
             communicator=communicator,
             eta_file=eta_file,
         )
-
-    # cleanup
-    Path.unlink(out_eta_file, missing_ok=True)
