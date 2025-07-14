@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 64"]
+requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,11 +9,11 @@ dynamic = ["dependencies"]
 requires-python = ">=3.11"
 authors = [{name = "NOAA/NASA"}]
 readme = "README.md"
-license = {file = "LICENSE.txt"}
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -27,7 +27,8 @@ develop = [
     "ndsl[docs]",
     "ndsl[demos]",
     "ndsl[test]",
-    "pre-commit"
+    "pre-commit",
+    "pyproject-flake8"
 ]
 extras = [
     "ndsl[docs]",
@@ -47,3 +48,29 @@ include = ["ndsl", "ndsl.*"]
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.flake8]
+exclude = ["docs"]
+extend-ignore = ["E203","E302","E704","F841","W293","E501","W503"]
+max-line-length = 88
+
+[tool.isort]
+profile = "black"
+lines_after_imports = 2
+default_section = "THIRDPARTY"
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py,dace"
+
+[tool.mypy]
+ignore_missing_imports = "true"
+follow_imports = "normal"
+namespace_packages = "true"
+strict_optional = "false"
+warn_unreachable = "true"
+explicit_package_bases = "true"
+
+[tool.coverage.run]
+parallel = true
+branch = true
+omit = ["tests/*", "*gt_cache*", ".dacecache*", "external/*", "__init__.py"]
+source_pkgs = "ndsl"
