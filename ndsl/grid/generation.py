@@ -489,6 +489,12 @@ class MetricTerms:
         terms._grid_64.view[:, :, 0] = rad_conv * x
         terms._grid_64.view[:, :, 1] = rad_conv * y
 
+        terms._comm.halo_update(terms._grid_64, n_points=terms._halo)
+
+        fill_corners_2d(
+            terms._grid_64.data, terms._grid_indexing, gridtype="B", direction="x"
+        )
+
         terms._init_agrid()
 
         return terms
