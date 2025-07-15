@@ -1,43 +1,43 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 77.0.3"]
 
 [project]
-name = "ndsl"
-version = "2025.05.00"
-dynamic = ["dependencies"]
-requires-python = ">=3.11,<3.12"
 authors = [{name = "NOAA/NASA"}]
-readme = "README.md"
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Atmospheric Science",
+  "Private :: Do Not Upload",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11"
+]
+dynamic = ["dependencies"]
 license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
-classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Atmospheric Science",
-    "Private :: Do Not Upload",
-    "Natural Language :: English",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-]
+name = "ndsl"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+version = "2025.05.00"
 
 [project.optional-dependencies]
-docs = ["mkdocs-material"]
 demos = ["ipython", "ipykernel"]
-test = ["pytest", "pytest-subtests", "coverage"]
 dev = [
-    "ndsl[docs]",
-    "ndsl[demos]",
-    "ndsl[test]",
-    "pre-commit",
-    "pyproject-flake8"
+  "ndsl[docs]",
+  "ndsl[demos]",
+  "ndsl[test]",
+  "pre-commit",
+  "pyproject-flake8"
 ]
+docs = ["mkdocs-material"]
 extras = [
-    "ndsl[docs]",
-    "ndsl[demos]",
-    "ndsl[test]",
-    "ndsl[develop]",
+  "ndsl[docs]",
+  "ndsl[demos]",
+  "ndsl[test]",
+  "ndsl[dev]"
 ]
+test = ["pytest", "pytest-subtests", "coverage"]
 
 [project.scripts]
 ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
@@ -45,36 +45,36 @@ ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_poin
 [project.urls]
 Repository = "https://github.com/NOAA-GFDL/NDSL"
 
-[tool.setuptools.packages.find]
-include = ["ndsl", "ndsl.*"]
+[tool.aliases]
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/*", "*gt_cache*", ".dacecache*", "external/*", "__init__.py"]
+parallel = true
+source_pkgs = ["ndsl"]
+
+[tool.flake8]
+exclude = ["docs"]
+extend-ignore = ["E203", "E302", "E704", "F841", "W293", "E501", "W503"]
+max-line-length = 88
+
+[tool.isort]
+default_section = "THIRDPARTY"
+known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py,dace"
+lines_after_imports = 2
+profile = "black"
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+[tool.mypy]
+explicit_package_bases = "true"
+follow_imports = "normal"
+ignore_missing_imports = "true"
+namespace_packages = "true"
+strict_optional = "false"
+warn_unreachable = "true"
 
 [tool.setuptools]
 include-package-data = true
 
-[tool.flake8]
-exclude = ["docs"]
-extend-ignore = ["E203","E302","E704","F841","W293","E501","W503"]
-max-line-length = 88
-
-[tool.aliases]
-
-[tool.isort]
-profile = "black"
-lines_after_imports = 2
-default_section = "THIRDPARTY"
-sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
-known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py,dace"
-
-[tool.mypy]
-ignore_missing_imports = "true"
-follow_imports = "normal"
-namespace_packages = "true"
-strict_optional = "false"
-warn_unreachable = "true"
-explicit_package_bases = "true"
-
-[tool.coverage.run]
-parallel = true
-branch = true
-omit = ["tests/*", "*gt_cache*", ".dacecache*", "external/*", "__init__.py"]
-source_pkgs = ["ndsl"]
+[tool.setuptools.packages.find]
+include = ["ndsl", "ndsl.*"]

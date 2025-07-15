@@ -23,7 +23,7 @@ cd NDSL/
 python -m venv .venv/
 source ./venv/bin/activate
 
-# Choose pip install -e .[develop] if you'd like to contribute
+# Choose pip install -e .[dev] if you'd like to contribute
 pip install .[demos]
 ```
 
@@ -57,11 +57,11 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 - `ndsl[test]`: extra dependencies to run tests (based on `pytest`)
 - `ndsl[demos]`: extra dependencies to run [NDSL examples](./examples/NDSL/)
 - `ndsl[docs]`: extra dependencies to build the docs
-- `ndsl[develop]`: installs tools for development, docs, and tests.
+- `ndsl[dev]`: installs tools for development, docs, and tests.
 
 ### Running tests
 
-Tests are available via `pytest` (don't forget to install the `test` or `develop` extras).
+Tests are available via `pytest` (don't forget to install the `test` or `dev` extras).
 
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
@@ -79,7 +79,7 @@ mpirun -np 6 pytest tests/mpi
 
 ### Code/contribution guidelines
 
-1. Code quality is enforced by `pre-commit` (which is part of the "develop" extra). Run `pre-commit install`  to install the pre-commit hooks locally or make sure to run `pre-commit run -a`  before submitting a pull request.
+1. Code quality is enforced by `pre-commit` (which is part of the "dev" extra). Run `pre-commit install`  to install the pre-commit hooks locally or make sure to run `pre-commit run -a`  before submitting a pull request.
 2. While we don't strictly enforce type hints, we add them on new code.
 3. Pull requests have to merged as "squash merge" to keep the `git` history clean.
 
@@ -87,7 +87,7 @@ mpirun -np 6 pytest tests/mpi
 
 We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and optionally serve it as a static site.
 
-To view the documentation, install NDSL with the `docs` or `develop` extras. Then  run the following:
+To view the documentation, install NDSL with the `docs` or `dev` extras. Then  run the following:
 
 ```bash
 mkdocs serve

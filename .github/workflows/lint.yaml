@@ -11,18 +11,18 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-          with:
-            submodules: 'recursive'
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
 
-        - name: Setup Python 3.11
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.11'
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        - name: Install pre-commit
-          run: pip install pre-commit
+      - name: Install pre-commit
+        run: pip install pre-commit
 
-        - name: Run lint via pre-commit
-          run: pre-commit run --all-files
+      - name: Run lint via pre-commit
+        run: pre-commit run --all-files
