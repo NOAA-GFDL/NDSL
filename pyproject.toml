@@ -56,6 +56,8 @@ exclude = ["docs"]
 extend-ignore = ["E203","E302","E704","F841","W293","E501","W503"]
 max-line-length = 88
 
+[tool.aliases]
+
 [tool.isort]
 profile = "black"
 lines_after_imports = 2
@@ -75,4 +77,4 @@ explicit_package_bases = "true"
 parallel = true
 branch = true
 omit = ["tests/*", "*gt_cache*", ".dacecache*", "external/*", "__init__.py"]
-source_pkgs = "ndsl"
+source_pkgs = ["ndsl"]
