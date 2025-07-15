@@ -1,0 +1,3 @@
+# collector
+
+::: performance.collector

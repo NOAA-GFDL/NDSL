@@ -1,0 +1,104 @@
+site_name: NDSL Python Files Documentation
+theme:
+  name: material
+  
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [../ndsl]  # Adjust this path to where your Python modules are
+          options:
+            show_source: false
+
+nav:
+  - Home: index.md
+  - Top:
+    - "boilerplate": top/boilerplate.md
+    - "buffer": top/buffer.md
+    - "constants": top/constants.md
+    - "exceptions": top/exceptions.md
+    - "filesystem": top/filesystem.md
+    - "global_config": top/global_config.md
+    - "io": top/io.md
+    - "logging": top/logging.md
+    - "namelist": top/namelist.md
+    - "optional_imports": top/optional_imports.md
+    - "types": top/types.md
+    - "typing": top/typing.md
+    - "units": top/units.md
+    - "utils": top/utils.md
+  - checkpointer:
+    - "base": checkpointer/base.md
+    - "null": checkpointer/null.md
+    - "snapshots": checkpointer/snapshots.md
+    - "thresholds": checkpointer/thresholds.md
+    - "validation": checkpointer/validation.md
+  - comm:
+    - "_boundary_utils": comm/_boundary_utils.md
+    - "boundary": comm/boundary.md
+    - "caching_comm": comm/caching_comm.md
+    - "comm_abc": comm/comm_abc.md
+    - "communicator": comm/communicator.md
+    - "decomposition": comm/decomposition.md
+    - "local_comm": comm/local_comm.md
+    - "mpi": comm/mpi.md
+    - "null_comm": comm/null_comm.md
+    - "partitioner": comm/partitioner.md
+  - debug:
+    - "config": debug/config.md
+    - "debugger": debug/debugger.md
+    - "tooling": debug/tooling.md
+  - dsl:
+    - "gt4py_utils": dsl/gt4py_utils.md
+    - "stencil": dsl/stencil.md
+    - "stencil_config": dsl/stencil_config.md
+    - "typing": dsl/typing.md
+  - grid:
+    - "eta": grid/eta.md
+    - "generation": grid/generation.md
+    - "geometry": grid/geometry.md
+    - "global_setup": grid/global_setup.md
+    - "gnomonic": grid/gnomonic.md
+    - "helper": grid/helper.md
+    - "mirror": grid/mirror.md
+    - "stretch_transformation": grid/stretch_transformation.md
+  - halo:
+    - "cuda_kernels": halo/cuda_kernels.md
+    - "data_transformer": halo/data_transformer.md
+    - "rotate": halo/rotate.md
+    - "updater": halo/updater.md
+  - initialization:
+    - "allocator": initialization/allocator.md
+    - "sizer": initialization/sizer.md
+  - monitor:
+    - "convert": monitor/convert.md
+    - "netcdf_monitor": monitor/netcdf_monitor.md
+    - "protocol": monitor/protocol.md
+    - "zarr_monitor": monitor/zarr_monitor.md
+  - performance:
+    - "collector": performance/collector.md
+    - "config": performance/config.md
+    - "profiler": performance/profiler.md
+    - "report": performance/report.md
+    - "timer": performance/timer.md
+    - "tools": performance/tools.md
+  - quantity:
+    - "bounds": quantity/bounds.md
+    - "field_bundle": quantity/field_bundle.md
+    - "metadata": quantity/metadata.md
+    - "quantity": quantity/quantity.md
+  - restart:
+    - "_legacy_restart": restart/_legacy_restart.md
+    - "_properties": restart/_properties.md
+  - stencils:
+    - "basic_operations": stencils/basic_operations.md
+    - "c2l_ord": stencils/c2l_ord.md
+    - "corners": stencils/corners.md
+    - "tridiag": stencils/tridiag.md
+  - testing:
+    - "comparison": testing/comparison.md
+    - "dummy_comm": testing/dummy_comm.md
+    - "perturbation": testing/perturbation.md
+  - viz:
+    - "cube_sphere": viz/cube_sphere.md

@@ -1,0 +1,3 @@
+# stencil
+
+::: dsl.stencil

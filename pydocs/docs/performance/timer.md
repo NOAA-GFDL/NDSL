@@ -1,0 +1,3 @@
+# timer
+
+::: performance.timer
