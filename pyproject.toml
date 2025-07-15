@@ -6,14 +6,16 @@ build-backend = "setuptools.build_meta"
 name = "ndsl"
 version = "2025.05.00"
 dynamic = ["dependencies"]
-requires-python = ">=3.11"
+requires-python = "<3.12"
 authors = [{name = "NOAA/NASA"}]
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
-    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Private :: Do Not Upload",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
