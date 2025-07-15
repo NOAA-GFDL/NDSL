@@ -25,7 +25,7 @@ classifiers = [
 docs = ["mkdocs-material"]
 demos = ["ipython", "ipykernel"]
 test = ["pytest", "pytest-subtests", "coverage"]
-develop = [
+dev = [
     "ndsl[docs]",
     "ndsl[demos]",
     "ndsl[test]",
