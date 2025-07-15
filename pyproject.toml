@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ndsl"
 version = "2025.05.00"
 dynamic = ["dependencies"]
-requires-python = "<3.12"
+requires-python = ">=3.11,<3.12"
 authors = [{name = "NOAA/NASA"}]
 readme = "README.md"
 license = "Apache-2.0"
