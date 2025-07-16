@@ -23,20 +23,9 @@ version = "2025.05.00"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
-dev = [
-  "ndsl[docs]",
-  "ndsl[demos]",
-  "ndsl[test]",
-  "pre-commit",
-  "pyproject-flake8"
-]
+dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject"]
 docs = ["mkdocs-material"]
-extras = [
-  "ndsl[docs]",
-  "ndsl[demos]",
-  "ndsl[test]",
-  "ndsl[dev]"
-]
+extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 test = ["pytest", "pytest-subtests", "coverage"]
 
 [project.scripts]
@@ -55,7 +44,7 @@ source_pkgs = ["ndsl"]
 
 [tool.flake8]
 exclude = ["docs"]
-extend-ignore = ["E203", "E302", "E704", "F841", "W293", "E501", "W503"]
+extend-ignore = ["E203", "E302", "E704", "F841", "W293", "E501", "W503", "F401"]
 max-line-length = 88
 
 [tool.isort]
