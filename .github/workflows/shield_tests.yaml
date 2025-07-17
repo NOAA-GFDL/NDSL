@@ -6,5 +6,5 @@ jobs:
   shield_translate_tests:
     uses: NOAA-GFDL/pySHiELD/.github/workflows/translate.yaml@develop
     with:
-      component_trigger:  true
+      component_trigger: true
       component_name: NDSL
