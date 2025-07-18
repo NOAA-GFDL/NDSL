@@ -204,12 +204,25 @@ class DaceConfig:
                 "openmp_sections",
                 value=0,
             )
+            # Resolve "march/mtune" option
+            #  - turn numeric-centric SSE by default
+            #  - Neoverse-V2 Grace CPU will fail - use alternative mcpu=native.
+            #    Detecting neoverse-v1/2 requires an external package, we swap it
+            #    for a read on GH200 nodes themselves
+            march_option = "-Xcompiler -march=native"
+            if cp is not None:
+                if (
+                    cp.cuda.runtime.getDeviceProperties(0)["name"]
+                    == b"NVIDIA GH200 480GB"
+                ):
+                    march_option = "-Xcompiler -mcpu=native"
+
             # Removed --fast-math
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value="-std=c++14 -Xcompiler -fPIC -O3 -Xcompiler -march=native",
+                value=f"-std=c++14 -Xcompiler -fPIC -O3 {march_option}",
             )
 
             cuda_sm = 60
