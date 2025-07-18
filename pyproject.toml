@@ -44,7 +44,17 @@ source_pkgs = ["ndsl"]
 
 [tool.flake8]
 exclude = ["docs"]
-extend-ignore = ["E203", "E302", "E704", "F841", "W293", "E501", "W503", "F401"]
+extend-ignore = [
+  # Redundant with black formatter
+  "E302",  # Blank lines before function
+  "E501",  # Line too long
+  "E704",  # One statement per line
+  "W293",  # Blank line contains whitespace
+  "W503",  # Linebreak before binary operator
+  # Clashes with NDSL/stencil syntax
+  "E203",  # Space before ":", e.g. `field[1, :]`
+  "F841"  # Local variable assigned but unused
+]
 max-line-length = 88
 
 [tool.isort]

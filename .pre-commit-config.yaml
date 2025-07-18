@@ -42,14 +42,6 @@ repos:
         name: flake8
         language_version: python3
         additional_dependencies: [Flake8-pyproject]
-        exclude: |
-          (?x)^(
-          .*/__init__.py |
-          )$
-      - id: flake8
-        additional_dependencies: [Flake8-pyproject]
-        name: flake8 __init__.py files
-        files: "__init__.py"
 
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
     rev: v2.15.0
