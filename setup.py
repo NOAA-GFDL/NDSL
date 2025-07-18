@@ -11,7 +11,7 @@ def local_pkg(name: str, relative_path: str) -> str:
     return path
 
 
-docs_requirements = ["mkdocs-material"]
+docs_requirements = ["mkdocs-material", "mkdocstrings[python]"]
 demos_requirements = ["ipython", "ipykernel"]
 test_requirements = ["pytest", "pytest-subtests", "coverage"]
 
