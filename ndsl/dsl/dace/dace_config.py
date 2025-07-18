@@ -210,12 +210,12 @@ class DaceConfig:
             #    Detecting neoverse-v1/2 requires an external package, we swap it
             #    for a read on GH200 nodes themselves
             march_option = "-Xcompiler -march=native"
-            if cp is not None:
-                if (
-                    cp.cuda.runtime.getDeviceProperties(0)["name"]
-                    == b"NVIDIA GH200 480GB"
-                ):
-                    march_option = "-Xcompiler -mcpu=native"
+            if (
+                cp is not None
+                and cp.cuda.runtime.getDeviceProperties(0)["name"]
+                == b"NVIDIA GH200 480GB"
+            ):
+                march_option = "-Xcompiler -mcpu=native"
 
             # Removed --fast-math
             dace.config.Config.set(
