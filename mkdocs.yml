@@ -11,12 +11,12 @@ nav:
   - Home: index.md
   - User documentation: user/index.md
   - Porting:
-    - General Concepts: porting/index.md
-    - Testing Infrastructure: porting/translate/index.md
+      - General Concepts: porting/index.md
+      - Testing Infrastructure: porting/translate/index.md
   - Under the hood:
-    - Technical Documentation: dev/index.md
-    - DaCe: dev/dace.md
-    - GT4Py: dev/gt4py.md
+      - Technical Documentation: dev/index.md
+      - DaCe: dev/dace.md
+      - GT4Py: dev/gt4py.md
 
 
 markdown_extensions:
@@ -39,9 +39,9 @@ markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
       # support for mermaid graphs
-      - name: mermaid
-        class: mermaid
-        format: python/name:pymdownx.superfences.fence_code_format
+        - name: mermaid
+          class: mermaid
+          format: python/name:pymdownx.superfences.fence_code_format
   # image inclusion
 
 plugins:
