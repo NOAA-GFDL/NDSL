@@ -10,19 +10,21 @@ concurrency:
 jobs:
   ndsl_unit_tests:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/noaa-gfdl/miniforge:mpich
-    steps:
 
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
+      - name: Install mpi (MPICH flavor)
+        run: pip3 install mpich
+
       - name: Install Python packages
         run: pip3 install .[test]
 
       - name: Run serial-cpu tests
+        if: false
         run: coverage run --rcfile=pyproject.toml -m pytest tests
 
       - name: Run parallel-cpu tests

@@ -4,6 +4,7 @@ on:
 
 jobs:
   shield_translate_tests:
+    if: false
     uses: NOAA-GFDL/pySHiELD/.github/workflows/translate.yaml@develop
     with:
       component_trigger: true

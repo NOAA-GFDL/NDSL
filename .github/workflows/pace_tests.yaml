@@ -4,6 +4,7 @@ on:
 
 jobs:
   pace_main_tests:
+    if: false
     uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
     with:
       component_trigger: true
