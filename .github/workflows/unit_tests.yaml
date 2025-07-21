@@ -17,6 +17,11 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Install mpi (MPICH flavor)
         run: pip3 install mpich
 
