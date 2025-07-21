@@ -11,7 +11,7 @@ def local_pkg(name: str, relative_path: str) -> str:
 requirements: list[str] = [
     local_pkg("gt4py", "external/gt4py"),
     local_pkg("dace", "external/dace"),
-    "mpi4py>4.1",
+    "mpi4py>=4.1",
     "cftime",
     "xarray>=2025.01.2",  # datatree + fixes
     "f90nml>=1.1.0",
