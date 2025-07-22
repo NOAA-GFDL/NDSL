@@ -1,9 +1,14 @@
 name: "Lint"
 on:
   pull_request:
+  push:
+    # We don't use a merge queue and allow to merge outdated branches for practical reasons,
+    # because pyFV3 and pace tests take a long time to run. The "safety net" is thus to run
+    # tests when pushing to protected branches.
+    branches: [develop, main]
 
-# cancel running jobs if theres a newer push
 concurrency:
+  # Cancel running jobs if theres a newer push.
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
