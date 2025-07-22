@@ -10,14 +10,20 @@ concurrency:
 jobs:
   ndsl_unit_tests:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/noaa-gfdl/miniforge:mpich
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install mpi (MPICH flavor)
+        run: pip3 install mpich
 
       - name: Install Python packages
         run: pip3 install .[test]
@@ -26,7 +32,7 @@ jobs:
         run: coverage run --rcfile=pyproject.toml -m pytest tests
 
       - name: Run parallel-cpu tests
-        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest tests/mpi
+        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest tests/mpi
 
       - name: Output code coverage
         run: |
