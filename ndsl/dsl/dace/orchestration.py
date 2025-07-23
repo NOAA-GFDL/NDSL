@@ -3,9 +3,12 @@ from __future__ import annotations
 import os
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
-import dace
-import gt4py.storage
+from dace import SDFG
 from dace import compiletime as DaceCompiletime
+from dace import dtypes
+from dace import method as dace_method
+from dace import nodes
+from dace import program as dace_program
 from dace.dtypes import DeviceType as DaceDeviceType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
@@ -13,6 +16,7 @@ from dace.frontend.python.parser import DaceProgram
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.helpers import get_parent_map
 from dace.transformation.passes.simplify import SimplifyPass
+from gt4py import storage
 
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
@@ -60,10 +64,10 @@ def _download_results_from_dace(
         return None
 
     backend = config.get_backend()
-    return [gt4py.storage.from_array(result, backend=backend) for result in dace_result]
+    return [storage.from_array(result, backend=backend) for result in dace_result]
 
 
-def _to_gpu(sdfg: dace.SDFG):
+def _to_gpu(sdfg: SDFG):
     """Flag memory in SDFG to GPU.
     Force deactivate OpenMP sections for sanity."""
 
@@ -71,7 +75,7 @@ def _to_gpu(sdfg: dace.SDFG):
     allmaps = [
         (me, state)
         for me, state in sdfg.all_nodes_recursive()
-        if isinstance(me, dace.nodes.MapEntry)
+        if isinstance(me, nodes.MapEntry)
     ]
     topmaps = [
         (me, state) for me, state in allmaps if get_parent_map(state, me) is None
@@ -80,13 +84,13 @@ def _to_gpu(sdfg: dace.SDFG):
     # Set storage of arrays to GPU, scalarizable arrays will be set on registers
     for sd, _aname, arr in sdfg.arrays_recursive():
         if arr.shape == (1,):
-            arr.storage = dace.StorageType.Register
+            arr.storage = dtypes.StorageType.Register
         else:
-            arr.storage = dace.StorageType.GPU_Global
+            arr.storage = dtypes.StorageType.GPU_Global
 
     # All maps will be schedule on GPU
     for mapentry, _state in topmaps:
-        mapentry.schedule = dace.ScheduleType.GPU_Device
+        mapentry.schedule = dtypes.ScheduleType.GPU_Device
 
     # Deactivate OpenMP sections
     for sd in sdfg.all_sdfgs_recursive():
@@ -94,7 +98,7 @@ def _to_gpu(sdfg: dace.SDFG):
 
 
 def _simplify(
-    sdfg: dace.SDFG,
+    sdfg: SDFG,
     *,
     validate: bool = True,
     validate_all: bool = False,
@@ -112,7 +116,7 @@ def _simplify(
 
 
 def _build_sdfg(
-    dace_program: DaceProgram, sdfg: dace.SDFG, config: DaceConfig, args, kwargs
+    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
 ):
     """Build the .so out of the SDFG on the top tile ranks only"""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
@@ -157,10 +161,10 @@ def _build_sdfg(
         with DaCeProgress(config, "Turn Persistents into pooled Scope"):
             memory_pooled = 0.0
             for _sd, _aname, arr in sdfg.arrays_recursive():
-                if arr.lifetime == dace.AllocationLifetime.Persistent:
+                if arr.lifetime == dtypes.AllocationLifetime.Persistent:
                     arr.pool = True
                     memory_pooled += arr.total_size * arr.dtype.bytes
-                    arr.lifetime = dace.AllocationLifetime.Scope
+                    arr.lifetime = dtypes.AllocationLifetime.Scope
             memory_pooled = float(memory_pooled) / (1024 * 1024)
             ndsl_log.debug(
                 f"{DaCeProgress.default_prefix(config)} Pooled {memory_pooled} mb",
@@ -177,7 +181,9 @@ def _build_sdfg(
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
             sdfg.compile()
-        write_build_info(sdfg, config.layout, config.tile_resolution, config._backend)
+        write_build_info(
+            sdfg, config.layout, config.tile_resolution, config.get_backend()
+        )
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):
@@ -220,9 +226,7 @@ def _build_sdfg(
         return _call_sdfg(dace_program, sdfg, config, args, kwargs)
 
 
-def _call_sdfg(
-    dace_program: DaceProgram, sdfg: dace.SDFG, config: DaceConfig, args, kwargs
-):
+def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs):
     """Dispatch the SDFG execution and/or build"""
     # Pre-compiled SDFG code path does away with any data checks and
     # cached the marshalling - leading to almost direct C call
@@ -256,7 +260,7 @@ def _parse_sdfg(
     config: DaceConfig,
     *args,
     **kwargs,
-) -> Optional[dace.SDFG]:
+) -> Optional[SDFG]:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
 
@@ -315,7 +319,7 @@ class _LazyComputepathFunction(SDFGConvertible):
     def __init__(self, func: Callable, config: DaceConfig):
         self.func = func
         self.config = config
-        self.daceprog: DaceProgram = dace.program(self.func)
+        self.daceprog: DaceProgram = dace_program(self.func)
         self._sdfg = None
 
     def __call__(self, *args, **kwargs):
@@ -370,7 +374,7 @@ class _LazyComputepathMethod:
 
     class SDFGEnabledCallable(SDFGConvertible):
         def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
-            methodwrapper = dace.method(lazy_method.func)
+            methodwrapper = dace_method(lazy_method.func)
             self.obj_to_bind = obj_to_bind
             self.lazy_method = lazy_method
             self.daceprog: DaceProgram = methodwrapper.__get__(obj_to_bind)
