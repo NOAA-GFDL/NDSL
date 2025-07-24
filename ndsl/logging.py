@@ -8,7 +8,7 @@ from typing import Annotated
 from mpi4py import MPI
 
 
-LOGLEVEL = os.environ.get("PACE_LOGLEVEL", "INFO").upper()
+LOGLEVEL = os.environ.get("PACE_LOGLEVEL", "INFO").lower()
 
 # Python log levels are hierarchical, therefore setting INFO
 # means DEBUG and everything lower will be logged.
@@ -23,10 +23,10 @@ AVAILABLE_LOG_LEVELS = {
 
 def _ndsl_logger() -> logging.Logger:
     name_log = logging.getLogger(__name__)
-    name_log.setLevel(LOGLEVEL)
+    name_log.setLevel(AVAILABLE_LOG_LEVELS[LOGLEVEL])
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(LOGLEVEL)
+    handler.setLevel(AVAILABLE_LOG_LEVELS[LOGLEVEL])
     formatter = logging.Formatter(
         fmt=(
             f"%(asctime)s|%(levelname)s|rank {MPI.COMM_WORLD.Get_rank()}|"
@@ -41,13 +41,13 @@ def _ndsl_logger() -> logging.Logger:
 
 def _ndsl_logger_on_rank_0() -> logging.Logger:
     name_log = logging.getLogger(f"{__name__}_on_rank_0")
-    name_log.setLevel(LOGLEVEL)
+    name_log.setLevel(AVAILABLE_LOG_LEVELS[LOGLEVEL])
 
     rank = MPI.COMM_WORLD.Get_rank()
 
     if rank == 0:
         handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(LOGLEVEL)
+        handler.setLevel(AVAILABLE_LOG_LEVELS[LOGLEVEL])
         formatter = logging.Formatter(
             fmt=(
                 f"%(asctime)s|%(levelname)s|rank {MPI.COMM_WORLD.Get_rank()}|"

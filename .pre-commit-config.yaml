@@ -2,11 +2,11 @@ default_language_version:
   python: python3
 
 repos:
-  - repo: https://github.com/psf/black
+  # Use mypyc-compiled black, which is about 2x faster
+  - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 25.1.0
     hooks:
-      - id: black
-        additional_dependencies: ["click==8.0.4"]
+      - id: black-jupyter
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
@@ -42,14 +42,6 @@ repos:
         name: flake8
         language_version: python3
         additional_dependencies: [Flake8-pyproject]
-        exclude: |
-          (?x)^(
-          .*/__init__.py |
-          )$
-      - id: flake8
-        additional_dependencies: [Flake8-pyproject]
-        name: flake8 __init__.py files
-        files: "__init__.py"
 
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
     rev: v2.15.0
