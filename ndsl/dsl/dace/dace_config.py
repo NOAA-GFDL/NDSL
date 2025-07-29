@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 import dace.config
 from dace.codegen.compiled_sdfg import CompiledSDFG
 from dace.frontend.python.parser import DaceProgram
+from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
@@ -181,6 +182,12 @@ class DaceConfig:
         # We control this Dace configuration below with our own override
         dace_debug_env_var = os.getenv("PACE_DACE_DEBUG", "False") == "True"
 
+        # We hijack the optimization level of GT4Py because we don't
+        # have the configuration at NDSL level, but we do use the GT4Py
+        # level
+        # TODO: if GT4PY opt level is funnled via NDSL - use it here
+        optimization_level = GT4PY_COMPILE_OPT_LEVEL
+
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
         if orchestration != DaCeOrchestration.Python:
@@ -195,7 +202,7 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value="-std=c++14 -fPIC -Wall -Wextra -O3",
+                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
