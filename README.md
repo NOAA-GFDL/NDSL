@@ -3,6 +3,16 @@
 
 # NOAA/NASA Domain Specific Language middleware
 
+:warning: :dragon: This is the equivalent of a "release" branch for the NASA Team's Milestone 2 work. In particular, we include the following experimental features:
+
+- "Hybrid" indexing that allows absolute K-indices
+- Access to the iteration variable in K, working title `THIS_K`
+- `round()` function in gtscript
+
+Your standard readme continues below.
+
+---
+
 NDSL is a middleware for climate and weather modelling developed jointly by NOAA and NASA. The middleware brings together [GT4Py](https://github.com/GridTools/gt4py/) (the `cartesian` flavor), ETH CSCS's stencil DSL, and [DaCe](https://github.com/spcl/dace/), ETH SPCL's data flow framework, both developed for high-performance and portability. On top of those pillars, NDSL deploys a series of optimized APIs for common operations (Halo exchange, domain decomposition, MPI, ...), a set of bespoke optimizations for the models targeted by the middleware and tools to port existing models.
 
 ## Batteries-included for FV-based models
