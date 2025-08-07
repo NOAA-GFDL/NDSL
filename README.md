@@ -61,7 +61,7 @@ source ./venv/bin/activate
 pip install mpich
 ```
 
-A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` from homebrew works.
+A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` version 14 from homebrew works.
 
 ### Installation options
 
