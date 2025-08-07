@@ -57,8 +57,8 @@ A simple way to install MPI is using pre-built wheels, e.g.
 cd NDSL/
 source ./venv/bin/activate
 
-# Install the MPICH into your virtual environment
-pip install mpich
+# Install MPI into your virtual environment
+pip install openmpi
 ```
 
 A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` version 14 from homebrew works.
