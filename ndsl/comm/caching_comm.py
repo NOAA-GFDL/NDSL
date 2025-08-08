@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import pickle
@@ -5,7 +7,7 @@ from typing import Any, BinaryIO, List, Optional, TypeVar
 
 import numpy as np
 
-from ndsl.comm.comm_abc import Comm, Request
+from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
 
 T = TypeVar("T")
@@ -82,7 +84,7 @@ class CachingCommData:
         pickle.dump(self, file)
 
     @classmethod
-    def load(self, file: BinaryIO) -> "CachingCommData":
+    def load(self, file: BinaryIO) -> CachingCommData:
         return pickle.load(file)
 
 
@@ -143,15 +145,18 @@ class CachingCommReader(Comm):
     def sendrecv(self, sendbuf, dest, **kwargs):
         raise NotImplementedError()
 
-    def Split(self, color, key) -> "CachingCommReader":
+    def Split(self, color, key) -> CachingCommReader:
         new_data = self._data.get_split()
         return CachingCommReader(data=new_data)
 
-    def allreduce(self, sendobj, op=None) -> Any:
+    def allreduce(self, sendobj, op: Optional[ReductionOperator] = None) -> Any:
         return self._data.get_generic_obj()
 
+    def Allreduce(self, sendobj, recvobj, op: ReductionOperator) -> Any:
+        raise NotImplementedError("CachingCommReader.Allreduce")
+
     @classmethod
-    def load(cls, file: BinaryIO) -> "CachingCommReader":
+    def load(cls, file: BinaryIO) -> CachingCommReader:
         data = CachingCommData.load(file)
         return cls(data)
 
@@ -220,7 +225,7 @@ class CachingCommWriter(Comm):
     def sendrecv(self, sendbuf, dest, **kwargs):
         raise NotImplementedError()
 
-    def Split(self, color, key) -> "CachingCommWriter":
+    def Split(self, color, key) -> CachingCommWriter:
         new_comm = self._comm.Split(color=color, key=key)
         new_wrapper = CachingCommWriter(new_comm)
         self._data.split_data.append(new_wrapper._data)
@@ -229,7 +234,10 @@ class CachingCommWriter(Comm):
     def dump(self, file: BinaryIO):
         self._data.dump(file)
 
-    def allreduce(self, sendobj, op=None) -> Any:
+    def allreduce(self, sendobj, op: Optional[ReductionOperator] = None) -> Any:
         result = self._comm.allreduce(sendobj, op)
         self._data.generic_obj_buffers.append(copy.deepcopy(result))
         return result
+
+    def Allreduce(self, sendobj, recvobj, op: ReductionOperator) -> Any:
+        raise NotImplementedError("CachingCommWriter.Allreduce")

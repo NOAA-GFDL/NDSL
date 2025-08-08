@@ -1,9 +1,9 @@
 from typing import TextIO
 
 import cftime
+import xarray as xr
 
 import ndsl.filesystem as filesystem
-from ndsl.optional_imports import xarray as xr
 from ndsl.quantity import Quantity
 
 
@@ -22,7 +22,7 @@ FMS_TO_CFTIME_TYPE = {
 
 def to_xarray_dataset(state) -> xr.Dataset:
     data_vars = {
-        name: value.data_array for name, value in state.items() if name != "time"
+        name: value.data_as_xarray for name, value in state.items() if name != "time"
     }
     if "time" in state:
         data_vars["time"] = state["time"]
@@ -44,10 +44,10 @@ def write_state(state: dict, filename: str) -> None:
 
 
 def _extract_time(value: xr.DataArray) -> cftime.datetime:
-    """Exctract time value from read-in state."""
+    """Extract time value from read-in state."""
     if value.ndim > 0:
         raise ValueError(
-            "State must be representative of a single scalar time. " f"Got {value}."
+            f"State must be representative of a single scalar time. Got {value}."
         )
     time = value.item()
     if not isinstance(time, cftime.datetime):
@@ -69,7 +69,8 @@ def read_state(filename: str) -> dict:
     """
     out_dict = {}
     with filesystem.open(filename, "rb") as f:
-        ds = xr.open_dataset(f, use_cftime=True)
+        time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+        ds = xr.open_dataset(f, decode_times=time_coder)
         for name, value in ds.data_vars.items():
             if name == "time":
                 out_dict[name] = _extract_time(value)

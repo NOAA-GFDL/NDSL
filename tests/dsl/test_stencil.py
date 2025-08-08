@@ -1,26 +1,11 @@
-from gt4py.cartesian.gtscript import PARALLEL, Field, computation, interval
 from gt4py.storage import empty, ones
 
 from ndsl import CompilationConfig, GridIndexing, StencilConfig, StencilFactory
+from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
+from tests.dsl import utils
 
 
-def _make_storage(
-    func,
-    grid_indexing,
-    stencil_config: StencilConfig,
-    *,
-    dtype=float,
-    aligned_index=(0, 0, 0),
-):
-    return func(
-        backend=stencil_config.compilation_config.backend,
-        shape=grid_indexing.domain,
-        dtype=dtype,
-        aligned_index=aligned_index,
-    )
-
-
-def test_timing_collector():
+def test_timing_collector() -> None:
     grid_indexing = GridIndexing(
         domain=(5, 5, 5),
         n_halo=2,
@@ -46,8 +31,8 @@ def test_timing_collector():
     build_report = stencil_factory.build_report(key="parse_time")
     assert "func" in build_report
 
-    inp = _make_storage(ones, grid_indexing, stencil_config, dtype=float)
-    out = _make_storage(empty, grid_indexing, stencil_config, dtype=float)
+    inp = utils.make_storage(ones, grid_indexing, stencil_config, dtype=float)
+    out = utils.make_storage(empty, grid_indexing, stencil_config, dtype=float)
 
     test(inp, out)
     exec_report = stencil_factory.exec_report()

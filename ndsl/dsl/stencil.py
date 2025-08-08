@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import inspect
@@ -17,28 +19,27 @@ from typing import (
 )
 
 import dace
-import gt4py
 import numpy as np
+from gt4py.cartesian import config as gt_config
+from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
+from gt4py.cartesian.stencil_object import StencilObject
 
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
 from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
+from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
-from ndsl.testing import comparison
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = np
+from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
+from ndsl.testing.comparison import LegacyMetric
 
 
 def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
@@ -68,40 +69,14 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
 
 
 def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label) -> str:
-    metric_err = comparison.compare_arr(arg, numpy_arg)
-    nans_match = np.logical_and(np.isnan(arg), np.isnan(numpy_arg))
-    n_points = np.product(arg.shape)
-    failures_14 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-14,
-        )
+    metric = LegacyMetric(
+        reference_values=arg,
+        computed_values=numpy_arg,
+        eps=1e-13,
+        ignore_near_zero_errors=False,
+        near_zero=0,
     )
-    failures_10 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-10,
-        )
-    )
-    failures_8 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-8,
-        )
-    )
-    greatest_error = np.max(metric_err[~np.isnan(metric_err)])
-    if greatest_error == 0.0 and failures_14 == 0:
-        report = ""
-    else:
-        report = f"\n    {label}: "
-        report += f"max_err={greatest_error}"
-        if failures_14 > 0:
-            report += f" 1e-14 failures: {failures_14}"
-        if failures_10 > 0:
-            report += f" 1e-10 failures: {failures_10}"
-        if failures_8 > 0:
-            report += f" 1e-8 failures: {failures_8}"
-    return report
+    return metric.__repr__()
 
 
 @dataclasses.dataclass
@@ -319,10 +294,11 @@ class FrozenStencil(SDFGConvertible):
             externals = {}
         self.externals = externals
         self._func_name = func.__name__
+        self._func_qualname = func.__qualname__
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object = None
+        self.stencil_object: StencilObject | None = None
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
@@ -330,8 +306,8 @@ class FrozenStencil(SDFGConvertible):
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
-                    gt_root=gt4py.cartesian.config.cache_settings["root_path"],
-                    gt_cache=gt4py.cartesian.config.cache_settings["dir_name"],
+                    gt_root=gt_config.cache_settings["root_path"],
+                    gt_cache=gt_config.cache_settings["dir_name"],
                 ),
             )
 
@@ -360,13 +336,21 @@ class FrozenStencil(SDFGConvertible):
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
 
+            # Field Bundle might have dropped a placeholder type that we now
+            # have to resolve to the proper type.
+            for name, types in func.__annotations__.items():
+                if isinstance(types, MarkupFieldBundleType):
+                    func.__annotations__[name] = FieldBundleType.T(
+                        types.name, do_markup=False
+                    )
+
             self.stencil_object = gtscript.stencil(
                 definition=func,
                 externals=externals,
                 dtypes={float: Float},
                 **stencil_kwargs,
                 build_info=(build_info := {}),
-            )
+            )  # type: ignore
 
             if (
                 compilation_config.use_minimal_caching
@@ -375,14 +359,14 @@ class FrozenStencil(SDFGConvertible):
             ):
                 unblock_waiting_tiles(MPI.COMM_WORLD)
 
-        self._timing_collector.build_info[
-            _stencil_object_name(self.stencil_object)
-        ] = build_info
+        self._timing_collector.build_info[_stencil_object_name(self.stencil_object)] = (
+            build_info
+        )
         field_info = self.stencil_object.field_info
 
-        self._field_origins: Dict[
-            str, Tuple[int, ...]
-        ] = FrozenStencil._compute_field_origins(field_info, self.origin)
+        self._field_origins: Dict[str, Tuple[int, ...]] = (
+            FrozenStencil._compute_field_origins(field_info, self.origin)
+        )
         """mapping from field names to field origins"""
 
         self._stencil_run_kwargs: Dict[str, Any] = {
@@ -400,11 +384,17 @@ class FrozenStencil(SDFGConvertible):
             setattr(self, "__call__", nothing_function)
 
     def __call__(self, *args, **kwargs) -> None:
+        # Verbose stencil execution
+        if self.stencil_config.verbose:
+            ndsl_log.debug(f"Running {self._func_name}")
+
+        # Marshal arguments
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)
-
         args_as_kwargs = dict(zip(self._argument_names, args))
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -412,6 +402,14 @@ class FrozenStencil(SDFGConvertible):
                     f"rank {self.comm.Get_rank()} has differences {differences} "
                     f"before calling {self._func_name}"
                 )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+
+        # Execute stencil
         if self.stencil_config.compilation_config.validate_args:
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
@@ -424,7 +422,7 @@ class FrozenStencil(SDFGConvertible):
                 domain=self.domain,
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
-            )
+            )  # type: ignore
         else:
             self.stencil_object.run(
                 **args_as_kwargs,
@@ -432,6 +430,15 @@ class FrozenStencil(SDFGConvertible):
                 **self._stencil_run_kwargs,
                 exec_info=self._timing_collector.exec_info,
             )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.increment_call_count(self._func_qualname)
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -489,7 +496,7 @@ class FrozenStencil(SDFGConvertible):
             if field_info[field_name]
             and bool(
                 field_info[field_name].access
-                & gt4py.cartesian.definitions.AccessKind.WRITE  # type: ignore
+                & gt_definitions.AccessKind.WRITE  # type: ignore
             )
         ]
         return write_fields
@@ -600,7 +607,7 @@ class GridIndexing:
     @classmethod
     def from_sizer_and_communicator(
         cls, sizer: GridSizer, comm: Communicator
-    ) -> "GridIndexing":
+    ) -> GridIndexing:
         # TODO: if this class is refactored to split off the *_edge booleans,
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
@@ -763,6 +770,9 @@ class GridIndexing:
             "local_js": gtscript.J[0] + self.jsc - origin[1],
             "j_end": j_end,
             "local_je": gtscript.J[-1] + self.jec - origin[1] - domain[1] + 1,
+            "k_start": origin[2] if len(origin) > 2 else 0,
+            "k_end": (origin[2] if len(origin) > 2 else 0)
+            + (domain[2] - 1 if len(domain) > 2 else 0),
         }
 
     def get_origin_domain(
@@ -842,7 +852,7 @@ class GridIndexing:
             shape[i] += n
         return tuple(shape)
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "GridIndexing":
+    def restrict_vertical(self, k_start=0, nk=None) -> GridIndexing:
         """
         Returns a copy of itself with modified vertical origin and domain.
 
@@ -980,7 +990,7 @@ class StencilFactory:
             skip_passes=skip_passes,
         )
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "StencilFactory":
+    def restrict_vertical(self, k_start=0, nk=None) -> StencilFactory:
         return StencilFactory(
             config=self.config,
             grid_indexing=self.grid_indexing.restrict_vertical(k_start=k_start, nk=nk),

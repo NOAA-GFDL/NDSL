@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple
 
@@ -38,12 +40,12 @@ class HaloUpdater:
     - update and start/wait trigger the halo exchange
     - the class creates a "pattern" of exchange that can fit
       any memory given to do/start
-    - temporary references to the Quanitites are held between start and wait
+    - temporary references to the Quantities are held between start and wait
     """
 
     def __init__(
         self,
-        comm: "Communicator",
+        comm: Communicator,
         tag: int,
         transformers: Dict[int, HaloDataTransformer],
         timer: Timer,
@@ -90,13 +92,13 @@ class HaloUpdater:
     @classmethod
     def from_scalar_specifications(
         cls,
-        comm: "Communicator",
+        comm: Communicator,
         numpy_like_module: NumpyModule,
         specifications: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
         optional_timer: Optional[Timer] = None,
-    ) -> "HaloUpdater":
+    ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and
         queue the slices to exchange.
@@ -106,7 +108,7 @@ class HaloUpdater:
             numpy_like_module: module implementing numpy API
             specifications: data specifications to exchange, including
                 number of halo points
-            boundaries: informations on the exchange boundaries.
+            boundaries: information on the exchange boundaries.
             tag: network tag (to differentiate messaging) for this node.
             optional_timer: timing of operations.
 
@@ -142,14 +144,14 @@ class HaloUpdater:
     @classmethod
     def from_vector_specifications(
         cls,
-        comm: "Communicator",
+        comm: Communicator,
         numpy_like_module: NumpyModule,
         specifications_x: Iterable[QuantityHaloSpec],
         specifications_y: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
         optional_timer: Optional[Timer] = None,
-    ) -> "HaloUpdater":
+    ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and queue
         the slices to exchange.
@@ -161,7 +163,7 @@ class HaloUpdater:
                 Length must match y specifications.
             specifications_y: specifications to exchange along the y axis.
                 Length must match x specifications.
-            boundaries: informations on the exchange boundaries.
+            boundaries: information on the exchange boundaries.
             tag: network tag (to differentiate messaging) for this node.
             optional_timer: timing of operations.
 
@@ -210,7 +212,7 @@ class HaloUpdater:
         quantities_x: List[Quantity],
         quantities_y: Optional[List[Quantity]] = None,
     ):
-        """Exhange the data and blocks until finished."""
+        """Exchange the data and blocks until finished."""
         self.start(quantities_x, quantities_y)
         self.wait()
 
@@ -283,7 +285,7 @@ class HaloUpdater:
             for recv_req in self._recv_requests:
                 recv_req.wait()
 
-        # Unpack buffers (updated by MPI with neighbouring halos)
+        # Unpack buffers (updated by MPI with neighboring halos)
         # to proper quantities
         with self._timer.clock("unpack"):
             for buffer in self._transformers.values():

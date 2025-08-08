@@ -1,11 +1,11 @@
 from typing import Callable, Optional, Sequence
 
 import numpy as np
+from gt4py import storage as gt_storage
 
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization.sizer import GridSizer
-from ndsl.optional_imports import gt4py
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
@@ -20,13 +20,13 @@ class StorageNumpy:
         self.backend = backend
 
     def empty(self, *args, **kwargs) -> np.ndarray:
-        return gt4py.storage.empty(*args, backend=self.backend, **kwargs)
+        return gt_storage.empty(*args, backend=self.backend, **kwargs)
 
     def ones(self, *args, **kwargs) -> np.ndarray:
-        return gt4py.storage.ones(*args, backend=self.backend, **kwargs)
+        return gt_storage.ones(*args, backend=self.backend, **kwargs)
 
     def zeros(self, *args, **kwargs) -> np.ndarray:
-        return gt4py.storage.zeros(*args, backend=self.backend, **kwargs)
+        return gt_storage.zeros(*args, backend=self.backend, **kwargs)
 
 
 class QuantityFactory:
@@ -112,6 +112,28 @@ class QuantityFactory:
         base.data[:] = base.np.asarray(data)
         return base
 
+    def from_compute_array(
+        self,
+        data: np.ndarray,
+        dims: Sequence[str],
+        units: str,
+        allow_mismatch_float_precision: bool = False,
+    ):
+        """
+        Create a Quantity from a numpy array.
+
+        That numpy array must correspond to the correct shape and extent
+        of the compute domain for the given dims.
+        """
+        base = self.zeros(
+            dims=dims,
+            units=units,
+            dtype=data.dtype,
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
+        )
+        base.view[:] = base.np.asarray(data)
+        return base
+
     def _allocate(
         self,
         allocator: Callable,
@@ -124,9 +146,11 @@ class QuantityFactory:
         extent = self.sizer.get_extent(dims)
         shape = self.sizer.get_shape(dims)
         dimensions = [
-            axis
-            if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
-            else str(shape[index])
+            (
+                axis
+                if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
+                else str(shape[index])
+            )
             for index, (dim, axis) in enumerate(
                 zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
             )

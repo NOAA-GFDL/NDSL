@@ -13,7 +13,7 @@ from ndsl.comm.communicator import (
     CubedSphereCommunicator,
     TileCommunicator,
 )
-from ndsl.comm.mpi import MPI
+from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.namelist import Namelist
@@ -48,6 +48,9 @@ def pytest_addoption(parser):
         "--which_rank", action="store", help="Restrict test to a single rank"
     )
     parser.addoption(
+        "--which_savepoint", action="store", help="Restrict test to a single savepoint"
+    )
+    parser.addoption(
         "--data_path",
         action="store",
         default="./",
@@ -79,8 +82,26 @@ def pytest_addoption(parser):
     parser.addoption(
         "--topology",
         action="store",
-        default="cube-sphere",
-        help='Topology of the grid. "cube-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cube-sphere".',
+        default="cubed-sphere",
+        help='Topology of the grid. "cubed-sphere" means a 6-faced grid, "doubly-periodic" means a 1 tile grid. Default to "cubed-sphere".',
+    )
+    parser.addoption(
+        "--multimodal_metric",
+        action="store_true",
+        default=False,
+        help="Use the multi-modal float metric. Default to False.",
+    )
+    parser.addoption(
+        "--sort_report",
+        action="store",
+        default="ulp",
+        help='Sort the report by "index" (ascending) or along the metric: "ulp", "absolute", "relative" (descending). Default to "ulp"',
+    )
+    parser.addoption(
+        "--no_report",
+        action="store_true",
+        default=False,
+        help="Do not generate logging report or NetCDF in .translate-errors",
     )
 
 
@@ -189,13 +210,18 @@ def get_ranks(metafunc, layout):
     if only_rank is None:
         if topology == "doubly-periodic":
             total_ranks = layout[0] * layout[1]
-        elif topology == "cube-sphere":
+        elif topology == "cubed-sphere":
             total_ranks = 6 * layout[0] * layout[1]
         else:
             raise NotImplementedError(f"Topology {topology} is unknown.")
         return range(total_ranks)
     else:
         return [int(only_rank)]
+
+
+def get_savepoint_restriction(metafunc):
+    svpt = metafunc.config.getoption("which_savepoint")
+    return int(svpt) if svpt else None
 
 
 def get_namelist(namelist_filename):
@@ -220,36 +246,45 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
     namelist = get_namelist(namelist_filename)
     stencil_config = get_config(backend, None)
     ranks = get_ranks(metafunc, namelist.layout)
+    savepoint_to_replay = get_savepoint_restriction(metafunc)
     grid_mode = metafunc.config.getoption("grid")
     topology_mode = metafunc.config.getoption("topology")
+    sort_report = metafunc.config.getoption("sort_report")
+    no_report = metafunc.config.getoption("no_report")
     return _savepoint_cases(
         savepoint_names,
         ranks,
+        savepoint_to_replay,
         stencil_config,
         namelist,
         backend,
         data_path,
         grid_mode,
         topology_mode,
+        sort_report=sort_report,
+        no_report=no_report,
     )
 
 
 def _savepoint_cases(
     savepoint_names,
     ranks,
+    savepoint_to_replay,
     stencil_config,
-    namelist,
+    namelist: Namelist,
     backend: str,
     data_path: str,
     grid_mode: str,
     topology_mode: bool,
+    sort_report: str,
+    no_report: bool,
 ):
     return_list = []
     for rank in ranks:
         if grid_mode == "default":
             grid = Grid._make(
-                namelist.npx + 1,
-                namelist.npy + 1,
+                namelist.npx,
+                namelist.npy,
                 namelist.npz,
                 namelist.layout,
                 rank,
@@ -282,16 +317,21 @@ def _savepoint_cases(
             )
             n_calls = xr.open_dataset(
                 os.path.join(data_path, f"{test_name}-In.nc")
-            ).dims["savepoint"]
-            for i_call in range(n_calls):
+            ).sizes["savepoint"]
+            if savepoint_to_replay is not None:
+                savepoint_iterator = range(savepoint_to_replay, savepoint_to_replay + 1)
+            else:
+                savepoint_iterator = range(n_calls)
+            for i_call in savepoint_iterator:
                 return_list.append(
                     SavepointCase(
                         savepoint_name=test_name,
                         data_dir=data_path,
-                        rank=rank,
                         i_call=i_call,
                         testobj=testobj,
                         grid=grid,
+                        sort_report=sort_report,
+                        no_report=no_report,
                     )
                 )
     return return_list
@@ -302,7 +342,7 @@ def compute_grid_data(grid, namelist, backend, layout, topology_mode):
         npx=namelist.npx,
         npy=namelist.npy,
         npz=namelist.npz,
-        communicator=get_communicator(MPI.COMM_WORLD, layout, topology_mode),
+        communicator=get_communicator(MPIComm(), layout, topology_mode),
         backend=backend,
     )
 
@@ -312,25 +352,31 @@ def parallel_savepoint_cases(
 ):
     namelist = get_namelist(namelist_filename)
     topology_mode = metafunc.config.getoption("topology")
+    sort_report = metafunc.config.getoption("sort_report")
+    no_report = metafunc.config.getoption("no_report")
     communicator = get_communicator(comm, namelist.layout, topology_mode)
     stencil_config = get_config(backend, communicator)
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
+    savepoint_to_replay = get_savepoint_restriction(metafunc)
     return _savepoint_cases(
         savepoint_names,
         [mpi_rank],
+        savepoint_to_replay,
         stencil_config,
         namelist,
         backend,
         data_path,
         grid_mode,
         topology_mode,
+        sort_report=sort_report,
+        no_report=no_report,
     )
 
 
 def pytest_generate_tests(metafunc):
     backend = metafunc.config.getoption("backend")
-    if MPI is not None and MPI.COMM_WORLD.Get_size() > 1:
+    if MPI.COMM_WORLD.Get_size() > 1:
         if metafunc.function.__name__ == "test_parallel_savepoint":
             generate_parallel_stencil_tests(metafunc, backend=backend)
     elif metafunc.function.__name__ == "test_sequential_savepoint":
@@ -354,13 +400,12 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
         metafunc.config
     )
     # get MPI environment
-    comm = MPI.COMM_WORLD
-    mpi_rank = comm.Get_rank()
+    comm = MPIComm()
     savepoint_cases = parallel_savepoint_cases(
         metafunc,
         data_path,
         namelist_filename,
-        mpi_rank,
+        comm.Get_rank(),
         backend=backend,
         comm=comm,
     )
@@ -370,7 +415,7 @@ def generate_parallel_stencil_tests(metafunc, *, backend: str):
 
 
 def get_communicator(comm, layout, topology_mode):
-    if (MPI.COMM_WORLD.Get_size() > 1) and (topology_mode == "doubly-periodic"):
+    if (comm.Get_size() > 1) and (topology_mode == "cubed-sphere"):
         partitioner = CubedSpherePartitioner(TilePartitioner(layout))
         communicator = CubedSphereCommunicator(comm, partitioner)
     else:
@@ -387,6 +432,11 @@ def print_failures(pytestconfig):
 @pytest.fixture()
 def failure_stride(pytestconfig):
     return int(pytestconfig.getoption("failure_stride"))
+
+
+@pytest.fixture()
+def multimodal_metric(pytestconfig):
+    return bool(pytestconfig.getoption("multimodal_metric"))
 
 
 @pytest.fixture()

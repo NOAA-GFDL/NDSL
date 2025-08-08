@@ -1,0 +1,10 @@
+name: "FV3 translate tests"
+on:
+  pull_request:
+
+jobs:
+  fv3_translate_tests:
+    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yaml@develop
+    with:
+      component_trigger: true
+      component_name: NDSL

@@ -1,8 +1,8 @@
 import numpy as np
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
@@ -35,10 +35,10 @@ def test_boilerplate_import_numpy():
 
     Dev Note: the import inside the function are part of the test.
     """
-    from ndsl.boilerplate import get_factories_single_tile_numpy
+    from ndsl.boilerplate import get_factories_single_tile
 
     # Boilerplate
-    stencil_factory, quantity_factory = get_factories_single_tile_numpy(
+    stencil_factory, quantity_factory = get_factories_single_tile(
         nx=5, ny=5, nz=2, nhalo=1
     )
 
@@ -50,10 +50,10 @@ def test_boilerplate_import_orchestrated_cpu():
 
     Dev Note: the import inside the function are part of the test.
     """
-    from ndsl.boilerplate import get_factories_single_tile_orchestrated_cpu
+    from ndsl.boilerplate import get_factories_single_tile_orchestrated
 
     # Boilerplate
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated_cpu(
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         nx=5, ny=5, nz=2, nhalo=1
     )
 

@@ -5,15 +5,12 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Field  # noqa: F401
+from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
+from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
+from ndsl.stencils.testing.savepoint import DataLoader
 
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +29,7 @@ def pad_field_in_j(field, nj: int, backend: str):
 
 
 def as_numpy(
-    value: Union[Dict[str, Any], Quantity, np.ndarray]
+    value: Union[Dict[str, Any], Quantity, np.ndarray],
 ) -> Union[np.ndarray, Dict[str, np.ndarray]]:
     def _convert(value: Union[Quantity, np.ndarray]) -> np.ndarray:
         if isinstance(value, Quantity):
@@ -51,8 +48,17 @@ def as_numpy(
 
 
 class TranslateFortranData2Py:
+    """Translate test main class
+
+    The translate test will will test a set of inputs and outputs, after having processed
+    the inputs via the user provided `compute_func`.
+    """
+
     max_error = 1e-14
     near_zero = 1e-18
+    mmr_absolute_eps = -1
+    mmr_relative_fraction = -1
+    mmr_ulp = -1
 
     def __init__(self, grid, stencil_factory: StencilFactory, origin=utils.origin):
         self.origin = origin
@@ -66,18 +72,36 @@ class TranslateFortranData2Py:
         self.ignore_near_zero_errors: Dict[str, Any] = {}
         self.skip_test: bool = False
 
-    def setup(self, inputs):
+    def extra_data_load(self, data_loader: DataLoader):
+        pass
+
+    def setup(self, inputs) -> None:
+        """Transform inputs to gt4py.storages specification (correct device, layout)"""
         self.make_storage_data_input_vars(inputs)
 
-    def compute_func(self, **inputs):
+    def compute_func(self, **inputs) -> Optional[dict[str, Any]]:
+        """Compute function to transform the dictionary of `inputs`.
+        Must return a dictionary of updated variables"""
         raise NotImplementedError("Implement a child class compute method")
 
-    def compute(self, inputs):
+    def compute(self, inputs) -> dict[str, Any]:
+        """Transform inputs from NetCDF to gt4py.storages, run compute_func then slice
+        the outputs based on specifications.
+
+        Return: Dictionary of storages reshaped for comparison
+        """
         self.setup(inputs)
         return self.slice_output(self.compute_from_storage(inputs))
 
     # assume inputs already has been turned into gt4py storages (or Quantities)
-    def compute_from_storage(self, inputs):
+    def compute_from_storage(self, inputs) -> dict[str, Any]:
+        """Run `compute_func` and return an updated `inputs` dictionary with
+        the returned results of `compute_func`.
+
+        Hypothesis: `inputs` are `gt4py.storages`
+
+        Return: Outputs in the form of a Dict[str, gt4py.storages]
+        """
         outputs = self.compute_func(**inputs)
         if outputs is not None:
             inputs.update(outputs)
@@ -105,7 +129,13 @@ class TranslateFortranData2Py:
         names_4d: Optional[List[str]] = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> Dict[str, "Field"]:
+    ) -> Field:
+        """Copy input data into a gt4py.storage with given shape.
+
+        `array` is copied. Takes care of the device upload if necessary.
+
+        Return: Array in the form of a Dict[str, gt4py.storages]
+        """
         use_shape = list(self.maxshape)
         if dummy_axes:
             for axis in dummy_axes:
@@ -123,8 +153,12 @@ class TranslateFortranData2Py:
                 axis=axis,
                 names=names_4d,
                 backend=self.stencil_factory.backend,
+                dtype=array.dtype,
             )
         else:
+            if len(array.shape) == 4:
+                start = (int(istart), int(jstart), int(kstart), 0)  # type: ignore
+                use_shape.append(array.shape[-1])
             return utils.make_storage_data(
                 array,
                 tuple(use_shape),
@@ -134,6 +168,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 read_only=read_only,
                 backend=self.stencil_factory.backend,
+                dtype=array.dtype,
             )
 
     def storage_vars(self):
@@ -159,18 +194,25 @@ class TranslateFortranData2Py:
         kstart = self.get_index_from_info(varinfo, "kstart", 0)
         return istart, jstart, kstart
 
-    def make_storage_data_input_vars(self, inputs, storage_vars=None):
+    def make_storage_data_input_vars(
+        self, inputs, storage_vars=None, dict_4d=True
+    ) -> None:
+        """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionary to update inputs to
+        their configured shape.
+
+        Return: None
+        """
         inputs_in = {**inputs}
         inputs_out = {}
         if storage_vars is None:
             storage_vars = self.storage_vars()
         for p in self.in_vars["parameters"]:
-            if type(inputs_in[p]) in [np.int64, np.int32]:
-                inputs_out[p] = int(inputs_in[p])
-            else:
-                inputs_out[p] = inputs_in[p]
+            inputs_out[p] = inputs_in[p]
         for d, info in storage_vars.items():
             serialname = info["serialname"] if "serialname" in info else d
+            index_variable = (
+                info["index_variable"] if "index_variable" in info else False
+            )
             self.update_info(info, inputs_in)
             if "kaxis" in info:
                 inputs_in[serialname] = np.moveaxis(
@@ -183,11 +225,13 @@ class TranslateFortranData2Py:
             )
 
             names_4d = None
-            if len(inputs_in[serialname].shape) == 4:
+            if (len(inputs_in[serialname].shape) == 4) and dict_4d:
                 names_4d = info.get("names_4d", utils.tracer_variables)
 
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
+            if index_variable:
+                inputs_in[serialname] -= 1
             inputs_out[d] = self.make_storage_data(
                 np.squeeze(inputs_in[serialname]),
                 istart=istart,
@@ -204,7 +248,7 @@ class TranslateFortranData2Py:
         inputs.clear()
         inputs.update(inputs_out)
 
-    def slice_output(self, inputs, out_data=None):
+    def slice_output(self, inputs, out_data=None) -> dict[str, Any]:
         utils.device_sync(backend=self.stencil_factory.backend)
         if out_data is None:
             out_data = inputs
@@ -215,9 +259,16 @@ class TranslateFortranData2Py:
             info = self.out_vars[var]
             self.update_info(info, inputs)
             serialname = info["serialname"] if "serialname" in info else var
+            index_variable = (
+                info["index_variable"] if "index_variable" in info else False
+            )
             ds = self.grid.default_domain_dict()
             ds.update(info)
             data_result = as_numpy(out_data[var])
+            if index_variable:
+                if isinstance(data_result, dict):
+                    raise TypeError(f"Variable {serialname} is a 4D dict, not an index")
+                data_result += 1
             if isinstance(data_result, dict):
                 names_4d = info.get("names_4d", utils.tracer_variables)
                 var4d = np.zeros(
@@ -341,6 +392,7 @@ class TranslateGrid:
             shape=buffer.shape,
             backend=self.backend,
             mask=mask,
+            dtype=self.data[varname].dtype,
         )
 
     def _make_composite_vvar_storage(self, varname, data3d, shape):
@@ -354,6 +406,7 @@ class TranslateGrid:
             shape=buffer.shape,
             origin=(1, 1, 0),
             backend=self.backend,
+            dtype=self.data[varname].dtype,
         )
 
     def make_grid_storage(self, pygrid):
@@ -375,6 +428,7 @@ class TranslateGrid:
                     (shape[0], shape[1], 3),
                     origin=(0, 0, 0),
                     backend=self.backend,
+                    dtype=self.data[key].dtype,
                 )
         for key, axis in TranslateGrid.edge_var_axis.items():
             if key in self.data:
@@ -385,6 +439,7 @@ class TranslateGrid:
                     axis=axis,
                     read_only=True,
                     backend=self.backend,
+                    dtype=self.data[key].dtype,
                 )
         for key, axis in TranslateGrid.edge_vect_axis.items():
             if key in self.data:
@@ -408,6 +463,7 @@ class TranslateGrid:
                     start=origin,
                     read_only=True,
                     backend=self.backend,
+                    dtype=value.dtype,
                 )
 
     def python_grid(self):

@@ -5,7 +5,6 @@ from gt4py.cartesian.gtc.passes.oir_optimizations.horizontal_execution_merging i
     HorizontalExecutionMerging,
 )
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 from ndsl import (
     CompilationConfig,
@@ -15,6 +14,7 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
@@ -23,7 +23,7 @@ def stencil_definition(a: FloatField):
         a = 0.0
 
 
-def test_skip_passes_becomes_oir_pipeline():
+def test_skip_passes_becomes_oir_pipeline() -> None:
     backend = "numpy"
     dace_config = DaceConfig(None, backend)
     config = StencilConfig(

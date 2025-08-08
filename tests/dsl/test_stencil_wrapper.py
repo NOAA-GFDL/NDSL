@@ -4,7 +4,6 @@ import unittest.mock
 import gt4py.cartesian.gtscript
 import numpy as np
 import pytest
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 from ndsl import (
     CompilationConfig,
@@ -14,6 +13,7 @@ from ndsl import (
     Quantity,
     StencilConfig,
 )
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
 from ndsl.dsl.typing import Float, FloatField
@@ -24,7 +24,7 @@ def get_stencil_config(
     backend: str,
     orchestration: DaCeOrchestration = DaCeOrchestration.Python,
     **kwargs,
-):
+) -> StencilConfig:
     dace_config = DaceConfig(None, backend=backend, orchestration=orchestration)
     config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -104,7 +104,7 @@ class MockFieldInfo:
         ),
     ],
 )
-def test_compute_field_origins(field_info, origin, field_origins):
+def test_compute_field_origins(field_info, origin, field_origins) -> None:
     result = FrozenStencil._compute_field_origins(field_info, origin)
     assert result == field_origins
 
@@ -115,16 +115,13 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):
 
 
 @pytest.mark.parametrize("validate_args", [True, False])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [False])
-@pytest.mark.parametrize("format_source", [False])
 def test_copy_frozen_stencil(
-    backend: str,
-    rebuild: bool,
     validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = False,
+    format_source: bool = False,
+    device_sync: bool = False,
+) -> None:
     config = get_stencil_config(
         backend=backend,
         rebuild=rebuild,
@@ -147,15 +144,12 @@ def test_copy_frozen_stencil(
     np.testing.assert_array_equal(q_in, q_out)
 
 
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [False])
-@pytest.mark.parametrize("format_source", [False])
 def test_frozen_stencil_raises_if_given_origin(
-    backend: str,
-    rebuild: bool,
-    format_source: bool,
-    device_sync: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = False,
+    format_source: bool = False,
+    device_sync: bool = False,
+) -> None:
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -177,14 +171,11 @@ def test_frozen_stencil_raises_if_given_origin(
         stencil(q_in, q_out, origin=(0, 0, 0))
 
 
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [False])
-@pytest.mark.parametrize("format_source", [False])
 def test_frozen_stencil_raises_if_given_domain(
-    backend: str,
-    rebuild: bool,
-    format_source: bool,
-    device_sync: bool,
+    backend: str = "numpy",
+    rebuild: bool = False,
+    format_source: bool = False,
+    device_sync: bool = False,
 ):
     # only guaranteed when validating args
     config = get_stencil_config(
@@ -212,11 +203,11 @@ def test_frozen_stencil_raises_if_given_domain(
     [[False, False, False, False], [True, False, False, False]],
 )
 def test_frozen_stencil_kwargs_passed_to_init(
-    backend: str,
     rebuild: bool,
     validate_args: bool,
     format_source: bool,
     device_sync: bool,
+    backend: str = "numpy",
 ):
     config = get_stencil_config(
         backend=backend,
@@ -255,9 +246,9 @@ def field_after_parameter_stencil(q_in: FloatField, param: float, q_out: FloatFi
         q_out = param * q_in
 
 
-def test_frozen_field_after_parameter(backend):
+def test_frozen_field_after_parameter() -> None:
     config = get_stencil_config(
-        backend=backend,
+        backend="numpy",
         rebuild=False,
         validate_args=False,
         format_source=False,
@@ -273,13 +264,11 @@ def test_frozen_field_after_parameter(backend):
 
 
 @pytest.mark.parametrize("backend", ("numpy", "cuda"))
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("validate_args", [True])
 def test_backend_options(
     backend: str,
-    rebuild: bool,
-    validate_args: bool,
-):
+    rebuild: bool = True,
+    validate_args: bool = True,
+) -> None:
     expected_options = {
         "numpy": {
             "backend": "numpy",
@@ -307,7 +296,7 @@ def get_mock_quantity():
     return unittest.mock.MagicMock(spec=Quantity)
 
 
-def test_convert_quantities_to_storage_no_args():
+def test_convert_quantities_to_storage_no_args() -> None:
     args = []
     kwargs = {}
     _convert_quantities_to_storage(args, kwargs)
@@ -315,7 +304,7 @@ def test_convert_quantities_to_storage_no_args():
     assert len(kwargs) == 0
 
 
-def test_convert_quantities_to_storage_one_arg_quantity():
+def test_convert_quantities_to_storage_one_arg_quantity() -> None:
     quantity = get_mock_quantity()
     args = [quantity]
     kwargs = {}
@@ -325,7 +314,7 @@ def test_convert_quantities_to_storage_one_arg_quantity():
     assert len(kwargs) == 0
 
 
-def test_convert_quantities_to_storage_one_kwarg_quantity():
+def test_convert_quantities_to_storage_one_kwarg_quantity() -> None:
     quantity = get_mock_quantity()
     args = []
     kwargs = {"val": quantity}
@@ -335,7 +324,7 @@ def test_convert_quantities_to_storage_one_kwarg_quantity():
     assert kwargs["val"] == quantity.data
 
 
-def test_convert_quantities_to_storage_one_arg_nonquantity():
+def test_convert_quantities_to_storage_one_arg_nonquantity() -> None:
     non_quantity = unittest.mock.MagicMock(spec=tuple)
     args = [non_quantity]
     kwargs = {}
@@ -345,7 +334,7 @@ def test_convert_quantities_to_storage_one_arg_nonquantity():
     assert len(kwargs) == 0
 
 
-def test_convert_quantities_to_storage_one_kwarg_non_quantity():
+def test_convert_quantities_to_storage_one_kwarg_non_quantity() -> None:
     non_quantity = unittest.mock.MagicMock(spec=tuple)
     args = []
     kwargs = {"val": non_quantity}

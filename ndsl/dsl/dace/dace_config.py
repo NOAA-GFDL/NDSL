@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import os
 from typing import Any, Dict, Optional, Tuple
@@ -5,13 +7,14 @@ from typing import Any, Dict, Optional, Tuple
 import dace.config
 from dace.codegen.compiled_sdfg import CompiledSDFG
 from dace.frontend.python.parser import DaceProgram
+from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.gt4py_utils import is_gpu_backend
-from ndsl.dsl.typing import floating_point_precision
+from ndsl.dsl.typing import get_precision
 from ndsl.optional_imports import cupy as cp
 
 
@@ -56,7 +59,7 @@ def _smallest_rank_middle(x: int, y: int, layout: Tuple[int, int]):
 
 
 def _determine_compiling_ranks(
-    config: "DaceConfig",
+    config: DaceConfig,
     partitioner: Partitioner,
 ) -> bool:
     """
@@ -65,7 +68,7 @@ def _determine_compiling_ranks(
         6 7 8
         3 4 5
         0 1 2
-    Using the partitionner we find mapping of the given layout
+    Using the partitioner we find mapping of the given layout
     to all of those. For example on 4x4 layout
         12 13 14 15
         8  9  10 11
@@ -179,6 +182,12 @@ class DaceConfig:
         # We control this Dace configuration below with our own override
         dace_debug_env_var = os.getenv("PACE_DACE_DEBUG", "False") == "True"
 
+        # We hijack the optimization level of GT4Py because we don't
+        # have the configuration at NDSL level, but we do use the GT4Py
+        # level
+        # TODO: if GT4PY opt level is funnled via NDSL - use it here
+        optimization_level = GT4PY_COMPILE_OPT_LEVEL
+
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
         if orchestration != DaCeOrchestration.Python:
@@ -193,7 +202,7 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value="-std=c++14 -fPIC -Wall -Wextra -O3",
+                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -202,12 +211,25 @@ class DaceConfig:
                 "openmp_sections",
                 value=0,
             )
+            # Resolve "march/mtune" option
+            #  - turn numeric-centric SSE by default
+            #  - Neoverse-V2 Grace CPU will fail - use alternative mcpu=native.
+            #    Detecting neoverse-v1/2 requires an external package, we swap it
+            #    for a read on GH200 nodes themselves
+            march_option = "-Xcompiler -march=native"
+            if (
+                cp is not None
+                and cp.cuda.runtime.getDeviceProperties(0)["name"]
+                == b"NVIDIA GH200 480GB"
+            ):
+                march_option = "-Xcompiler -mcpu=native"
+
             # Removed --fast-math
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value="-std=c++14 -Xcompiler -fPIC -O3 -Xcompiler -march=native",
+                value=f"-std=c++14 -Xcompiler -fPIC -O3 {march_option}",
             )
 
             cuda_sm = 60
@@ -217,7 +239,7 @@ class DaceConfig:
             # Block size/thread count is defaulted to an average value for recent
             # hardware (Pascal and upward). The problem of setting an optimized
             # block/thread is both hardware and problem dependant. Fine tuners
-            # available in DaCe should be relied on for futher tuning of this value.
+            # available in DaCe should be relied on for further tuning of this value.
             dace.config.Config.set(
                 "compiler", "cuda", "default_block_size", value="64,8,1"
             )
@@ -264,7 +286,7 @@ class DaceConfig:
                 "compiler", "cuda", "syncdebug", value=dace_debug_env_var
             )
 
-            if floating_point_precision() == 32:
+            if get_precision() == 32:
                 # When using 32-bit float, we flip the default dtypes to be all
                 # C, e.g. 32 bit.
                 dace.Config.set(

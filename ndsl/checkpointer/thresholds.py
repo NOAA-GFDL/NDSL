@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import contextlib
 import dataclasses
@@ -7,12 +9,6 @@ import numpy as np
 
 from ndsl.checkpointer.base import Checkpointer
 from ndsl.quantity import Quantity
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 
 SavepointName = str
@@ -29,7 +25,7 @@ class Threshold:
     relative: float
     absolute: float
 
-    def merge(self, other: "Threshold") -> "Threshold":
+    def merge(self, other: Threshold) -> Threshold:
         """
         Provide a threshold which is always satisfied
         if both input thresholds are satisfied.
@@ -132,9 +128,7 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
         self._n_trials += 1
 
     @property
-    def thresholds(
-        self,
-    ) -> SavepointThresholds:
+    def thresholds(self) -> SavepointThresholds:
         if self._n_trials < 2:
             raise InsufficientTrialsError(
                 "at least 2 trials required to generate thresholds"

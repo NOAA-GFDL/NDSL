@@ -23,12 +23,6 @@ from ndsl.constants import (
 from ndsl.performance import Timer
 
 
-try:
-    import gt4py
-except ImportError:
-    gt4py = None
-
-
 @pytest.fixture(params=[(1, 1), (3, 3)])
 def layout(request):
     return request.param

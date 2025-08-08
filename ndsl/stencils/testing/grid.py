@@ -7,7 +7,6 @@ from ndsl.comm.partitioner import TilePartitioner
 from ndsl.constants import N_HALO_DEFAULT, X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
-from ndsl.dsl.typing import Float
 from ndsl.grid.generation import GridDefinitions
 from ndsl.grid.helper import (
     AngleGridData,
@@ -450,7 +449,7 @@ class Grid:
         )
 
     @property
-    def grid_indexing(self) -> "GridIndexing":
+    def grid_indexing(self) -> GridIndexing:
         return GridIndexing(
             domain=tuple(int(item) for item in self.domain_shape_compute()),
             n_halo=self.halo,
@@ -461,7 +460,7 @@ class Grid:
         )
 
     @property
-    def damping_coefficients(self) -> "DampingCoefficients":
+    def damping_coefficients(self) -> DampingCoefficients:
         if self._damping_coefficients is not None:
             return self._damping_coefficients
         self._damping_coefficients = DampingCoefficients(
@@ -474,11 +473,11 @@ class Grid:
         )
         return self._damping_coefficients
 
-    def set_damping_coefficients(self, damping_coefficients: "DampingCoefficients"):
+    def set_damping_coefficients(self, damping_coefficients: DampingCoefficients):
         self._damping_coefficients = damping_coefficients
 
     @property
-    def grid_data(self) -> "GridData":
+    def grid_data(self) -> GridData:
         if self._grid_data is not None:
             return self._grid_data
 
@@ -505,7 +504,12 @@ class Grid:
             data = getattr(self, name)
             assert data is not None
 
-            quantity = self.quantity_factory.zeros(dims=dims, units=units, dtype=Float)
+            quantity = self.quantity_factory.zeros(
+                dims=dims,
+                units=units,
+                dtype=data.dtype,
+                allow_mismatch_float_precision=True,
+            )
             if len(quantity.shape) == 3:
                 quantity.data[:] = data[:, :, : quantity.shape[2]]
             elif len(quantity.shape) == 2:
@@ -549,6 +553,7 @@ class Grid:
                 data=self.area_64,
                 dims=GridDefinitions.area.dims,
                 units=GridDefinitions.area.units,
+                allow_mismatch_float_precision=True,
             ),
             rarea=self.quantity_factory.from_array(
                 data=self.rarea,
@@ -734,6 +739,31 @@ class Grid:
                 dims=GridDefinitions.sin_sg4.dims,
                 units=GridDefinitions.sin_sg4.units,
             ),
+            sin_sg5=self.quantity_factory.from_array(
+                data=self.sin_sg5,
+                dims=GridDefinitions.sin_sg5.dims,
+                units=GridDefinitions.sin_sg5.units,
+            ),
+            sin_sg6=self.quantity_factory.from_array(
+                data=self.sin_sg6,
+                dims=GridDefinitions.sin_sg6.dims,
+                units=GridDefinitions.sin_sg6.units,
+            ),
+            sin_sg7=self.quantity_factory.from_array(
+                data=self.sin_sg7,
+                dims=GridDefinitions.sin_sg7.dims,
+                units=GridDefinitions.sin_sg7.units,
+            ),
+            sin_sg8=self.quantity_factory.from_array(
+                data=self.sin_sg8,
+                dims=GridDefinitions.sin_sg8.dims,
+                units=GridDefinitions.sin_sg8.units,
+            ),
+            sin_sg9=self.quantity_factory.from_array(
+                data=self.sin_sg9,
+                dims=GridDefinitions.sin_sg9.dims,
+                units=GridDefinitions.sin_sg9.units,
+            ),
             cos_sg1=self.quantity_factory.from_array(
                 data=self.cos_sg1,
                 dims=GridDefinitions.cos_sg1.dims,
@@ -754,12 +784,39 @@ class Grid:
                 dims=GridDefinitions.cos_sg4.dims,
                 units=GridDefinitions.cos_sg4.units,
             ),
+            cos_sg5=self.quantity_factory.from_array(
+                data=self.cos_sg5,
+                dims=GridDefinitions.cos_sg5.dims,
+                units=GridDefinitions.cos_sg5.units,
+            ),
+            cos_sg6=self.quantity_factory.from_array(
+                data=self.cos_sg6,
+                dims=GridDefinitions.cos_sg6.dims,
+                units=GridDefinitions.cos_sg6.units,
+            ),
+            cos_sg7=self.quantity_factory.from_array(
+                data=self.cos_sg7,
+                dims=GridDefinitions.cos_sg7.dims,
+                units=GridDefinitions.cos_sg7.units,
+            ),
+            cos_sg8=self.quantity_factory.from_array(
+                data=self.cos_sg8,
+                dims=GridDefinitions.cos_sg8.dims,
+                units=GridDefinitions.cos_sg8.units,
+            ),
+            cos_sg9=self.quantity_factory.from_array(
+                data=self.cos_sg9,
+                dims=GridDefinitions.cos_sg9.dims,
+                units=GridDefinitions.cos_sg9.units,
+            ),
         )
         self._grid_data = GridData(
             horizontal_data=horizontal,
             vertical_data=vertical,
             contravariant_data=contravariant,
             angle_data=angle,
+            fc=self.fC,
+            fc_agrid=self.f0,
         )
         return self._grid_data
 
@@ -778,7 +835,7 @@ class Grid:
             )
         return self._driver_grid_data
 
-    def set_grid_data(self, grid_data: "GridData"):
+    def set_grid_data(self, grid_data: GridData):
         self._grid_data = grid_data
 
     def make_grid_data(self, npx, npy, npz, communicator, backend):
