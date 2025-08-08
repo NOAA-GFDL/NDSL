@@ -1,6 +1,11 @@
 name: "FV3 translate tests"
+
+# Run these these whenever ...
 on:
-  pull_request:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+  branches:
+    - main # ... when merging into the main branch
 
 jobs:
   fv3_translate_tests:
