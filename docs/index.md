@@ -68,7 +68,7 @@ Configurations for Pace to use NDSL with different backend:
 
   - Run: load pre-compiled program and execute, fail if the .so is not present (_no hash check!_) (backend must be `dace:gpu` or `dace:cpu`)
 
-- PACE_FLOAT_PRECISION=64 control the floating point precision throughout the program.
+- NDSL_FLOAT_PRECISION=64 control the floating point precision throughout the program.
 
 Install Pace with different NDSL backend:
 
