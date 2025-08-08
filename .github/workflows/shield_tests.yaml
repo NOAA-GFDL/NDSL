@@ -4,8 +4,9 @@ name: "SHiELD Translate tests"
 on:
   pull_request: # ... a PR is opened / updated
   merge_group: # ... the PR is added to the merge queue
-  branches:
-    - main # ... when merging into the main branch
+  push:
+    branches:
+      - main # ... when merging into the main branch
 
 jobs:
   shield_translate_tests:
