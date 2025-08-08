@@ -204,7 +204,9 @@ def test_stencil_factory_numpy_comparison_from_origin_domain(
 
 @pytest.mark.parametrize("enabled", [True, False])
 @pytest.mark.parametrize("klevel", [0, 1, 30])
-def test_stencil_factory_numpy_comparison_from_origin_domain_2d(enabled: bool, klevel: int):
+def test_stencil_factory_numpy_comparison_from_origin_domain_2d(
+    enabled: bool, klevel: int
+):
     backend = "numpy"
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
