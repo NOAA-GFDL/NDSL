@@ -8,8 +8,6 @@ from typing import Annotated
 from mpi4py import MPI
 
 
-LOGLEVEL = os.environ.get("PACE_LOGLEVEL", "INFO").lower()
-
 # Python log levels are hierarchical, therefore setting INFO
 # means DEBUG and everything lower will be logged.
 AVAILABLE_LOG_LEVELS = {
@@ -19,6 +17,28 @@ AVAILABLE_LOG_LEVELS = {
     "error": logging.ERROR,
     "critical": logging.CRITICAL,
 }
+
+
+def _get_log_level(default: str = "info"):
+    if os.getenv("PACE_LOGLEVEL", ""):
+        ndsl_log.warning("PACE_LOGLEVEL is deprecated. Use NDSL_LOGLEVEL instead.")
+        if os.getenv("NDSL_LOGLEVEL", ""):
+            ndsl_log.warning(
+                "PACE_LOGLEVEL and NDSL_LOGLEVEL were both specified. NDSL_LOGLEVEL will take precedence."
+            )
+
+    loglevel = os.getenv("NDSL_LOGLEVEL", os.getenv("PACE_LOGLEVEL", default)).lower()
+
+    if loglevel in AVAILABLE_LOG_LEVELS.keys():
+        return loglevel
+
+    ndsl_log.warning(
+        f"Unknown log level '{loglevel}', falling back to '{default}'. Valid values are: {AVAILABLE_LOG_LEVELS.keys()}."
+    )
+    return default
+
+
+LOGLEVEL = _get_log_level()
 
 
 def _ndsl_logger() -> logging.Logger:
