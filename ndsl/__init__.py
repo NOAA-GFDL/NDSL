@@ -75,6 +75,7 @@ __all__ = [
     "ndsl_log",
     "NetCDFMonitor",
     "Namelist",
+    "Config",
     "NullPerformanceCollector",
     "PerformanceCollector",
     "NullProfiler",
