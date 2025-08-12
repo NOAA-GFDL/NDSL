@@ -35,6 +35,7 @@ class Config:
 
     @classmethod
     def from_f90nml(cls, f90_namelist: f90nml.Namelist) -> "Config":
+        """Uses a Namelist to create a Config"""
         namelist_dict = namelist_to_flatish_dict(f90_namelist.items())
         namelist_dict = {
             key: value
@@ -47,6 +48,7 @@ class Config:
 
     @classmethod
     def from_yaml(cls, yaml_config: str) -> "Config":
+        """Uses a YAML file to create a Config"""
         # We're trying to make this generic, BUT we still assume that
         # dt_atmos, nx_tiles, and nz are defined
 
@@ -83,10 +85,9 @@ class Config:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Config":
         """
-        Create a config object from a dictionary.
+        Creates a config object from a dictionary.
+        This assumes that the dictionary keys match the field names.
         """
-        # This implementation assumes that the dictionary keys match the
-        # dataclass field names.
         config = cls(**data)
         config.validate()
         return config
@@ -99,12 +100,22 @@ class Config:
 
     def validate(self):
         """
-        Validate
+        Basic validation checks
         """
-        # Convert these into proper throw statements
-        assert self.npx == self.npy
-        assert self.dt_atmos >= 0
-        assert self.days >= 0
-        assert self.hours >= 0
-        assert self.minutes >= 0
-        assert self.seconds >= 0
+        if self.npx != self.npy:
+            raise ValueError(f"npx({self.npx}) and npy({self.npy}) should be equal")
+
+        positive_vars = [
+            "dt_atmos",
+            "days",
+            "hours",
+            "minutes",
+            "seconds",
+            "npx",
+            "npy",
+            "npz",
+        ]
+        for var in positive_vars:
+            val = getattr(self, var)
+            if val < 0:
+                raise ValueError(f"{var}({val}) should be >= 0")
