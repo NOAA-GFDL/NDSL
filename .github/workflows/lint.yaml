@@ -1,6 +1,12 @@
 name: "Lint"
+
+# Run these these whenever ...
 on:
-  pull_request:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+  push:
+    branches:
+      - main # ... when merging into the main branch
 
 # cancel running jobs if theres a newer push
 concurrency:
@@ -11,18 +17,21 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-          with:
-            submodules: 'recursive'
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: Setup Python 3.11
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.11'
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        - name: Install pre-commit
-          run: pip install pre-commit
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit_${{ env.pythonLocation }}_${{ hashFiles('.pre-commit-config.yaml') }}
 
-        - name: Run lint via pre-commit
-          run: pre-commit run --all-files
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run lint via pre-commit
+        run: pre-commit run --all-files

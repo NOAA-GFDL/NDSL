@@ -79,7 +79,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
             if "multimodal" in match:
                 parsed_multimodal = match["multimodal"]
                 if "absolute_epsilon" in parsed_multimodal:
-                    testobj.mmr_absolute_eps = float(parsed_multimodal["absolute_eps"])
+                    testobj.mmr_absolute_eps = float(
+                        parsed_multimodal["absolute_epsilon"]
+                    )
                 if "relative_fraction" in parsed_multimodal:
                     testobj.mmr_relative_fraction = float(
                         parsed_multimodal["relative_fraction"]

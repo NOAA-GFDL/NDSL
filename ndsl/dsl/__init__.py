@@ -1,8 +1,10 @@
 # Literal precision for both GT4Py & NDSL
 import os
 import sys
+from typing import Literal
 
 from ndsl.comm.mpi import MPI
+from ndsl.logging import ndsl_log
 
 
 gt4py_config_module = "gt4py.cartesian.config"
@@ -12,7 +14,33 @@ if gt4py_config_module in sys.modules:
         " Please import `ndsl.dsl` or any `ndsl` module "
         " before any `gt4py` imports."
     )
-NDSL_GLOBAL_PRECISION = int(os.getenv("PACE_FLOAT_PRECISION", "64"))
+
+
+def _get_literal_precision(default: Literal["32", "64"] = "64") -> Literal["32", "64"]:
+    if os.getenv("PACE_FLOAT_PRECISION", ""):
+        ndsl_log.warning(
+            "PACE_FLOAT_PRECISION is deprecated. Use NDSL_LITERAL_PRECISION instead."
+        )
+        if os.getenv("NDSL_LITERAL_PRECISION", ""):
+            ndsl_log.warning(
+                "PACE_FLOAT_PRECISION and NDSL_LOGLEVEL were both specified. NDSL_LITERAL_PRECISION will take precedence."
+            )
+
+    precision = os.getenv(
+        "NDSL_LITERAL_PRECISION", os.getenv("PACE_FLOAT_PRECISION", default)
+    )
+
+    expected: list[Literal["32", "64"]] = ["32", "64"]
+    if precision in expected:
+        return precision  # type: ignore
+
+    ndsl_log.warning(
+        f"Unexpected literal precision '{precision}', falling back to '{default}'. Valid values are {expected}."
+    )
+    return default
+
+
+NDSL_GLOBAL_PRECISION = int(_get_literal_precision())
 os.environ["GT4PY_LITERAL_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 
 

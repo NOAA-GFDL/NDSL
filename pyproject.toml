@@ -1,0 +1,79 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 77.0.3"]
+
+[project]
+authors = [{name = "NOAA/NASA"}]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Atmospheric Science",
+  "Private :: Do Not Upload",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11"
+]
+dynamic = ["dependencies"]
+license = "Apache-2.0"
+license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
+name = "ndsl"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+version = "2025.05.00"
+
+[project.optional-dependencies]
+demos = ["ipython", "ipykernel"]
+dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject"]
+docs = ["mkdocs-material"]
+extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
+test = ["pytest", "pytest-subtests", "coverage"]
+
+[project.scripts]
+ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
+
+[project.urls]
+Repository = "https://github.com/NOAA-GFDL/NDSL"
+
+[tool.aliases]
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/*", "*gt_cache*", ".dacecache*", "external/*", "__init__.py"]
+parallel = true
+source_pkgs = ["ndsl"]
+
+[tool.flake8]
+exclude = ["docs"]
+extend-ignore = [
+  # Redundant with black formatter
+  "E302",  # Blank lines before function
+  "E501",  # Line too long
+  "E704",  # One statement per line
+  "W293",  # Blank line contains whitespace
+  "W503",  # Linebreak before binary operator
+  # Clashes with NDSL/stencil syntax
+  "E203",  # Space before ":", e.g. `field[1, :]`
+  "F841"  # Local variable assigned but unused
+]
+max-line-length = 88
+
+[tool.isort]
+default_section = "THIRDPARTY"
+known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py,dace"
+lines_after_imports = 2
+profile = "black"
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+[tool.mypy]
+explicit_package_bases = "true"
+follow_imports = "normal"
+ignore_missing_imports = "true"
+namespace_packages = "true"
+strict_optional = "false"
+warn_unreachable = "true"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["ndsl", "ndsl.*"]
