@@ -25,7 +25,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - uses: actions/cache@v4
+      # Only restore (don't save) caches on PRs. New caches created from PRs won't be
+      # accessible from other PRs, see workflows/create-cache.yaml.
+      - uses: actions/cache/restore@v4
         with:
           path: ~/.cache/pre-commit
           key: pre-commit_${{ env.pythonLocation }}_${{ hashFiles('.pre-commit-config.yaml') }}
