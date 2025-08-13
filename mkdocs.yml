@@ -9,6 +9,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
   - User documentation: user/index.md
   - Porting:
       - General Concepts: porting/index.md
@@ -24,8 +25,12 @@ markdown_extensions:
   - abbr
   # support for colored notes / warnings / tips / examples
   - admonition
+  # support for "definition lists" (<dl>)
+  - def_list
   # support for footnotes
   - footnotes
+  # support for emojis
+  - pymdownx.emoji
   # support for syntax highlighting
   - pymdownx.highlight:
       anchor_linenums: true
