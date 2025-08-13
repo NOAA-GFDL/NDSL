@@ -27,6 +27,7 @@ from ndsl.dsl.dace.dace_config import (
     DaCeOrchestration,
     FrozenCompiledSDFG,
 )
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
@@ -146,10 +147,18 @@ def _build_sdfg(
 
         sdfg.save("roundtrip-03-original-simplified.sdfgz", compress=True)
 
-        with DaCeProgress(config, "Schedule Tree: roundtrip"):
+        with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
             stree = sdfg.as_schedule_tree()
             with open("roundtrip-stree.txt", "w") as file:
                 file.write(stree.as_string(-1))
+
+        with DaCeProgress(config, "Schedule Tree: optimization"):
+            if config.is_gpu_backend():
+                GPUPipeline().run(stree)
+            else:
+                CPUPipeline().run(stree)
+
+        with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
             sdfg = stree.as_sdfg()
 
         sdfg.save("roundtrip-04-stree-roundtrip.sdfgz", compress=True)
@@ -182,7 +191,7 @@ def _build_sdfg(
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
 
-        with DaCeProgress(config, "Simplify"):
+        with DaCeProgress(config, "Simplify (Final)"):
             _simplify(sdfg, validate=True, verbose=True)
 
         # Move all memory that can be into a pool to lower memory pressure.
