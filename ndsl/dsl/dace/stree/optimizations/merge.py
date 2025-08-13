@@ -199,10 +199,11 @@ class MapMerge(dace_stree.ScheduleNodeTransformer):
             while j < len(children):
                 second_map = children[j]
 
-                # skip all non-maps
+                # Non-maps node - we need to keep code-flow correct, so we go to the next
+                # available candidate
                 if not isinstance(second_map, dace_stree.MapScope):
-                    j += 1
-                    continue
+                    i += 1
+                    break
 
                 equal_map_params = first_map.node.params == second_map.node.params
                 equal_map_ranges = first_map.node.map.range == second_map.node.map.range
