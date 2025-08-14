@@ -23,6 +23,7 @@ requirements: list[str] = [
     "numpy==1.26.4",
     "matplotlib",  # for plotting in boilerplate
     "cartopy",  # for plotting in ndsl.viz
+    "pytest-subtests",  # for translate tests
 ]
 
 

@@ -26,7 +26,7 @@ demos = ["ipython", "ipykernel"]
 dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject"]
 docs = ["mkdocs-material"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
-test = ["pytest", "pytest-subtests", "coverage"]
+test = ["pytest", "coverage"]
 
 [project.scripts]
 ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
