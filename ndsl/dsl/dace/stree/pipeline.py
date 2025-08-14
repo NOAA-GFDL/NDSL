@@ -2,6 +2,10 @@ from abc import abstractmethod
 from typing import Protocol
 import dace.sdfg.analysis.schedule_tree.treenodes as dace_stree
 from ndsl.dsl.dace.stree.optimizations.merge import MapMerge, MergeStrategy
+from ndsl.dsl.dace.stree.optimizations.axis_merge import (
+    CartesianAxisMerge,
+    AxisIterator,
+)
 
 
 class StreePipeline(Protocol):
@@ -23,7 +27,7 @@ class StreePipeline(Protocol):
 class CPUPipeline(StreePipeline):
     def __init__(self) -> None:
         self.passes = [
-            MapMerge(merge_strategy=MergeStrategy.Force_K),
+            CartesianAxisMerge(AxisIterator._K),
         ]
 
     def __repr__(self) -> str:
@@ -37,7 +41,7 @@ class CPUPipeline(StreePipeline):
     ) -> dace_stree.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
-                print(f"[Stree OPT] {type(p)}")
+                print(f"[Stree OPT] {p}")
             p.visit(stree)
 
         return stree
@@ -60,7 +64,7 @@ class GPUPipeline(StreePipeline):
     ) -> dace_stree.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
-                print(f"[Stree OPT] {type(p)}")
+                print(f"[Stree OPT] {p}")
             p.visit(stree)
 
         return stree
