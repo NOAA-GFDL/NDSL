@@ -138,7 +138,6 @@ def _build_sdfg(
                             # print(f"Specializing {sym} to {val}.")
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
-                    assert my_sdfg
 
         sdfg.save("roundtrip-02-original-specialized.sdfgz", compress=True)
 
@@ -149,7 +148,7 @@ def _build_sdfg(
 
         with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
             stree = sdfg.as_schedule_tree()
-            with open("roundtrip-stree.txt", "w") as file:
+            with open("roundtrip-stree-IN.txt", "w") as file:
                 file.write(stree.as_string(-1))
 
         with DaCeProgress(config, "Schedule Tree: optimization"):
@@ -159,6 +158,8 @@ def _build_sdfg(
                 CPUPipeline().run(stree)
 
         with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
+            with open("roundtrip-stree-OUT.txt", "w") as file:
+                file.write(stree.as_string(-1))
             sdfg = stree.as_sdfg()
 
         sdfg.save("roundtrip-04-stree-roundtrip.sdfgz", compress=True)
