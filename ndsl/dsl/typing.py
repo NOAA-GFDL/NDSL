@@ -1,8 +1,9 @@
-import os
 from typing import Tuple, TypeAlias, Union, cast
 
 import numpy as np
 from gt4py.cartesian import gtscript
+
+from ndsl.dsl import NDSL_GLOBAL_PRECISION
 
 
 # A Field
@@ -23,7 +24,7 @@ DTypes = Union[bool, np.bool_, int, np.int32, np.int64, float, np.float32, np.fl
 
 
 def get_precision() -> int:
-    return int(os.getenv("PACE_FLOAT_PRECISION", "64"))
+    return NDSL_GLOBAL_PRECISION
 
 
 # We redefine the type as a way to distinguish
