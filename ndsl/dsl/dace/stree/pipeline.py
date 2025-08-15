@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import Protocol
-import dace.sdfg.analysis.schedule_tree.treenodes as dace_stree
+import dace.sdfg.analysis.schedule_tree.treenodes as dst
 from ndsl.dsl.dace.stree.optimizations.merge import MapMerge, MergeStrategy
 from ndsl.dsl.dace.stree.optimizations.axis_merge import (
     CartesianAxisMerge,
@@ -18,9 +18,7 @@ class StreePipeline(Protocol):
         raise NotImplementedError("Missing implementation of __repr__")
 
     @abstractmethod
-    def run(
-        self, stree: dace_stree.ScheduleTreeRoot, verbose=False
-    ) -> dace_stree.ScheduleTreeRoot:
+    def run(self, stree: dst.ScheduleTreeRoot, verbose=False) -> dst.ScheduleTreeRoot:
         raise NotImplementedError("Missing implementation of run")
 
 
@@ -36,9 +34,7 @@ class CPUPipeline(StreePipeline):
     def __hash__(self) -> int:
         return hash(repr(self))
 
-    def run(
-        self, stree: dace_stree.ScheduleTreeRoot, verbose=False
-    ) -> dace_stree.ScheduleTreeRoot:
+    def run(self, stree: dst.ScheduleTreeRoot, verbose=False) -> dst.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
                 print(f"[Stree OPT] {p}")
@@ -59,9 +55,7 @@ class GPUPipeline(StreePipeline):
     def __hash__(self) -> int:
         return hash(repr(self))
 
-    def run(
-        self, stree: dace_stree.ScheduleTreeRoot, verbose=False
-    ) -> dace_stree.ScheduleTreeRoot:
+    def run(self, stree: dst.ScheduleTreeRoot, verbose=False) -> dst.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
                 print(f"[Stree OPT] {p}")
