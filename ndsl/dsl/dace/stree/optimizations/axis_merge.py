@@ -11,6 +11,7 @@ from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
     no_data_dependencies_on_cartesian_axis,
     AxisIterator,
 )
+from ndsl import ndsl_log
 
 
 def _is_axis_map(node: dst.MapScope, axis: AxisIterator) -> bool:
@@ -39,6 +40,25 @@ def _can_merge_axis_maps(
         second,
         axis,
     )
+
+
+def _swap_node_position_in_tree(top_node, child_node):
+    """Top node becomes child, child becomes top node"""
+    # Take refs before swap
+    top_children = top_node.parent.children
+    top_level_parent = top_node.parent
+
+    # Swap childrens
+    top_node.children = child_node.children
+    child_node.children = [top_node]
+    top_children.insert(top_children.index(top_node), child_node)
+
+    # Re-parent
+    top_node.parent = child_node
+    child_node.parent = top_level_parent
+
+    # Remove now-pushed original node
+    top_children.remove(top_node)
 
 
 class InsertOvercomputationGuard(dst.ScheduleNodeTransformer):
@@ -169,43 +189,114 @@ class AxisMergeOp_TasletScalar(AxisMergeOp):
         return True
 
 
-class AxisMergeOp_IfElse(AxisMergeOp):
+class AxisMergeOp_PushIfElseDown(AxisMergeOp):
+    """Push IF into inner Maps if they are mergeable with candidate map
+
+    This will check if ELSE/ELIF exist and if they are mergeable - it not
+    it will fail
+
+    WARNING: `apply` requires `can_merge` to be called
+    """
+
     def __init__(
         self,
         the_map: dst.MapScope,
-        node: dst.ScheduleTreeNode,
+        node: dst.IfScope,
         axis: AxisIterator,
     ) -> None:
         super().__init__(the_map, node, axis)
+        self.recurse_op = None
+        self.recurse_nodes: List[dst.ScheduleTreeNode] = []
+        self.can_apply = False
 
     def can_merge(
         self,
         nodes: List[dst.ScheduleTreeNode],
     ) -> bool:
-        return False
-        if len(self.node_to_merge.input_memlets()) != 0:
-            return False  # Tasklet is not inputless
-        second_index = nodes.index(self.node_to_merge)
-        if second_index == len(nodes):
-            return False  # Last node - done
-        second_map = nodes[second_index + 1]
-        if not isinstance(second_map, dst.MapScope):
-            return False  # Next node is not a MapScope
-        if not _can_merge_axis_maps(self.the_map, second_map, self.axis):
-            return False  # Next map is not mergeable
+        if len(self.node_to_merge.children) == 0:
+            return False
+        inner_map = self.node_to_merge.children[0]
+        if isinstance(inner_map, dst.IfScope):
+            op = AxisMergeOp_PushIfElseDown(self.the_map, inner_map, self.axis)
+            if not op.can_merge(self.node_to_merge.children):
+                return False
+            self.recurse_op = op
+            self.recurse_nodes = self.node_to_merge.children
+            self.can_apply = True
+            return True  # Don't continue we will break recursion
+        if not isinstance(inner_map, dst.MapScope):
+            return False
+        if not _can_merge_axis_maps(self.the_map, inner_map, self.axis):
+            return False
 
+        # Case of ELIF / ELSE
+        if_index = nodes.index(self.node_to_merge)
+        for else_index in range(if_index + 1, len(nodes)):
+            if else_index < len(nodes) and (
+                isinstance(nodes[else_index], dst.ElseScope)
+                or isinstance(nodes[else_index], dst.ElifScope)
+            ):
+                else_inner_map = nodes[else_index].children[0]
+                if isinstance(else_inner_map, dst.IfScope):
+                    op = AxisMergeOp_PushIfElseDown(
+                        self.the_map, else_inner_map, self.axis
+                    )
+                    if not op.can_merge(nodes[else_index].children):
+                        return False
+                    self.recurse_op = op
+                    self.recurse_nodes = nodes[else_index].children
+                    self.can_apply = True
+                    return True  # Don't continue we will break recursion
+                if not isinstance(else_inner_map, dst.MapScope):
+                    # If has a map has first child, but not else, we panic exit
+                    return False
+                if not _can_merge_axis_maps(self.the_map, else_inner_map, self.axis):
+                    # The else/elif inner map is not mergeable, we panic exit
+                    return False
+            else:
+                break
+
+        self.can_apply = True
         return True
 
     def apply(
         self,
-        the_map: dst.MapScope,
-        tasklet: dst.TaskletNode,
-        axis: AxisIterator,
         nodes: List[dst.ScheduleTreeNode],
     ) -> bool:
+        if not self.can_apply:
+            ndsl_log.debug(
+                "[STREE OPT] AxisMergeOp_PushIfDown.apply called before can_merge. Abort"
+            )
+
+        if self.recurse_op is not None:
+            self.recurse_op.apply(self.recurse_nodes)
+        else:
+            inner_if_map = self.node_to_merge.children[0]
+            print("  Push IF down")
+            if_index = nodes.index(self.node_to_merge)
+            _swap_node_position_in_tree(self.node_to_merge, inner_if_map)
+
+            # Push ELIF/ELSE
+            else_maps_to_merge = []
+            for else_index in range(if_index + 1, len(nodes)):
+                if else_index < len(nodes) and (
+                    isinstance(nodes[else_index], dst.ElseScope)
+                    or isinstance(nodes[else_index], dst.ElifScope)
+                ):
+                    else_maps_to_merge.append(nodes[else_index].children[0])
+                    _swap_node_position_in_tree(
+                        nodes[else_index], nodes[else_index].children[0]
+                    )
+                else:
+                    break
+
+            # Merge the Maps
+            for else_map in else_maps_to_merge:
+                AxisMergeOp_OvercomputeMerge(inner_if_map, else_map, self.axis).apply(
+                    nodes
+                )
+
         return False
-        child_map.children = [second_ifscope]
-        MapRemover([child_map]).visit(second_ifscope)
 
 
 class AxisMergeOp_OvercomputeMerge(AxisMergeOp):
@@ -303,7 +394,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         if isinstance(candidate, dst.MapScope):
             return AxisMergeOp_OvercomputeMerge(the_map, candidate, self.axis)
         elif isinstance(candidate, dst.IfScope):
-            return AxisMergeOp_IfElse(the_map, candidate, self.axis)
+            return AxisMergeOp_PushIfElseDown(the_map, candidate, self.axis)
         elif isinstance(candidate, dst.TaskletNode):
             return AxisMergeOp_TasletScalar(the_map, candidate, self.axis)
 
@@ -374,15 +465,22 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         for op in operations:
             keep_merging = op.apply(node.children)
             if not keep_merging:
-                return True
+                return True  # We made changes but we need to start again fresh
 
         # We have comitted changes, flag for merge again
         return True
 
     def visit_ScheduleTreeRoot(self, node: dst.ScheduleTreeRoot):
         # node.children = self._merge(node.children)
+        i = 0
         commit = self._merge(node)
+        with open(f"debug_stree_{i}.txt", "w") as f:
+            f.write(node.as_string())
         while commit:
+            i += 1
+            print(f"🔥 Go again {i}")
             commit = self._merge(node)
+            with open(f"debug_stree_{i}.txt", "w") as f:
+                f.write(node.as_string())
 
-        print(f"Cartesian Axis Merge ({self.axis.name}): {self.merged} map merged")
+        print(f"🚀 Cartesian Axis Merge ({self.axis.name}): {self.merged} map merged")
