@@ -51,7 +51,7 @@ def _swap_node_position_in_tree(top_node, child_node):
     # Swap childrens
     top_node.children = child_node.children
     child_node.children = [top_node]
-    top_children.insert(top_children.index(top_node), child_node)
+    top_children.insert(_list_index(top_children, top_node), child_node)
 
     # Re-parent
     top_node.parent = child_node
@@ -59,6 +59,42 @@ def _swap_node_position_in_tree(top_node, child_node):
 
     # Remove now-pushed original node
     top_children.remove(top_node)
+
+
+def _get_operator(
+    the_map: dst.MapScope,
+    candidate: dst.ScheduleTreeNode,
+    axis: AxisIterator,
+) -> AxisMergeOp | None:
+    if isinstance(candidate, dst.MapScope):
+        return AxisMergeOp_OvercomputeMerge(the_map, candidate, axis)
+    elif isinstance(candidate, dst.IfScope):
+        return AxisMergeOp_PushIfElseDown(the_map, candidate, axis)
+    elif isinstance(candidate, dst.TaskletNode):
+        return AxisMergeOp_TasletScalar(the_map, candidate, axis)
+
+    return None
+
+
+def _detect_cycle(nodes, visited: set):
+    for n in nodes:
+        if id(n) in visited:
+            breakpoint()
+        visited.add(id(n))
+        if hasattr(n, "children"):
+            _detect_cycle(n.children, visited)
+
+
+def _list_index(list: List[dst.ScheduleTreeNode], node: dst.ScheduleTreeNode) -> int:
+    """Check if node is in list with "is" operator."""
+    index = 0
+    for element in list:
+        # compare with "is" to get memory comparison. ".index()" uses value comparison
+        if element is node:
+            return index
+        index += 1
+
+    raise StopIteration
 
 
 class InsertOvercomputationGuard(dst.ScheduleNodeTransformer):
@@ -109,7 +145,7 @@ class MapRemover(dst.ScheduleNodeTransformer):
         if node.parent is None:
             return node
 
-        my_idx = node.parent.children.index(node)
+        my_idx = _list_index(node.parent.children, node)
         for child in node.children:
             child.parent = node.parent
         node.parent.children = (
@@ -166,14 +202,14 @@ class AxisMergeOp_TasletScalar(AxisMergeOp):
     ) -> bool:
         if len(self.node_to_merge.input_memlets()) != 0:
             return False  # Tasklet is not inputless
-        second_index = nodes.index(self.node_to_merge)
-        if second_index == len(nodes):
+        next_index = _list_index(nodes, self.node_to_merge)
+        if next_index == len(nodes):
             return False  # Last node - done
-        second_map = nodes[second_index + 1]
-        if not isinstance(second_map, dst.MapScope):
-            return False  # Next node is not a MapScope
-        if not _can_merge_axis_maps(self.the_map, second_map, self.axis):
-            return False  # Next map is not mergeable
+        next_node = nodes[next_index + 1]
+
+        op = _get_operator(self.the_map, next_node, self.axis)
+        if not op.can_merge(nodes):
+            return False
 
         return True
 
@@ -182,7 +218,9 @@ class AxisMergeOp_TasletScalar(AxisMergeOp):
         nodes: List[dst.ScheduleTreeNode],
     ) -> bool:
         # Push the tasklet into the map, remove from node list
-        print(" Merge K map: Push inputless tasklet down into Map")
+        print(
+            f" Merge K map: Push inputless tasklet {self.node_to_merge.node} down into Map"
+        )
         self.the_map.children.insert(0, self.node_to_merge)
         self.node_to_merge.parent = self.the_map
         nodes.remove(self.node_to_merge)
@@ -224,13 +262,17 @@ class AxisMergeOp_PushIfElseDown(AxisMergeOp):
             self.recurse_nodes = self.node_to_merge.children
             self.can_apply = True
             return True  # Don't continue we will break recursion
+        else:
+            op = _get_operator(self.the_map, inner_map, self.axis)
+            if op is None or not op.can_merge(self.node_to_merge.children):
+                return False
         if not isinstance(inner_map, dst.MapScope):
             return False
         if not _can_merge_axis_maps(self.the_map, inner_map, self.axis):
             return False
 
         # Case of ELIF / ELSE
-        if_index = nodes.index(self.node_to_merge)
+        if_index = _list_index(nodes, self.node_to_merge)
         for else_index in range(if_index + 1, len(nodes)):
             if else_index < len(nodes) and (
                 isinstance(nodes[else_index], dst.ElseScope)
@@ -272,8 +314,8 @@ class AxisMergeOp_PushIfElseDown(AxisMergeOp):
             self.recurse_op.apply(self.recurse_nodes)
         else:
             inner_if_map = self.node_to_merge.children[0]
-            print("  Push IF down")
-            if_index = nodes.index(self.node_to_merge)
+            print(f"  Push IF {self.node_to_merge.condition.code} down")
+            if_index = _list_index(nodes, self.node_to_merge)
             _swap_node_position_in_tree(self.node_to_merge, inner_if_map)
 
             # Push ELIF/ELSE
@@ -333,7 +375,7 @@ class AxisMergeOp_OvercomputeMerge(AxisMergeOp):
             ]
         )
 
-        print(f" Merge K map: {first_range} ⋃ {second_range} -> {merged_range}")
+        print(f"  Merge K map: {first_range} ⋃ {second_range} -> {merged_range}")
 
         # push IfScope down if children are just maps
         first_map = InsertOvercomputationGuard(
@@ -355,7 +397,7 @@ class AxisMergeOp_OvercomputeMerge(AxisMergeOp):
         first_map.node.map.range = merged_range
 
         # delete now-merged second_map
-        del nodes[nodes.index(self.node_to_merge)]
+        del nodes[_list_index(nodes, self.node_to_merge)]
 
         return True
 
@@ -385,21 +427,6 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
     def __str__(self) -> str:
         return f"CartesianAxisMerge({self.axis.name})"
 
-    def _get_operator(
-        self,
-        the_map: dst.MapScope,
-        candidate: dst.ScheduleTreeNode,
-        nodes: List[dst.ScheduleTreeNode],
-    ) -> AxisMergeOp | None:
-        if isinstance(candidate, dst.MapScope):
-            return AxisMergeOp_OvercomputeMerge(the_map, candidate, self.axis)
-        elif isinstance(candidate, dst.IfScope):
-            return AxisMergeOp_PushIfElseDown(the_map, candidate, self.axis)
-        elif isinstance(candidate, dst.TaskletNode):
-            return AxisMergeOp_TasletScalar(the_map, candidate, self.axis)
-
-        return None
-
     def _merge(self, node: dst.ScheduleTreeRoot) -> bool:
         # Step 1: Find a candidate
         map_scopes = [
@@ -421,6 +448,8 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         #     node.children[map_index].children = self._merge_2(map_scope.children)
         #     return children
 
+        _detect_cycle(node.children, set())
+
         i_candidate = 0
         the_map = None
         while i_candidate < len(node.children) - 1:  # Skip last child
@@ -431,8 +460,10 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
                 i_candidate += 1
                 continue
 
-            op = self._get_operator(
-                first_map, node.children[i_candidate + 1], node.children
+            op = _get_operator(
+                first_map,
+                node.children[i_candidate + 1],
+                self.axis,
             )
             if op is not None and op.can_merge(node.children):
                 the_map = first_map
@@ -443,14 +474,16 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         if the_map is None:
             return False
 
+        _detect_cycle(node.children, set())
+
         # Step 2: Mark required operation as far as we can
         i_to_merge = i_candidate + 1
         operations: list[AxisMergeOp] = []
         while i_to_merge < len(node.children):
-            op = self._get_operator(
+            op = _get_operator(
                 the_map,
                 node.children[i_to_merge],
-                node.children,
+                self.axis,
             )
             if op is not None and op.can_merge(node.children):
                 operations.append(op)
@@ -460,6 +493,8 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
             break
 
         assert len(operations) >= 1
+
+        _detect_cycle(node.children, set())
 
         # Step 3: Commit changes marked above
         for op in operations:
@@ -479,7 +514,12 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         while commit:
             i += 1
             print(f"🔥 Go again {i}")
-            commit = self._merge(node)
+            try:
+                commit = self._merge(node)
+                _detect_cycle(node.children, set())
+            except RecursionError as re:
+                breakpoint()
+                raise
             with open(f"debug_stree_{i}.txt", "w") as f:
                 f.write(node.as_string())
 
