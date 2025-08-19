@@ -7,6 +7,7 @@ def local_pkg(name: str, relative_path: str) -> str:
     """Returns an absolute path to a local package."""
     return f"{name} @ file://{Path(__file__).absolute().parent / relative_path}"
 
+
 docs_requirements = ["mkdocs-material", "mkdocstrings[python]"]
 demos_requirements = ["ipython", "ipykernel"]
 test_requirements = ["pytest", "pytest-subtests", "coverage"]
@@ -20,7 +21,7 @@ extras_requires = {
     "test": test_requirements,
 }
 
-requirements: List[str] = [
+requirements = [
     local_pkg("gt4py", "external/gt4py"),
     local_pkg("dace", "external/dace"),
     "mpi4py>=4.1",
