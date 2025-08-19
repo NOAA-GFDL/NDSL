@@ -126,33 +126,20 @@ def _build_sdfg(
         with DaCeProgress(config, "Validate original SDFG"):
             sdfg.validate()
 
-        sdfg.save("roundtrip-01-original.sdfgz", compress=True)
-
+        # Fully specialize all known symbols and then propagate these changes in the simplify
+        # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
+        # the schedule tree (optimization) roundtrip.
         with DaCeProgress(config, "Fully specialize symbols"):
             for my_sdfg in sdfg.all_sdfgs_recursive():
                 if my_sdfg.parent_nsdfg_node is not None:
                     repl_dict = {}
                     for sym, val in my_sdfg.parent_nsdfg_node.symbol_mapping.items():
                         if isinstance(val, numbers.Number):
-                            # print(f"Specializing {sym} to {val}.")
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
-                    assert my_sdfg
-
-        sdfg.save("roundtrip-02-original-specialized.sdfgz", compress=True)
 
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
-
-        sdfg.save("roundtrip-03-original-simplified.sdfgz", compress=True)
-
-        with DaCeProgress(config, "Schedule Tree: roundtrip"):
-            stree = sdfg.as_schedule_tree()
-            with open("roundtrip-stree.txt", "w") as file:
-                file.write(stree.as_string(-1))
-            sdfg = stree.as_sdfg()
-
-        sdfg.save("roundtrip-04-stree-roundtrip.sdfgz", compress=True)
 
         # Make the transients array persistents
         if config.is_gpu_backend():
