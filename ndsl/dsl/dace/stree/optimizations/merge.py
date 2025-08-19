@@ -1,3 +1,5 @@
+"""TO DELETE - FOR REFERENCE ONLY"""
+
 import dace
 import dace.sdfg.analysis.schedule_tree.treenodes as dace_stree
 from dace.memlet import Memlet
@@ -42,7 +44,7 @@ def no_data_dependencies(
                             "[K Merge] Found read after write conflict "
                             f"for {write.data} "
                             "w/ different offset to K ("
-                            f"write at {read.subset[2][0]}, "
+                            f"write at {write.subset[2][0]}, "
                             f"read at {read.subset[2][0]})"
                         )
                         return False

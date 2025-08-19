@@ -43,7 +43,7 @@ def no_data_dependencies_on_cartesian_axis(
                         f"[{axis.name} Merge] Found read after write conflict "
                         f"for {write.data} "
                         f"w/ different offset to {axis.name} ("
-                        f"write at {read.subset[axis.as_cartesian_index()][0]}, "
+                        f"write at {write.subset[axis.as_cartesian_index()][0]}, "
                         f"read at {read.subset[axis.as_cartesian_index()][0]})"
                     )
                     return False
@@ -75,7 +75,7 @@ def no_data_dependencies(
                             "[K Merge] Found read after write conflict "
                             f"for {write.data} "
                             "w/ different offset to K ("
-                            f"write at {read.subset[2][0]}, "
+                            f"write at {write.subset[2][0]}, "
                             f"read at {read.subset[2][0]})"
                         )
                         return False
