@@ -9,10 +9,11 @@ theme:
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
   - User documentation: user/index.md
   - Porting:
-    - General Concepts: porting/index.md
-    - Testing Infrastructure: porting/translate/index.md
+      - General Concepts: porting/index.md
+      - Testing Infrastructure: porting/translate/index.md
   - Under the hood:
     - Technical Documentation: dev/index.md
     - DaCe: dev/dace.md
@@ -109,14 +110,17 @@ nav:
     - viz:
       - "cube_sphere": docstrings/viz/cube_sphere.md
 
-
 markdown_extensions:
   # simple glossary file
   - abbr
   # support for colored notes / warnings / tips / examples
   - admonition
+  # support for "definition lists" (<dl>)
+  - def_list
   # support for footnotes
   - footnotes
+  # support for emojis
+  - pymdownx.emoji
   # support for syntax highlighting
   - pymdownx.highlight:
       anchor_linenums: true
@@ -130,9 +134,9 @@ markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
       # support for mermaid graphs
-      - name: mermaid
-        class: mermaid
-        format: python/name:pymdownx.superfences.fence_code_format
+        - name: mermaid
+          class: mermaid
+          format: python/name:pymdownx.superfences.fence_code_format
   # image inclusion
 
 plugins:

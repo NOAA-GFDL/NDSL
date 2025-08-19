@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 import dace.config
 from dace.codegen.compiled_sdfg import CompiledSDFG
 from dace.frontend.python.parser import DaceProgram
+from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
@@ -14,6 +15,7 @@ from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.gt4py_utils import is_gpu_backend
 from ndsl.dsl.typing import get_precision
+from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
@@ -21,6 +23,21 @@ from ndsl.optional_imports import cupy as cp
 # in a rank-compile-itself more, instead of the distributed top-tile
 # mechanism.
 DEACTIVATE_DISTRIBUTED_DACE_COMPILE = False
+
+
+def _debug_dace_orchestration() -> bool:
+    """
+    Debugging Dace orchestration deeper can be done by turning on `syncdebug`.
+    We control this Dace configuration below with our own override.
+    """
+    if os.getenv("PACE_DACE_DEBUG", ""):
+        ndsl_log.warning("PACE_DACE_DEBUG is deprecated. Use NDSL_DACE_DEBUG instead.")
+        if os.getenv("NDSL_DACE_DEBUG", ""):
+            ndsl_log.warning(
+                "PACE_DACE_DEBUG and NDSL_DACE_DEBUG were both specified. NDSL_DACE_DEBUG will take precedence."
+            )
+
+    return os.getenv("NDSL_DACE_DEBUG", os.getenv("PACE_DACE_DEBUG", "False")) == "True"
 
 
 def _is_corner(rank: int, partitioner: Partitioner) -> bool:
@@ -177,9 +194,11 @@ class DaceConfig:
         else:
             self._orchestrate = orchestration
 
-        # Debugging Dace orchestration deeper can be done by turning on `syncdebug`
-        # We control this Dace configuration below with our own override
-        dace_debug_env_var = os.getenv("PACE_DACE_DEBUG", "False") == "True"
+        # We hijack the optimization level of GT4Py because we don't
+        # have the configuration at NDSL level, but we do use the GT4Py
+        # level
+        # TODO: if GT4PY opt level is funneled via NDSL - use it here
+        optimization_level = GT4PY_COMPILE_OPT_LEVEL
 
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
@@ -195,7 +214,7 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value="-std=c++14 -fPIC -Wall -Wextra -O3",
+                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -204,12 +223,25 @@ class DaceConfig:
                 "openmp_sections",
                 value=0,
             )
+            # Resolve "march/mtune" option
+            #  - turn numeric-centric SSE by default
+            #  - Neoverse-V2 Grace CPU will fail - use alternative mcpu=native.
+            #    Detecting neoverse-v1/2 requires an external package, we swap it
+            #    for a read on GH200 nodes themselves
+            march_option = "-Xcompiler -march=native"
+            if (
+                cp is not None
+                and cp.cuda.runtime.getDeviceProperties(0)["name"]
+                == b"NVIDIA GH200 480GB"
+            ):
+                march_option = "-Xcompiler -mcpu=native"
+
             # Removed --fast-math
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value="-std=c++14 -Xcompiler -fPIC -O3 -Xcompiler -march=native",
+                value=f"-std=c++14 -Xcompiler -fPIC -O3 {march_option}",
             )
 
             cuda_sm = 60
@@ -263,7 +295,7 @@ class DaceConfig:
 
             # Enable to debug GPU failures
             dace.config.Config.set(
-                "compiler", "cuda", "syncdebug", value=dace_debug_env_var
+                "compiler", "cuda", "syncdebug", value=_debug_dace_orchestration()
             )
 
             if get_precision() == 32:
