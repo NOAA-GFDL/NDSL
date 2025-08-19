@@ -169,8 +169,8 @@ def _build_sdfg(
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
 
-        with DaCeProgress(config, "Simplify"):
-            _simplify(sdfg, validate=True, verbose=True)
+        with DaCeProgress(config, "Simplify (2)"):
+            _simplify(sdfg)
 
         # Move all memory that can be into a pool to lower memory pressure.
         # Change Persistent memory (sub-SDFG) into Scope and flag it.
