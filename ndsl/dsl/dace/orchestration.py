@@ -113,6 +113,7 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
+        # ScalarToSymbolPromotion is messing with us, so we disable it.
         skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
@@ -127,18 +128,17 @@ def _build_sdfg(
         with DaCeProgress(config, "Validate original SDFG"):
             sdfg.validate()
 
-        sdfg.save("roundtrip-01-original.sdfgz", compress=True)
-
+        # Fully specialize all known symbols and then propagate these changes in the simplify
+        # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
+        # the schedule tree (optimization) roundtrip.
         with DaCeProgress(config, "Fully specialize symbols"):
             for my_sdfg in sdfg.all_sdfgs_recursive():
                 if my_sdfg.parent_nsdfg_node is not None:
                     repl_dict = {}
                     for sym, val in my_sdfg.parent_nsdfg_node.symbol_mapping.items():
                         if isinstance(val, numbers.Number):
-                            # print(f"Specializing {sym} to {val}.")
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
-
         sdfg.save("roundtrip-02-original-specialized.sdfgz", compress=True)
 
         with DaCeProgress(config, "Simplify (1)"):
@@ -160,7 +160,7 @@ def _build_sdfg(
         with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
             with open("roundtrip-stree-OUT.txt", "w") as file:
                 file.write(stree.as_string(-1))
-            sdfg = stree.as_sdfg()
+            sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
         sdfg.save("roundtrip-04-stree-roundtrip.sdfgz", compress=True)
 
@@ -192,8 +192,8 @@ def _build_sdfg(
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
 
-        with DaCeProgress(config, "Simplify (Final)"):
-            _simplify(sdfg, validate=True, verbose=True)
+        with DaCeProgress(config, "Simplify (2)"):
+            _simplify(sdfg)
 
         # Move all memory that can be into a pool to lower memory pressure.
         # Change Persistent memory (sub-SDFG) into Scope and flag it.

@@ -8,6 +8,7 @@
 - "Hybrid" indexing that allows absolute K-indices
 - Access to the iteration variable in K, working title `THIS_K`
 - `round()` function in gtscript
+- "schedule tree roundtrip work": fixes in the gt4py/dace bridge and in dace's stree/sdfg conversions to validate PyFV3 translate tests (with the AI2 data)
 
 Your standard readme continues below.
 
