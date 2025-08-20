@@ -112,6 +112,7 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
+        # ScalarToSymbolPromotion is messing with us, so we disable it.
         skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
@@ -140,6 +141,13 @@ def _build_sdfg(
 
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
+
+        # TODO uncomment if you want to test schedule tree roundtrip change and/or remove once
+        # we have the schedule tree optimization pipeline.
+        # with DaCeProgress(config, "Schedule tree roundtrip"):
+        #     stree = sdfg.as_schedule_tree()
+        #     # ScalarToSymbolPromotion is messing with us, so we disable it.
+        #     sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
         # Make the transients array persistents
         if config.is_gpu_backend():
