@@ -1,0 +1,3 @@
+# report
+
+::: performance.report
