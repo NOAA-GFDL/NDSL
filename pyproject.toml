@@ -24,7 +24,7 @@ version = "2025.05.00"
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
 dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject"]
-docs = ["mkdocs-material"]
+docs = ["mkdocs-material", "mkdocstrings[python]"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 test = ["pytest", "coverage"]
 

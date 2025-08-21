@@ -8,20 +8,7 @@ def local_pkg(name: str, relative_path: str) -> str:
     return f"{name} @ file://{Path(__file__).absolute().parent / relative_path}"
 
 
-docs_requirements = ["mkdocs-material", "mkdocstrings[python]"]
-demos_requirements = ["ipython", "ipykernel"]
-test_requirements = ["pytest", "pytest-subtests", "coverage"]
-
-develop_requirements = test_requirements + docs_requirements + ["pre-commit"]
-
-extras_requires = {
-    "demos": demos_requirements,
-    "develop": develop_requirements,
-    "docs": docs_requirements,
-    "test": test_requirements,
-}
-
-requirements = [
+requirements: list[str] = [
     local_pkg("gt4py", "external/gt4py"),
     local_pkg("dace", "external/dace"),
     "mpi4py>=4.1",
