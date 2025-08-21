@@ -4,7 +4,7 @@ This part of the documentation is geared towards users of NDSL.
 
 ## Up and running
 
-See our [quickstart guide](./quickstart.md) on how to get up and running.
+See our [quickstart guide](../quickstart.md) on how to get up and running.
 
 ## Configuration
 
