@@ -4,7 +4,6 @@ import abc
 from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
-import cupy as cp
 
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
@@ -17,8 +16,6 @@ from ndsl.optional_imports import cupy
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
-from ndsl.utils import device_synchronize
-
 
 def to_numpy(array, dtype=None) -> np.ndarray:
     """
