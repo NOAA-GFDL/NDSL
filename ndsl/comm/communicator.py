@@ -17,6 +17,7 @@ from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
 
+
 def to_numpy(array, dtype=None) -> np.ndarray:
     """
     Input array can be a numpy array or a cupy array. Returns numpy array.
