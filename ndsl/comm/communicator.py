@@ -4,6 +4,7 @@ import abc
 from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
+import cupy as cp
 
 import ndsl.constants as constants
 from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buffer
@@ -16,6 +17,7 @@ from ndsl.optional_imports import cupy
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
+from ndsl.utils import device_synchronize
 
 
 def to_numpy(array, dtype=None) -> np.ndarray:
@@ -142,6 +144,9 @@ class Communicator(abc.ABC):
     def all_reduce_per_element_in_place(
         self, quantity: Quantity, op: ReductionOperator
     ):
+        # Note that device_synchronization is Cupy/Cuda specific
+        # at the moment.
+        device_synchronize()
         self.comm.Allreduce_inplace(quantity.data, op)
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
