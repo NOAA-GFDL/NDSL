@@ -28,6 +28,9 @@ class BaseMetric:
     ):
         self.references = np.atleast_1d(reference_values)
         self.computed = np.atleast_1d(computed_values)
+        if len(self.computed.shape) == 2 and len(self.references.shape) == 3:
+            if self.references.shape[-1] == 1:
+                self.references = self.references[:, :, 0]
         self.check = False
 
     def __str__(self) -> str: ...
