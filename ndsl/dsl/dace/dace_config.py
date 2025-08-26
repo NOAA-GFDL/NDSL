@@ -215,7 +215,7 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
+                value=f"-march=native -std=c++17 -fPIC -Wall -Wextra -O{optimization_level}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
