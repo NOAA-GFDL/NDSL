@@ -10,7 +10,7 @@ on:
 
 jobs:
   shield_translate_tests:
-    uses: NOAA-GFDL/pySHiELD/.github/workflows/translate.yaml@develop
+    uses: fmalatino/pySHiELD/.github/workflows/translate.yaml@add_pyrte_rrtmgp
     with:
       component_trigger: true
       component_name: NDSL
