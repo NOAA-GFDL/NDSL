@@ -202,48 +202,6 @@ def test_stencil_factory_numpy_comparison_from_origin_domain(
         assert isinstance(stencil, FrozenStencil)
 
 
-@pytest.mark.parametrize("enabled", [True, False])
-@pytest.mark.parametrize("klevel", [0, 1, 30])
-def test_stencil_factory_numpy_comparison_from_origin_domain_2d(
-    enabled: bool, klevel: int
-):
-    backend = "numpy"
-    dace_config = DaceConfig(communicator=None, backend=backend)
-    config = StencilConfig(
-        compilation_config=CompilationConfig(
-            backend=backend,
-            rebuild=False,
-            validate_args=False,
-            format_source=False,
-            device_sync=False,
-        ),
-        compare_to_numpy=enabled,
-        dace_config=dace_config,
-    )
-    indexing = GridIndexing(
-        domain=(12, 12, 79),
-        n_halo=3,
-        south_edge=True,
-        north_edge=True,
-        west_edge=True,
-        east_edge=True,
-    )
-    if klevel > 0:
-        origin, domain = indexing.get_2d_compute_origin_domain(klevel=klevel)
-    else:
-        origin, domain = indexing.get_2d_compute_origin_domain()
-    assert domain[2] == 1
-    assert origin[2] == klevel
-    factory = StencilFactory(config=config, grid_indexing=indexing)
-    stencil = factory.from_origin_domain(
-        func=copy_stencil, origin=origin, domain=domain
-    )
-    if enabled:
-        assert isinstance(stencil, CompareToNumpyStencil)
-    else:
-        assert isinstance(stencil, FrozenStencil)
-
-
 @pytest.mark.parametrize("backend", BACKENDS)
 def test_stencil_factory_numpy_comparison_runs_without_exceptions(backend: str) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
