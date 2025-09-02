@@ -4,6 +4,7 @@ import unittest.mock
 import gt4py.cartesian.gtscript
 import numpy as np
 import pytest
+from gt4py.cartesian import definitions
 
 from ndsl import (
     CompilationConfig,
@@ -46,46 +47,57 @@ def mock_gtscript_stencil(mock):
         gt4py.cartesian.gtscript.stencil = original_stencil
 
 
-class MockFieldInfo:
-    def __init__(self, axes):
-        self.axes = axes
+class MockFieldInfo(definitions.FieldInfo):
+    def __init__(self, *, axes: tuple[str, ...] = (), data_dims: tuple[int, ...] = ()):
+        # defaults
+        access = definitions.AccessKind.READ
+        boundary = None
+        dtype = np.float64
+
+        super().__init__(
+            axes=axes,
+            data_dims=data_dims,
+            access=access,
+            boundary=boundary,
+            dtype=dtype,
+        )
 
 
 @pytest.mark.parametrize(
     "field_info, origin, field_origins",
     [
         pytest.param(
-            {"a": MockFieldInfo(["I"])},
+            {"a": MockFieldInfo(axes=("I"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1,)},
             id="single_field_I",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["J"])},
+            {"a": MockFieldInfo(axes=("J"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (2,)},
             id="single_field_J",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["K"])},
+            {"a": MockFieldInfo(axes=("K"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (3,)},
             id="single_field_K",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J"])},
+            {"a": MockFieldInfo(axes=("I", "J"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1, 2)},
             id="single_field_IJ",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J", "K"])},
+            {"a": MockFieldInfo(axes=("I", "J", "K"))},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             id="single_field_origin_mapping",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J", "K"]), "b": MockFieldInfo(["I"])},
+            {"a": MockFieldInfo(axes=("I", "J", "K")), "b": MockFieldInfo(axes=("I"))},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             {"_all_": (1, 2, 3), "a": (1, 2, 3), "b": (1,)},
             id="two_fields_update_origin_mapping",
@@ -97,10 +109,22 @@ class MockFieldInfo:
             id="single_field_None",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J"]), "b": MockFieldInfo(["I", "J", "K"])},
+            {
+                "a": MockFieldInfo(axes=("I", "J")),
+                "b": MockFieldInfo(axes=("I", "J", "K")),
+            },
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1, 2), "b": (1, 2, 3)},
             id="two_fields",
+        ),
+        pytest.param(
+            {
+                "field": MockFieldInfo(axes=("I", "J", "K")),
+                "table": MockFieldInfo(data_dims=(5,)),
+            },
+            (1, 2, 3),
+            {"_all_": (1, 2, 3), "field": (1, 2, 3), "table": (0,)},
+            id="field_and_table",
         ),
     ],
 )
