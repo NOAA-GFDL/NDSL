@@ -202,8 +202,10 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
+                value=f"-std=c++17 -fPIC -Wall -Wextra -O{optimization_level} -march=native -g",
+                # value="-std=c++17 -Wsign-compare -fwrapv -Wall -fPIC -ftemplate-depth=1024 -fsigned-char -O3",
             )
+            dace.config.Config.set("compiler", "build_type", value="Release")
             # Potentially buggy - deactivate
             dace.config.Config.set(
                 "compiler",
@@ -229,7 +231,7 @@ class DaceConfig:
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 -Xcompiler -fPIC -O3 {march_option}",
+                value=f"-std=c++14 -Xcompiler -fPIC -O{optimization_level} {march_option}",
             )
 
             cuda_sm = 60

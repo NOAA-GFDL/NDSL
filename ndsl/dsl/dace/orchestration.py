@@ -38,7 +38,7 @@ from ndsl.dsl.dace.utils import (
     memory_static_analysis,
     report_memory_static_analysis,
 )
-from ndsl.logging import ndsl_log
+from ndsl.logging import ndsl_log, log_is_debug
 from ndsl.optional_imports import cupy as cp
 
 
@@ -118,11 +118,70 @@ def _simplify(
     ).apply_pass(sdfg, {})
 
 
+def _dace_optimize(
+    sdfg: SDFG,
+    *,
+    validate: bool = True,
+    validate_all: bool = False,
+    verbose: bool = False,
+):
+    from dace.transformation.dataflow import MapCollapse, TrivialMapElimination
+    from dace.transformation.interstate import LoopToMap, RefineNestedAccess
+    from dace.transformation.auto.auto_optimize import tile_wcrs
+    from dace.transformation import helpers as xfh
+
+    # Simplification and loop parallelization
+    transformed = True
+    sdfg.apply_transformations_repeated(
+        TrivialMapElimination, validate=validate, validate_all=validate_all
+    )
+    while transformed:
+        sdfg.simplify(validate=False, validate_all=validate_all)
+        for s in sdfg.cfg_list:
+            xfh.split_interstate_edges(s)
+        l2ms = sdfg.apply_transformations_repeated(
+            (LoopToMap, RefineNestedAccess), validate=False, validate_all=validate_all
+        )
+        transformed = l2ms > 0
+
+    _simplify(sdfg, validate=validate, validate_all=validate_all, verbose=verbose)
+
+    # Tiled WCR and streams
+    for nsdfg in list(sdfg.all_sdfgs_recursive()):
+        tile_wcrs(nsdfg, validate_all)
+
+    # Collapse maps
+    sdfg.apply_transformations_repeated(
+        MapCollapse, validate=False, validate_all=validate_all
+    )
+
+    _simplify(sdfg, validate=validate, validate_all=validate_all, verbose=verbose)
+
+
+def _make_sequential(sdfg: SDFG):
+    import dace
+
+    # Disable OpenMP sections
+    for sd in sdfg.all_sdfgs_recursive():
+        sd.openmp_sections = False
+    # Disable OpenMP maps
+    for n, _ in sdfg.all_nodes_recursive():
+        if isinstance(n, dace.nodes.EntryNode):
+            sched = getattr(n, "schedule", False)
+            if sched in (
+                dace.ScheduleType.CPU_Multicore,
+                dace.ScheduleType.CPU_Persistent,
+                dace.ScheduleType.Default,
+            ):
+                n.schedule = dace.ScheduleType.Sequential
+
+
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
 ):
     """Build the .so out of the SDFG on the top tile ranks only"""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
+    device_type = DaceDeviceType.GPU if config.is_gpu_backend() else DaceDeviceType.CPU
 
     if is_compiling:
         with DaCeProgress(config, "Validate original SDFG"):
@@ -139,12 +198,9 @@ def _build_sdfg(
                         if isinstance(val, numbers.Number):
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
-        sdfg.save("roundtrip-02-original-specialized.sdfgz", compress=True)
 
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
-
-        sdfg.save("roundtrip-03-original-simplified.sdfgz", compress=True)
 
         with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
             stree = sdfg.as_schedule_tree()
@@ -162,15 +218,13 @@ def _build_sdfg(
                 file.write(stree.as_string(-1))
             sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
-        sdfg.save("roundtrip-04-stree-roundtrip.sdfgz", compress=True)
-
         # Make the transients array persistents
         if config.is_gpu_backend():
             # TODO
             # The following should happen on the stree level
             _to_gpu(sdfg)
 
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.GPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
             # Upload args to device
             _upload_to_device(list(args) + list(kwargs.values()))
@@ -180,7 +234,7 @@ def _build_sdfg(
             for _sd, _aname, arr in sdfg.arrays_recursive():
                 if arr.shape == (1,):
                     arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.CPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
         # Build non-constants & non-transients from the sdfg_kwargs
         sdfg_kwargs = dace_program._create_sdfg_args(sdfg, args, kwargs)
@@ -193,7 +247,7 @@ def _build_sdfg(
                 del sdfg_kwargs[k]
 
         with DaCeProgress(config, "Simplify (2)"):
-            _simplify(sdfg)
+            _simplify(sdfg, verbose=log_is_debug(ndsl_log))
 
         # Move all memory that can be into a pool to lower memory pressure.
         # Change Persistent memory (sub-SDFG) into Scope and flag it.
