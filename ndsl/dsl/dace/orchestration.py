@@ -318,6 +318,7 @@ def _parse_sdfg(
                 **kwargs,
                 save=False,
                 simplify=False,
+                validate=False,  # TODO: should we have a "debug flag" to turn this on?
             )
         return sdfg
 
