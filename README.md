@@ -11,7 +11,7 @@ Historically, NDSL was developed to port the FV3 dynamical core on the cubed-sph
 
 ## Quickstart
 
-Currently, NDSL requires Python version `3.11.x`. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
+Currently, NDSL requires Python version `3.11.x`, a GNU compiler and MPI installed. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
 
 ```shell
 # We have submodules for GT4Py and DaCe. Don't forget to pull them
@@ -23,7 +23,7 @@ cd NDSL/
 python -m venv .venv/
 source ./venv/bin/activate
 
-# Choose pip install -e .[develop] if you'd like to contribute
+# Choose pip install -e .[dev] if you'd like to contribute
 pip install .[demos]
 ```
 
@@ -50,6 +50,19 @@ To run the GPU backends, you'll need:
 - Python package:
   - `cupy` (latest with proper driver support [see install notes](https://docs.cupy.dev/en/stable/install.html))
 
+A simple way to install MPI is using pre-built wheels, e.g.
+
+```shell
+# See "quickstart" above how to setup a virtual environment
+cd NDSL/
+source ./venv/bin/activate
+
+# Install MPI into your virtual environment
+pip install openmpi
+```
+
+A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` version 14 from homebrew works.
+
 ### Installation options
 
 See [quickstart](#quickstart) above on how to pull and setup a virtual environment. The packages has a few options:
@@ -57,15 +70,11 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 - `ndsl[test]`: extra dependencies to run tests (based on `pytest`)
 - `ndsl[demos]`: extra dependencies to run [NDSL examples](./examples/NDSL/)
 - `ndsl[docs]`: extra dependencies to build the docs
-- `ndsl[develop]`: installs tools for development, docs, and tests.
+- `ndsl[dev]`: installs tools for development, docs, and tests.
 
 ### Running tests
 
-Tests are available via `pytest` (don't forget to install the `test` or `develop` extras). Before you run tests, make sure to create expected input files:
-
-```bash
-python tests/grid/generate_eta_files.py
-```
+Tests are available via `pytest` (don't forget to install the `test` or `dev` extras).
 
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
@@ -83,7 +92,7 @@ mpirun -np 6 pytest tests/mpi
 
 ### Code/contribution guidelines
 
-1. Code quality is enforced by `pre-commit` (which is part of the "develop" extra). Run `pre-commit install`  to install the pre-commit hooks locally or make sure to run `pre-commit run -a`  before submitting a pull request.
+1. Code quality is enforced by `pre-commit` (which is part of the "dev" extra). Run `pre-commit install`  to install the pre-commit hooks locally or make sure to run `pre-commit run -a`  before submitting a pull request.
 2. While we don't strictly enforce type hints, we add them on new code.
 3. Pull requests have to merged as "squash merge" to keep the `git` history clean.
 
@@ -91,7 +100,7 @@ mpirun -np 6 pytest tests/mpi
 
 We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and optionally serve it as a static site.
 
-To view the documentation, install NDSL with the `docs` or `develop` extras. Then  run the following:
+To view the documentation, install NDSL with the `docs` or `dev` extras. Then  run the following:
 
 ```bash
 mkdocs serve

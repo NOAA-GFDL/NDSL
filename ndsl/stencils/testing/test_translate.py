@@ -79,7 +79,9 @@ def process_override(threshold_overrides, testobj, test_name, backend):
             if "multimodal" in match:
                 parsed_multimodal = match["multimodal"]
                 if "absolute_epsilon" in parsed_multimodal:
-                    testobj.mmr_absolute_eps = float(parsed_multimodal["absolute_eps"])
+                    testobj.mmr_absolute_eps = float(
+                        parsed_multimodal["absolute_epsilon"]
+                    )
                 if "relative_fraction" in parsed_multimodal:
                     testobj.mmr_relative_fraction = float(
                         parsed_multimodal["relative_fraction"]
@@ -140,7 +142,7 @@ def _get_thresholds(compute_function, input_data) -> None:
 
 @pytest.mark.sequential
 @pytest.mark.skipif(
-    MPI is not None and MPI.COMM_WORLD.Get_size() > 1,
+    MPI.COMM_WORLD.Get_size() > 1,
     reason="Running in parallel with mpi",
 )
 def test_sequential_savepoint(
@@ -177,7 +179,28 @@ def test_sequential_savepoint(
         return
     if not case.exists:
         pytest.skip(f"Data at rank {case.grid.rank} does not exist.")
-    input_data = dataset_to_dict(case.ds_in)
+
+    if hasattr(case.testobj, "override_input_netcdf_name"):
+        import xarray as xr
+
+        from ndsl.logging import ndsl_log
+
+        out_data = (
+            xr.open_dataset(
+                os.path.join(
+                    case.data_dir, f"{case.testobj.override_input_netcdf_name}.nc"
+                )
+            )
+            .isel(rank=case.grid.rank)
+            .isel(savepoint=case.i_call)
+        )
+        input_data = dataset_to_dict(out_data)
+        ndsl_log.warning(
+            f"You are loading {case.testobj.override_input_netcdf_name} as a custom input file! Here be dragons."
+        )
+    else:
+        input_data = dataset_to_dict(case.ds_in)
+
     input_names = (
         case.testobj.serialnames(case.testobj.in_vars["data_vars"])
         + case.testobj.in_vars["parameters"]
@@ -196,7 +219,28 @@ def test_sequential_savepoint(
     output = case.testobj.compute(input_data)
     failing_names: List[str] = []
     passing_names: List[str] = []
-    all_ref_data = dataset_to_dict(case.ds_out)
+    if hasattr(case.testobj, "override_output_netcdf_name"):
+        import xarray as xr
+
+        from ndsl.logging import ndsl_log
+
+        out_data = (
+            xr.open_dataset(
+                os.path.join(
+                    case.data_dir, f"{case.testobj.override_output_netcdf_name}.nc"
+                )
+            )
+            .isel(rank=case.grid.rank)
+            .isel(savepoint=case.i_call)
+        )
+
+        output_data = dataset_to_dict(out_data)
+        ndsl_log.warning(
+            f"You are loading {case.testobj.override_output_netcdf_name} as a custom output file! Here be dragons."
+        )
+    else:
+        output_data = dataset_to_dict(case.ds_out)
+    all_ref_data = output_data
     ref_data_out = {}
     results = {}
 
@@ -293,7 +337,7 @@ def get_tile_communicator(comm, layout):
 
 @pytest.mark.parallel
 @pytest.mark.skipif(
-    MPI is None or MPI.COMM_WORLD.Get_size() == 1,
+    MPI.COMM_WORLD.Get_size() == 1,
     reason="Not running in parallel with mpi",
 )
 def test_parallel_savepoint(
@@ -460,6 +504,11 @@ def _save_datatree(
         varname = names[index]
         # Read in dimensions and attributes
         if hasattr(testobj, "outputs") and testobj.outputs != {}:
+            if not isinstance(testobj.outputs, dict):
+                raise ValueError(
+                    f"Expecting `outputs` on translate test to be a dict, got {type(testobj.outputs)}."
+                    " Are you overriding `self.outputs`?"
+                )
             dims = [
                 dim_name + f"_{index}" for dim_name in testobj.outputs[varname]["dims"]
             ]

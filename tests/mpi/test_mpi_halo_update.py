@@ -37,13 +37,13 @@ def dtype(numpy):
 
 @pytest.fixture
 def layout():
-    if MPI is not None:
-        size = MPI.COMM_WORLD.Get_size()
-        ranks_per_tile = size // 6
-        ranks_per_edge = int(ranks_per_tile**0.5)
-        return (ranks_per_edge, ranks_per_edge)
-    else:
+    if MPI is None:
         return (1, 1)
+
+    size = MPI.COMM_WORLD.Get_size()
+    ranks_per_tile = size // 6
+    ranks_per_edge = int(ranks_per_tile**0.5)
+    return (ranks_per_edge, ranks_per_edge)
 
 
 @pytest.fixture
@@ -281,9 +281,7 @@ def depth_quantity(
     return quantity
 
 
-@pytest.mark.skipif(
-    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
-)
+@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_depth_halo_update(
     depth_quantity,
     communicator,
@@ -332,9 +330,7 @@ def zeros_quantity(dims, units, origin, extent, shape, numpy, dtype):
     return quantity
 
 
-@pytest.mark.skipif(
-    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
-)
+@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_zeros_halo_update(
     zeros_quantity,
     communicator,
@@ -371,9 +367,7 @@ def test_zeros_halo_update(
                 )
 
 
-@pytest.mark.skipif(
-    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
-)
+@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_zeros_vector_halo_update(
     zeros_quantity,
     communicator,

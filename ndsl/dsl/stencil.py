@@ -797,6 +797,25 @@ class GridIndexing:
             domain[i] += 2 * n
         return tuple(origin), tuple(domain)
 
+    def get_2d_compute_origin_domain(
+        self,
+        klevel: int = 0,
+    ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+        """
+        Get the origin and domain for a computation that occurs on the lowest klevel over a certain grid
+        configuration (given by dims) and a certain number of halo points.
+
+        Args:
+            klevel: the vertical level of the domain, defaults to zero
+
+        Returns:
+            origin: origin of the computation
+            domain: shape of the computation
+        """
+        origin = (self.isc, self.jsc, klevel)
+        domain = (self.iec + 1 - self.isc, self.jec + 1 - self.jsc, 1)
+        return (origin, domain)
+
     def _origin_from_dims(self, dims: Iterable[str]) -> List[int]:
         return_origin = []
         for dim in dims:
