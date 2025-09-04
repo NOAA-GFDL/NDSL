@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, overload
 
 import numpy as np
 
@@ -28,9 +28,21 @@ def pad_field_in_j(field, nj: int, backend: str):
     return outfield
 
 
+@overload
+def as_numpy(value: Quantity) -> np.ndarray: ...
+
+
+@overload
+def as_numpy(value: dict[str, Any]) -> dict[str, np.ndarray]: ...
+
+
+@overload
+def as_numpy(value: np.ndarray) -> np.ndarray: ...
+
+
 def as_numpy(
-    value: Union[Dict[str, Any], Quantity, np.ndarray],
-) -> Union[np.ndarray, Dict[str, np.ndarray]]:
+    value: dict[str, Any] | Quantity | np.ndarray,
+) -> np.ndarray | dict[str, np.ndarray]:
     def _convert(value: Union[Quantity, np.ndarray]) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
@@ -245,11 +257,12 @@ class TranslateFortranData2Py:
             ds.update(info)
             data_result = as_numpy(out_data[var])
             # Get slice for data dimensions (after original 3D)
-            data_dims_slice = ()
             if len(data_result.shape) > 3:
                 data_dims_slice = tuple(
                     [slice(0, ddim_end) for ddim_end in data_result.shape[3:]]
                 )
+            else:
+                data_dims_slice = ()
             # Slice combine the expected cartesian and data_dims
             cartesian_slice = self.grid.slice_dict(ds, min(len(data_result.shape), 3))
             slice_tuple = cartesian_slice + data_dims_slice
