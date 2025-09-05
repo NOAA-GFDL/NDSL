@@ -1,6 +1,6 @@
-"""This module uses DaCe's op_repository feature to override symbols/AST object
+"""This module uses DaCe's op_repository feature to override symbols/AST objects
 during parsing and replace them with an SDFG compatible representation. This
-allow custom NDSL system to be natively orchestratable."""
+allows custom NDSL syntax, objects and symbols to be natively orchestratable."""
 
 from dace import SDFG, SDFGState, dtypes
 from dace.frontend.common import op_repository as oprepo
