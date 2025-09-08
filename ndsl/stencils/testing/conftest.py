@@ -225,7 +225,7 @@ def get_savepoint_restriction(metafunc):
 
 
 def get_namelist(namelist_filename):
-    return Namelist.from_f90nml(f90nml.read(namelist_filename))
+    return Namelist(f90nml.read(namelist_filename))
 
 
 def get_config(backend: str, communicator: Optional[Communicator]):

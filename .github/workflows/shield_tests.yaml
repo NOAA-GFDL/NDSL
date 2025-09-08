@@ -8,9 +8,11 @@ on:
     branches:
       - main # ... when merging into the main branch
 
+# TODO: Revert tests back to GFDL (not jjuyeonkim) after merging
+# https://github.com/NOAA-GFDL/NDSL/issues/64
 jobs:
   shield_translate_tests:
-    uses: NOAA-GFDL/pySHiELD/.github/workflows/translate.yaml@develop
+    uses: jjuyeonkim/pySHiELD/.github/workflows/translate.yaml@20250820_namelist_1
     with:
       component_trigger: true
       component_name: NDSL

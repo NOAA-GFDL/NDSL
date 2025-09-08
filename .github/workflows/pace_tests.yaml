@@ -8,9 +8,11 @@ on:
     branches:
       - main # ... when merging into the main branch
 
+# TODO: Revert tests back to GFDL (not jjuyeonkim) after merging
+# https://github.com/NOAA-GFDL/NDSL/issues/64
 jobs:
   pace_main_tests:
-    uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
+    uses: jjuyeonkim/pace/.github/workflows/main_unit_tests.yaml@20250723_namelist_1
     with:
       component_trigger: true
       component_name: NDSL

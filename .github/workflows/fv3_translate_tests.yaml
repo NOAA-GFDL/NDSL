@@ -8,9 +8,11 @@ on:
     branches:
       - main # ... when merging into the main branch
 
+# TODO: Revert tests back to GFDL (not jjuyeonkim) after merging
+# https://github.com/NOAA-GFDL/NDSL/issues/64
 jobs:
   fv3_translate_tests:
-    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yaml@develop
+    uses: jjuyeonkim/pyFV3/.github/workflows/translate.yaml@20250723_namelist_1
     with:
       component_trigger: true
       component_name: NDSL
