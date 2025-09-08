@@ -203,6 +203,7 @@ class DaceConfig:
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
         if orchestration != DaCeOrchestration.Python:
+            dace.config.Config.set("compiler", "build_type", value="Release")
             # Required to True for gt4py storage/memory
             dace.config.Config.set(
                 "compiler",
@@ -214,7 +215,7 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
+                value=f"-march=native -std=c++17 -fPIC -Wall -Wextra -O{optimization_level}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
