@@ -27,6 +27,12 @@ You can create an overwrite file to manually set the threshold in you data direc
 
 ![image1.png](../../images/translate/image1.png)
 
+### Testing with Custom Data
+
+The default netcdf names can be overwritten by setting `self.override_input_netcdf_name` and/or `self.override_output_netcdf_name`
+for the input and output netcdf, respectively. These new names should be the entire file name (including, but not requiring,
+-In or -Out suffixes), excluding the `.nc` file tag. These files **must** be located in the same folder as the default files.
+
 ### Overwriting Arguments to your compute function
 
 The compute_func will be called automatically in the test. If your names in the netcdf are matching the `kwargs` of your function directly, no further action required:

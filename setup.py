@@ -16,7 +16,7 @@ requirements: list[str] = [
     "xarray>=2025.01.2",  # datatree + fixes
     "f90nml>=1.1.0",
     "fsspec",
-    "netcdf4==1.7.1",
+    "netcdf4==1.7.2",
     "scipy",  # restart capacities only
     "h5netcdf",  # for xarray
     "dask",  # for xarray
