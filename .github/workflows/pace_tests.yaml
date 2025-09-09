@@ -12,7 +12,7 @@ on:
 # https://github.com/NOAA-GFDL/NDSL/issues/64
 jobs:
   pace_main_tests:
-    uses: jjuyeonkim/pace/.github/workflows/main_unit_tests.yaml@20250723_namelist_1
+    uses: jjuyeonkim/pace/.github/workflows/main_unit_tests.yaml@20250908_namelist_2
     with:
       component_trigger: true
       component_name: NDSL
