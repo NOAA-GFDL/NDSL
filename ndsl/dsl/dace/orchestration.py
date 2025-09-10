@@ -220,9 +220,7 @@ def _build_sdfg(
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
             )
-            config.loaded_precompiled_SDFG[dace_program] = FrozenCompiledSDFG(
-                dace_program, compiledSDFG, args, kwargs
-            )
+            config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
         return _call_sdfg(dace_program, sdfg, config, args, kwargs)
 
@@ -237,7 +235,10 @@ def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, 
         with DaCeProgress(config, "Run"):
             if config.is_gpu_backend():
                 _upload_to_device(list(args) + list(kwargs.values()))
-            res = config.loaded_precompiled_SDFG[dace_program]()
+            current_sdfg_args = dace_program._create_sdfg_args(
+                config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
+            )
+            res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
             res = _download_results_from_dace(
                 config, res, list(args) + list(kwargs.values())
             )

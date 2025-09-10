@@ -128,6 +128,7 @@ def set_distributed_caches(config: DaceConfig):
 
     # Set read/write caches to the target rank
     from gt4py.cartesian import config as gt_config
+    import dace
 
     if config.do_compile:
         verb = "reading/writing"
@@ -135,6 +136,14 @@ def set_distributed_caches(config: DaceConfig):
         verb = "reading"
 
     gt_config.cache_settings["dir_name"] = get_cache_directory(config.code_path)
+
+    dace.Config.set(
+        "default_build_folder",
+        value="{gt_root}/{gt_cache}/dacecache".format(
+            gt_root=gt_config.cache_settings["root_path"],
+            gt_cache=gt_config.cache_settings["dir_name"],
+        ),
+    )
     ndsl_log.info(
         f"[{orchestration_mode}] Rank {config.my_rank} "
         f"{verb} cache {gt_config.cache_settings['dir_name']}"
