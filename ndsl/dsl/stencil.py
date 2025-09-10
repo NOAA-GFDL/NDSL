@@ -449,8 +449,10 @@ class FrozenStencil(SDFGConvertible):
 
     @classmethod
     def _compute_field_origins(
-        cls, field_info_mapping, origin: Union[Index3D, Mapping[str, Tuple[int, ...]]]
-    ) -> Dict[str, Tuple[int, ...]]:
+        cls,
+        field_info_mapping: dict[str, gt_definitions.FieldInfo],
+        origin: Index3D | Mapping[str, tuple[int, ...]],
+    ) -> dict[str, tuple[int, ...]]:
         """
         Computes the origin for each field in the stencil call.
 
@@ -463,8 +465,8 @@ class FrozenStencil(SDFGConvertible):
             origin_mapping: a mapping from field names to origins
         """
         if isinstance(origin, tuple):
-            field_origins: Dict[str, Tuple[int, ...]] = {"_all_": origin}
-            origin_tuple: Tuple[int, ...] = origin
+            field_origins: dict[str, tuple[int, ...]] = {"_all_": origin}
+            origin_tuple: tuple[int, ...] = origin
         else:
             field_origins = {**origin}
             origin_tuple = origin["_all_"]
@@ -477,6 +479,9 @@ class FrozenStencil(SDFGConvertible):
                     for ax in field_info.axes:
                         origin_index = {"I": 0, "J": 1, "K": 2}[ax]
                         field_origin_list.append(origin_tuple[origin_index])
+                    for i, _data_dim in enumerate(field_info.data_dims):
+                        if field_info.mask[len(field_info.domain_mask) + i]:
+                            field_origin_list.append(0)
                     field_origin = tuple(field_origin_list)
                 else:
                     field_origin = origin_tuple

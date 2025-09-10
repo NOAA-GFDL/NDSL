@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import dace.config
 from dace.codegen.compiled_sdfg import CompiledSDFG
@@ -54,23 +54,23 @@ def _is_corner(rank: int, partitioner: Partitioner) -> bool:
     return False
 
 
-def _smallest_rank_bottom(x: int, y: int, layout: Tuple[int, int]):
+def _smallest_rank_bottom(x: int, y: int, layout: tuple[int, int]):
     return y == 0 and x == 1
 
 
-def _smallest_rank_top(x: int, y: int, layout: Tuple[int, int]):
+def _smallest_rank_top(x: int, y: int, layout: tuple[int, int]):
     return y == layout[1] - 1 and x == 1
 
 
-def _smallest_rank_left(x: int, y: int, layout: Tuple[int, int]):
+def _smallest_rank_left(x: int, y: int, layout: tuple[int, int]):
     return x == 0 and y == 1
 
 
-def _smallest_rank_right(x: int, y: int, layout: Tuple[int, int]):
+def _smallest_rank_right(x: int, y: int, layout: tuple[int, int]):
     return x == layout[0] - 1 and y == 1
 
 
-def _smallest_rank_middle(x: int, y: int, layout: Tuple[int, int]):
+def _smallest_rank_middle(x: int, y: int, layout: tuple[int, int]):
     return layout[0] > 1 and layout[1] > 1 and x == 1 and y == 1
 
 
@@ -170,23 +170,23 @@ class FrozenCompiledSDFG:
 class DaceConfig:
     def __init__(
         self,
-        communicator: Optional[Communicator],
+        communicator: Communicator | None,
         backend: str,
         tile_nx: int = 0,
         tile_nz: int = 0,
-        orchestration: Optional[DaCeOrchestration] = None,
+        orchestration: DaCeOrchestration | None = None,
     ):
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
-        #       with this. Should be refactor into a DaceExecutor carrying a config
-        self.loaded_precompiled_SDFG: Dict[DaceProgram, FrozenCompiledSDFG] = {}
+        #       with this. Should be refactored into a DaceExecutor carrying a config
+        self.loaded_precompiled_SDFG: dict[DaceProgram, FrozenCompiledSDFG] = {}
 
         # Temporary. This is a bit too out of the ordinary for the common user.
         # We should refactor the architecture to allow for a `gtc:orchestrated:dace:X`
         # backend that would signify both the `CPU|GPU` split and the orchestration mode
         if orchestration is None:
             fv3_dacemode_env_var = os.getenv("FV3_DACEMODE", "Python")
-            # The below condition guard against defining empty FV3_DACEMODE and
+            # The below condition guards against defining empty FV3_DACEMODE and
             # awkward behavior of os.getenv returning "" even when not defined
             if fv3_dacemode_env_var is None or fv3_dacemode_env_var == "":
                 fv3_dacemode_env_var = "Python"
@@ -202,19 +202,33 @@ class DaceConfig:
 
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
-        if orchestration != DaCeOrchestration.Python:
+        if self.is_dace_orchestrated():
+            # Detecting neoverse-v1/2 requires an external package, we swap it
+            # for a read on GH200 nodes themselves.
+            is_arm_neoverse = (
+                cp is not None
+                and cp.cuda.runtime.getDeviceProperties(0)["name"]
+                == b"NVIDIA GH200 480GB"
+            )
+
+            dace.config.Config.set("compiler", "build_type", value="Release")
             # Required to True for gt4py storage/memory
             dace.config.Config.set(
                 "compiler",
                 "allow_view_arguments",
                 value=True,
             )
+            # Resolve "march/mtune" option for GPU
+            # - turn on numeric-centric SSE by default
+            # - Neoverse-V2 Grace CPU is too new for GCC 14 and -march=native will fail
+            # - use alternative march=armv8-a instead
+            march_cpu = "armv8-a" if is_arm_neoverse else "native"
             # Removed --fmath
             dace.config.Config.set(
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-std=c++14 -fPIC -Wall -Wextra -O{optimization_level}",
+                value=f"-march={march_cpu} -std=c++17 -fPIC -Wall -Wextra -O{optimization_level}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -223,30 +237,20 @@ class DaceConfig:
                 "openmp_sections",
                 value=0,
             )
-            # Resolve "march/mtune" option
-            #  - turn numeric-centric SSE by default
-            #  - Neoverse-V2 Grace CPU will fail - use alternative mcpu=native.
-            #    Detecting neoverse-v1/2 requires an external package, we swap it
-            #    for a read on GH200 nodes themselves
-            march_option = "-Xcompiler -march=native"
-            if (
-                cp is not None
-                and cp.cuda.runtime.getDeviceProperties(0)["name"]
-                == b"NVIDIA GH200 480GB"
-            ):
-                march_option = "-Xcompiler -mcpu=native"
-
+            # Resolve "march/mtune" option for GPU
+            # - turn on numeric-centric SSE by default
+            # - Neoverse-V2 Grace CPU will fail
+            # - use alternative mcpu=native instead
+            march_option = "-mcpu=native" if is_arm_neoverse else "-march=native"
             # Removed --fast-math
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 -Xcompiler -fPIC -O3 {march_option}",
+                value=f"-std=c++14 -Xcompiler -fPIC -O3 -Xcompiler {march_option}",
             )
 
-            cuda_sm = 60
-            if cp:
-                cuda_sm = cp.cuda.Device(0).compute_capability
+            cuda_sm = cp.cuda.Device(0).compute_capability if cp else 60
             dace.config.Config.set("compiler", "cuda", "cuda_arch", value=f"{cuda_sm}")
             # Block size/thread count is defaulted to an average value for recent
             # hardware (Pascal and upward). The problem of setting an optimized
@@ -307,7 +311,7 @@ class DaceConfig:
                     value="c",
                 )
 
-        # attempt to kill the dace.conf to avoid confusion
+        # Attempt to kill the dace.conf to avoid confusion
         if dace.config.Config._cfg_filename:
             try:
                 os.remove(dace.config.Config._cfg_filename)
@@ -337,13 +341,10 @@ class DaceConfig:
 
         set_distributed_caches(self)
 
-        if (
-            self._orchestrate != DaCeOrchestration.Python
-            and "dace" not in self._backend
-        ):
+        if self.is_dace_orchestrated() and "dace" not in self._backend:
             raise RuntimeError(
-                "DaceConfig: orchestration can only be leverage "
-                f"on dace or dace:gpu not on {self._backend}"
+                "DaceConfig: orchestration can only be leveraged "
+                f"with the `dace:*` backends, not with {self._backend}."
             )
 
     def is_dace_orchestrated(self) -> bool:
@@ -361,7 +362,7 @@ class DaceConfig:
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "_orchestrate": str(self._orchestrate.name),
             "_backend": self._backend,
