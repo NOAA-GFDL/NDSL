@@ -4,59 +4,171 @@ from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
 from ndsl.constants import (
-    X_DIM,
     X_INTERFACE_DIM,
-    Y_DIM,
     Y_INTERFACE_DIM,
     Z_INTERFACE_DIM,
 )
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField
+from ndsl import StencilFactory, orchestrate
 
 
-class CopyCorners:
+def corner_copy_x(field_to_copy):
+    """Equivalent to the copy_corners_x functions in fortran.
+
+    This is written to operate on plain ndarrarys and not use the GT4Py framework.
+    This choice was made because we've seen a lot of performance left on the table using
+    orchestration without explicitly describing the operations but rather have full 3d-
+    sweeps with conditionals.
+    Since DaCe can handle (simple) operations on ndarrays directly this gives us a more
+    explicit entrypoint to the language and more optimization-potential.
+
+    Args:
+        field_to_copy (ndarray): field to apply the corner copy on.
+            This is explicitly not type-hinted for orchestration
+    """
+    field_to_copy[0, 0] = field_to_copy[0, 5]
+    field_to_copy[0, 1] = field_to_copy[1, 5]
+    field_to_copy[0, 2] = field_to_copy[2, 5]
+
+    field_to_copy[1, 0] = field_to_copy[0, 4]
+    field_to_copy[1, 1] = field_to_copy[1, 4]
+    field_to_copy[1, 2] = field_to_copy[2, 4]
+
+    field_to_copy[2, 0] = field_to_copy[0, 3]
+    field_to_copy[2, 1] = field_to_copy[1, 3]
+    field_to_copy[2, 2] = field_to_copy[2, 3]
+
+    field_to_copy[0, -4] = field_to_copy[2, -7]
+    field_to_copy[0, -3] = field_to_copy[1, -7]
+    field_to_copy[0, -2] = field_to_copy[0, -7]
+
+    field_to_copy[1, -4] = field_to_copy[2, -6]
+    field_to_copy[1, -3] = field_to_copy[1, -6]
+    field_to_copy[1, -2] = field_to_copy[0, -6]
+
+    field_to_copy[2, -4] = field_to_copy[2, -5]
+    field_to_copy[2, -3] = field_to_copy[1, -5]
+    field_to_copy[2, -2] = field_to_copy[0, -5]
+
+    field_to_copy[-4, 0] = field_to_copy[-2, 3]
+    field_to_copy[-4, 1] = field_to_copy[-3, 3]
+    field_to_copy[-4, 2] = field_to_copy[-4, 3]
+
+    field_to_copy[-3, 0] = field_to_copy[-2, 4]
+    field_to_copy[-3, 1] = field_to_copy[-3, 4]
+    field_to_copy[-3, 2] = field_to_copy[-4, 4]
+
+    field_to_copy[-2, 0] = field_to_copy[-2, 5]
+    field_to_copy[-2, 1] = field_to_copy[-3, 5]
+    field_to_copy[-2, 2] = field_to_copy[-4, 5]
+
+    field_to_copy[-4, -2] = field_to_copy[-2, -5]
+    field_to_copy[-4, -3] = field_to_copy[-3, -5]
+    field_to_copy[-4, -4] = field_to_copy[-4, -5]
+
+    field_to_copy[-3, -2] = field_to_copy[-2, -6]
+    field_to_copy[-3, -3] = field_to_copy[-3, -6]
+    field_to_copy[-3, -4] = field_to_copy[-4, -6]
+
+    field_to_copy[-2, -2] = field_to_copy[-2, -7]
+    field_to_copy[-2, -3] = field_to_copy[-3, -7]
+    field_to_copy[-2, -4] = field_to_copy[-4, -7]
+
+
+def corner_copy_y(field_to_copy):
+    """Equivalent to the copy_corners_y functions in fortran.
+
+    This is written to operate on plain ndarrarys and not use the GT4Py framework.
+    This choice was made because we've seen a lot of performance left on the table using
+    orchestration without explicitly describing the operations but rather have full 3d-
+    sweeps with conditionals.
+    Since DaCe can handle (simple) operations on ndarrays directly this gives us a more
+    explicit entrypoint to the language and more optimization-potential.
+
+    Args:
+        field_to_copy (ndarray): field to apply the corner copy on.
+            This is explicitly not type-hinted for orchestration
+    """
+    field_to_copy[0, 0] = field_to_copy[5, 0]
+    field_to_copy[1, 0] = field_to_copy[5, 1]
+    field_to_copy[2, 0] = field_to_copy[5, 2]
+
+    field_to_copy[0, 1] = field_to_copy[4, 0]
+    field_to_copy[1, 1] = field_to_copy[4, 1]
+    field_to_copy[2, 1] = field_to_copy[4, 2]
+
+    field_to_copy[0, 2] = field_to_copy[3, 0]
+    field_to_copy[1, 2] = field_to_copy[3, 1]
+    field_to_copy[2, 2] = field_to_copy[3, 2]
+
+    field_to_copy[-4, 0] = field_to_copy[-7, 2]
+    field_to_copy[-3, 0] = field_to_copy[-7, 1]
+    field_to_copy[-2, 0] = field_to_copy[-7, 0]
+
+    field_to_copy[-4, 1] = field_to_copy[-6, 2]
+    field_to_copy[-3, 1] = field_to_copy[-6, 1]
+    field_to_copy[-2, 1] = field_to_copy[-6, 0]
+
+    field_to_copy[-4, 2] = field_to_copy[-5, 2]
+    field_to_copy[-3, 2] = field_to_copy[-5, 1]
+    field_to_copy[-2, 2] = field_to_copy[-5, 0]
+
+    field_to_copy[0, -2] = field_to_copy[5, -2]
+    field_to_copy[0, -3] = field_to_copy[4, -2]
+    field_to_copy[0, -4] = field_to_copy[3, -2]
+
+    field_to_copy[1, -2] = field_to_copy[5, -3]
+    field_to_copy[1, -3] = field_to_copy[4, -3]
+    field_to_copy[1, -4] = field_to_copy[3, -3]
+
+    field_to_copy[2, -2] = field_to_copy[5, -4]
+    field_to_copy[2, -3] = field_to_copy[4, -4]
+    field_to_copy[2, -4] = field_to_copy[3, -4]
+
+    field_to_copy[-2, -4] = field_to_copy[-5, -2]
+    field_to_copy[-2, -3] = field_to_copy[-6, -2]
+    field_to_copy[-2, -2] = field_to_copy[-7, -2]
+
+    field_to_copy[-3, -4] = field_to_copy[-5, -3]
+    field_to_copy[-3, -3] = field_to_copy[-6, -3]
+    field_to_copy[-3, -2] = field_to_copy[-7, -3]
+
+    field_to_copy[-4, -4] = field_to_copy[-5, -4]
+    field_to_copy[-4, -3] = field_to_copy[-6, -4]
+    field_to_copy[-4, -2] = field_to_copy[-7, -4]
+
+
+class CopyCornersX:
     """
     Helper-class to copy corners corresponding to the fortran functions
     copy_corners_x or copy_corners_y respectively
     """
 
-    def __init__(self, direction: str, stencil_factory: StencilFactory) -> None:
-        """The grid for this stencil"""
-        grid_indexing = stencil_factory.grid_indexing
-
-        n_halo = grid_indexing.n_halo
-        origin, domain = grid_indexing.get_origin_domain(
-            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], halos=(n_halo, n_halo)
+    def __init__(self, stencil_factory: StencilFactory) -> None:
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
         )
 
-        ax_offsets = grid_indexing.axis_offsets(origin, domain)
-        if direction == "x":
-            self._copy_corners = stencil_factory.from_origin_domain(
-                func=copy_corners_x_stencil_defn,
-                origin=origin,
-                domain=domain,
-                externals={
-                    **ax_offsets,
-                },
-            )
-        elif direction == "y":
-            self._copy_corners = stencil_factory.from_origin_domain(
-                func=copy_corners_y_stencil_defn,
-                origin=origin,
-                domain=domain,
-                externals={
-                    **ax_offsets,
-                },
-            )
-        else:
-            raise ValueError("Direction must be either 'x' or 'y'")
+    def __call__(self, field: FloatField):
+        corner_copy_x(field)
+
+
+class CopyCornersY:
+    """
+    Helper-class to copy corners corresponding to the fortran functions
+    copy_corners_x or copy_corners_y respectively
+    """
+
+    def __init__(self, stencil_factory: StencilFactory) -> None:
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+        )
 
     def __call__(self, field: FloatField):
-        """
-        Fills cell quantity field using corners from itself and multipliers
-        in the direction specified initialization of the instance of this class.
-        """
-        self._copy_corners(field, field)
+        corner_copy_y(field)
 
 
 class CopyCornersXY:
@@ -1001,6 +1113,9 @@ def fill_corners_dgrid_defn(
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
+        # this line of code is used to fix the missing symbol crash due to the node visitor depth limitation
+        acoef = mysign
+        x_out = x_out
         # sw corner
         with horizontal(region[i_start - 1, j_start - 1]):
             x_out = mysign * y_in[0, 1, 0]

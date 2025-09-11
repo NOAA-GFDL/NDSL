@@ -1,8 +1,9 @@
-from .corners import CopyCorners, CopyCornersXY, FillCornersBGrid
+from .corners import CopyCornersX, CopyCornersY, CopyCornersXY, FillCornersBGrid
 
 
 __all__ = [
-    "CopyCorners",
+    "CopyCornersX",
+    "CopyCornersY",
     "CopyCornersXY",
     "FillCornersBGrid",
 ]
