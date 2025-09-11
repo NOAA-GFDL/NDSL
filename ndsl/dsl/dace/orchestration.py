@@ -18,6 +18,7 @@ from dace.transformation.helpers import get_parent_map
 from dace.transformation.passes.simplify import SimplifyPass
 from gt4py import storage
 
+import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
@@ -291,6 +292,7 @@ def _parse_sdfg(
                 **kwargs,
                 save=False,
                 simplify=False,
+                validate=False,  # TODO: should we have a "debug flag" to turn this on?
             )
         return sdfg
 

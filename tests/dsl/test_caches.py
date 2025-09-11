@@ -41,7 +41,7 @@ def restore_cache_dir():
     gt_config.cache_settings["dir_name"] = cache_dir
 
 
-def _stencil(inp: Field[float], out: Field[float], scalar: float):
+def _stencil(inp: Field[float], out: Field[float]):
     with computation(PARALLEL), interval(...):
         out = inp
 
@@ -83,7 +83,7 @@ class OrchestratedProgram:
         self.out = utils.make_storage(empty, grid_indexing, stencil_config, dtype=float)
 
     def __call__(self):
-        self.stencil(self.inp, self.out, self.inp[0, 0, 0])
+        self.stencil(self.inp, self.out)
 
 
 @pytest.mark.skipif(
