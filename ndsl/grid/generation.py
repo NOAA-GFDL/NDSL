@@ -88,7 +88,7 @@ def ignore_zero_division(func):
 def quantity_cast_to_model_float(
     quantity_factory: QuantityFactory, qty_64: Quantity
 ) -> Quantity:
-    """Copy & cast from 64-bit float to model precision if need be"""
+    """Copy & cast from 64-bit float to model precision if need be."""
     qty = quantity_factory.zeros(qty_64.dims, qty_64.units, dtype=Float)
     qty.data[:] = qty_64.data[:]
     return qty
@@ -314,16 +314,10 @@ class MetricTerms:
                 eta_file, ak, bk  # type: ignore
             )
         else:
-            self._ks = self.quantity_factory.zeros(
-                [],
-                "",
-                dtype=Float,
-            )
-            self._ptop = self.quantity_factory.zeros(
-                [],
-                "Pa",
-                dtype=Float,
-            )
+            # TODO
+            # Is this a valid use-case or should we rather raise here?
+            self._ks = 0
+            self._ptop = 0
             self._ak = self.quantity_factory.zeros(
                 [Z_INTERFACE_DIM],
                 "Pa",
@@ -475,7 +469,7 @@ class MetricTerms:
     ) -> MetricTerms:
         """
         Generates a metric terms object, using input from data contained in an
-        externally generated tile file
+        externally generated tile file.
         """
         terms = MetricTerms(
             quantity_factory=quantity_factory,
@@ -547,7 +541,7 @@ class MetricTerms:
     @property
     def dgrid_lon_lat(self):
         """
-        the longitudes and latitudes of the cell corners
+        The longitudes and latitudes of the cell corners.
         """
         return self.grid
 
@@ -566,7 +560,7 @@ class MetricTerms:
     @property
     def agrid_lon_lat(self):
         """
-        the longitudes and latitudes of the cell centers
+        The longitudes and latitudes of the cell centers.
         """
         return self.agrid
 
@@ -617,7 +611,7 @@ class MetricTerms:
     @property
     def dx(self) -> Quantity:
         """
-        the distance between grid corners along the x-direction
+        The distance between grid corners along the x-direction.
         """
         if self._dx is None:
             self._dx, self._dy = self._compute_dxdy()
@@ -626,7 +620,7 @@ class MetricTerms:
     @property
     def dy(self) -> Quantity:
         """
-        the distance between grid corners along the y-direction
+        The distance between grid corners along the y-direction.
         """
         if self._dy is None:
             self._dx, self._dy = self._compute_dxdy()
@@ -635,7 +629,7 @@ class MetricTerms:
     @property
     def dxa(self) -> Quantity:
         """
-        the with of each grid cell along the x-direction
+        The with of each grid cell along the x-direction.
         """
         if self._dx_agrid is None:
             self._dx_agrid, self._dy_agrid = self._compute_dxdy_agrid()
@@ -644,7 +638,7 @@ class MetricTerms:
     @property
     def dya(self) -> Quantity:
         """
-        the with of each grid cell along the y-direction
+        The with of each grid cell along the y-direction.
         """
         if self._dy_agrid is None:
             self._dx_agrid, self._dy_agrid = self._compute_dxdy_agrid()
@@ -653,7 +647,7 @@ class MetricTerms:
     @property
     def dxc(self) -> Quantity:
         """
-        the distance between cell centers along the x-direction
+        The distance between cell centers along the x-direction.
         """
         if self._dx_center is None:
             self._dx_center, self._dy_center = self._compute_dxdy_center()
@@ -662,23 +656,24 @@ class MetricTerms:
     @property
     def dyc(self) -> Quantity:
         """
-        the distance between cell centers along the y-direction
+        The distance between cell centers along the y-direction.
         """
         if self._dy_center is None:
             self._dx_center, self._dy_center = self._compute_dxdy_center()
         return self._dy_center
 
     @property
-    def ks(self) -> Quantity:
+    def ks(self) -> int:
         """
-        number of levels where the vertical coordinate is purely pressure-based
+        Number of levels where the vertical coordinate is purely pressure-based.
         """
         return self._ks
 
     @property
     def ak(self) -> Quantity:
         """
-        the ak coefficient used to calculate the pressure at a given k-level:
+        The ak coefficient used to calculate the pressure at a given k-level:
+
         pk = ak + (bk * ps)
         """
         return self._ak
@@ -686,24 +681,25 @@ class MetricTerms:
     @property
     def bk(self) -> Quantity:
         """
-        the bk coefficient used to calculate the pressure at a given k-level:
+        The bk coefficient used to calculate the pressure at a given k-level:
+
         pk = ak + (bk * ps)
         """
         return self._bk
 
     @property
-    def ptop(self) -> Quantity:
+    def ptop(self) -> int:
         """
-        the pressure of the top of atmosphere level
+        The pressure of the top of atmosphere level
         """
         return self._ptop
 
     @property
     def ec1(self) -> Quantity:
         """
-        cartesian components of the local unit vector
-        in the x-direction at the cell centers
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vector in the x-direction at the cell centers.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._ec1 is None:
             self._ec1, self._ec2 = self._calculate_center_vectors()
@@ -712,9 +708,9 @@ class MetricTerms:
     @property
     def ec2(self) -> Quantity:
         """
-        cartesian components of the local unit vector
-        in the y-direction at the cell centers
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vector in the y-direction at the cell centers.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._ec2 is None:
             self._ec1, self._ec2 = self._calculate_center_vectors()
@@ -723,9 +719,9 @@ class MetricTerms:
     @property
     def ew1(self) -> Quantity:
         """
-        cartesian components of the local unit vector
-        in the x-direction at the left/right cell edges
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vector in the x-direction at the left/right cell edges.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._ew1 is None:
             self._ew1, self._ew2 = self._calculate_vectors_west()
@@ -734,9 +730,9 @@ class MetricTerms:
     @property
     def ew2(self) -> Quantity:
         """
-        cartesian components of the local unit vector
-        in the y-direction at the left/right cell edges
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vector in the y-direction at the left/right cell edges.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._ew2 is None:
             self._ew1, self._ew2 = self._calculate_vectors_west()
@@ -746,6 +742,7 @@ class MetricTerms:
     def cos_sg1(self) -> Quantity:
         """
         Cosine of the angle at point 1 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -760,6 +757,7 @@ class MetricTerms:
     def cos_sg2(self) -> Quantity:
         """
         Cosine of the angle at point 2 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -774,6 +772,7 @@ class MetricTerms:
     def cos_sg3(self) -> Quantity:
         """
         Cosine of the angle at point 3 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -788,6 +787,7 @@ class MetricTerms:
     def cos_sg4(self) -> Quantity:
         """
         Cosine of the angle at point 4 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -802,6 +802,7 @@ class MetricTerms:
     def cos_sg5(self) -> Quantity:
         """
         Cosine of the angle at point 5 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -817,6 +818,7 @@ class MetricTerms:
     def cos_sg6(self) -> Quantity:
         """
         Cosine of the angle at point 6 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -831,6 +833,7 @@ class MetricTerms:
     def cos_sg7(self) -> Quantity:
         """
         Cosine of the angle at point 7 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -845,6 +848,7 @@ class MetricTerms:
     def cos_sg8(self) -> Quantity:
         """
         Cosine of the angle at point 8 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -859,6 +863,7 @@ class MetricTerms:
     def cos_sg9(self) -> Quantity:
         """
         Cosine of the angle at point 9 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -873,6 +878,7 @@ class MetricTerms:
     def sin_sg1(self) -> Quantity:
         """
         Sine of the angle at point 1 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -887,6 +893,7 @@ class MetricTerms:
     def sin_sg2(self) -> Quantity:
         """
         Sine of the angle at point 2 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -901,6 +908,7 @@ class MetricTerms:
     def sin_sg3(self) -> Quantity:
         """
         Sine of the angle at point 3 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -915,6 +923,7 @@ class MetricTerms:
     def sin_sg4(self) -> Quantity:
         """
         Sine of the angle at point 4 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -929,11 +938,13 @@ class MetricTerms:
     def sin_sg5(self) -> Quantity:
         """
         Sine of the angle at point 5 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+
         For the center point this is one minus the inner product of ec1 and ec2 squared
         """
         if self._sin_sg5 is None:
@@ -944,6 +955,7 @@ class MetricTerms:
     def sin_sg6(self) -> Quantity:
         """
         Sine of the angle at point 6 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -958,6 +970,7 @@ class MetricTerms:
     def sin_sg7(self) -> Quantity:
         """
         Sine of the angle at point 7 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -972,6 +985,7 @@ class MetricTerms:
     def sin_sg8(self) -> Quantity:
         """
         Sine of the angle at point 8 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -986,6 +1000,7 @@ class MetricTerms:
     def sin_sg9(self) -> Quantity:
         """
         Sine of the angle at point 9 of the 'supergrid' within each grid cell:
+
         9---4---8
         |       |
         1   5   3
@@ -999,8 +1014,9 @@ class MetricTerms:
     @property
     def cosa(self) -> Quantity:
         """
-        cosine of angle between coordinate lines at the cell corners
-        averaged to ensure consistent answers
+        Cosine of angle between coordinate lines at the cell corners.
+
+        Averaged to ensure consistent answers.
         """
         if self._cosa is None:
             self._init_cell_trigonometry()
@@ -1009,7 +1025,9 @@ class MetricTerms:
     @property
     def sina(self) -> Quantity:
         """
-        as cosa but sine
+        Sine of angle between coordinate lines at the cell corners.
+
+        Averaged to ensure consistent answers.
         """
         if self._sina is None:
             self._init_cell_trigonometry()
@@ -1018,7 +1036,9 @@ class MetricTerms:
     @property
     def cosa_u(self) -> Quantity:
         """
-        as cosa but defined at the left and right cell edges
+        Cosine of angle between coordinate lines at the left and right cell edges.
+
+        Averaged to ensure consistent answers.
         """
         if self._cosa_u is None:
             self._init_cell_trigonometry()
@@ -1027,7 +1047,9 @@ class MetricTerms:
     @property
     def cosa_v(self) -> Quantity:
         """
-        as cosa but defined at the top and bottom cell edges
+        Cosine of angle between coordinate lines at the top and bottom cell edges.
+
+        Averaged to ensure consistent answers.
         """
         if self._cosa_v is None:
             self._init_cell_trigonometry()
@@ -1037,6 +1059,8 @@ class MetricTerms:
     def cosa_s(self) -> Quantity:
         """
         as cosa but defined at cell centers
+
+        Averaged to ensure consistent answers.
         """
         if self._cosa_s is None:
             self._init_cell_trigonometry()
@@ -1045,7 +1069,9 @@ class MetricTerms:
     @property
     def sina_u(self) -> Quantity:
         """
-        as cosa_u but with sine
+        Sine of angle between coordinate lines at the left and right cell edges.
+
+        Averaged to ensure consistent answers.
         """
         if self._sina_u is None:
             self._init_cell_trigonometry()
@@ -1054,7 +1080,9 @@ class MetricTerms:
     @property
     def sina_v(self) -> Quantity:
         """
-        as cosa_v but with sine
+        Sine of angle between coordinate lines at the top and bottom cell edges.
+
+        Averaged to ensure consistent answers.
         """
         if self._sina_v is None:
             self._init_cell_trigonometry()
@@ -1103,8 +1131,8 @@ class MetricTerms:
     @property
     def l2c_v(self) -> Quantity:
         """
-        angular momentum correction for converting v-winds
-        from lat/lon to cartesian coordinates
+        Angular momentum correction for converting v-winds
+        from lat/lon to cartesian coordinates.
         """
         if self._l2c_v is None:
             self._l2c_v, self._l2c_u = self._calculate_latlon_momentum_correction()
@@ -1113,8 +1141,8 @@ class MetricTerms:
     @property
     def l2c_u(self) -> Quantity:
         """
-        angular momentum correction for converting u-winds
-        from lat/lon to cartesian coordinates
+        Angular momentum correction for converting u-winds
+        from lat/lon to cartesian coordinates.
         """
         if self._l2c_u is None:
             self._l2c_v, self._l2c_u = self._calculate_latlon_momentum_correction()
@@ -1123,9 +1151,10 @@ class MetricTerms:
     @property
     def es1(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the x-direation at the top/bottom cell edges,
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vetcor
+        in the x-direation at the top/bottom cell edges.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._es1 is None:
             self._es1, self._es2 = self._calculate_vectors_south()
@@ -1134,9 +1163,10 @@ class MetricTerms:
     @property
     def es2(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the y-direation at the top/bottom cell edges,
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vetcor
+        in the y-direation at the top/bottom cell edges.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._es2 is None:
             self._es1, self._es2 = self._calculate_vectors_south()
@@ -1145,9 +1175,10 @@ class MetricTerms:
     @property
     def ee1(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the x-direation at the cell corners,
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vetcor
+        in the x-direation at the cell corners.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._ee1 is None:
             self._ee1, self._ee2 = self._calculate_xy_unit_vectors()
@@ -1156,9 +1187,10 @@ class MetricTerms:
     @property
     def ee2(self) -> Quantity:
         """
-        cartesian components of the local unit vetcor
-        in the y-direation at the cell corners,
-        3d array whose last dimension is length 3 and indicates cartesian x/y/z value
+        Cartesian components of the local unit vetcor
+        in the y-direation at the cell corners.
+
+        3d array whose last dimension is length 3 and indicates cartesian x/y/z value.
         """
         if self._ee2 is None:
             self._ee1, self._ee2 = self._calculate_xy_unit_vectors()
@@ -1223,8 +1255,9 @@ class MetricTerms:
     @property
     def vlon(self) -> Quantity:
         """
-        unit vector in eastward longitude direction,
-        3d array whose last dimension is length 3 and indicates x/y/z value
+        Unit vector in eastward longitude direction.
+
+        3d array whose last dimension is length 3 and indicates x/y/z value.
         """
         if self._vlon is None:
             self._vlon, self._vlat = self._calculate_unit_vectors_lonlat()
@@ -1233,8 +1266,9 @@ class MetricTerms:
     @property
     def vlat(self) -> Quantity:
         """
-        unit vector in northward latitude direction,
-        3d array whose last dimension is length 3 and indicates x/y/z value
+        Unit vector in northward latitude direction.
+
+        3d array whose last dimension is length 3 and indicates x/y/z value.
         """
         if self._vlat is None:
             self._vlon, self._vlat = self._calculate_unit_vectors_lonlat()
@@ -1243,8 +1277,8 @@ class MetricTerms:
     @property
     def z11(self) -> Quantity:
         """
-        vector product of horizontal component of the cell-center vector
-        with the unit longitude vector
+        Vector product of horizontal component of the cell-center vector
+        with the unit longitude vector.
         """
         if self._z11 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
@@ -1253,8 +1287,8 @@ class MetricTerms:
     @property
     def z12(self) -> Quantity:
         """
-        vector product of horizontal component of the cell-center vector
-        with the unit latitude vector
+        Vector product of horizontal component of the cell-center vector
+        with the unit latitude vector.
         """
         if self._z12 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
@@ -1263,8 +1297,8 @@ class MetricTerms:
     @property
     def z21(self) -> Quantity:
         """
-        vector product of vertical component of the cell-center vector
-        with the unit longitude vector
+        Vector product of vertical component of the cell-center vector
+        with the unit longitude vector.
         """
         if self._z21 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
@@ -1273,8 +1307,8 @@ class MetricTerms:
     @property
     def z22(self) -> Quantity:
         """
-        vector product of vertical component of the cell-center vector
-        with the unit latitude vector
+        Vector product of vertical component of the cell-center vector
+        with the unit latitude vector.
         """
         if self._z22 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
@@ -1319,7 +1353,7 @@ class MetricTerms:
     @property
     def edge_w(self) -> Quantity:
         """
-        factor to interpolate scalars from a to c grid at the western grid edge
+        Factor to interpolate scalars from a to c grid at the western grid edge.
         """
         if self._edge_w is None:
             (
@@ -1333,7 +1367,7 @@ class MetricTerms:
     @property
     def edge_e(self) -> Quantity:
         """
-        factor to interpolate scalars from a to c grid at the eastern grid edge
+        Factor to interpolate scalars from a to c grid at the eastern grid edge.
         """
         if self._edge_e is None:
             (
@@ -1347,7 +1381,7 @@ class MetricTerms:
     @property
     def edge_s(self) -> Quantity:
         """
-        factor to interpolate scalars from a to c grid at the southern grid edge
+        Factor to interpolate scalars from a to c grid at the southern grid edge.
         """
         if self._edge_s is None:
             (
@@ -1361,7 +1395,7 @@ class MetricTerms:
     @property
     def edge_n(self) -> Quantity:
         """
-        factor to interpolate scalars from a to c grid at the northern grid edge
+        Factor to interpolate scalars from a to c grid at the northern grid edge.
         """
         if self._edge_n is None:
             (
@@ -1375,7 +1409,7 @@ class MetricTerms:
     @property
     def edge_vect_w_1d(self) -> Quantity:
         """
-        factor to interpolate vectors from a to c grid at the western grid edge
+        Factor to interpolate vectors from a to c grid at the western grid edge.
         """
         if self._edge_vect_w is None:
             (
@@ -1389,8 +1423,8 @@ class MetricTerms:
     @property
     def edge_vect_w(self) -> Quantity:
         """
-        factor to interpolate vectors from a to c grid at the western grid edge
-        repeated in x and y to be used in stencils
+        Factor to interpolate vectors from a to c grid at the western grid edge
+        repeated in x and y to be used in stencils.
         """
         if self._edge_vect_w_2d is None:
             (
@@ -1402,7 +1436,7 @@ class MetricTerms:
     @property
     def edge_vect_e_1d(self) -> Quantity:
         """
-        factor to interpolate vectors from a to c grid at the eastern grid edge
+        Factor to interpolate vectors from a to c grid at the eastern grid edge.
         """
         if self._edge_vect_e is None:
             (
@@ -1416,8 +1450,8 @@ class MetricTerms:
     @property
     def edge_vect_e(self) -> Quantity:
         """
-        factor to interpolate vectors from a to c grid at the eastern grid edge
-        repeated in x and y to be used in stencils
+        Factor to interpolate vectors from a to c grid at the eastern grid edge
+        repeated in x and y to be used in stencils.
         """
         if self._edge_vect_e_2d is None:
             (
@@ -1429,7 +1463,7 @@ class MetricTerms:
     @property
     def edge_vect_s(self) -> Quantity:
         """
-        factor to interpolate vectors from a to c grid at the southern grid edge
+        Factor to interpolate vectors from a to c grid at the southern grid edge.
         """
         if self._edge_vect_s is None:
             (
@@ -1443,7 +1477,7 @@ class MetricTerms:
     @property
     def edge_vect_n(self) -> Quantity:
         """
-        factor to interpolate vectors from a to c grid at the northern grid edge
+        Factor to interpolate vectors from a to c grid at the northern grid edge.
         """
         if self._edge_vect_n is None:
             (
@@ -1457,9 +1491,10 @@ class MetricTerms:
     @property
     def da_min(self) -> float:
         """
-        the minimum agrid cell area across all ranks,
-        if mpi is not present and the communicator is a DummyComm this will be
-        the minimum on the local rank
+        The minimum agrid cell area across all ranks.
+
+        If mpi is not present and the communicator is a DummyComm this will be
+        the minimum on the local rank.
         """
         if self._da_min is None:
             self._reduce_global_area_minmaxes()
@@ -1468,9 +1503,10 @@ class MetricTerms:
     @property
     def da_max(self) -> float:
         """
-        the maximum agrid cell area across all ranks,
-        if mpi is not present and the communicator is a DummyComm this will be
-        the maximum on the local rank
+        Fhe maximum agrid cell area across all ranks.
+
+        Ff mpi is not present and the communicator is a DummyComm this will be
+        the maximum on the local rank.
         """
         if self._da_max is None:
             self._reduce_global_area_minmaxes()
@@ -1479,9 +1515,10 @@ class MetricTerms:
     @property
     def da_min_c(self) -> float:
         """
-        the minimum cgrid cell area across all ranks,
-        if mpi is not present and the communicator is a DummyComm this will be
-        the minimum on the local rank
+        The minimum cgrid cell area across all ranks.
+
+        If mpi is not present and the communicator is a DummyComm this will be
+        the minimum on the local rank.
         """
         if self._da_min_c is None:
             self._reduce_global_area_minmaxes()
@@ -1490,9 +1527,10 @@ class MetricTerms:
     @property
     def da_max_c(self) -> float:
         """
-        the maximum cgrid cell area across all ranks,
-        if mpi is not present and the communicator is a DummyComm this will be
-        the maximum on the local rank
+        The maximum cgrid cell area across all ranks.
+
+        If mpi is not present and the communicator is a DummyComm this will be
+        the maximum on the local rank.
         """
         if self._da_max_c is None:
             self._reduce_global_area_minmaxes()
@@ -1501,7 +1539,7 @@ class MetricTerms:
     @property
     def area(self) -> Quantity:
         """
-        the area of each a-grid cell
+        The area of each a-grid cell.
         """
         if self._area is None:
             self._area, self._area64 = self._compute_area()
@@ -1510,7 +1548,7 @@ class MetricTerms:
     @property
     def area64(self) -> Quantity:
         """
-        the area of each a-grid cell, at 64-bit precision
+        The area of each a-grid cell, at 64-bit precision.
         """
         if self._area64 is None:
             self._area, self._area64 = self._compute_area()
@@ -1519,7 +1557,7 @@ class MetricTerms:
     @property
     def area_c(self) -> Quantity:
         """
-        the area of each c-grid cell
+        The area of each c-grid cell.
         """
         if self._area_c is None:
             self._area_c = self._compute_area_c()
@@ -1528,7 +1566,7 @@ class MetricTerms:
     @cached_property
     def _dgrid_xyz_64(self) -> Quantity:
         """
-        cartesian coordinates of each dgrid cell center
+        Cartesian coordinates of each dgrid cell center.
         """
         return lon_lat_to_xyz(
             self._grid_64.data[:, :, 0], self._grid_64.data[:, :, 1], self._np
@@ -1537,7 +1575,7 @@ class MetricTerms:
     @cached_property
     def _agrid_xyz_64(self) -> Quantity:
         """
-        cartesian coordinates of each agrid cell center
+        Cartesian coordinates of each agrid cell center.
         """
         return lon_lat_to_xyz(
             self._agrid_64.data[:-1, :-1, 0],
@@ -2200,17 +2238,7 @@ class MetricTerms:
         eta_file: Path | None = None,
         ak_data: np.ndarray | None = None,
         bk_data: np.ndarray | None = None,
-    ):
-        ks = self.quantity_factory.zeros(
-            [],
-            "",
-            dtype=Float,
-        )
-        ptop = self.quantity_factory.zeros(
-            [],
-            "Pa",
-            dtype=Float,
-        )
+    ) -> tuple[int, int, Quantity, Quantity]:
         ak = self.quantity_factory.zeros(
             [Z_INTERFACE_DIM],
             "Pa",
