@@ -42,6 +42,10 @@ def test_boilerplate_import_numpy():
         nx=5, ny=5, nz=2, nhalo=1
     )
 
+    # Ensure backend is propagated to StencilFactory and QuantityFactory
+    assert stencil_factory.backend == "numpy"
+    assert quantity_factory._backend() == "numpy"
+
     _copy_ops(stencil_factory, quantity_factory)
 
 
@@ -56,5 +60,9 @@ def test_boilerplate_import_orchestrated_cpu():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         nx=5, ny=5, nz=2, nhalo=1
     )
+
+    # Ensure backend is propagated to StencilFactory and QuantityFactory
+    assert stencil_factory.backend == "dace:cpu"
+    assert quantity_factory._backend() == "dace:cpu"
 
     _copy_ops(stencil_factory, quantity_factory)

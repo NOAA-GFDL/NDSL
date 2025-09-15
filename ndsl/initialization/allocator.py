@@ -51,11 +51,11 @@ class QuantityFactory:
         numpy = StorageNumpy(backend)
         return cls(sizer, numpy)
 
-    def _backend(self) -> Optional[str]:
-        try:
+    def _backend(self) -> str | None:
+        if isinstance(self._numpy, StorageNumpy):
             return self._numpy.backend
-        except AttributeError:
-            return None
+
+        return None
 
     def empty(
         self,

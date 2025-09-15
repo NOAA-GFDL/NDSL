@@ -221,7 +221,7 @@ class Quantity:
 
     @property
     def units(self) -> str:
-        """units of the quantity"""
+        """Units of the quantity"""
         return self.metadata.units
 
     @property
@@ -234,7 +234,7 @@ class Quantity:
 
     @property
     def dims(self) -> Tuple[str, ...]:
-        """names of each dimension"""
+        """Names of each dimension"""
         return self.metadata.dims
 
     @property
@@ -250,7 +250,7 @@ class Quantity:
 
     @property
     def view(self) -> BoundedArrayView:
-        """a view into the computational domain of the underlying data"""
+        """A view into the computational domain of the underlying data"""
         return self._compute_domain_view
 
     @property
@@ -259,7 +259,7 @@ class Quantity:
 
     @property
     def data(self) -> Union[np.ndarray, cupy.ndarray]:
-        """the underlying array of data"""
+        """The underlying array of data"""
         return self._data
 
     @data.setter
@@ -269,12 +269,12 @@ class Quantity:
 
     @property
     def origin(self) -> Tuple[int, ...]:
-        """the start of the computational domain"""
+        """The start of the computational domain"""
         return self.metadata.origin
 
     @property
     def extent(self) -> Tuple[int, ...]:
-        """the shape of the computational domain"""
+        """The shape of the computational domain"""
         return self.metadata.extent
 
     @property
