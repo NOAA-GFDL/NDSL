@@ -1,19 +1,19 @@
-# from pace.dsl.dace.orchestration import orchestrate
-from ndsl import StencilFactory
-from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval
+import pytest
+
+from ndsl import QuantityFactory, StencilFactory
+from ndsl.boilerplate import (
+    get_factories_single_tile,
+    get_factories_single_tile_orchestrated,
+)
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval, max
 from ndsl.dsl.typing import Float, FloatField, set_4d_field_size
 
 
 FloatFieldTracer = set_4d_field_size(9, Float)
-TRACER_DIM = "n_tracers"
 
 
-def sample_4d_stencil(
-    q_in: FloatFieldTracer,
-    q_out: FloatField,
-):
+def sample_4d_stencil(q_in: FloatFieldTracer, q_out: FloatField):
     from __externals__ import ntke
 
     with computation(PARALLEL), interval(...):
@@ -21,43 +21,53 @@ def sample_4d_stencil(
 
 
 class SampleCalculation:
-    def __init__(
-        self,
-        stencil_factory: StencilFactory,
-    ):
+    def __init__(self, stencil_factory: StencilFactory, *, ntke: int):
         self._test_calc = stencil_factory.from_dims_halo(
             func=sample_4d_stencil,
             externals={
-                "ntke": 8,
+                "ntke": ntke,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
-    def __call__(
-        self,
-        q_in: FloatFieldTracer,
-        q_out: FloatField,
-    ):
+    def __call__(self, q_in: FloatFieldTracer, q_out: FloatField):
         self._test_calc(q_in, q_out)
 
 
-def test_4d_stencil_call():
+@pytest.mark.parametrize(
+    "stencil_factory,quantity_factory",
+    [
+        pytest.param(*get_factories_single_tile(24, 24, 91, 3), id="4d-field_stencil"),
+        pytest.param(
+            *get_factories_single_tile_orchestrated(24, 24, 91, 3),
+            id="4d-field_orchestration",
+        ),
+    ],
+)
+def test_4d_stencil_call(
+    stencil_factory: StencilFactory, quantity_factory: QuantityFactory
+) -> None:
+    TRACER_DIM = "n_tracers"
     ntracers = 9
-    stencil_factory, quantity_factory = get_factories_single_tile(24, 24, 91, 3)
+    ntke = 8
+    fill_value = 42.0
+
     quantity_factory.set_extra_dim_lengths(
         **{
             TRACER_DIM: ntracers,
         }
     )
     q_out = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+        [X_DIM, Y_DIM, Z_DIM],
         units="unknown",
-        dtype=Float,
     )
     q_in = quantity_factory.zeros(
         [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
         units="unknown",
-        dtype=Float,
     )
-    calc = SampleCalculation(stencil_factory)
+    q_in.field[:, :, :, ntke] = fill_value
+    calc = SampleCalculation(stencil_factory, ntke=ntke)
+
     calc(q_in, q_out)
+
+    assert (q_out.field[:, :, :] == fill_value).all()
