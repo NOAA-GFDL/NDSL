@@ -1,3 +1,10 @@
+# TODO: Revert tests back to NOAA-GFDL version (not jjuyeonkim) after
+# NDSL/issues#64's PRs close and are all merged. These PRs include:
+# https://github.com/NOAA-GFDL/NDSL/pull/218
+# https://github.com/NOAA-GFDL/PyFV3/pull/83
+# https://github.com/NOAA-GFDL/PySHiELD/pull/58
+# https://github.com/NOAA-GFDL/pace/pull/145
+#
 name: "SHiELD Translate tests"
 
 # Run these these whenever ...
@@ -7,6 +14,7 @@ on:
   push:
     branches:
       - main # ... when merging into the main branch
+      - 20250908_namelist_2
 
 # TODO: Revert tests back to GFDL (not jjuyeonkim) after merging
 # https://github.com/NOAA-GFDL/NDSL/issues/64
