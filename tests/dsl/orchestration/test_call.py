@@ -12,7 +12,7 @@ def _stencil(out: Field[float]):
         out = out + 1
 
 
-# @pytest.fixture
+@pytest.fixture
 def factories() -> tuple[StencilFactory, QuantityFactory]:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
@@ -48,7 +48,3 @@ def test_memory_reallocation(factories):
     code(qty_B)
     assert (qty_A.field[0, 0, :] == 3).all()
     assert (qty_B.field[0, 0, :] == 2).all()
-
-
-if __name__ == "__main__":
-    test_memory_reallocation(factories())
