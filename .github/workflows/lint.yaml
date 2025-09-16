@@ -28,6 +28,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
+          repository: jjuyeonkim/ndsl
           ref: 20250908_namelist_2
 
       - name: Setup Python 3.11

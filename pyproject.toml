@@ -32,7 +32,8 @@ test = ["pytest", "coverage"]
 ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
 
 [project.urls]
-Repository = "https://github.com/NOAA-GFDL/NDSL"
+# TODO: Revert repo back to GFDL develop (not jjuyeonkim) after merging https://github.com/NOAA-GFDL/NDSL/issues/64
+Repository = "https://github.com/jjuyeonkim/NDSL"
 
 [tool.aliases]
 
