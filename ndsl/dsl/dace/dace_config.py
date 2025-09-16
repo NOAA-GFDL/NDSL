@@ -179,7 +179,7 @@ class DaceConfig:
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
-        self.loaded_precompiled_SDFG: dict[DaceProgram, FrozenCompiledSDFG] = {}
+        self.loaded_precompiled_SDFG: dict[DaceProgram, dace.CompiledSDFG] = {}
 
         # Temporary. This is a bit too out of the ordinary for the common user.
         # We should refactor the architecture to allow for a `gtc:orchestrated:dace:X`

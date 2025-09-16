@@ -217,9 +217,11 @@ def _build_sdfg(
 
         with DaCeProgress(config, "Loading"):
             sdfg_path = get_sdfg_path(dace_program.name, config, override_run_only=True)
+            if sdfg_path is None:
+                raise ValueError("Couldn't load SDFG post build")
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
-            )
+            )  # type: ignore
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
         return _call_sdfg(dace_program, sdfg, config, args, kwargs)
@@ -235,9 +237,16 @@ def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, 
         with DaCeProgress(config, "Run"):
             if config.is_gpu_backend():
                 _upload_to_device(list(args) + list(kwargs.values()))
+
+            # NOTE: this will go over declared arguments and closure arguments.
+            # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
+            # function that expects all pointers to have been made C worthy. This is
+            # something we did with "FrozenSDFG" but we undid because it meant that
+            # external changing memory (reallocation...) would quietly fail
             current_sdfg_args = dace_program._create_sdfg_args(
                 config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
             )
+
             res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
             res = _download_results_from_dace(
                 config, res, list(args) + list(kwargs.values())
