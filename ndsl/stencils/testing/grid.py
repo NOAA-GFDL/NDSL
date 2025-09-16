@@ -159,9 +159,7 @@ class Grid:
     @property
     def quantity_factory(self) -> QuantityFactory:
         if self._quantity_factory is None:
-            self._quantity_factory = QuantityFactory.from_backend(
-                self.sizer, backend=self.backend
-            )
+            self._quantity_factory = QuantityFactory(self.sizer, backend=self.backend)
         return self._quantity_factory
 
     def make_quantity(

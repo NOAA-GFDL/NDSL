@@ -69,7 +69,7 @@ def _get_factories(
 
     grid_indexing = GridIndexing.from_sizer_and_communicator(sizer, comm)
     stencil_factory = StencilFactory(config=stencil_config, grid_indexing=grid_indexing)
-    quantity_factory = QuantityFactory.from_backend(sizer, backend)
+    quantity_factory = QuantityFactory(sizer, backend=backend)
 
     return stencil_factory, quantity_factory
 
