@@ -303,16 +303,8 @@ class MetricTerms:
                 eta_file, ak, bk  # type: ignore
             )
         else:
-            self._ks = self.quantity_factory.zeros(
-                [],
-                "",
-                dtype=Float,
-            )
-            self._ptop = self.quantity_factory.zeros(
-                [],
-                "Pa",
-                dtype=Float,
-            )
+            self._ks = 0
+            self._ptop = 0
             self._ak = self.quantity_factory.zeros(
                 [Z_INTERFACE_DIM],
                 "Pa",
@@ -658,7 +650,7 @@ class MetricTerms:
         return self._dy_center
 
     @property
-    def ks(self) -> Quantity:
+    def ks(self) -> int:
         """
         number of levels where the vertical coordinate is purely pressure-based
         """
@@ -681,7 +673,7 @@ class MetricTerms:
         return self._bk
 
     @property
-    def ptop(self) -> Quantity:
+    def ptop(self) -> int:
         """
         the pressure of the top of atmosphere level
         """
@@ -2189,17 +2181,7 @@ class MetricTerms:
         eta_file: Path | None = None,
         ak_data: np.ndarray | None = None,
         bk_data: np.ndarray | None = None,
-    ):
-        ks = self.quantity_factory.zeros(
-            [],
-            "",
-            dtype=Float,
-        )
-        ptop = self.quantity_factory.zeros(
-            [],
-            "Pa",
-            dtype=Float,
-        )
+    ) -> tuple[int, int, Quantity, Quantity]:
         ak = self.quantity_factory.zeros(
             [Z_INTERFACE_DIM],
             "Pa",
