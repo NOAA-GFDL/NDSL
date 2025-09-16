@@ -6,7 +6,7 @@ from .comm.null_comm import NullComm
 from .comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
-from .dsl.dace.dace_config import DaceConfig, DaCeOrchestration, FrozenCompiledSDFG
+from .dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from .dsl.dace.orchestration import orchestrate, orchestrate_function
 from .dsl.dace.utils import (
     ArrayReport,

@@ -1,6 +1,8 @@
 from typing import List, Optional, Tuple
 
+from dace import config as dace_conf
 from dace.sdfg import SDFG
+from gt4py.cartesian import config as gt_config
 
 from ndsl.dsl.caches.cache_location import get_cache_directory, get_cache_fullpath
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
@@ -127,9 +129,6 @@ def set_distributed_caches(config: DaceConfig):
             )
 
     # Set read/write caches to the target rank
-    import dace
-    from gt4py.cartesian import config as gt_config
-
     if config.do_compile:
         verb = "reading/writing"
     else:
@@ -137,13 +136,18 @@ def set_distributed_caches(config: DaceConfig):
 
     gt_config.cache_settings["dir_name"] = get_cache_directory(config.code_path)
 
-    dace.Config.set(
+    # NOTE: In the (rare) case we orchestrate code _without_ any stencils, we need
+    # to set the build folder. The other code is in FrozenStencil and deals with the
+    # case of `dace` used in both orchestrated and not orchestrated.
+    # A better build system would deal with this in BOTH cases.
+    dace_conf.Config.set(
         "default_build_folder",
         value="{gt_root}/{gt_cache}/dacecache".format(
             gt_root=gt_config.cache_settings["root_path"],
             gt_cache=gt_config.cache_settings["dir_name"],
         ),
     )
+
     ndsl_log.info(
         f"[{orchestration_mode}] Rank {config.my_rank} "
         f"{verb} cache {gt_config.cache_settings['dir_name']}"

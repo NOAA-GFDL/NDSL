@@ -1,5 +1,3 @@
-import pytest
-
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
@@ -10,14 +8,6 @@ from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 def _stencil(out: Field[float]):
     with computation(PARALLEL), interval(...):
         out = out + 1
-
-
-@pytest.fixture
-def factories() -> tuple[StencilFactory, QuantityFactory]:
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        5, 5, 2, 0
-    )
-    return (stencil_factory, quantity_factory)
 
 
 class OrchestratedProgram:
@@ -33,11 +23,13 @@ class OrchestratedProgram:
         self.stencil(out_qty)
 
 
-def test_memory_reallocation(factories):
-    qty_factory = factories[1]
-    code = OrchestratedProgram(factories[0], qty_factory)
-    qty_A = qty_factory.ones([X_DIM, Y_DIM, Z_DIM], "A")
-    qty_B = qty_factory.ones([X_DIM, Y_DIM, Z_DIM], "B")
+def test_memory_reallocation():
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0
+    )
+    code = OrchestratedProgram(stencil_factory, quantity_factory)
+    qty_A = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "A")
+    qty_B = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "B")
 
     code(qty_A)
     assert (qty_A.field[0, 0, :] == 2).all()

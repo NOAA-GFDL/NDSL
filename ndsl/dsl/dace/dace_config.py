@@ -5,7 +5,6 @@ import os
 from typing import Any
 
 import dace.config
-from dace.codegen.compiled_sdfg import CompiledSDFG
 from dace.frontend.python.parser import DaceProgram
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
@@ -143,28 +142,6 @@ class DaCeOrchestration(enum.Enum):
     Build = 1
     BuildAndRun = 2
     Run = 3
-
-
-class FrozenCompiledSDFG:
-    """
-    Cache transform args to allow direct execution of the CSDFG
-
-    Args:
-        csdfg: compiled SDFG, e.g. loaded .so
-        sdfg_args: transformed args to align for CSDFG direct execution
-
-    WARNING: No checks are done on arguments, any memory swap (free/realloc)
-    will lead to difficult to debug misbehavior
-    """
-
-    def __init__(
-        self, daceprog: DaceProgram, csdfg: CompiledSDFG, args, kwargs
-    ) -> None:
-        self.csdfg = csdfg
-        self.sdfg_args = daceprog._create_sdfg_args(csdfg.sdfg, args, kwargs)
-
-    def __call__(self):
-        return self.csdfg(**self.sdfg_args)
 
 
 class DaceConfig:
