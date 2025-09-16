@@ -64,17 +64,6 @@ from ndsl.stencils.corners import (
 )
 
 
-# TODO: when every environment in python3.8, remove
-# this custom decorator
-def cached_property(func):
-    @property
-    @functools.lru_cache()
-    def wrapper(self, *args, **kwargs):
-        return func(self, *args, **kwargs)
-
-    return wrapper
-
-
 def ignore_zero_division(func):
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
@@ -1525,7 +1514,7 @@ class MetricTerms:
             self._area_c = self._compute_area_c()
         return self._area_c
 
-    @cached_property
+    @functools.cached_property
     def _dgrid_xyz_64(self) -> Quantity:
         """
         cartesian coordinates of each dgrid cell center
@@ -1534,7 +1523,7 @@ class MetricTerms:
             self._grid_64.data[:, :, 0], self._grid_64.data[:, :, 1], self._np
         )
 
-    @cached_property
+    @functools.cached_property
     def _agrid_xyz_64(self) -> Quantity:
         """
         cartesian coordinates of each agrid cell center
@@ -1545,7 +1534,7 @@ class MetricTerms:
             self._np,
         )
 
-    @cached_property
+    @functools.cached_property
     def rarea(self) -> Quantity:
         """
         1/cell area
@@ -1559,7 +1548,7 @@ class MetricTerms:
             gt4py_backend=self.area.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     def rarea_c(self) -> Quantity:
         """
         1/cgrid cell area
@@ -1573,7 +1562,7 @@ class MetricTerms:
             gt4py_backend=self.area_c.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     @ignore_zero_division
     def rdx(self) -> Quantity:
         """
@@ -1588,7 +1577,7 @@ class MetricTerms:
             gt4py_backend=self.dx.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     @ignore_zero_division
     def rdy(self) -> Quantity:
         """
@@ -1603,7 +1592,7 @@ class MetricTerms:
             gt4py_backend=self.dy.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     @ignore_zero_division
     def rdxa(self) -> Quantity:
         """
@@ -1618,7 +1607,7 @@ class MetricTerms:
             gt4py_backend=self.dxa.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     @ignore_zero_division
     def rdya(self) -> Quantity:
         """
@@ -1633,7 +1622,7 @@ class MetricTerms:
             gt4py_backend=self.dya.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     @ignore_zero_division
     def rdxc(self) -> Quantity:
         """
@@ -1648,7 +1637,7 @@ class MetricTerms:
             gt4py_backend=self.dxc.gt4py_backend,
         )
 
-    @cached_property
+    @functools.cached_property
     @ignore_zero_division
     def rdyc(self) -> Quantity:
         """
