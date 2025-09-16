@@ -10,6 +10,7 @@ from gt4py import storage as gt_storage
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
+from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
@@ -47,6 +48,22 @@ class QuantityFactory:
         self.backend = backend
 
         self._allocator = _Allocator(self.backend)
+
+    @classmethod
+    def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
+        """Initialize a QuantityFactory to use a specific gt4py backend.
+
+        Note: This method is deprecated. Please change your code to use the
+        constructor instead.
+
+        Args:
+            sizer: object which determines array sizes
+            backend: gt4py backend
+        """
+        ndsl_log.warning(
+            "QuantityFactory.from_backend(sizer, backend) is deprecated. Use QuantityFactory(sizer, backend=backend) instead."
+        )
+        return cls(sizer, backend=backend)
 
     def set_extra_dim_lengths(self, **kwargs: Any) -> None:
         """
