@@ -142,6 +142,9 @@ class Communicator(abc.ABC):
     def all_reduce_per_element_in_place(
         self, quantity: Quantity, op: ReductionOperator
     ):
+        # Note that device_synchronization is Cupy/Cuda specific
+        # at the moment.
+        device_synchronize()
         self.comm.Allreduce_inplace(quantity.data, op)
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
