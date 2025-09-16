@@ -127,8 +127,8 @@ def set_distributed_caches(config: DaceConfig):
             )
 
     # Set read/write caches to the target rank
-    from gt4py.cartesian import config as gt_config
     import dace
+    from gt4py.cartesian import config as gt_config
 
     if config.do_compile:
         verb = "reading/writing"

@@ -1,13 +1,10 @@
 import pytest
-from ndsl import (
-    StencilFactory,
-    QuantityFactory,
-)
+
+from ndsl import QuantityFactory, StencilFactory
+from ndsl.boilerplate import get_factories_single_tile_orchestrated
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-
-from ndsl.boilerplate import get_factories_single_tile_orchestrated
 
 
 def _stencil(out: Field[float]):
