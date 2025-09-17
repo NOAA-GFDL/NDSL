@@ -17,11 +17,10 @@ from ndsl.quantity import Quantity, QuantityHaloSpec
 class _Allocator:
     def __init__(self, backend: str) -> None:
         """
-        Initialize an object that provides gt4py storage objects for
-        zeros(), ones(), and empty().
+        Initialize an object that provides gt4py storage objects for zeros(), ones(), and empty().
 
         Args:
-            backend: name of GT4Py backend
+            backend: GT4Py backend name used for performance-optimized allocation.
         """
         self.backend = backend
 
@@ -42,7 +41,7 @@ class QuantityFactory:
 
         Args:
             sizer: GridSizer object that determines the array sizes.
-            backend: GT4Py backend name used for performance-optimized allocation
+            backend: GT4Py backend name used for performance-optimized allocation.
         """
         self.sizer = sizer
         self.backend = backend
@@ -51,14 +50,14 @@ class QuantityFactory:
 
     @classmethod
     def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
-        """Initialize a QuantityFactory to use a specific gt4py backend.
+        """Initialize a QuantityFactory to use a specific GT4Py backend.
 
         Note: This method is deprecated. Please change your code to use the
         constructor instead.
 
         Args:
-            sizer: object which determines array sizes
-            backend: gt4py backend
+            sizer: GridSizer object that determines the array sizes.
+            backend: GT4Py backend name used for performance-optimized allocation.
         """
         ndsl_log.warning(
             "QuantityFactory.from_backend(sizer, backend) is deprecated. Use QuantityFactory(sizer, backend=backend) instead."
@@ -186,7 +185,7 @@ class QuantityFactory:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Create a Quantity from a numpy array.
+        Create a Quantity from values in a numpy array.
 
         That numpy array must correspond to the correct shape and extent
         for the given dims.
@@ -209,10 +208,12 @@ class QuantityFactory:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Create a Quantity from a numpy array.
+        Create a Quantity from values of the compute domain.
 
-        That numpy array must correspond to the correct shape and extent
-        of the compute domain for the given dims.
+        This function will allocate the full Quantity (including potential
+        halo points) to zero. The values of `data` are then copied into
+        the compute domain. That numpy array must correspond to the correct
+        shape and extent of the compute domain for the given dims.
         """
         base = self.zeros(
             dims=dims,
