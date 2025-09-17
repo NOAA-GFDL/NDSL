@@ -185,10 +185,10 @@ class QuantityFactory:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Create a Quantity from values in a numpy array.
+        Create a Quantity from values in the `data` array.
 
-        That numpy array must correspond to the correct shape and extent
-        for the given dims.
+        This copies the values of `data` into the resulting Quantity. The data
+        array thus must correspond to the correct shape and extent for the given dims.
         """
         base = self.zeros(
             dims=dims,
