@@ -16,7 +16,7 @@ from ndsl.comm.communicator import (
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
-from ndsl.namelist import Namelist
+from ndsl.namelist import Namelist, Nml
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.parallel_translate import ParallelTranslate
 from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
@@ -226,6 +226,17 @@ def get_savepoint_restriction(metafunc):
 
 def get_namelist(namelist_filename):
     return Namelist.from_f90nml(f90nml.read(namelist_filename))
+
+
+# NOTE: See NDSL Issue #64. We're attempting to reduce the size of the
+# Namelist and NamelistDefault classes in order to eventually give more freedom
+# to submodules.
+# Nml is a proposed scaled down version of the ndsl.Namelist class intended to
+# facilitate this reduction. Eventually, this Nml classes may be removed entirely.
+# For now, they will be used as an intermediary step to help remove the dependencies
+# that submodules have to Namelist.
+def get_nml(namelist_filename):
+    return Nml(f90nml.read(namelist_filename))
 
 
 def get_config(backend: str, communicator: Optional[Communicator]):
