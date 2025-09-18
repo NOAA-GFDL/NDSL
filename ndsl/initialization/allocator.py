@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Sequence
 
 import numpy as np
@@ -32,7 +33,17 @@ class StorageNumpy:
 
 
 class QuantityFactory:
-    def __init__(self, sizer: GridSizer, numpy) -> None:
+    def __init__(
+        self, sizer: GridSizer, numpy, *, silence_deprecation_warning: bool = False
+    ) -> None:
+        if not silence_deprecation_warning:
+            warnings.warn(
+                "Usage of QuantityFactory(sizer, numpy) is discouraged and will change "
+                "in the next release. Use QuantityFactory.from_backend(sizer, backend) "
+                "instead for a stable experience across the release.",
+                DeprecationWarning,
+                2,
+            )
         self.sizer: GridSizer = sizer
         self._numpy = numpy
 
@@ -51,7 +62,8 @@ class QuantityFactory:
             backend: gt4py backend
         """
         numpy = StorageNumpy(backend)
-        return cls(sizer, numpy)
+        # Don't print the deprecation warning in this case
+        return cls(sizer, numpy, silence_deprecation_warning=True)
 
     def _backend(self) -> str | None:
         if isinstance(self._numpy, StorageNumpy):
