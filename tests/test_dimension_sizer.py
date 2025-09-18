@@ -191,7 +191,7 @@ def test_subtile_dimension_sizer_shape(sizer, dim_case):
 
 
 def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, numpy)
+    allocator = QuantityFactory.from_backend(sizer, "numpy")
     quantity = allocator.zeros(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -202,7 +202,7 @@ def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
 
 
 def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, numpy)
+    allocator = QuantityFactory.from_backend(sizer, "numpy")
     quantity = allocator.ones(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -212,8 +212,8 @@ def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
     assert numpy.all(quantity.data == 1)
 
 
-def test_allocator_empty(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, numpy)
+def test_allocator_empty(sizer, dim_case, units, dtype):
+    allocator = QuantityFactory.from_backend(sizer, "numpy")
     quantity = allocator.empty(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import warnings
 from typing import Callable, Sequence
 
 import numpy as np
@@ -10,7 +13,7 @@ from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
 class StorageNumpy:
-    def __init__(self, backend: str):
+    def __init__(self, backend: str) -> None:
         """Initialize an object which behaves like the numpy module, but uses
         gt4py storage objects for zeros, ones, and empty.
 
@@ -30,7 +33,17 @@ class StorageNumpy:
 
 
 class QuantityFactory:
-    def __init__(self, sizer: GridSizer, numpy) -> None:
+    def __init__(
+        self, sizer: GridSizer, numpy, *, silence_deprecation_warning: bool = False
+    ) -> None:
+        if not silence_deprecation_warning:
+            warnings.warn(
+                "Usage of QuantityFactory(sizer, numpy) is discouraged and will change "
+                "in the next release. Use QuantityFactory.from_backend(sizer, backend) "
+                "instead for a stable experience across the release.",
+                DeprecationWarning,
+                2,
+            )
         self.sizer: GridSizer = sizer
         self._numpy = numpy
 
@@ -41,7 +54,7 @@ class QuantityFactory:
         self.sizer.extra_dim_lengths.update(kwargs)
 
     @classmethod
-    def from_backend(cls, sizer: GridSizer, backend: str):
+    def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
         """Initialize a QuantityFactory to use a specific gt4py backend.
 
         Args:
@@ -49,7 +62,8 @@ class QuantityFactory:
             backend: gt4py backend
         """
         numpy = StorageNumpy(backend)
-        return cls(sizer, numpy)
+        # Don't print the deprecation warning in this case
+        return cls(sizer, numpy, silence_deprecation_warning=True)
 
     def _backend(self) -> str | None:
         if isinstance(self._numpy, StorageNumpy):
