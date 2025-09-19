@@ -1,8 +1,6 @@
 """This module includes integration tests for the `TracerBundle` class,
 testing whole workflows."""
 
-from typing import TypeAlias
-
 from ndsl import StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
@@ -19,9 +17,7 @@ from ndsl.quantity import TracerBundle, TracerBundleTypeRegistry
 #    - dtype can be derived from registered type (via type_name)
 
 _TRACER_BUNDLE_TYPENAME = "TracerBundleTypeWorkflowTests"
-_TracerBundleType: TypeAlias = TracerBundleTypeRegistry.register(
-    _TRACER_BUNDLE_TYPENAME, 5
-)
+_TracerBundleType = TracerBundleTypeRegistry.register(_TRACER_BUNDLE_TYPENAME, 5)
 
 
 def copy_into_tracer(in_field: FloatField, out_field: FloatField):
@@ -52,13 +48,17 @@ class Code:
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
-    def __call__(self, in_field: FloatField, tracers: _TracerBundleType):
+    def __call__(
+        self, in_field: FloatField, out_field: FloatField, tracers: _TracerBundleType
+    ):
         # single tracer representing all memory
         tracers.ice.data[:] = 20
 
         # single tracer sliced into the compute domain
         tracers.ice.field[:] = 10
 
+        # just to test how this looks like with actual quantities, not tracers
+        # self._copy_into_tracer_stencil(in_field, out_field)
         self._copy_into_tracer_stencil(in_field, tracers.vapor)
         self._loop_over_tracers_stencil(tracers, len(tracers))
 
@@ -76,6 +76,7 @@ def test_stencil_workflow() -> None:
     )
 
     field = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
+    other_field = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
     tracers = TracerBundle(
         type_name=_TRACER_BUNDLE_TYPENAME,
         quantity_factory=quantity_factory,
@@ -83,4 +84,4 @@ def test_stencil_workflow() -> None:
     )
 
     code = Code(stencil_factory)
-    code(field, tracers)
+    code(field, other_field, tracers)

@@ -10,7 +10,7 @@ class Tracer(Quantity):
     """A Tracer is a specialized Quantity, grouped together in a TracerBundle."""
 
     def __init__(self, *args, **kwargs) -> None:
-        super(Tracer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 _TracerName = str
