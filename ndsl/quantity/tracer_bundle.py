@@ -3,6 +3,7 @@ from typing import Any
 
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.initialization.allocator import Quantity, QuantityFactory
+from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 
 class Tracer(Quantity):
@@ -31,8 +32,8 @@ class TracerBundle:
     def __init__(
         self,
         *,
+        type_name: str,
         quantity_factory: QuantityFactory,
-        size: int,
         mapping: _TracerMapping = {},
         unit: str = "g/kg",
     ) -> None:
@@ -40,15 +41,19 @@ class TracerBundle:
         Initialize a TracerBundle of a given size.
 
         Args:
+            type_name (str): name under which this bundle's type is registered.
             quantity_factory: QuantityFactory to build tracers with.
-            size: Number of tracers in this bundle.
             mapping: Optional mapping of names to tracer ids, e.g. `{"vapor": 3}`.
             unit: Optional unit of the tracers (one for all).
         """
+        type: Any = TracerBundleTypeRegistry.T(type_name, do_markup=False)
+        size = type.data_dims[0]
         factory = _tracer_quantity_factory(quantity_factory, size)
 
         # TODO: zeros() or empty()? should this be an option?
-        self._quantity = factory.zeros([X_DIM, Y_DIM, Z_DIM, "tracers"], units=unit)
+        self._quantity = factory.zeros(
+            [X_DIM, Y_DIM, Z_DIM, "tracers"], dtype=type.dtype, units=unit
+        )
         self._size = size
         self._name_mapping = mapping
         self._data_mapping: _TracerDataMapping = {}
