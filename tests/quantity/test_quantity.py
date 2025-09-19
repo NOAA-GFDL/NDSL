@@ -289,3 +289,15 @@ def test_data_setter():
     # Expected fail: new array is not even an array
     with pytest.raises(TypeError, match="Quantity.data buffer swap failed.*"):
         quantity.data = "meh"
+
+
+def test_raise_on_data_copy_option():
+    with pytest.raises(RuntimeError, match="Data was copied.*"):
+        Quantity(
+            np.random.randn(3, 2, 4),
+            dims=["dim1", "dim_2", "dims3"],
+            units="n/a",
+            gt4py_backend="dace:cpu",
+            raise_on_data_copy=True,
+        )
+

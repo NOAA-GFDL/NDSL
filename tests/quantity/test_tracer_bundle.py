@@ -51,6 +51,20 @@ def test_same_tracer_by_name_and_index() -> None:
     assert ice_tracer is other_ice_tracer
 
 
+def test_units_are_propagated_to_tracers() -> None:
+    _, factory = get_factories_single_tile(nx=2, ny=3, nz=4, nhalo=1)
+    unit = "u"
+    tracers = TracerBundle(
+        quantity_factory=factory, size=5, unit=unit, mapping={"ice": 3, "vapor": 1}
+    )
+
+    ice_tracer = tracers.ice
+    other_ice_tracer = tracers[3]
+
+    assert ice_tracer.units == unit
+    assert other_ice_tracer.units == unit
+
+
 def test_loop_over_all_tracers() -> None:
     _, factory = get_factories_single_tile(nx=2, ny=3, nz=4, nhalo=1)
     tracers = TracerBundle(

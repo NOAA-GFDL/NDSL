@@ -20,7 +20,13 @@ _TracerDataMapping = dict[_TracerIndex, Tracer]
 
 class TracerBundle:
     """A TracerBundle groups a given set of named/nameless tracers into a single
-    four-dimensional Quantity."""
+    four-dimensional Quantity.
+
+    All tracers can be accessed by index, e.g. `tracer[1]`. Named tracers can be
+    accessed by name too, e.g. `tracer.vapor` assuming `vapor` is defined in the
+    `mapping` of names to tracer indices. `len(tracers)` returns the size of this
+    TracerBundle.
+    """
 
     def __init__(
         self,
@@ -30,12 +36,21 @@ class TracerBundle:
         mapping: _TracerMapping = {},
         unit: str = "g/kg",
     ) -> None:
+        """
+        Initialize a TracerBundle of a given size.
+
+        Args:
+            quantity_factory: QuantityFactory to build tracers with.
+            size: Number of tracers in this bundle.
+            mapping: Optional mapping of names to tracer ids, e.g. `{"vapor": 3}`.
+            unit: Optional unit of the tracers (one for all).
+        """
         factory = _tracer_quantity_factory(quantity_factory, size)
 
-        # TODO: zeros() or empty()?
+        # TODO: zeros() or empty()? should this be an option?
         self._quantity = factory.zeros([X_DIM, Y_DIM, Z_DIM, "tracers"], units=unit)
         self._size = size
-        self.name_mapping = mapping
+        self._name_mapping = mapping
         self._data_mapping: _TracerDataMapping = {}
 
     @property
@@ -53,12 +68,13 @@ class TracerBundle:
         return self._quantity.__descriptor__()
 
     def __len__(self) -> int:
+        """Number of tracers in this bundle."""
         return self._size
 
     def __getattr__(self, name: _TracerName) -> Tracer | None:
         """Access tracers by name, e.g. `tracers.ice`."""
 
-        index = self.name_mapping.get(name, None)
+        index = self._name_mapping.get(name, None)
         if index is None:
             # This replicates as close possible the default behavior of getattr
             # without breaking orchestration
@@ -83,20 +99,22 @@ class TracerBundle:
                 origin=self._quantity.origin[:-1],
                 extent=self._quantity.extent[:-1],
                 units=self._quantity.units,
+                # Ensure we never copy data into a tracer
+                raise_on_data_copy=True,
             )
 
         return self._data_mapping[index]
 
 
 def _tracer_quantity_factory(
-    quantity_factory: QuantityFactory, size: int
+    quantity_factory: QuantityFactory, number_of_tracers: int
 ) -> QuantityFactory:
-    """Create tracer factory from a given cartesian quantity factory.
+    """Create a tracer factory from a given cartesian quantity factory.
 
     Args:
-        quantity_factory: Cartesian 3D factory.
-        size: number of tracers in this bundle.
+        quantity_factory: Cartesian 3D factory to start from.
+        number_of_tracers: number of tracers in this bundle.
     """
     tracer_factory = copy.copy(quantity_factory)
-    tracer_factory.set_extra_dim_lengths(tracers=size)
+    tracer_factory.set_extra_dim_lengths(tracers=number_of_tracers)
     return tracer_factory
