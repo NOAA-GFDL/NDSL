@@ -1,6 +1,7 @@
 from .metadata import QuantityHaloSpec, QuantityMetadata
 from .quantity import Quantity
 from .state import State
+from .tracer_bundle import TracerBundle
 
 
 __all__ = [
@@ -8,4 +9,6 @@ __all__ = [
     "QuantityMetadata",
     "QuantityHaloSpec",
     "State",
+    "Tracer",
+    "TracerBundle",
 ]
