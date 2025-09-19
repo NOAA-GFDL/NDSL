@@ -83,7 +83,6 @@ class Quantity:
 
         if gt4py_backend is not None:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
-            assert gt4py_backend_cls is not None
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
             dimensions: Tuple[Union[str, int], ...] = tuple(
