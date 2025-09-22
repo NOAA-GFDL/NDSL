@@ -385,9 +385,7 @@ class FrozenStencil(SDFGConvertible):
             ndsl_log.debug(f"Running {self._func_name}")
 
         # Marshal arguments
-        args_list = list(args)
-        _convert_NDSL_concepts_to_storage(args_list, kwargs)
-        args = tuple(args_list)
+        args, kwargs = _convert_NDSL_concepts_to_storage(args, kwargs)
         args_as_kwargs = dict(zip(self._argument_names, args))
 
         # Ranks comparison tool
@@ -530,15 +528,25 @@ class FrozenStencil(SDFGConvertible):
         )
 
 
-def _convert_NDSL_concepts_to_storage(args: list, kwargs: dict) -> None:
+def _convert_NDSL_concepts_to_storage(args: tuple, kwargs: dict) -> tuple[tuple, dict]:
+    """Go through the list of args and kwargs to replace NDSL concepts.
+
+    This function replaces NDSL concepts (like a `Quantity`) in the argument list
+    with things that a GT4Py stencils understands (e.g. ndarrays).
+    """
+
+    # The `args` tuple is immutable (all tuples are), so let's build a temporary
+    # argument list, such that we can replace arguments in that list.
+    arg_list = list(args)
+
     for index, argument in enumerate(args):
         if isinstance(argument, TracerBundle):
             # Reduce the TracerBundle to a Quantity (which is handled below)
-            args[index] = argument._quantity.data
+            arg_list[index] = argument._quantity.data
 
         if isinstance(argument, Quantity):
             # For Quantities, we need to pass on the underlying ndarray
-            args[index] = argument.data
+            arg_list[index] = argument.data
 
     for name, argument in kwargs.items():
         if isinstance(argument, TracerBundle):
@@ -548,6 +556,8 @@ def _convert_NDSL_concepts_to_storage(args: list, kwargs: dict) -> None:
         if isinstance(argument, Quantity):
             # For Quantities, we need to pass on the underlying ndarray
             kwargs[name] = argument.data
+
+    return (tuple(arg_list), kwargs)
 
 
 class GridIndexing:
