@@ -80,7 +80,7 @@ def test_units_are_propagated_to_tracers() -> None:
     assert other_ice_tracer.units == unit
 
 
-def test_loop_over_all_tracers() -> None:
+def test_loop_over_all_tracers_index() -> None:
     _, factory = get_factories_single_tile(nx=2, ny=3, nz=4, nhalo=1)
     tracers = TracerBundle(
         type_name=_TRACER_BUNDLE_TYPENAME,
@@ -90,3 +90,15 @@ def test_loop_over_all_tracers() -> None:
 
     for index in range(len(tracers)):
         assert isinstance(tracers[index], Tracer)
+
+
+def test_loop_over_all_tracers() -> None:
+    _, factory = get_factories_single_tile(nx=2, ny=3, nz=4, nhalo=1)
+    tracers = TracerBundle(
+        type_name=_TRACER_BUNDLE_TYPENAME,
+        quantity_factory=factory,
+        mapping={"ice": 3, "vapor": 1},
+    )
+
+    for tracer in tracers:
+        assert isinstance(tracer, Tracer)
