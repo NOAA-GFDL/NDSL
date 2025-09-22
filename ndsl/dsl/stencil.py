@@ -26,8 +26,9 @@ from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
-from ndsl.quantity import Quantity
+from ndsl.quantity import Quantity, TracerBundle
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
+from ndsl.quantity.tracer_bundle_type import MarkupTracerBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
@@ -334,6 +335,11 @@ class FrozenStencil(SDFGConvertible):
                         types.name, do_markup=False
                     )
 
+                if isinstance(types, MarkupTracerBundleType):
+                    raise NotImplementedError(
+                        "TracerBundle markup types can't be resolved yet."
+                    )
+
             self.stencil_object = gtscript.stencil(
                 definition=func,
                 externals=externals,
@@ -380,7 +386,7 @@ class FrozenStencil(SDFGConvertible):
 
         # Marshal arguments
         args_list = list(args)
-        _convert_quantities_to_storage(args_list, kwargs)
+        _convert_NDSL_concepts_to_storage(args_list, kwargs)
         args = tuple(args_list)
         args_as_kwargs = dict(zip(self._argument_names, args))
 
@@ -524,25 +530,24 @@ class FrozenStencil(SDFGConvertible):
         )
 
 
-def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def]
-    for i, arg in enumerate(args):
-        try:
-            # Check that 'dims' is an attribute of arg. If so,
-            # this means it's a Quantity, so we need
-            # to pull off the ndarray.
-            arg.dims
-            args[i] = arg.data
-        except AttributeError:
-            pass
-    for name, arg in kwargs.items():
-        try:
-            # Check that 'dims' is an attribute of arg. If so,
-            # this means it's a Quantity, so we need
-            # to pull off the ndarray.
-            arg.dims
-            kwargs[name] = arg.data
-        except AttributeError:
-            pass
+def _convert_NDSL_concepts_to_storage(args: list, kwargs: dict) -> None:
+    for index, argument in enumerate(args):
+        if isinstance(argument, TracerBundle):
+            # Reduce the TracerBundle to a Quantity (which is handled below)
+            args[index] = argument._quantity.data
+
+        if isinstance(argument, Quantity):
+            # For Quantities, we need to pass on the underlying ndarray
+            args[index] = argument.data
+
+    for name, argument in kwargs.items():
+        if isinstance(argument, TracerBundle):
+            # Reduce the TracerBundle to a Quantity (which is handled below)
+            kwargs[name] = argument._quantity
+
+        if isinstance(argument, Quantity):
+            # For Quantities, we need to pass on the underlying ndarray
+            kwargs[name] = argument.data
 
 
 class GridIndexing:

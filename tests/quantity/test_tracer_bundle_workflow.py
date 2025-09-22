@@ -30,6 +30,7 @@ def loop_over_tracers(out_field: _TracerBundleType, n_tracers: int):
         n = 0
         while n < n_tracers:
             out_field[0, 0, 0][n] = 42
+            n = n + 1
 
 
 class Code:
@@ -58,7 +59,7 @@ class Code:
         tracers.ice.field[:] = 10
 
         # just to test how this looks like with actual quantities, not tracers
-        # self._copy_into_tracer_stencil(in_field, out_field)
+        self._copy_into_tracer_stencil(in_field, out_field)
         self._copy_into_tracer_stencil(in_field, tracers.vapor)
         self._loop_over_tracers_stencil(tracers, len(tracers))
 
@@ -67,7 +68,7 @@ class Code:
 
 
 def test_stencil_workflow() -> None:
-    backend = "dace:cpu"
+    backend = "dace:cpu"  # this case could be many backends
     domain = (2, 3, 4)
     halo_points = 1
 
