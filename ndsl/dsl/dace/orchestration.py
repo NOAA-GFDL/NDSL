@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
-from dace import SDFG
+from dace import SDFG, CompiledSDFG
 from dace import compiletime as DaceCompiletime
 from dace import dtypes
 from dace import method as dace_method
@@ -25,7 +25,6 @@ from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
     DaceConfig,
     DaCeOrchestration,
-    FrozenCompiledSDFG,
 )
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
@@ -197,7 +196,10 @@ def _build_sdfg(
     # On Build: all ranks sync, then exit.
     # On BuildAndRun: all ranks sync, then load the SDFG from
     #                 the expected path (made available by build).
-    # We use a "FrozenCompiledSDFG" to minimize re-entry cost at call time
+    # We use a "CompiledSDFG" which keep the `so` online but _won't_
+    # do the marshalling of the arguments at call time. For this we call
+    # `dace_program._create_sdfg_args`. There's optimization potential for
+    # re-entry cost there.
 
     mode = config.get_orchestrate()
     # DEV NOTE: we explicitly use MPI.COMM_WORLD here because it is
@@ -217,12 +219,12 @@ def _build_sdfg(
 
         with DaCeProgress(config, "Loading"):
             sdfg_path = get_sdfg_path(dace_program.name, config, override_run_only=True)
+            if sdfg_path is None:
+                raise ValueError("Couldn't load SDFG post build")
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
-            )
-            config.loaded_precompiled_SDFG[dace_program] = FrozenCompiledSDFG(
-                dace_program, compiledSDFG, args, kwargs
-            )
+            )  # type: ignore
+            config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
         return _call_sdfg(dace_program, sdfg, config, args, kwargs)
 
@@ -237,7 +239,17 @@ def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, 
         with DaCeProgress(config, "Run"):
             if config.is_gpu_backend():
                 _upload_to_device(list(args) + list(kwargs.values()))
-            res = config.loaded_precompiled_SDFG[dace_program]()
+
+            # NOTE: this will go over declared arguments and closure arguments.
+            # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
+            # function that expects all pointers to have been made C worthy. This is
+            # something we did with "FrozenCompileSDFG" but we undid because it meant that
+            # external changing memory (reallocation...) would quietly fail
+            current_sdfg_args = dace_program._create_sdfg_args(
+                config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
+            )
+
+            res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
             res = _download_results_from_dace(
                 config, res, list(args) + list(kwargs.values())
             )
@@ -261,7 +273,7 @@ def _parse_sdfg(
     config: DaceConfig,
     *args,
     **kwargs,
-) -> Optional[SDFG]:
+) -> Optional[SDFG | CompiledSDFG]:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
 
@@ -303,9 +315,7 @@ def _parse_sdfg(
 
     with DaCeProgress(config, "Load precompiled .sdfg (.so)"):
         compiledSDFG, _ = dace_program.load_precompiled_sdfg(sdfg_path, *args, **kwargs)
-        config.loaded_precompiled_SDFG[dace_program] = FrozenCompiledSDFG(
-            dace_program, compiledSDFG, args, kwargs
-        )
+        config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
     return compiledSDFG
 
 
