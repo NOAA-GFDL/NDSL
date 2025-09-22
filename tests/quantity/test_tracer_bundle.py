@@ -42,10 +42,10 @@ def test_access_tracer_by_index() -> None:
 
     assert isinstance(tracers[0], Tracer)
 
-    with pytest.raises(ValueError, match=".*select tracers in range.*"):
+    with pytest.raises(IndexError, match=".*select tracers in range.*"):
         tracers[len(tracers)]
 
-    with pytest.raises(ValueError, match=".*select tracers in range.*"):
+    with pytest.raises(IndexError, match=".*select tracers in range.*"):
         tracers[-1]
 
 

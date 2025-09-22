@@ -93,7 +93,9 @@ class TracerBundle:
 
     def _by_index(self, index: _TracerIndex) -> Tracer:
         if index < 0 or index >= self._size:
-            raise ValueError(f"You can only select tracers in range [0, {self._size}).")
+            # Note: it is important to raise an IndexError to support iterations of
+            #       the form `for tracer in tracers`.
+            raise IndexError(f"You can only select tracers in range [0, {self._size}).")
 
         # Memoize tracers accessed such that we always return the same instance
         # regardless of whether users access through __getattr__() or __getitem__().
