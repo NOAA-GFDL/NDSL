@@ -1,8 +1,19 @@
+from unittest.mock import MagicMock
+
+import numpy as np
 import pytest
 from gt4py.storage import empty, ones
 
-from ndsl import CompilationConfig, GridIndexing, StencilConfig, StencilFactory
+from ndsl import (
+    CompilationConfig,
+    FrozenStencil,
+    GridIndexing,
+    StencilConfig,
+    StencilFactory,
+)
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
+from ndsl.dsl.typing import FloatField
+from ndsl.quantity import Quantity
 from tests.dsl import utils
 
 
@@ -61,3 +72,39 @@ def test_grid_indexing_get_2d_compute_origin_domain(
 
     assert origin[2] == expected_origin_k
     assert domain[2] == 1
+
+
+def copy_stencil(q_in: FloatField, q_out: FloatField):  # type: ignore
+    with computation(PARALLEL), interval(...):
+        q_out[0, 0, 0] = q_in
+
+
+@pytest.mark.parametrize(
+    "extent,dimensions,domain,expected_result",
+    [
+        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), True),
+        ((20, 20), ["x", "y"], (20, 20, 30), True),
+        ((20, 20), ["x_interface", "y"], (20, 20, 30), True),
+        ((20, 20), ["x", "y_interface"], (20, 20, 30), True),
+        ((20,), ["z"], (20, 20, 10), True),
+        ((20,), ["z_interface"], (20, 20, 10), True),
+        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), False),
+        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), False),
+        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), False),
+    ],
+)
+def test_domain_size_comparison(
+    extent: tuple[int],
+    dimensions: list[str],
+    domain: tuple[int],
+    expected_result: bool,
+):
+    quantity = Quantity(np.zeros(extent), dimensions, "n/a", extent=extent)
+    stencil = FrozenStencil(
+        copy_stencil,
+        origin=(0, 0, 0),
+        domain=domain,
+        stencil_config=MagicMock(spec=StencilConfig),
+    )
+
+    assert stencil.domain_size_comparison(quantity) == expected_result
