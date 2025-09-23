@@ -57,9 +57,7 @@ def _upload_to_device(host_data: list) -> None:
             host_data[i] = cp.asarray(data)
 
 
-def _download_results_from_dace(
-    config: DaceConfig, dace_result: list | None, args: list
-):
+def _download_results_from_dace(config: DaceConfig, dace_result: list | None):
     """Move all data from DaCe memory space to GT4Py"""
     if dace_result is None:
         return None
@@ -251,9 +249,7 @@ def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, 
             )
 
             res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
-            res = _download_results_from_dace(
-                config, res, list(args) + list(kwargs.values())
-            )
+            res = _download_results_from_dace(config, res)
         return res
 
     mode = config.get_orchestrate()
