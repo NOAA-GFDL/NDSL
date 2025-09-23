@@ -212,7 +212,7 @@ def _build_sdfg(
     if mode == DaCeOrchestration.BuildAndRun:
         if not is_compiling:
             ndsl_log.info(
-                f"{DaCeProgress.default_prefix(config)} Rank is not compiling."
+                f"{DaCeProgress.default_prefix(config)} Rank is not compiling. "
                 "Waiting for compilation to end on all other ranks..."
             )
         MPI.COMM_WORLD.Barrier()
@@ -447,9 +447,9 @@ class _LazyComputepathMethod:
 def orchestrate(
     *,
     obj: object,
-    config: Optional[DaceConfig],
+    config: DaceConfig,
     method_to_orchestrate: str = "__call__",
-    dace_compiletime_args: Optional[Sequence[str]] = None,
+    dace_compiletime_args: Sequence[str] | None = None,
 ):
     """
     Orchestrate a method of an object with DaCe.
@@ -464,77 +464,77 @@ def orchestrate(
         dace_compiletime_args: list of names of arguments to be flagged has
                                dace.compiletime for orchestration to behave
     """
+    if not config.is_dace_orchestrated():
+        return
+
     if config is None:
         raise ValueError("DaCe config cannot be None")
+
+    if not hasattr(obj, method_to_orchestrate):
+        raise RuntimeError(
+            f"Could not orchestrate, "
+            f"{type(obj).__name__}.{method_to_orchestrate} "
+            "does not exists"
+        )
 
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    if config.is_dace_orchestrated():
-        if not hasattr(obj, method_to_orchestrate):
-            raise RuntimeError(
-                f"Could not orchestrate, "
-                f"{type(obj).__name__}.{method_to_orchestrate} "
-                "does not exists"
-            )
+    func = type.__getattribute__(type(obj), method_to_orchestrate)
 
-        func = type.__getattribute__(type(obj), method_to_orchestrate)
+    # Flag argument as dace.constant
+    for argument in dace_compiletime_args:
+        func.__annotations__[argument] = DaceCompiletime
 
-        # Flag argument as dace.constant
-        for argument in dace_compiletime_args:
-            func.__annotations__[argument] = DaceCompiletime
+    # Build DaCe orchestrated wrapper
+    # This is a JIT object, e.g. DaCe compilation will happen on call
+    wrapped = _LazyComputepathMethod(func, config).__get__(obj)
 
-        # Build DaCe orchestrated wrapper
-        # This is a JIT object, e.g. DaCe compilation will happen on call
-        wrapped = _LazyComputepathMethod(func, config).__get__(obj)
+    if method_to_orchestrate == "__call__":
+        # Grab the function from the type of the child class
+        # Dev note: we need to use type for dunder call because:
+        #   a = A()
+        #   a()
+        # resolved to: type(a).__call__(a)
+        # therefore patching the instance call (e.g a.__call__) is not enough.
+        # We could patch the type(self), ergo the class itself
+        # but that would patch _every_ instance of A.
+        # What we can do is patch the instance.__class__ with a local made class
+        # in order to keep each instance with it's own patch.
+        #
+        # Re: type:ignore
+        # Mypy is unhappy about dynamic class name and the devs (per github
+        # issues discussion) is to make a plugin. Too much work -> ignore mypy
 
-        if method_to_orchestrate == "__call__":
-            # Grab the function from the type of the child class
-            # Dev note: we need to use type for dunder call because:
-            #   a = A()
-            #   a()
-            # resolved to: type(a).__call__(a)
-            # therefore patching the instance call (e.g a.__call__) is not enough.
-            # We could patch the type(self), ergo the class itself
-            # but that would patch _every_ instance of A.
-            # What we can do is patch the instance.__class__ with a local made class
-            # in order to keep each instance with it's own patch.
-            #
-            # Re: type:ignore
-            # Mypy is unhappy about dynamic class name and the devs (per github
-            # issues discussion) is to make a plugin. Too much work -> ignore mypy
+        class _(type(obj)):  # type: ignore
+            __qualname__ = f"{type(obj).__qualname__}_patched"
+            __name__ = f"{type(obj).__name__}_patched"
 
-            class _(type(obj)):  # type: ignore
-                __qualname__ = f"{type(obj).__qualname__}_patched"
-                __name__ = f"{type(obj).__name__}_patched"
+            def __call__(self, *arg, **kwarg):
+                return wrapped(*arg, **kwarg)
 
-                def __call__(self, *arg, **kwarg):
-                    return wrapped(*arg, **kwarg)
+            def __sdfg__(self, *args, **kwargs):
+                return wrapped.__sdfg__(*args, **kwargs)
 
-                def __sdfg__(self, *args, **kwargs):
-                    return wrapped.__sdfg__(*args, **kwargs)
+            def __sdfg_closure__(self, reevaluate=None):
+                return wrapped.__sdfg_closure__(reevaluate)
 
-                def __sdfg_closure__(self, reevaluate=None):
-                    return wrapped.__sdfg_closure__(reevaluate)
+            def __sdfg_signature__(self):
+                return wrapped.__sdfg_signature__()
 
-                def __sdfg_signature__(self):
-                    return wrapped.__sdfg_signature__()
+            def closure_resolver(self, constant_args, given_args, parent_closure=None):
+                return wrapped.closure_resolver(
+                    constant_args, given_args, parent_closure
+                )
 
-                def closure_resolver(
-                    self, constant_args, given_args, parent_closure=None
-                ):
-                    return wrapped.closure_resolver(
-                        constant_args, given_args, parent_closure
-                    )
-
-            # We keep the original class type name to not perturb
-            # the workflows that uses it to build relevant info (path, hash...)
-            previous_cls_name = type(obj).__name__
-            obj.__class__ = _
-            type(obj).__name__ = previous_cls_name
-        else:
-            # For regular attribute - we can just patch as usual
-            setattr(obj, method_to_orchestrate, wrapped)
+        # We keep the original class type name to not perturb
+        # the workflows that uses it to build relevant info (path, hash...)
+        previous_cls_name = type(obj).__name__
+        obj.__class__ = _
+        type(obj).__name__ = previous_cls_name
+    else:
+        # For regular attribute - we can just patch as usual
+        setattr(obj, method_to_orchestrate, wrapped)
 
 
 def orchestrate_function(
