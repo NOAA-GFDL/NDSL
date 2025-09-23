@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
@@ -66,3 +67,12 @@ def test_boilerplate_import_orchestrated_cpu():
     assert quantity_factory._backend() == "dace:cpu"
 
     _copy_ops(stencil_factory, quantity_factory)
+
+
+def test_boilerplate_non_dace_based_orchestration_raises():
+    from ndsl.boilerplate import get_factories_single_tile_orchestrated
+
+    with pytest.raises(ValueError, match="Only .* backends can be orchestrated."):
+        get_factories_single_tile_orchestrated(
+            nx=5, ny=5, nz=2, nhalo=1, backend="numpy"
+        )
