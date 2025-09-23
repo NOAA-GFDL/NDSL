@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from dace import SDFG, CompiledSDFG
 from dace import compiletime as DaceCompiletime
@@ -45,7 +46,7 @@ def dace_inhibitor(func: Callable) -> Callable:
     return func
 
 
-def _upload_to_device(host_data: List[Any]) -> None:
+def _upload_to_device(host_data: list) -> None:
     """Make sure any ndarrays gets uploaded to the device
 
     This will raise an assertion if cupy is not installed.
@@ -57,7 +58,7 @@ def _upload_to_device(host_data: List[Any]) -> None:
 
 
 def _download_results_from_dace(
-    config: DaceConfig, dace_result: Optional[List[Any]], args: List[Any]
+    config: DaceConfig, dace_result: list | None, args: list
 ):
     """Move all data from DaCe memory space to GT4Py"""
     if dace_result is None:
@@ -273,7 +274,7 @@ def _parse_sdfg(
     config: DaceConfig,
     *args,
     **kwargs,
-) -> Optional[SDFG | CompiledSDFG]:
+) -> SDFG | CompiledSDFG | None:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
 
@@ -382,7 +383,7 @@ class _LazyComputepathMethod:
 
     # In order to not regenerate SDFG for the same obj.method callable
     # we cache the SDFGEnabledCallable we have already init
-    bound_callables: Dict[Tuple[int, int], "SDFGEnabledCallable"] = dict()
+    bound_callables: dict[tuple[int, int], SDFGEnabledCallable] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
         def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
@@ -539,8 +540,8 @@ def orchestrate(
 
 def orchestrate_function(
     config: DaceConfig = None,
-    dace_compiletime_args: Optional[Sequence[str]] = None,
-) -> Union[Callable[..., Any], _LazyComputepathFunction]:
+    dace_compiletime_args: Sequence[str] | None = None,
+) -> Callable[..., Any] | _LazyComputepathFunction:
     """
     Decorator orchestrating a method of an object with DaCe.
     If the model configuration doesn't demand orchestration, this won't do anything.
