@@ -302,6 +302,9 @@ class FrozenStencil(SDFGConvertible):
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
+        # NOTE: this is also down in `dace/build.py` for orchestration
+        # This is still needed for non-orchestrated used of DaCe.
+        # A better build system would take care of BOTH of those at the same time
         if "dace" in self.stencil_config.compilation_config.backend:
             dace.Config.set(
                 "default_build_folder",
@@ -500,8 +503,7 @@ class FrozenStencil(SDFGConvertible):
             for field_name in field_info
             if field_info[field_name]
             and bool(
-                field_info[field_name].access
-                & gt_definitions.AccessKind.WRITE  # type: ignore
+                field_info[field_name].access & gt_definitions.AccessKind.WRITE  # type: ignore
             )
         ]
         return write_fields
