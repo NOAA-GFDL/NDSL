@@ -116,8 +116,8 @@ def _simplify(
 
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
-):
-    """Build the .so out of the SDFG on the top tile ranks only"""
+) -> None:
+    """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
 
     if is_compiling:
@@ -225,44 +225,46 @@ def _build_sdfg(
             )  # type: ignore
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
-        return _call_sdfg(dace_program, sdfg, config, args, kwargs)
-
 
 def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs):
-    """Dispatch the SDFG execution and/or build"""
+    """Dispatch to either SDFG execution and/or build."""
+    # Check if we need to build first
+    mode = config.get_orchestrate()
+    if (
+        mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
+        and dace_program not in config.loaded_precompiled_SDFG  # already cached
+    ):
+        ndsl_log.info("Building DaCe orchestration")
+        _build_sdfg(dace_program, sdfg, config, args, kwargs)
+
+    if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
+        raise ValueError(f"Unexpected DaceOrchestration mode `{mode}`.")
+
+    if dace_program not in config.loaded_precompiled_SDFG:
+        raise RuntimeError(
+            "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
+            "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
+        )
+
     # Pre-compiled SDFG code path does away with any data checks and
     # cached the marshalling - leading to almost direct C call
     # DaceProgram performs argument transformation & checks for a cost ~200ms
     # of overhead
-    if dace_program in config.loaded_precompiled_SDFG:
-        with DaCeProgress(config, "Run"):
-            if config.is_gpu_backend():
-                _upload_to_device(list(args) + list(kwargs.values()))
+    with DaCeProgress(config, "Run"):
+        if config.is_gpu_backend():
+            _upload_to_device(list(args) + list(kwargs.values()))
 
-            # NOTE: this will go over declared arguments and closure arguments.
-            # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
-            # function that expects all pointers to have been made C worthy. This is
-            # something we did with "FrozenCompileSDFG" but we undid because it meant that
-            # external changing memory (reallocation...) would quietly fail
-            current_sdfg_args = dace_program._create_sdfg_args(
-                config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
-            )
+        # NOTE: this will go over declared arguments and closure arguments.
+        # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
+        # function that expects all pointers to have been made C worthy. This is
+        # something we did with "FrozenCompileSDFG" but we undid because it meant that
+        # external changing memory (reallocation...) would quietly fail
+        current_sdfg_args = dace_program._create_sdfg_args(
+            config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
+        )
 
-            res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
-            res = _download_results_from_dace(config, res)
-        return res
-
-    mode = config.get_orchestrate()
-    if mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]:
-        ndsl_log.info("Building DaCe orchestration")
-        return _build_sdfg(dace_program, sdfg, config, args, kwargs)
-
-    if mode == DaCeOrchestration.Run:
-        # We should never hit this, it should be caught by the
-        # loaded_precompiled_SDFG check above
-        raise RuntimeError("Unexpected call - pre-compiled SDFG failed to load")
-    else:
-        raise NotImplementedError(f"Mode '{mode}' unimplemented at call time")
+        results = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
+        return _download_results_from_dace(config, results)
 
 
 def _parse_sdfg(
