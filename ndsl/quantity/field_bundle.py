@@ -141,7 +141,7 @@ class FieldBundleType:
     """Field Bundle Types to help with static sizing of Data Dimensions.
 
     Methods:
-        register: Register a type by sizing it's data dimensions
+        register: Register a type by sizing its data dimensions
         T: access any registered types for type hinting.
     """
 
@@ -151,7 +151,7 @@ class FieldBundleType:
     def register(
         cls, name: str, data_dims: tuple[int], dtype=Float
     ) -> gtscript._FieldDescriptor:
-        """Register a name type by name by giving the size of it's data dimensions.
+        """Register a name type by name by giving the size of its data dimensions.
 
         The same type cannot be registered twice and will error out.
 

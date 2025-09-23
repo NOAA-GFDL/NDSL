@@ -110,6 +110,9 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
+        # We disable ScalarToSymbolPromotion because it might push symbols onto edges
+        # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
+        # calls or (complicated) field accesses.
         skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
