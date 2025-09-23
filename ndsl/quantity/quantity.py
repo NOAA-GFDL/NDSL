@@ -24,9 +24,7 @@ if cupy is None:
 
 
 class Quantity:
-    """
-    Data container for physical quantities.
-    """
+    """Data container for physical quantities."""
 
     def __init__(
         self,
@@ -305,6 +303,7 @@ class Quantity:
 
     def __descriptor__(self) -> Any:
         """The descriptor is a property that dace uses.
+
         This relies on `dace` capacity to read out data from the buffer protocol.
         If the internal data given doesn't follow the protocol it will most likely
         fail.

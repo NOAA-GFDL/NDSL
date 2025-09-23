@@ -527,9 +527,7 @@ class MetricTerms:
 
     @property
     def dgrid_lon_lat(self):
-        """
-        The longitudes and latitudes of the cell corners.
-        """
+        """The longitudes and latitudes of the cell corners."""
         return self.grid
 
     @property
@@ -546,9 +544,7 @@ class MetricTerms:
 
     @property
     def agrid_lon_lat(self):
-        """
-        The longitudes and latitudes of the cell centers.
-        """
+        """The longitudes and latitudes of the cell centers."""
         return self.agrid
 
     @property
@@ -597,63 +593,49 @@ class MetricTerms:
 
     @property
     def dx(self) -> Quantity:
-        """
-        The distance between grid corners along the x-direction.
-        """
+        """The distance between grid corners along the x-direction."""
         if self._dx is None:
             self._dx, self._dy = self._compute_dxdy()
         return self._dx
 
     @property
     def dy(self) -> Quantity:
-        """
-        The distance between grid corners along the y-direction.
-        """
+        """The distance between grid corners along the y-direction."""
         if self._dy is None:
             self._dx, self._dy = self._compute_dxdy()
         return self._dy
 
     @property
     def dxa(self) -> Quantity:
-        """
-        The with of each grid cell along the x-direction.
-        """
+        """The with of each grid cell along the x-direction."""
         if self._dx_agrid is None:
             self._dx_agrid, self._dy_agrid = self._compute_dxdy_agrid()
         return self._dx_agrid
 
     @property
     def dya(self) -> Quantity:
-        """
-        The with of each grid cell along the y-direction.
-        """
+        """The with of each grid cell along the y-direction."""
         if self._dy_agrid is None:
             self._dx_agrid, self._dy_agrid = self._compute_dxdy_agrid()
         return self._dy_agrid
 
     @property
     def dxc(self) -> Quantity:
-        """
-        The distance between cell centers along the x-direction.
-        """
+        """The distance between cell centers along the x-direction."""
         if self._dx_center is None:
             self._dx_center, self._dy_center = self._compute_dxdy_center()
         return self._dx_center
 
     @property
     def dyc(self) -> Quantity:
-        """
-        The distance between cell centers along the y-direction.
-        """
+        """The distance between cell centers along the y-direction."""
         if self._dy_center is None:
             self._dx_center, self._dy_center = self._compute_dxdy_center()
         return self._dy_center
 
     @property
     def ks(self) -> int:
-        """
-        Number of levels where the vertical coordinate is purely pressure-based.
-        """
+        """Number of levels where the vertical coordinate is purely pressure-based."""
         return self._ks
 
     @property
@@ -676,9 +658,7 @@ class MetricTerms:
 
     @property
     def ptop(self) -> int:
-        """
-        The pressure of the top of atmosphere level
-        """
+        """The pressure of the top of atmosphere level."""
         return self._ptop
 
     @property
@@ -1525,45 +1505,35 @@ class MetricTerms:
 
     @property
     def area(self) -> Quantity:
-        """
-        The area of each a-grid cell.
-        """
+        """The area of each a-grid cell."""
         if self._area is None:
             self._area, self._area64 = self._compute_area()
         return self._area
 
     @property
     def area64(self) -> Quantity:
-        """
-        The area of each a-grid cell, at 64-bit precision.
-        """
+        """The area of each a-grid cell, at 64-bit precision."""
         if self._area64 is None:
             self._area, self._area64 = self._compute_area()
         return self._area64
 
     @property
     def area_c(self) -> Quantity:
-        """
-        The area of each c-grid cell.
-        """
+        """The area of each c-grid cell."""
         if self._area_c is None:
             self._area_c = self._compute_area_c()
         return self._area_c
 
     @functools.cached_property
     def _dgrid_xyz_64(self) -> Quantity:
-        """
-        Cartesian coordinates of each dgrid cell center.
-        """
+        """Cartesian coordinates of each dgrid cell center."""
         return lon_lat_to_xyz(
             self._grid_64.data[:, :, 0], self._grid_64.data[:, :, 1], self._np
         )
 
     @functools.cached_property
     def _agrid_xyz_64(self) -> Quantity:
-        """
-        Cartesian coordinates of each agrid cell center.
-        """
+        """Cartesian coordinates of each agrid cell center."""
         return lon_lat_to_xyz(
             self._agrid_64.data[:-1, :-1, 0],
             self._agrid_64.data[:-1, :-1, 1],
