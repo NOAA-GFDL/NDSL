@@ -405,8 +405,6 @@ class FrozenStencil(SDFGConvertible):
 
         Args:
             quantity (Quantity): Quantity to check
-            name (str, optional): Name of the Quantity to check for error messaging.
-                Defaults to "unknown Quantity".
         """
         domain_sizes = dict(zip(("x", "y", "z"), self.domain))
         for axis, quantity_size in zip(quantity.dims, quantity.extent):
