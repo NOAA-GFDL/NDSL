@@ -4,6 +4,7 @@ import contextlib
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
 
 import numpy as np
+from numpy.lib.index_tricks import IndexExpression
 
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.types import Allocator
@@ -77,8 +78,8 @@ class Buffer:
     def assign_to(
         self,
         destination_array: np.ndarray,
-        buffer_slice=np.index_exp[:],
-        buffer_reshape=None,
+        buffer_slice: IndexExpression = np.index_exp[:],
+        buffer_reshape: IndexExpression = None,
     ):
         """Assign internal array to destination_array.
 
@@ -93,7 +94,9 @@ class Buffer:
                 np.reshape(self.array[buffer_slice], buffer_reshape, order="C"),
             )
 
-    def assign_from(self, source_array: np.ndarray, buffer_slice=np.index_exp[:]):
+    def assign_from(
+        self, source_array: np.ndarray, buffer_slice: IndexExpression = np.index_exp[:]
+    ):
         """Assign source_array to internal array.
 
         Args:
