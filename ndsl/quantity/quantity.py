@@ -24,9 +24,7 @@ if cupy is None:
 
 
 class Quantity:
-    """
-    Data container for physical quantities.
-    """
+    """Data container for physical quantities."""
 
     def __init__(
         self,
@@ -83,7 +81,6 @@ class Quantity:
 
         if gt4py_backend is not None:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
-            assert gt4py_backend_cls is not None
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
             dimensions: Tuple[Union[str, int], ...] = tuple(
@@ -221,7 +218,7 @@ class Quantity:
 
     @property
     def units(self) -> str:
-        """units of the quantity"""
+        """Units of the quantity"""
         return self.metadata.units
 
     @property
@@ -234,7 +231,7 @@ class Quantity:
 
     @property
     def dims(self) -> Tuple[str, ...]:
-        """names of each dimension"""
+        """Names of each dimension"""
         return self.metadata.dims
 
     @property
@@ -250,7 +247,7 @@ class Quantity:
 
     @property
     def view(self) -> BoundedArrayView:
-        """a view into the computational domain of the underlying data"""
+        """A view into the computational domain of the underlying data"""
         return self._compute_domain_view
 
     @property
@@ -259,7 +256,7 @@ class Quantity:
 
     @property
     def data(self) -> Union[np.ndarray, cupy.ndarray]:
-        """the underlying array of data"""
+        """The underlying array of data"""
         return self._data
 
     @data.setter
@@ -269,12 +266,12 @@ class Quantity:
 
     @property
     def origin(self) -> Tuple[int, ...]:
-        """the start of the computational domain"""
+        """The start of the computational domain"""
         return self.metadata.origin
 
     @property
     def extent(self) -> Tuple[int, ...]:
-        """the shape of the computational domain"""
+        """The shape of the computational domain"""
         return self.metadata.extent
 
     @property
@@ -305,6 +302,7 @@ class Quantity:
 
     def __descriptor__(self) -> Any:
         """The descriptor is a property that dace uses.
+
         This relies on `dace` capacity to read out data from the buffer protocol.
         If the internal data given doesn't follow the protocol it will most likely
         fail.

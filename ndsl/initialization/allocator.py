@@ -1,4 +1,7 @@
-from typing import Callable, Optional, Sequence
+from __future__ import annotations
+
+import warnings
+from typing import Callable, Sequence
 
 import numpy as np
 from gt4py import storage as gt_storage
@@ -10,7 +13,7 @@ from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
 class StorageNumpy:
-    def __init__(self, backend: str):
+    def __init__(self, backend: str) -> None:
         """Initialize an object which behaves like the numpy module, but uses
         gt4py storage objects for zeros, ones, and empty.
 
@@ -30,18 +33,28 @@ class StorageNumpy:
 
 
 class QuantityFactory:
-    def __init__(self, sizer: GridSizer, numpy):
+    def __init__(
+        self, sizer: GridSizer, numpy, *, silence_deprecation_warning: bool = False
+    ) -> None:
+        if not silence_deprecation_warning:
+            warnings.warn(
+                "Usage of QuantityFactory(sizer, numpy) is discouraged and will change "
+                "in the next release. Use QuantityFactory.from_backend(sizer, backend) "
+                "instead for a stable experience across the release.",
+                DeprecationWarning,
+                2,
+            )
         self.sizer: GridSizer = sizer
         self._numpy = numpy
 
-    def set_extra_dim_lengths(self, **kwargs):
+    def set_extra_dim_lengths(self, **kwargs) -> None:
         """
         Set the length of extra (non-x/y/z) dimensions.
         """
         self.sizer.extra_dim_lengths.update(kwargs)
 
     @classmethod
-    def from_backend(cls, sizer: GridSizer, backend: str):
+    def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
         """Initialize a QuantityFactory to use a specific gt4py backend.
 
         Args:
@@ -49,13 +62,14 @@ class QuantityFactory:
             backend: gt4py backend
         """
         numpy = StorageNumpy(backend)
-        return cls(sizer, numpy)
+        # Don't print the deprecation warning in this case
+        return cls(sizer, numpy, silence_deprecation_warning=True)
 
-    def _backend(self) -> Optional[str]:
-        try:
+    def _backend(self) -> str | None:
+        if isinstance(self._numpy, StorageNumpy):
             return self._numpy.backend
-        except AttributeError:
-            return None
+
+        return None
 
     def empty(
         self,
@@ -63,7 +77,7 @@ class QuantityFactory:
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
-    ):
+    ) -> Quantity:
         return self._allocate(
             self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
         )
@@ -74,7 +88,7 @@ class QuantityFactory:
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
-    ):
+    ) -> Quantity:
         return self._allocate(
             self._numpy.zeros, dims, units, dtype, allow_mismatch_float_precision
         )
@@ -85,7 +99,7 @@ class QuantityFactory:
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
-    ):
+    ) -> Quantity:
         return self._allocate(
             self._numpy.ones, dims, units, dtype, allow_mismatch_float_precision
         )
@@ -96,7 +110,7 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         allow_mismatch_float_precision: bool = False,
-    ):
+    ) -> Quantity:
         """
         Create a Quantity from a numpy array.
 
@@ -118,7 +132,7 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         allow_mismatch_float_precision: bool = False,
-    ):
+    ) -> Quantity:
         """
         Create a Quantity from a numpy array.
 
@@ -141,7 +155,7 @@ class QuantityFactory:
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
-    ):
+    ) -> Quantity:
         origin = self.sizer.get_origin(dims)
         extent = self.sizer.get_extent(dims)
         shape = self.sizer.get_shape(dims)
@@ -174,7 +188,7 @@ class QuantityFactory:
     def get_quantity_halo_spec(
         self,
         dims: Sequence[str],
-        n_halo: Optional[int] = None,
+        n_halo: int | None = None,
         dtype: type = Float,
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update.
