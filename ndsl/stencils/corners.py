@@ -1,9 +1,10 @@
-from typing import Optional, Sequence, Tuple
 import warnings
+from typing import Optional, Sequence, Tuple
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
+from ndsl import StencilFactory, orchestrate
 from ndsl.constants import (
     X_DIM,
     X_INTERFACE_DIM,
@@ -11,9 +12,8 @@ from ndsl.constants import (
     Y_INTERFACE_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
+from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
-from ndsl import StencilFactory, orchestrate
 
 
 class CopyCorners:
