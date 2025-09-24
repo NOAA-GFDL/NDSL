@@ -1,16 +1,71 @@
 from typing import Optional, Sequence, Tuple
+import warnings
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
 from ndsl.constants import (
+    X_DIM,
     X_INTERFACE_DIM,
+    Y_DIM,
     Y_INTERFACE_DIM,
     Z_INTERFACE_DIM,
 )
 from ndsl.dsl.stencil import GridIndexing, StencilFactory
 from ndsl.dsl.typing import FloatField
 from ndsl import StencilFactory, orchestrate
+
+
+class CopyCorners:
+    """
+    Helper-class to copy corners corresponding to the fortran functions
+    copy_corners_x or copy_corners_y respectively
+    """
+
+    def __init__(self, direction: str, stencil_factory: StencilFactory) -> None:
+        """The grid for this stencil"""
+        warnings.warn(
+            "Usage of the GT4Py implementation of CopyCorners is discouraged and will"
+            "be removed in the next release. Use `CopyCornersX` or `CopyCornersY` directly"
+            "for a more future-proof implementation of the same code.",
+            DeprecationWarning,
+            2,
+        )
+        grid_indexing = stencil_factory.grid_indexing
+
+        n_halo = grid_indexing.n_halo
+        origin, domain = grid_indexing.get_origin_domain(
+            dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], halos=(n_halo, n_halo)
+        )
+
+        ax_offsets = grid_indexing.axis_offsets(origin, domain)
+        if direction == "x":
+            self._copy_corners = stencil_factory.from_origin_domain(
+                func=copy_corners_x_stencil_defn,
+                origin=origin,
+                domain=domain,
+                externals={
+                    **ax_offsets,
+                },
+            )
+        elif direction == "y":
+            self._copy_corners = stencil_factory.from_origin_domain(
+                func=copy_corners_y_stencil_defn,
+                origin=origin,
+                domain=domain,
+                externals={
+                    **ax_offsets,
+                },
+            )
+        else:
+            raise ValueError("Direction must be either 'x' or 'y'")
+
+    def __call__(self, field: FloatField):
+        """
+        Fills cell quantity field using corners from itself and multipliers
+        in the direction specified initialization of the instance of this class.
+        """
+        self._copy_corners(field, field)
 
 
 def corner_copy_x(field_to_copy):
@@ -141,8 +196,7 @@ def corner_copy_y(field_to_copy):
 
 class CopyCornersX:
     """
-    Helper-class to copy corners corresponding to the fortran functions
-    copy_corners_x or copy_corners_y respectively
+    Helper-class to copy corners corresponding to the fortran function copy_corners_x
     """
 
     def __init__(self, stencil_factory: StencilFactory) -> None:
@@ -157,8 +211,8 @@ class CopyCornersX:
 
 class CopyCornersY:
     """
-    Helper-class to copy corners corresponding to the fortran functions
-    copy_corners_x or copy_corners_y respectively
+    Helper-class to copy corners corresponding to the fortran function
+    copy_corners_y
     """
 
     def __init__(self, stencil_factory: StencilFactory) -> None:
@@ -1113,9 +1167,6 @@ def fill_corners_dgrid_defn(
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
-        # this line of code is used to fix the missing symbol crash due to the node visitor depth limitation
-        acoef = mysign
-        x_out = x_out
         # sw corner
         with horizontal(region[i_start - 1, j_start - 1]):
             x_out = mysign * y_in[0, 1, 0]
