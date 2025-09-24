@@ -147,6 +147,7 @@ def set_distributed_caches(config: DaceConfig):
             gt_cache=gt_config.cache_settings["dir_name"],
         ),
     )
+
     ndsl_log.info(
         f"[{orchestration_mode}] Rank {config.my_rank} "
         f"{verb} cache {gt_config.cache_settings['dir_name']}"
