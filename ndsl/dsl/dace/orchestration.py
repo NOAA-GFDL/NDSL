@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import numbers
 import os
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from dace import SDFG, CompiledSDFG
 from dace import compiletime as DaceCompiletime
@@ -46,7 +47,7 @@ def dace_inhibitor(func: Callable) -> Callable:
     return func
 
 
-def _upload_to_device(host_data: List[Any]) -> None:
+def _upload_to_device(host_data: list) -> None:
     """Make sure any ndarrays gets uploaded to the device
 
     This will raise an assertion if cupy is not installed.
@@ -57,9 +58,7 @@ def _upload_to_device(host_data: List[Any]) -> None:
             host_data[i] = cp.asarray(data)
 
 
-def _download_results_from_dace(
-    config: DaceConfig, dace_result: Optional[List[Any]], args: List[Any]
-):
+def _download_results_from_dace(config: DaceConfig, dace_result: list | None):
     """Move all data from DaCe memory space to GT4Py"""
     if dace_result is None:
         return None
@@ -112,15 +111,17 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
-        # ScalarToSymbolPromotion is messing with us, so we disable it.
+        # We disable ScalarToSymbolPromotion because it might push symbols onto edges
+        # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
+        # calls or (complicated) field accesses.
         skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
 
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
-):
-    """Build the .so out of the SDFG on the top tile ranks only"""
+) -> None:
+    """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
 
     if is_compiling:
@@ -253,46 +254,46 @@ def _build_sdfg(
             )  # type: ignore
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
-        return _call_sdfg(dace_program, sdfg, config, args, kwargs)
-
 
 def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs):
-    """Dispatch the SDFG execution and/or build"""
+    """Dispatch to either SDFG execution and/or build."""
+    # Check if we need to build first
+    mode = config.get_orchestrate()
+    if (
+        mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
+        and dace_program not in config.loaded_precompiled_SDFG  # already cached
+    ):
+        ndsl_log.info("Building DaCe orchestration")
+        _build_sdfg(dace_program, sdfg, config, args, kwargs)
+
+    if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
+        raise ValueError(f"Unexpected DaceOrchestration mode `{mode}`.")
+
+    if dace_program not in config.loaded_precompiled_SDFG:
+        raise RuntimeError(
+            "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
+            "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
+        )
+
     # Pre-compiled SDFG code path does away with any data checks and
     # cached the marshalling - leading to almost direct C call
     # DaceProgram performs argument transformation & checks for a cost ~200ms
     # of overhead
-    if dace_program in config.loaded_precompiled_SDFG:
-        with DaCeProgress(config, "Run"):
-            if config.is_gpu_backend():
-                _upload_to_device(list(args) + list(kwargs.values()))
+    with DaCeProgress(config, "Run"):
+        if config.is_gpu_backend():
+            _upload_to_device(list(args) + list(kwargs.values()))
 
-            # NOTE: this will go over declared arguments and closure arguments.
-            # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
-            # function that expects all pointers to have been made C worthy. This is
-            # something we did with "FrozenCompileSDFG" but we undid because it meant that
-            # external changing memory (reallocation...) would quietly fail
-            current_sdfg_args = dace_program._create_sdfg_args(
-                config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
-            )
+        # NOTE: this will go over declared arguments and closure arguments.
+        # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
+        # function that expects all pointers to have been made C worthy. This is
+        # something we did with "FrozenCompileSDFG" but we undid because it meant that
+        # external changing memory (reallocation...) would quietly fail
+        current_sdfg_args = dace_program._create_sdfg_args(
+            config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
+        )
 
-            res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
-            res = _download_results_from_dace(
-                config, res, list(args) + list(kwargs.values())
-            )
-        return res
-
-    mode = config.get_orchestrate()
-    if mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]:
-        ndsl_log.info("Building DaCe orchestration")
-        return _build_sdfg(dace_program, sdfg, config, args, kwargs)
-
-    if mode == DaCeOrchestration.Run:
-        # We should never hit this, it should be caught by the
-        # loaded_precompiled_SDFG check above
-        raise RuntimeError("Unexpected call - pre-compiled SDFG failed to load")
-    else:
-        raise NotImplementedError(f"Mode '{mode}' unimplemented at call time")
+        results = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
+        return _download_results_from_dace(config, results)
 
 
 def _parse_sdfg(
@@ -300,7 +301,7 @@ def _parse_sdfg(
     config: DaceConfig,
     *args,
     **kwargs,
-) -> Optional[SDFG | CompiledSDFG]:
+) -> SDFG | CompiledSDFG | None:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
 
@@ -409,7 +410,7 @@ class _LazyComputepathMethod:
 
     # In order to not regenerate SDFG for the same obj.method callable
     # we cache the SDFGEnabledCallable we have already init
-    bound_callables: Dict[Tuple[int, int], "SDFGEnabledCallable"] = dict()
+    bound_callables: dict[tuple[int, int], SDFGEnabledCallable] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
         def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
@@ -501,7 +502,7 @@ def orchestrate(
         raise RuntimeError(
             f"Could not orchestrate, "
             f"{type(obj).__name__}.{method_to_orchestrate} "
-            "does not exist"
+            "does not exist."
         )
 
     if dace_compiletime_args is None:
@@ -568,8 +569,8 @@ def orchestrate(
 
 def orchestrate_function(
     config: DaceConfig = None,
-    dace_compiletime_args: Optional[Sequence[str]] = None,
-) -> Union[Callable[..., Any], _LazyComputepathFunction]:
+    dace_compiletime_args: Sequence[str] | None = None,
+) -> Callable[..., Any] | _LazyComputepathFunction:
     """
     Decorator orchestrating a method of an object with DaCe.
     If the model configuration doesn't demand orchestration, this won't do anything.

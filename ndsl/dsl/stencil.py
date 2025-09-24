@@ -370,7 +370,7 @@ class FrozenStencil(SDFGConvertible):
         self._field_origins: Dict[str, Tuple[int, ...]] = (
             FrozenStencil._compute_field_origins(field_info, self.origin)
         )
-        """mapping from field names to field origins"""
+        """Mapping from field names to field origins"""
 
         self._stencil_run_kwargs: Dict[str, Any] = {
             "_origin_": self._field_origins,
@@ -649,42 +649,42 @@ class GridIndexing:
 
     @property
     def isc(self):
-        """start of the compute domain along the x-axis"""
+        """Start of the compute domain along the x-axis"""
         return self.origin[0]
 
     @property
     def iec(self):
-        """last index of the compute domain along the x-axis"""
+        """Last index of the compute domain along the x-axis"""
         return self.origin[0] + self.domain[0] - 1
 
     @property
     def jsc(self):
-        """start of the compute domain along the y-axis"""
+        """Start of the compute domain along the y-axis"""
         return self.origin[1]
 
     @property
     def jec(self):
-        """last index of the compute domain along the y-axis"""
+        """Last index of the compute domain along the y-axis"""
         return self.origin[1] + self.domain[1] - 1
 
     @property
     def isd(self):
-        """start of the full domain including halos along the x-axis"""
+        """Start of the full domain including halos along the x-axis"""
         return self.origin[0] - self.n_halo
 
     @property
     def ied(self):
-        """index of the last data point along the x-axis"""
+        """Index of the last data point along the x-axis"""
         return self.isd + self.domain[0] + 2 * self.n_halo - 1
 
     @property
     def jsd(self):
-        """start of the full domain including halos along the y-axis"""
+        """Start of the full domain including halos along the y-axis"""
         return self.origin[1] - self.n_halo
 
     @property
     def jed(self):
-        """index of the last data point along the y-axis"""
+        """Index of the last data point along the y-axis"""
         return self.jsd + self.domain[1] + 2 * self.n_halo - 1
 
     @property
