@@ -175,7 +175,7 @@ class DaceConfig:
         # have the configuration at NDSL level, but we do use the GT4Py
         # level
         # TODO: if GT4PY opt level is funneled via NDSL - use it here
-        optimization_level = GT4PY_COMPILE_OPT_LEVEL
+        optimization_level = int(GT4PY_COMPILE_OPT_LEVEL)
 
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
@@ -188,7 +188,13 @@ class DaceConfig:
                 == b"NVIDIA GH200 480GB"
             )
 
-            dace.config.Config.set("compiler", "build_type", value="Release")
+            if optimization_level == 0:
+                dace.config.Config.set("compiler", "build_type", value="Debug")
+            elif optimization_level == 2 or optimization_level == 1:
+                dace.config.Config.set("compiler", "build_type", value="RelWithDebInfo")
+            else:
+                dace.config.Config.set("compiler", "build_type", value="Release")
+
             # Required to True for gt4py storage/memory
             dace.config.Config.set(
                 "compiler",
