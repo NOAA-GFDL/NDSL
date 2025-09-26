@@ -1,16 +1,55 @@
 import copy
+from enum import Enum, auto
 from typing import Any
+
+from dace import SDFG, SDFGState
+from dace.frontend.common import op_repository as oprepo
+from dace.frontend.python.newast import ProgramVisitor
 
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.initialization.allocator import Quantity, QuantityFactory
 from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 
+@oprepo.replaces_method("TracerBundle", "fill_tracer")
+def _tracer_bundle_fill_tracer(
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
+):
+    raise NotImplementedError("let's just see if we get here")
+
+
+@oprepo.replaces_method("TracerBundle", "fill_tracer_by_name")
+def _tracer_bundle_fill_tracer_by_name(
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
+):
+    raise NotImplementedError("let's just see if we get here")
+
+
+# @oprepo.replaces_attribute("Tracer", "fill")
+# def _tracer_fill(pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, fill_value: Any, **kwargs):
+#     raise NotImplementedError("let's just see if we get here")
+
+
+class Region(Enum):
+    compute_domain = auto()
+
+
 class Tracer(Quantity):
     """A Tracer is a specialized Quantity, grouped together in a TracerBundle."""
 
+    class Restriction(Enum):
+        compute_domain = auto()
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+
+    def fill(self, value: Any, *, restrict_to: Restriction | None = None) -> None:
+        if restrict_to is None:
+            super().data[:] = value
+        elif restrict_to is Tracer.Restriction.compute_domain:
+            super().field[:] = value
+        else:
+            raise NotImplementedError(f"Unknown restriction {restrict_to}.")
 
 
 _TracerName = str
@@ -111,6 +150,24 @@ class TracerBundle:
             )
 
         return self._data_mapping[index]
+
+    def fill_tracer(
+        self, index: _TracerIndex, *, value: Any, compute_domain_only: bool = False
+    ) -> None:
+        if compute_domain_only:
+            self._quantity.field[:, :, :, index] = value
+        else:
+            self._quantity.data[:, :, :, index] = value
+
+    def fill_tracer_by_name(
+        self, name: str, *, value: Any, compute_domain_only: bool = False
+    ) -> None:
+        index = self._name_mapping[name]
+
+        if compute_domain_only:
+            self._quantity.field[:, :, :, index] = value
+        else:
+            self._quantity.data[:, :, :, index] = value
 
 
 def _tracer_quantity_factory(

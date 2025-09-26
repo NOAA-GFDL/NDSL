@@ -359,9 +359,10 @@ def _parse_sdfg(
             return None
 
         with DaCeProgress(config, f"Parse code of {dace_program.name} to SDFG"):
+            closure = dace_program.__sdfg_closure__()
             sdfg = dace_program.to_sdfg(
                 *args,
-                **dace_program.__sdfg_closure__(),
+                **closure,
                 **kwargs,
                 save=False,
                 simplify=False,

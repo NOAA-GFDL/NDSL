@@ -3,8 +3,11 @@ testing whole workflows."""
 
 import pytest
 
-from ndsl import StencilFactory, orchestrate
-from ndsl.boilerplate import get_factories_single_tile
+from ndsl import Quantity, StencilFactory, orchestrate
+from ndsl.boilerplate import (
+    get_factories_single_tile,
+    get_factories_single_tile_orchestrated,
+)
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -45,60 +48,19 @@ class IceTracerSetup:
             dace_compiletime_args=["tracers"],
         )
 
-    def __call__(self, tracers: _TracerBundleType):
-        # single tracer representing all memory
-        tracers.ice.data[:] = 20
+    # def __call__(self, quantity: Quantity):
+    #    # single tracer representing all memory
+    #    quantity.data[:] = 20
+    #    quantity.field[:] = 10
+
+    def __call__(self, tracers: TracerBundle):
+        # # single tracer representing all memory
+        # tracers.ice.data[:] = 20
+        # tracers.ice.field[:] = 10
+
+        tracers.fill_tracer_by_name("ice", value=20)
         # single tracer sliced into the compute domain
-        tracers.ice.field[:] = 10
-
-
-class CopyIntoVaporTracer:
-    def __init__(self, stencil_factory: StencilFactory):
-        orchestrate(
-            obj=self,
-            config=stencil_factory.config.dace_config,
-            dace_compiletime_args=["tracers"],
-        )
-        self._copy_into_tracer_stencil = stencil_factory.from_dims_halo(
-            func=copy_into_tracer,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
-        )
-
-    def __call__(self, tracers: _TracerBundleType, vapor_field: FloatField):
-        self._copy_into_tracer_stencil(vapor_field, tracers.vapor)
-
-
-class ResetTracers:
-    def __init__(self, stencil_factory: StencilFactory):
-        orchestrate(
-            obj=self,
-            config=stencil_factory.config.dace_config,
-            dace_compiletime_args=["tracers"],
-        )
-        self._loop_over_tracers_stencil = stencil_factory.from_dims_halo(
-            func=loop_over_tracers,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
-        )
-
-    def __call__(self, tracers: _TracerBundleType, fill_value: int) -> None:
-        self._loop_over_tracers_stencil(tracers, len(tracers), fill_value)
-
-
-class CopyIntoAllTracers:
-    def __init__(self, stencil_factory: StencilFactory):
-        orchestrate(
-            obj=self,
-            config=stencil_factory.config.dace_config,
-            dace_compiletime_args=["tracers"],
-        )
-        self._copy_into_tracer_stencil = stencil_factory.from_dims_halo(
-            func=copy_into_tracer,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
-        )
-
-    def __call__(self, tracers: _TracerBundleType, field: FloatField):
-        for tracer in tracers:
-            self._copy_into_tracer_stencil(field, tracer)
+        tracers.fill_tracer_by_name("ice", value=10, compute_domain_only=True)
 
 
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
@@ -123,6 +85,48 @@ def test_stencil_ice_tracer_setup(backend) -> None:
     assert (tracers.ice.field[:] == 10).all()  # check the compute domain
 
 
+def test_orchestrated_ice_tracer_setup() -> None:
+    domain = (2, 3, 4)
+    halo_points = 1
+
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        domain[0],
+        domain[1],
+        domain[2],
+        halo_points,
+    )
+
+    tracers = TracerBundle(
+        type_name=_TRACER_BUNDLE_TYPENAME,
+        quantity_factory=quantity_factory,
+        mapping={"ice": 3, "vapor": 0},
+    )
+
+    setup = IceTracerSetup(stencil_factory)
+    setup(tracers)
+
+    assert (tracers.ice.data[0] == 20).all()  # check a part of the halo
+    assert (tracers.ice.field[:] == 10).all()  # check the compute domain
+
+
+class CopyIntoVaporTracer:
+    def __init__(self, stencil_factory: StencilFactory):
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            dace_compiletime_args=["tracers"],
+        )
+        self._copy_into_tracer_stencil = stencil_factory.from_dims_halo(
+            func=copy_into_tracer,
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+        )
+
+    def __call__(self, tracers: TracerBundle, vapor_field: Quantity):
+        tracers.vapor.data = 0  # __g_tracers_vapor_data
+
+        self._copy_into_tracer_stencil(vapor_field, tracers.vapor)  # __g_tracers_vapor
+
+
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
 def test_stencil_copy_into_vapor_tracer(backend) -> None:
     domain = (2, 3, 4)
@@ -142,6 +146,22 @@ def test_stencil_copy_into_vapor_tracer(backend) -> None:
     field = quantity_factory.ones(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
     vapor_setup(tracers, field)
     assert (tracers.vapor.field[:] == 1).all()
+
+
+class ResetTracers:
+    def __init__(self, stencil_factory: StencilFactory):
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            dace_compiletime_args=["tracers"],
+        )
+        self._loop_over_tracers_stencil = stencil_factory.from_dims_halo(
+            func=loop_over_tracers,
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+        )
+
+    def __call__(self, tracers: TracerBundle, fill_value: int) -> None:
+        self._loop_over_tracers_stencil(tracers, len(tracers), fill_value)
 
 
 @pytest.mark.parametrize(
@@ -173,6 +193,23 @@ def test_stencil_reset_tracers(backend) -> None:
     reset_tracers(tracers, fill_value)
     for tracer in tracers:
         assert (tracer.field[:] == fill_value).all()
+
+
+class CopyIntoAllTracers:
+    def __init__(self, stencil_factory: StencilFactory):
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            dace_compiletime_args=["tracers"],
+        )
+        self._copy_into_tracer_stencil = stencil_factory.from_dims_halo(
+            func=copy_into_tracer,
+            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+        )
+
+    def __call__(self, tracers: TracerBundle, field: Quantity):
+        for tracer in tracers:
+            self._copy_into_tracer_stencil(field, tracer)
 
 
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
