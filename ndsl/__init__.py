@@ -48,7 +48,6 @@ __all__ = [
     "FV3CodePath",
     "DaceConfig",
     "DaCeOrchestration",
-    "FrozenCompiledSDFG",
     "orchestrate",
     "orchestrate_function",
     "ArrayReport",

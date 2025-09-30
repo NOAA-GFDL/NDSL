@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import dataclasses
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 import dacite
 import xarray as xr
 from mpi4py import MPI
 from numpy.typing import ArrayLike
 
-from ndsl import QuantityFactory
+
+if TYPE_CHECKING:
+    from ndsl import QuantityFactory
 
 
 @dataclasses.dataclass
