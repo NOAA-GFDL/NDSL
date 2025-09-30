@@ -263,6 +263,9 @@ class Quantity:
     def data(self, inputData):
         if type(inputData) in [np.ndarray, cupy.ndarray]:
             self._data = inputData
+            self._compute_domain_view = BoundedArrayView(
+                self.data, self.dims, self.origin, self.extent
+            )
 
     @property
     def origin(self) -> Tuple[int, ...]:
