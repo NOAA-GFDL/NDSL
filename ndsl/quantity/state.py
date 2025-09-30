@@ -1,10 +1,12 @@
-from typing import Any, Self
-from ndsl import QuantityFactory
 import dataclasses
+from typing import Any, Self
+
 import dacite
 import xarray as xr
 from mpi4py import MPI
 from numpy.typing import ArrayLike
+
+from ndsl import QuantityFactory
 
 
 @dataclasses.dataclass

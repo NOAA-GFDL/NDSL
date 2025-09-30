@@ -1,10 +1,10 @@
-from ndsl import Quantity
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Float
-from ndsl.boilerplate import get_factories_single_tile
 import dataclasses
+
 import numpy as np
 
-from ndsl import State
+from ndsl import Quantity, State
+from ndsl.boilerplate import get_factories_single_tile
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Float
 
 
 @dataclasses.dataclass
