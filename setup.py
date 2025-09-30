@@ -24,6 +24,7 @@ requirements: list[str] = [
     "matplotlib",  # for plotting in boilerplate
     "cartopy",  # for plotting in ndsl.viz
     "pytest-subtests",  # for translate tests
+    "dacite",  # for state
 ]
 
 
