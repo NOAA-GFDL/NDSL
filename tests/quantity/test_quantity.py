@@ -258,9 +258,9 @@ def test_to_data_array(quantity):
     assert quantity.field_as_xarray.shape == quantity.extent
     np.testing.assert_array_equal(quantity.field_as_xarray.values, quantity.view[:])
     if quantity.extent == quantity.data.shape:
-        assert quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data, (
-            "data memory address is not equal"
-        )
+        assert (
+            quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data
+        ), "data memory address is not equal"
 
 
 def test_data_setter():
