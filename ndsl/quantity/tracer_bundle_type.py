@@ -38,6 +38,7 @@ class TracerBundleTypeRegistry:
             dtype: Data type of `TracerBundle`.
         """
         if name in cls._type_registry:
+            # TODO: why do we do this? why not just warn out?
             raise RuntimeError(
                 f"Names of `TracerBundle` types must be unique. `{name}` is already taken."
             )
