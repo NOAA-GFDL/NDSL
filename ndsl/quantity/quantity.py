@@ -255,16 +255,27 @@ class Quantity:
         return self._compute_domain_view[:]
 
     @property
-    def data(self) -> Union[np.ndarray, cupy.ndarray]:
+    def data(self) -> np.ndarray | cupy.ndarray:
         """The underlying array of data"""
         return self._data
 
     @data.setter
-    def data(self, inputData):
-        if type(inputData) in [np.ndarray, cupy.ndarray]:
-            self._data = inputData
+    def data(self, input_data: np.ndarray | cupy.ndarray):
+        if type(input_data) in [np.ndarray, cupy.ndarray]:
+            if input_data.shape < self.data.shape:
+                raise ValueError(
+                    "Quantity.data buffer swap failed: "
+                    f"new data ({input_data.shape}) is smaller "
+                    f"than expected data ({self.shape})."
+                )
+            self._data = input_data
             self._compute_domain_view = BoundedArrayView(
                 self.data, self.dims, self.origin, self.extent
+            )
+        else:
+            raise TypeError(
+                "Quantity.data buffer swap failed: "
+                f"given data is not an array (type: {type(input_data)})"
             )
 
     @property

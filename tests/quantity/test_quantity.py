@@ -261,3 +261,20 @@ def test_to_data_array(quantity):
         assert (
             quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data
         ), "data memory address is not equal"
+
+
+def test_data_setter():
+    quantity = Quantity(np.array(5), dims=[], units="")
+
+    # Allows swap: new array is bigger than Q.shape
+    new_array = np.array(10)
+    quantity.data = new_array
+
+    # Expected fail: new array is too small
+    new_array = np.array(2)
+    with pytest.raises(ValueError):
+        quantity.data = new_array
+
+    # Expected fail: new array is not even an array
+    with pytest.raises(TypeError):
+        quantity.data = "meh"
