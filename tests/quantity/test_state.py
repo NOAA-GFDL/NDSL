@@ -1,4 +1,5 @@
 import dataclasses
+from pathlib import Path
 
 import numpy as np
 
@@ -47,21 +48,23 @@ class CodeState(State):
 
 
 def test_state():
-    _, qty_factry = get_factories_single_tile(5, 5, 3, 0, backend="dace:cpu_kfirst")
+    _, quantity_factory = get_factories_single_tile(
+        5, 5, 3, 0, backend="dace:cpu_kfirst"
+    )
 
-    microphys_state = CodeState.zeros(qty_factry)
+    microphys_state = CodeState.zeros(quantity_factory)
     microphys_state.inner_A.A.field[:] = 42.42
     microphys_state.to_netcdf()
-    microphys_state2 = CodeState.zeros(qty_factry)
-    microphys_state2.from_netcdf("CodeState.nc4")
+    microphys_state2 = CodeState.zeros(quantity_factory)
+    microphys_state2.update_from_netcdf(Path("./"))
     assert (microphys_state2.inner_A.A.field[:] == 42.42).all()
     a = np.ones((5, 5, 3))
     b = np.ones((5, 5, 3))
     c = np.ones((5, 5, 3))
     b[:] = 23.23
-    microphys_state2.init_zero_copy(
+    microphys_state2.update_zero_copy(
         {"inner_A": {"A": a}, "inner_B": {"B": b}, "C": c},
-        check=False,
+        check_shape_and_strides=False,
     )
     assert (microphys_state2.inner_A.A.field[:] == 1.0).all()
     assert (microphys_state2.inner_B.B.field[:] == 23.23).all()
