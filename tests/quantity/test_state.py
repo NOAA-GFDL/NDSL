@@ -47,16 +47,16 @@ class CodeState(State):
     )
 
 
-def test_state():
+def test_state(tmpdir):
     _, quantity_factory = get_factories_single_tile(
         5, 5, 3, 0, backend="dace:cpu_kfirst"
     )
 
     microphys_state = CodeState.zeros(quantity_factory)
     microphys_state.inner_A.A.field[:] = 42.42
-    microphys_state.to_netcdf()
+    microphys_state.to_netcdf(Path(tmpdir))
     microphys_state2 = CodeState.zeros(quantity_factory)
-    microphys_state2.update_from_netcdf(Path("./"))
+    microphys_state2.update_from_netcdf(Path(tmpdir))
     assert (microphys_state2.inner_A.A.field[:] == 42.42).all()
     a = np.ones((5, 5, 3))
     b = np.ones((5, 5, 3))
