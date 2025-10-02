@@ -83,7 +83,7 @@ class State:
         return cls._init(quantity_factory.ones)
 
     @classmethod
-    def from_memory(
+    def copy_memory(
         cls,
         quantity_factory: QuantityFactory,
         memory_map: dict[str, Any],
@@ -92,28 +92,33 @@ class State:
         on the given memory map. See `update_from_memory`"""
 
         state = cls.zeros(quantity_factory)
-        state.update_from_memory(memory_map)
+        state.update_copy_memory(memory_map)
 
         return state
 
     @classmethod
-    def from_zero_copy(
+    def move_memory(
         cls,
         quantity_factory: QuantityFactory,
         memory_map: dict[str, Any],
-        check_shape_and_strides: bool,
+        *,
+        check_shape_and_strides: bool = True,
     ) -> Self:
-        """Allocate all quantities and buffer swap their memory based on
-        on the given memory map. See `update_zero_copy`."""
+        """Allocate all quantities and move memory based on
+        on the given memory map. See `update_move_memory`."""
 
         state = cls.zeros(quantity_factory)
-        state.update_zero_copy(memory_map, check_shape_and_strides)
+        state.update_move_memory(
+            memory_map,
+            check_shape_and_strides=check_shape_and_strides,
+        )
 
         return state
 
-    def update_from_memory(self, memory_map: dict[str, Any]):
-        """Copy data from the memory map if it follows the nested
-        naming convention of the dataclass. E.g.
+    def update_copy_memory(self, memory_map: dict[str, Any]) -> None:
+        """Copy data into the Quantities carried by the state.
+
+        The memory map must follow the dataclass naming convention, e.g.
 
         ```python
         @dataclass
@@ -137,18 +142,19 @@ class State:
         }
         ```
 
-        The memory map drives what is loaded, therefore it can be sparse.
+        The memory map can be sparse.
         """
 
-        def _update_from_memory_recursive(dataclss, memory_map: dict[str, Any]):
+        def _update_from_memory_recursive(
+            state: State,
+            memory_map: dict[str, dict | ArrayLike],
+        ):
             for name, array in memory_map.items():
                 if isinstance(array, dict):
-                    _update_from_memory_recursive(
-                        dataclss.__getattribute__(name), array
-                    )
+                    _update_from_memory_recursive(state.__getattribute__(name), array)
                 else:
                     try:
-                        dataclss.__getattribute__(name).field[:] = array
+                        state.__getattribute__(name).field[:] = array
                     except Exception as e:
                         e.add_note(
                             f"Error when initializing field {name} on state {type(self)}"
@@ -157,13 +163,16 @@ class State:
 
         _update_from_memory_recursive(self, memory_map)
 
-    def update_zero_copy(
+    def update_move_memory(
         self,
-        memory_map: dict[str, Any],
-        check_shape_and_strides: bool,
-    ):
-        """Swap buffers given into the Quantities carried by the state
-        by following dataclass naming convention, e.g.
+        memory_map: dict[str, dict | ArrayLike],
+        *,
+        check_shape_and_strides: bool = True,
+    ) -> None:
+        """Move memory into the Quantities carried by the state.
+        Memory is moved rather than copied (e.g. buffers are swapped)
+
+        The memory map must follow the dataclass naming convention, e.g.
 
         ```python
         @dataclass
@@ -187,7 +196,7 @@ class State:
         }
         ```
 
-        The memory map drives what is loaded, therefore it can be sparse.
+        The memory map can be sparse.
 
         Args:
             memory_map: Dictionary of keys to buffers. Buffers must be np.ArrayLike
@@ -196,25 +205,24 @@ class State:
         """
 
         def _update_zero_copy_recursive(
-            dataclss, memory_map: dict[str, Any | ArrayLike]
+            state: State, memory_map: dict[str, dict | ArrayLike]
         ):
             for name, array in memory_map.items():
                 if isinstance(array, dict):
-                    _update_zero_copy_recursive(dataclss.__getattribute__(name), array)
+                    _update_zero_copy_recursive(state.__getattribute__(name), array)
                 else:
-                    quantity = dataclss.__getattribute__(name)
+                    quantity = state.__getattribute__(name)
                     if check_shape_and_strides:
-                        assert hasattr(array, "shape")
                         if array.shape != quantity.field.shape:
                             e = ValueError("Shape mismatch on zero copy for")
-                            e.add_note(f"  Error on {name} for {type(dataclss)}")
+                            e.add_note(f"  Error on {name} for {type(state)}")
                             e.add_note(
                                 f"  Shapes: {array.shape} != {quantity.field.shape}"
                             )
                             raise e
                         if array.strides != quantity.data.strides:
                             e = ValueError("Stride mismatch on zero copy for")
-                            e.add_note(f"  Error on {name} for {type(dataclss)}")
+                            e.add_note(f"  Error on {name} for {type(state)}")
                             e.add_note(
                                 f"  Strides: {array.strides} != {quantity.data.strides}"
                             )
@@ -225,7 +233,7 @@ class State:
         _update_zero_copy_recursive(self, memory_map)
 
     def _netcdf_name(self, directory_path: Path) -> Path:
-        # Resolve rank-tied postfix if needed
+        """Resolve rank-tied postfix if needed"""
         rank_postfix = ""
         if MPI.COMM_WORLD.Get_size() > 1:
             rank_postfix = f"_rank{MPI.COMM_WORLD.Get_rank()}"
@@ -235,18 +243,21 @@ class State:
         """
         Save state to NetCDF. Can be reloaded with `update_from_netcdf`.
 
-        If applicable will ave seperate netcdf for each running rank
+        If applicable, will save seperate NetCDF files for each running rank.
+
+        The file names are deduced from the class name, and post fix with rank number
+        in the case of a multi-process use.
 
         Args:
             directory_path: directory to save the netcdf in
         """
 
-        def _save_recursive(datclss: State):
+        def _save_recursive(state: State):
             local_data = {}
-            for _field in dataclasses.fields(datclss):
+            for _field in dataclasses.fields(state):
                 if dataclasses.is_dataclass(_field.type):
                     local_data[_field.name] = xr.Dataset(
-                        data_vars=_save_recursive(datclss.__getattribute__(_field.name))
+                        data_vars=_save_recursive(state.__getattribute__(_field.name))
                     )
                 else:
                     if "dims" not in _field.metadata.keys():
@@ -255,7 +266,7 @@ class State:
                             f"Quantity in  {_field.name} of type {_field.type}"
                         )
 
-                    local_data[_field.name] = datclss.__getattribute__(
+                    local_data[_field.name] = state.__getattribute__(
                         _field.name
                     ).field_as_xarray
 
@@ -277,8 +288,8 @@ class State:
 
     def update_from_netcdf(self, directory_path: Path) -> None:
         """This is a mirror of the `to_netcdf` method NOT a generic
-        NetCDF loader. It expects the NetCDF to  be named with auto-naming scheme
-        of `to_netcdf`, be a `xarray.DataTree` in shape matching exactly the
+        NetCDF loader. It expects the NetCDF to be named with the auto-naming scheme
+        of `to_netcdf`.
 
         Args:
             directory_path: directory carrying the netcdf saved with `to_netcdf`
@@ -306,4 +317,4 @@ class State:
 
         data_as_numpy_dict = _load_recursive(datatree_as_dict)
 
-        self.update_from_memory(data_as_numpy_dict)
+        self.update_copy_memory(data_as_numpy_dict)

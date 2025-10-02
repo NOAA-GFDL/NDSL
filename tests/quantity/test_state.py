@@ -62,7 +62,7 @@ def test_state():
     b = np.ones((5, 5, 3))
     c = np.ones((5, 5, 3))
     b[:] = 23.23
-    microphys_state2.update_zero_copy(
+    microphys_state2.update_move_memory(
         {"inner_A": {"A": a}, "inner_B": {"B": b}, "C": c},
         check_shape_and_strides=False,
     )
