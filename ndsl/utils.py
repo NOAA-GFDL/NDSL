@@ -1,6 +1,7 @@
 from enum import EnumMeta
 from typing import Iterable, Sequence, Tuple, TypeVar, Union
 
+import f90nml
 import numpy as np
 
 import ndsl.constants as constants
@@ -111,3 +112,101 @@ def safe_mpi_allocate(
         if __debug__ and cp and isinstance(array, cp.ndarray):
             raise RuntimeError("cupy allocation might not be MPI-safe")
     return array
+
+
+########################################################
+# Helpers for loading and working with Fortran Namelists
+# TODO: Consider moving these to a separate utils/namelist.py
+
+DEFAULT_GRID_NML_GROUPS = ["fv_core_nml"]
+
+
+def flatten_nml_to_dict(nml: f90nml.Namelist) -> dict:
+    """Returns a flattened dict version of a f90nml.namelist.Namelist
+
+    Args:
+        nml: f90nml.Namelist
+    """
+    nml_dict = dict(nml)
+    for name, value in nml_dict.items():
+        if isinstance(value, f90nml.Namelist):
+            nml_dict[name] = flatten_nml_to_dict(value)
+    flatter_namelist = {}
+    for key, value in nml_dict.items():
+        if isinstance(value, dict):
+            for subkey, subvalue in value.items():
+                if subkey in flatter_namelist:
+                    raise ValueError(
+                        "Cannot flatten this namelist, duplicate keys: " + subkey
+                    )
+                flatter_namelist[subkey] = subvalue
+        else:
+            flatter_namelist[key] = value
+    return flatter_namelist
+
+
+def load_f90nml(namelist_path: str) -> f90nml.Namelist:
+    """Loads a Fortran namelist given its path and return a f90nml.Namelist
+
+    Args:
+        namelist_path: Path to the Fortran namelist file
+    """
+    return f90nml.read(namelist_path)
+
+
+def load_f90nml_as_dict(
+    namelist_path: str,
+    flatten: bool = True,
+    target_groups=None,
+) -> dict:
+    """Loads a Fortran namelist given its path and returns a
+    dict representation. If target_groups are specified, then
+    the dict is created using only those groups.
+
+    Args:
+        namelist_path: Path to the Fortran namelist file
+        flatten: If True, flattens the loaded namelist (without groups) before
+                 returning it. (Default: True) Otherwise, it returns the f90nml.Namelist
+                 dict representation.
+        target_groups: If 'None' is specified, then all groups are
+                       considered. (Default: None) Otherwise, only parameters
+                       from the specified groups are considered.
+    """
+    nml = load_f90nml(namelist_path)
+    return f90nml_as_dict(nml, flatten=flatten, target_groups=target_groups)
+
+
+def f90nml_as_dict(
+    nml: f90nml.Namelist,
+    flatten: bool = True,
+    target_groups=None,
+) -> dict:
+    """Uses a f90nml.Namelist and returns a dict representation.
+    If target_groups are specified, then the dict is created using only those
+    groups. The return dicts can be flattened further to remove the group
+    information or keep the group information.
+
+    Args:
+        namelist_path: Path to the Fortran namelist file
+        flatten: If True, flattens the loaded namelist (without groups) before
+                 returning it. (Default: True) Otherwise, it returns the f90nml.Namelist
+                 dict representation.
+        target_groups: If 'None' is specified, then all groups are
+                       considered. (Default: None) Otherwise, only parameters
+                       from the specified groups are considered.
+    """
+    if target_groups is not None:
+        extracted_groups = f90nml.Namelist()
+        for group in target_groups:
+            if group in nml:
+                extracted_groups[group] = nml[group]
+    else:
+        extracted_groups = nml
+
+    if flatten:
+        return flatten_nml_to_dict(extracted_groups)
+    return extracted_groups.todict()
+
+
+def grid_params_from_f90nml(nml):
+    return f90nml_as_dict(nml, flatten=True, target_groups=DEFAULT_GRID_NML_GROUPS)

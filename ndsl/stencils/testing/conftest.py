@@ -2,10 +2,10 @@ import os
 import re
 from typing import Optional, Tuple
 
-import f90nml
 import pytest
 import xarray as xr
 import yaml
+from f90nml import Namelist
 
 from ndsl import CompilationConfig, StencilConfig, StencilFactory
 from ndsl.comm.communicator import (
@@ -16,11 +16,14 @@ from ndsl.comm.communicator import (
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
-from ndsl.namelist import Namelist
+
+# TODO: Remove NdslNamelist import after Issue#64 is resolved.
+from ndsl.namelist import Namelist as NdslNamelist
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.parallel_translate import ParallelTranslate
 from ndsl.stencils.testing.savepoint import SavepointCase, dataset_to_dict
 from ndsl.stencils.testing.translate import TranslateGrid
+from ndsl.utils import grid_params_from_f90nml, load_f90nml
 
 
 def pytest_addoption(parser):
@@ -72,6 +75,12 @@ def pytest_addoption(parser):
         action="store",
         default=1,
         help="How many indices of failures to print from worst to best. Default to 1.",
+    )
+    parser.addoption(
+        "--f90nml_namelist_only",
+        action="store_true",
+        default=False,
+        help="When specified, translate tests will use f90nml.Namelist exclusively, without ndsl.Namelist. (Default to False -- which means ndsl.Namelist is used). This flag should be removed after NDSL Issue#64 has been resolved.",
     )
     parser.addoption(
         "--grid",
@@ -224,10 +233,6 @@ def get_savepoint_restriction(metafunc):
     return int(svpt) if svpt else None
 
 
-def get_namelist(namelist_filename):
-    return Namelist.from_f90nml(f90nml.read(namelist_filename))
-
-
 def get_config(backend: str, communicator: Optional[Communicator]):
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -243,14 +248,16 @@ def get_config(backend: str, communicator: Optional[Communicator]):
 
 def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backend: str):
     savepoint_names = get_sequential_savepoint_names(metafunc, data_path)
-    namelist = get_namelist(namelist_filename)
+    namelist = load_f90nml(namelist_filename)
+    grid_params = grid_params_from_f90nml(namelist)
     stencil_config = get_config(backend, None)
-    ranks = get_ranks(metafunc, namelist.layout)
+    ranks = get_ranks(metafunc, grid_params["layout"])
     savepoint_to_replay = get_savepoint_restriction(metafunc)
     grid_mode = metafunc.config.getoption("grid")
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
     no_report = metafunc.config.getoption("no_report")
+    f90nml_namelist_only = metafunc.config.getoption("f90nml_namelist_only")
     return _savepoint_cases(
         savepoint_names,
         ranks,
@@ -263,6 +270,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
+        f90nml_namelist_only=f90nml_namelist_only,
     )
 
 
@@ -278,15 +286,17 @@ def _savepoint_cases(
     topology_mode: bool,
     sort_report: str,
     no_report: bool,
+    f90nml_namelist_only: bool,
 ):
+    grid_params = grid_params_from_f90nml(namelist)
     return_list = []
     for rank in ranks:
         if grid_mode == "default":
             grid = Grid._make(
-                namelist.npx,
-                namelist.npy,
-                namelist.npz,
-                namelist.layout,
+                grid_params["npx"],
+                grid_params["npy"],
+                grid_params["npz"],
+                grid_params["layout"],
                 rank,
                 backend,
             )
@@ -297,12 +307,12 @@ def _savepoint_cases(
             grid = TranslateGrid(
                 dataset_to_dict(ds_grid.isel(rank=rank)),
                 rank=rank,
-                layout=namelist.layout,
+                layout=grid_params["layout"],
                 backend=backend,
             ).python_grid()
             if grid_mode == "compute":
                 compute_grid_data(
-                    grid, namelist, backend, namelist.layout, topology_mode
+                    grid, grid_params, backend, grid_params["layout"], topology_mode
                 )
         else:
             raise NotImplementedError(f"Grid mode {grid_mode} is unknown.")
@@ -312,6 +322,12 @@ def _savepoint_cases(
             grid_indexing=grid.grid_indexing,
         )
         for test_name in sorted(list(savepoint_names)):
+            # TODO REMOVE this conversion from f90nml.Namelist to ndsl.Namelist
+            # after ndsl.Namelist is removed
+            if not f90nml_namelist_only:
+                if type(namelist) is not NdslNamelist:
+                    namelist = NdslNamelist.from_f90nml(namelist)
+
             testobj = get_test_class_instance(
                 test_name, grid, namelist, stencil_factory
             )
@@ -337,11 +353,11 @@ def _savepoint_cases(
     return return_list
 
 
-def compute_grid_data(grid, namelist, backend, layout, topology_mode):
+def compute_grid_data(grid, grid_params, backend, layout, topology_mode):
     grid.make_grid_data(
-        npx=namelist.npx,
-        npy=namelist.npy,
-        npz=namelist.npz,
+        npx=grid_params["npx"],
+        npy=grid_params["npy"],
+        npz=grid_params["npz"],
         communicator=get_communicator(MPIComm(), layout, topology_mode),
         backend=backend,
     )
@@ -350,15 +366,17 @@ def compute_grid_data(grid, namelist, backend, layout, topology_mode):
 def parallel_savepoint_cases(
     metafunc, data_path, namelist_filename, mpi_rank, *, backend: str, comm
 ):
-    namelist = get_namelist(namelist_filename)
+    namelist = load_f90nml(namelist_filename)
+    grid_params = grid_params_from_f90nml(namelist)
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
     no_report = metafunc.config.getoption("no_report")
-    communicator = get_communicator(comm, namelist.layout, topology_mode)
+    communicator = get_communicator(comm, grid_params["layout"], topology_mode)
     stencil_config = get_config(backend, communicator)
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
     savepoint_to_replay = get_savepoint_restriction(metafunc)
+    f90nml_namelist_only = metafunc.config.getoption("f90nml_namelist_only")
     return _savepoint_cases(
         savepoint_names,
         [mpi_rank],
@@ -371,6 +389,7 @@ def parallel_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
+        f90nml_namelist_only=f90nml_namelist_only,
     )
 
 
@@ -388,7 +407,10 @@ def generate_sequential_stencil_tests(metafunc, *, backend: str):
         metafunc.config
     )
     savepoint_cases = sequential_savepoint_cases(
-        metafunc, data_path, namelist_filename, backend=backend
+        metafunc,
+        data_path,
+        namelist_filename,
+        backend=backend,
     )
     metafunc.parametrize(
         "case", savepoint_cases, ids=[str(item) for item in savepoint_cases]
