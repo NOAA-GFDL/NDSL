@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Self
+from typing import TYPE_CHECKING, Any, Callable, Self, TypeAlias
 
 import dacite
 import xarray as xr
@@ -12,6 +12,8 @@ from numpy.typing import ArrayLike
 
 if TYPE_CHECKING:
     from ndsl import QuantityFactory
+
+StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
 
 
 @dataclasses.dataclass
@@ -86,7 +88,7 @@ class State:
     def copy_memory(
         cls,
         quantity_factory: QuantityFactory,
-        memory_map: dict[str, Any],
+        memory_map: StateMemoryMapping,
     ) -> Self:
         """Allocate all quantities and fill their value based
         on the given memory map. See `update_from_memory`"""
@@ -100,7 +102,7 @@ class State:
     def move_memory(
         cls,
         quantity_factory: QuantityFactory,
-        memory_map: dict[str, Any],
+        memory_map: StateMemoryMapping,
         *,
         check_shape_and_strides: bool = True,
     ) -> Self:
@@ -147,7 +149,7 @@ class State:
 
         def _update_from_memory_recursive(
             state: State,
-            memory_map: dict[str, dict | ArrayLike],
+            memory_map: StateMemoryMapping,
         ):
             for name, array in memory_map.items():
                 if isinstance(array, dict):
@@ -165,7 +167,7 @@ class State:
 
     def update_move_memory(
         self,
-        memory_map: dict[str, dict | ArrayLike],
+        memory_map: StateMemoryMapping,
         *,
         check_shape_and_strides: bool = True,
     ) -> None:
@@ -204,9 +206,7 @@ class State:
                 shape and strides as the original quantity
         """
 
-        def _update_zero_copy_recursive(
-            state: State, memory_map: dict[str, dict | ArrayLike]
-        ):
+        def _update_zero_copy_recursive(state: State, memory_map: StateMemoryMapping):
             for name, array in memory_map.items():
                 if isinstance(array, dict):
                     _update_zero_copy_recursive(state.__getattribute__(name), array)
