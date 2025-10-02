@@ -152,7 +152,11 @@ class State:
             memory_map: StateMemoryMapping,
         ):
             for name, array in memory_map.items():
-                if isinstance(array, dict):
+                if array is None:
+                    raise TypeError(
+                        f"State memory copy: illegal copy from None for attribute {name}"
+                    )
+                elif isinstance(array, dict):
                     _update_from_memory_recursive(state.__getattribute__(name), array)
                 else:
                     try:
@@ -208,7 +212,9 @@ class State:
 
         def _update_zero_copy_recursive(state: State, memory_map: StateMemoryMapping):
             for name, array in memory_map.items():
-                if isinstance(array, dict):
+                if array is None:
+                    state.__setattr__(name, None)
+                elif isinstance(array, dict):
                     _update_zero_copy_recursive(state.__getattribute__(name), array)
                 else:
                     quantity = state.__getattribute__(name)
@@ -227,8 +233,11 @@ class State:
                                 f"  Strides: {array.strides} != {quantity.data.strides}"
                             )
                             raise e
-
-                    quantity.data = array
+                    try:
+                        quantity.data = array
+                    except Exception as e:
+                        e.add_note(f"  Error on {name} for {type(state)}")
+                        raise e
 
         _update_zero_copy_recursive(self, memory_map)
 
