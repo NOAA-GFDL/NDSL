@@ -261,22 +261,23 @@ class Quantity:
 
     @data.setter
     def data(self, input_data: np.ndarray | cupy.ndarray):
-        if type(input_data) in [np.ndarray, cupy.ndarray]:
-            if input_data.shape < self.extent:
-                raise ValueError(
-                    "Quantity.data buffer swap failed: "
-                    f"new data ({input_data.shape}) is smaller "
-                    f"than expected extent ({self.extent})."
-                )
-            self._data = input_data
-            self._compute_domain_view = BoundedArrayView(
-                self.data, self.dims, self.origin, self.extent
-            )
-        else:
+        if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
                 f"given data is not an array (type: {type(input_data)})"
             )
+
+        if input_data.shape < self.extent:
+            raise ValueError(
+                "Quantity.data buffer swap failed: "
+                f"new data ({input_data.shape}) is smaller "
+                f"than expected extent ({self.extent})."
+            )
+
+        self._data = input_data
+        self._compute_domain_view = BoundedArrayView(
+            self.data, self.dims, self.origin, self.extent
+        )
 
     @property
     def origin(self) -> Tuple[int, ...]:
