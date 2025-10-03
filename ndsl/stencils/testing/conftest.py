@@ -257,7 +257,10 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
     no_report = metafunc.config.getoption("no_report")
+
+    # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
     f90nml_namelist_only = metafunc.config.getoption("f90nml_namelist_only")
+
     return _savepoint_cases(
         savepoint_names,
         ranks,
@@ -270,7 +273,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        f90nml_namelist_only=f90nml_namelist_only,
+        f90nml_namelist_only=f90nml_namelist_only,  # Issue#64: tmp flag
     )
 
 
@@ -286,7 +289,7 @@ def _savepoint_cases(
     topology_mode: bool,
     sort_report: str,
     no_report: bool,
-    f90nml_namelist_only: bool,
+    f90nml_namelist_only: bool,  # Issue#64: tmp flag
 ):
     grid_params = grid_params_from_f90nml(namelist)
     return_list = []
@@ -322,8 +325,8 @@ def _savepoint_cases(
             grid_indexing=grid.grid_indexing,
         )
         for test_name in sorted(list(savepoint_names)):
-            # TODO REMOVE this conversion from f90nml.Namelist to ndsl.Namelist
-            # after ndsl.Namelist is removed
+            # Temporary check (Issue#64): TODO Remove check and conversion from
+            # f90nml.Namelist to ndsl.Namelist after ndsl.Namelist is removed
             if not f90nml_namelist_only:
                 if type(namelist) is not NdslNamelist:
                     namelist = NdslNamelist.from_f90nml(namelist)
@@ -376,7 +379,10 @@ def parallel_savepoint_cases(
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
     savepoint_to_replay = get_savepoint_restriction(metafunc)
+
+    # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
     f90nml_namelist_only = metafunc.config.getoption("f90nml_namelist_only")
+
     return _savepoint_cases(
         savepoint_names,
         [mpi_rank],
@@ -389,7 +395,7 @@ def parallel_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        f90nml_namelist_only=f90nml_namelist_only,
+        f90nml_namelist_only=f90nml_namelist_only,  # Issue#64: tmp flag
     )
 
 
