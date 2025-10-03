@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 from typing import Optional, Tuple
 
 import pytest
@@ -133,9 +134,9 @@ def data_path(pytestconfig):
     return data_path_and_namelist_filename_from_config(pytestconfig)
 
 
-def data_path_and_namelist_filename_from_config(config) -> Tuple[str, str]:
-    data_path = config.getoption("data_path")
-    namelist_filename = os.path.join(data_path, "input.nml")
+def data_path_and_namelist_filename_from_config(config) -> Tuple[Path, Path]:
+    data_path = Path(config.getoption("data_path"))
+    namelist_filename = data_path / "input.nml"
     return data_path, namelist_filename
 
 
@@ -284,7 +285,7 @@ def _savepoint_cases(
     stencil_config,
     namelist: Namelist,
     backend: str,
-    data_path: str,
+    data_path: Path,
     grid_mode: str,
     topology_mode: bool,
     sort_report: str,
@@ -304,9 +305,9 @@ def _savepoint_cases(
                 backend,
             )
         elif grid_mode == "file" or grid_mode == "compute":
-            ds_grid: xr.Dataset = xr.open_dataset(
-                os.path.join(data_path, "Grid-Info.nc")
-            ).isel(savepoint=0)
+            ds_grid: xr.Dataset = xr.open_dataset(data_path / "Grid-Info.nc").isel(
+                savepoint=0
+            )
             grid = TranslateGrid(
                 dataset_to_dict(ds_grid.isel(rank=rank)),
                 rank=rank,
@@ -334,9 +335,9 @@ def _savepoint_cases(
             testobj = get_test_class_instance(
                 test_name, grid, namelist, stencil_factory
             )
-            n_calls = xr.open_dataset(
-                os.path.join(data_path, f"{test_name}-In.nc")
-            ).sizes["savepoint"]
+            n_calls = xr.open_dataset(data_path / f"{test_name}-In.nc").sizes[
+                "savepoint"
+            ]
             if savepoint_to_replay is not None:
                 savepoint_iterator = range(savepoint_to_replay, savepoint_to_replay + 1)
             else:

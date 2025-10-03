@@ -1,4 +1,5 @@
 from enum import EnumMeta
+from pathlib import Path
 from typing import Iterable, Sequence, Tuple, TypeVar, Union
 
 import f90nml
@@ -145,7 +146,7 @@ def flatten_nml_to_dict(nml: f90nml.Namelist) -> dict:
     return flatter_namelist
 
 
-def load_f90nml(namelist_path: str) -> f90nml.Namelist:
+def load_f90nml(namelist_path: Path) -> f90nml.Namelist:
     """Loads a Fortran namelist given its path and return a f90nml.Namelist
 
     Args:
@@ -155,7 +156,7 @@ def load_f90nml(namelist_path: str) -> f90nml.Namelist:
 
 
 def load_f90nml_as_dict(
-    namelist_path: str,
+    namelist_path: Path,
     flatten: bool = True,
     target_groups=None,
 ) -> dict:
