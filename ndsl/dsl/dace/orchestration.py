@@ -34,6 +34,7 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     sdfg_nan_checker,
 )
 from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -44,7 +45,10 @@ from ndsl.optional_imports import cupy as cp
 
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
-"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer"""
+"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
+
+_INTERNAL__SCHEDULE_TREE_PASSES = [CartesianAxisMerge(AxisIterator._K)]
+"""INTERNAL: Default schedule passes for CPU. To be replaced with proper configuration."""
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -157,7 +161,7 @@ def _build_sdfg(
                 if config.is_gpu_backend():
                     GPUPipeline().run(stree)
                 else:
-                    CPUPipeline().run(stree)
+                    CPUPipeline(passes=_INTERNAL__SCHEDULE_TREE_PASSES).run(stree)
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})

@@ -3,11 +3,7 @@ from typing import Protocol
 
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
 
-from ndsl.dsl.dace.stree.optimizations.axis_merge import (
-    AxisIterator,
-    CartesianAxisMerge,
-)
-from ndsl.dsl.dace.stree.optimizations.merge import MapMerge, MergeStrategy
+from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 
 
 class StreePipeline(Protocol):
@@ -25,10 +21,8 @@ class StreePipeline(Protocol):
 
 
 class CPUPipeline(StreePipeline):
-    def __init__(self) -> None:
-        self.passes = [
-            CartesianAxisMerge(AxisIterator._K),
-        ]
+    def __init__(self, passes: list[dst.ScheduleNodeTransformer] | None = None) -> None:
+        self.passes = passes if passes else [CartesianAxisMerge(AxisIterator._K)]
 
     def __repr__(self) -> str:
         return str([type(p) for p in self.passes])
@@ -46,10 +40,8 @@ class CPUPipeline(StreePipeline):
 
 
 class GPUPipeline(StreePipeline):
-    def __init__(self) -> None:
-        self.passes = [
-            MapMerge(merge_strategy=MergeStrategy.Trivial),
-        ]
+    def __init__(self, passes: list[dst.ScheduleNodeTransformer] | None = None) -> None:
+        self.passes = passes if passes else []
 
     def __repr__(self) -> str:
         return str([type(p) for p in self.passes])
