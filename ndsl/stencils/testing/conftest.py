@@ -328,7 +328,7 @@ def _savepoint_cases(
         for test_name in sorted(list(savepoint_names)):
             # Temporary check (Issue#64): TODO Remove check and conversion from
             # f90nml.Namelist to ndsl.Namelist after ndsl.Namelist is removed
-            if not no_legacy_namelist: # This means we use NdslNamelist.
+            if not no_legacy_namelist:  # This means we use NdslNamelist.
                 if not isinstance(namelist, NdslNamelist):
                     namelist = NdslNamelist.from_f90nml(namelist)
 
