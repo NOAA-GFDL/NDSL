@@ -39,8 +39,11 @@ from ndsl.dsl.dace.utils import (
     memory_static_analysis,
     report_memory_static_analysis,
 )
-from ndsl.logging import ndsl_log, log_is_debug
+from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
+"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer"""
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -119,64 +122,6 @@ def _simplify(
     ).apply_pass(sdfg, {})
 
 
-def _dace_optimize(
-    sdfg: SDFG,
-    *,
-    validate: bool = True,
-    validate_all: bool = False,
-    verbose: bool = False,
-):
-    from dace.transformation.dataflow import MapCollapse, TrivialMapElimination
-    from dace.transformation.interstate import LoopToMap, RefineNestedAccess
-    from dace.transformation.auto.auto_optimize import tile_wcrs
-    from dace.transformation import helpers as xfh
-
-    # Simplification and loop parallelization
-    transformed = True
-    sdfg.apply_transformations_repeated(
-        TrivialMapElimination, validate=validate, validate_all=validate_all
-    )
-    while transformed:
-        sdfg.simplify(validate=False, validate_all=validate_all)
-        for s in sdfg.cfg_list:
-            xfh.split_interstate_edges(s)
-        l2ms = sdfg.apply_transformations_repeated(
-            (LoopToMap, RefineNestedAccess), validate=False, validate_all=validate_all
-        )
-        transformed = l2ms > 0
-
-    _simplify(sdfg, validate=validate, validate_all=validate_all, verbose=verbose)
-
-    # Tiled WCR and streams
-    for nsdfg in list(sdfg.all_sdfgs_recursive()):
-        tile_wcrs(nsdfg, validate_all)
-
-    # Collapse maps
-    sdfg.apply_transformations_repeated(
-        MapCollapse, validate=False, validate_all=validate_all
-    )
-
-    _simplify(sdfg, validate=validate, validate_all=validate_all, verbose=verbose)
-
-
-def _make_sequential(sdfg: SDFG):
-    import dace
-
-    # Disable OpenMP sections
-    for sd in sdfg.all_sdfgs_recursive():
-        sd.openmp_sections = False
-    # Disable OpenMP maps
-    for n, _ in sdfg.all_nodes_recursive():
-        if isinstance(n, dace.nodes.EntryNode):
-            sched = getattr(n, "schedule", False)
-            if sched in (
-                dace.ScheduleType.CPU_Multicore,
-                dace.ScheduleType.CPU_Persistent,
-                dace.ScheduleType.Default,
-            ):
-                n.schedule = dace.ScheduleType.Sequential
-
-
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
 ) -> None:
@@ -203,17 +148,18 @@ def _build_sdfg(
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
 
-        with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
-            stree = sdfg.as_schedule_tree()
+        if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
+                stree = sdfg.as_schedule_tree()
 
-        with DaCeProgress(config, "Schedule Tree: optimization"):
-            if config.is_gpu_backend():
-                GPUPipeline().run(stree)
-            else:
-                CPUPipeline().run(stree)
+            with DaCeProgress(config, "Schedule Tree: optimization"):
+                if config.is_gpu_backend():
+                    GPUPipeline().run(stree)
+                else:
+                    CPUPipeline().run(stree)
 
-        with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
-            sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+            with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
+                sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
         # Make the transients array persistents
         if config.is_gpu_backend():
