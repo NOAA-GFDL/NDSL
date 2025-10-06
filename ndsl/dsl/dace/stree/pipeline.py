@@ -22,7 +22,9 @@ class StreePipeline(Protocol):
 
 class CPUPipeline(StreePipeline):
     def __init__(self, passes: list[dst.ScheduleNodeTransformer] | None = None) -> None:
-        self.passes = passes if passes else [CartesianAxisMerge(AxisIterator._K)]
+        self.passes = (
+            passes if passes is not None else [CartesianAxisMerge(AxisIterator._K)]
+        )
 
     def __repr__(self) -> str:
         return str([type(p) for p in self.passes])
