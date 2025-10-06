@@ -1,5 +1,4 @@
-from dace import SDFG
-from dace import ScheduleType
+from dace import SDFG, ScheduleType
 
 
 def _make_sequential(sdfg: SDFG):

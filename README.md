@@ -58,7 +58,7 @@ To run the GPU backends, you'll need:
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+
 - Python package:
-    - `cupy` (latest with proper driver support [see install notes](https://docs.cupy.dev/en/stable/install.html))
+  - `cupy` (latest with proper driver support [see install notes](https://docs.cupy.dev/en/stable/install.html))
 
 A simple way to install MPI is using pre-built wheels, e.g.
 

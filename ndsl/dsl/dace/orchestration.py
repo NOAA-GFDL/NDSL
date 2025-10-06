@@ -28,12 +28,12 @@ from ndsl.dsl.dace.dace_config import (
     DaceConfig,
     DaCeOrchestration,
 )
-from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -41,6 +41,7 @@ from ndsl.dsl.dace.utils import (
 )
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer"""

@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 import copy
+import re
+from typing import Any, List
+
 import dace
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
 from dace.properties import CodeBlock
 
-from typing import Any, List
-
-from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
-    no_data_dependencies_on_cartesian_axis,
-    AxisIterator,
-)
 from ndsl import ndsl_log
-import re
+from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
+    AxisIterator,
+    no_data_dependencies_on_cartesian_axis,
+)
 
 
 def _is_axis_map(node: dst.MapScope, axis: AxisIterator) -> bool:

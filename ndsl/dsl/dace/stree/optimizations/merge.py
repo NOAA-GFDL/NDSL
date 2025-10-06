@@ -1,12 +1,12 @@
 """TO DELETE - FOR REFERENCE ONLY"""
 
+from enum import Enum
+from typing import List
+
 import dace
 import dace.sdfg.analysis.schedule_tree.treenodes as dace_stree
 from dace.memlet import Memlet
 from dace.properties import CodeBlock
-
-from enum import Enum
-from typing import List
 
 
 def is_k_map(node: dace_stree.MapScope) -> bool:

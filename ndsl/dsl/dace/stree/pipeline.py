@@ -1,11 +1,13 @@
 from abc import abstractmethod
 from typing import Protocol
+
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
-from ndsl.dsl.dace.stree.optimizations.merge import MapMerge, MergeStrategy
+
 from ndsl.dsl.dace.stree.optimizations.axis_merge import (
-    CartesianAxisMerge,
     AxisIterator,
+    CartesianAxisMerge,
 )
+from ndsl.dsl.dace.stree.optimizations.merge import MapMerge, MergeStrategy
 
 
 class StreePipeline(Protocol):

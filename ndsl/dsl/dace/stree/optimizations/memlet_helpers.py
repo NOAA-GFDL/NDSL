@@ -1,7 +1,7 @@
+from enum import Enum
+
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
 from dace.memlet import Memlet
-
-from enum import Enum
 
 
 class AxisIterator(Enum):
