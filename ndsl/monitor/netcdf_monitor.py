@@ -9,7 +9,6 @@ import xarray as xr
 
 from ndsl.comm.communicator import Communicator
 from ndsl.dsl.typing import Float, get_precision
-from ndsl.filesystem import get_fs
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
 from ndsl.quantity import Quantity
@@ -51,7 +50,6 @@ class _ChunkedNetCDFWriter:
     ):
         self._path = path
         self._tile = tile
-        self._fs = fs
         self._time_chunk_size = time_chunk_size
         self._i_time = 0
         self._chunked: Optional[Dict[str, _TimeChunkedVariable]] = None
@@ -128,7 +126,6 @@ class NetCDFMonitor:
         rank = communicator.rank
         self._tile_index = communicator.partitioner.tile_index(rank)
         self._path = path
-        self._fs = get_fs(path)
         self._communicator = communicator
         self._time_chunk_size = time_chunk_size
         self.__writer: Optional[_ChunkedNetCDFWriter] = None
@@ -145,7 +142,6 @@ class NetCDFMonitor:
             self.__writer = _ChunkedNetCDFWriter(
                 path=self._path,
                 tile=self._tile_index,
-                fs=self._fs,
                 time_chunk_size=self._time_chunk_size,
             )
         return self.__writer
@@ -189,7 +185,7 @@ class NetCDFMonitor:
             for name, quantity in state.items():
                 path_for_grid = constants_filename + "_" + name + ".nc"
 
-                if self._fs.exists(path_for_grid):
+                if os.path.exists(path_for_grid):
                     ds = xr.open_dataset(path_for_grid)
                     ds = ds.load()
                     ds[name] = xr.DataArray(
