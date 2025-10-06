@@ -90,7 +90,3 @@ ndsl_log: Annotated[logging.Logger, "NDSL Python logger, logs on all rank"] = (
 ndsl_log_on_rank_0: Annotated[
     logging.Logger, "NDSL Python logger, logs on rank 0 only"
 ] = _ndsl_logger_on_rank_0()
-
-
-def log_is_debug(logger: logging.Logger) -> bool:
-    return logger.level == logging.DEBUG
