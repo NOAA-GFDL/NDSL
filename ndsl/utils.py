@@ -161,7 +161,7 @@ def load_f90nml(namelist_path: Path) -> f90nml.Namelist:
 def load_f90nml_as_dict(
     namelist_path: Path,
     flatten: bool = True,
-    target_groups:list[str] | None = None,
+    target_groups: list[str] | None = None,
 ) -> dict:
     """Loads a Fortran namelist given its path and returns a
     dict representation. If target_groups are specified, then
@@ -183,7 +183,7 @@ def load_f90nml_as_dict(
 def f90nml_as_dict(
     nml: f90nml.Namelist,
     flatten: bool = True,
-    target_groups:list[str] | None = None,
+    target_groups: list[str] | None = None,
 ) -> dict:
     """Uses a f90nml.Namelist and returns a dict representation.
     If target_groups are specified, then the dict is created using only those
