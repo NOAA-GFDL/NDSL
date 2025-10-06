@@ -7,7 +7,7 @@ from .comm.null_comm import NullComm
 from .comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
-from .dsl.dace.dace_config import DaceConfig, DaCeOrchestration, FrozenCompiledSDFG
+from .dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from .dsl.dace.orchestration import orchestrate, orchestrate_function
 from .dsl.dace.utils import (
     ArrayReport,
@@ -28,7 +28,7 @@ from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
-from .quantity import Quantity
+from .quantity import Quantity, State
 from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
 from .testing.dummy_comm import DummyComm
 from .types import Allocator
@@ -48,7 +48,6 @@ __all__ = [
     "FV3CodePath",
     "DaceConfig",
     "DaCeOrchestration",
-    "FrozenCompiledSDFG",
     "orchestrate",
     "orchestrate_function",
     "ArrayReport",
@@ -87,4 +86,5 @@ __all__ = [
     "DummyComm",
     "Allocator",
     "MetaEnumStr",
+    "State",
 ]

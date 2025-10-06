@@ -302,6 +302,9 @@ class FrozenStencil(SDFGConvertible):
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
+        # NOTE: this is also down in `dace/build.py` for orchestration
+        # This is still needed for non-orchestrated used of DaCe.
+        # A better build system would take care of BOTH of those at the same time
         if "dace" in self.stencil_config.compilation_config.backend:
             dace.Config.set(
                 "default_build_folder",
@@ -367,7 +370,7 @@ class FrozenStencil(SDFGConvertible):
         self._field_origins: Dict[str, Tuple[int, ...]] = (
             FrozenStencil._compute_field_origins(field_info, self.origin)
         )
-        """mapping from field names to field origins"""
+        """Mapping from field names to field origins"""
 
         self._stencil_run_kwargs: Dict[str, Any] = {
             "_origin_": self._field_origins,
@@ -449,8 +452,10 @@ class FrozenStencil(SDFGConvertible):
 
     @classmethod
     def _compute_field_origins(
-        cls, field_info_mapping, origin: Union[Index3D, Mapping[str, Tuple[int, ...]]]
-    ) -> Dict[str, Tuple[int, ...]]:
+        cls,
+        field_info_mapping: dict[str, gt_definitions.FieldInfo],
+        origin: Index3D | Mapping[str, tuple[int, ...]],
+    ) -> dict[str, tuple[int, ...]]:
         """
         Computes the origin for each field in the stencil call.
 
@@ -463,8 +468,8 @@ class FrozenStencil(SDFGConvertible):
             origin_mapping: a mapping from field names to origins
         """
         if isinstance(origin, tuple):
-            field_origins: Dict[str, Tuple[int, ...]] = {"_all_": origin}
-            origin_tuple: Tuple[int, ...] = origin
+            field_origins: dict[str, tuple[int, ...]] = {"_all_": origin}
+            origin_tuple: tuple[int, ...] = origin
         else:
             field_origins = {**origin}
             origin_tuple = origin["_all_"]
@@ -477,6 +482,9 @@ class FrozenStencil(SDFGConvertible):
                     for ax in field_info.axes:
                         origin_index = {"I": 0, "J": 1, "K": 2}[ax]
                         field_origin_list.append(origin_tuple[origin_index])
+                    for i, _data_dim in enumerate(field_info.data_dims):
+                        if field_info.mask[len(field_info.domain_mask) + i]:
+                            field_origin_list.append(0)
                     field_origin = tuple(field_origin_list)
                 else:
                     field_origin = origin_tuple
@@ -495,8 +503,7 @@ class FrozenStencil(SDFGConvertible):
             for field_name in field_info
             if field_info[field_name]
             and bool(
-                field_info[field_name].access
-                & gt_definitions.AccessKind.WRITE  # type: ignore
+                field_info[field_name].access & gt_definitions.AccessKind.WRITE  # type: ignore
             )
         ]
         return write_fields
@@ -642,42 +649,42 @@ class GridIndexing:
 
     @property
     def isc(self):
-        """start of the compute domain along the x-axis"""
+        """Start of the compute domain along the x-axis"""
         return self.origin[0]
 
     @property
     def iec(self):
-        """last index of the compute domain along the x-axis"""
+        """Last index of the compute domain along the x-axis"""
         return self.origin[0] + self.domain[0] - 1
 
     @property
     def jsc(self):
-        """start of the compute domain along the y-axis"""
+        """Start of the compute domain along the y-axis"""
         return self.origin[1]
 
     @property
     def jec(self):
-        """last index of the compute domain along the y-axis"""
+        """Last index of the compute domain along the y-axis"""
         return self.origin[1] + self.domain[1] - 1
 
     @property
     def isd(self):
-        """start of the full domain including halos along the x-axis"""
+        """Start of the full domain including halos along the x-axis"""
         return self.origin[0] - self.n_halo
 
     @property
     def ied(self):
-        """index of the last data point along the x-axis"""
+        """Index of the last data point along the x-axis"""
         return self.isd + self.domain[0] + 2 * self.n_halo - 1
 
     @property
     def jsd(self):
-        """start of the full domain including halos along the y-axis"""
+        """Start of the full domain including halos along the y-axis"""
         return self.origin[1] - self.n_halo
 
     @property
     def jed(self):
-        """index of the last data point along the y-axis"""
+        """Index of the last data point along the y-axis"""
         return self.jsd + self.domain[1] + 2 * self.n_halo - 1
 
     @property
@@ -796,6 +803,25 @@ class GridIndexing:
             origin[i] -= n
             domain[i] += 2 * n
         return tuple(origin), tuple(domain)
+
+    def get_2d_compute_origin_domain(
+        self,
+        klevel: int = 0,
+    ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+        """
+        Get the origin and domain for a computation that occurs on the lowest klevel over a certain grid
+        configuration (given by dims) and a certain number of halo points.
+
+        Args:
+            klevel: the vertical level of the domain, defaults to zero
+
+        Returns:
+            origin: origin of the computation
+            domain: shape of the computation
+        """
+        origin = (self.isc, self.jsc, klevel)
+        domain = (self.iec + 1 - self.isc, self.jec + 1 - self.jsc, 1)
+        return (origin, domain)
 
     def _origin_from_dims(self, dims: Iterable[str]) -> List[int]:
         return_origin = []

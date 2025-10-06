@@ -25,6 +25,7 @@ class FieldBundle:
     """
 
     _quantity: Quantity
+    _per_name_view: dict[str, Quantity] = {}
     _indexer: _FieldBundleIndexer = {}
 
     def __init__(
@@ -80,13 +81,19 @@ class FieldBundle:
             return None  # type: ignore
         # ToDo: extend the dims below to work with more than 4 dims
         assert len(self._quantity.data.shape) == 4
-        return Quantity(
-            data=self._quantity.data[:, :, :, self.index(name)],
-            dims=self._quantity.dims[:-1],
-            units=self._quantity.units,
-            origin=self._quantity.origin[:-1],
-            extent=self._quantity.extent[:-1],
-        )
+
+        if name not in self._per_name_view:
+            # Memoize the Quantities returned here to ensue that we only ever
+            # have one `field.a_name`-Quantity floating around. If not, DaCe
+            # orchestration gets (rightly so) confused.
+            self._per_name_view[name] = Quantity(
+                data=self._quantity.data[:, :, :, self.index(name)],
+                dims=self._quantity.dims[:-1],
+                units=self._quantity.units,
+                origin=self._quantity.origin[:-1],
+                extent=self._quantity.extent[:-1],
+            )
+        return self._per_name_view[name]
 
     def index(self, name: str) -> int:
         """Get index from name."""
@@ -141,7 +148,7 @@ class FieldBundleType:
     """Field Bundle Types to help with static sizing of Data Dimensions.
 
     Methods:
-        register: Register a type by sizing it's data dimensions
+        register: Register a type by sizing its data dimensions
         T: access any registered types for type hinting.
     """
 
@@ -151,7 +158,7 @@ class FieldBundleType:
     def register(
         cls, name: str, data_dims: tuple[int], dtype=Float
     ) -> gtscript._FieldDescriptor:
-        """Register a name type by name by giving the size of it's data dimensions.
+        """Register a name type by name by giving the size of its data dimensions.
 
         The same type cannot be registered twice and will error out.
 
