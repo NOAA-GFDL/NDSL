@@ -135,7 +135,7 @@ class ParallelTranslate:
     def layout(self):
         # TODO: Once ndsl.namelist.Namelist is gone (Issue#64),
         # remove this check in favor of f90nml.namelist.Namelist
-        if type(self.namelist is NdslNamelist):
+        if isinstance(self.namelist, NdslNamelist):
             return self.namelist.layout
 
         # Assumption: namelist is f90nml.namelist.Namelist

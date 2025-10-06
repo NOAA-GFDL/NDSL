@@ -78,10 +78,10 @@ def pytest_addoption(parser):
         help="How many indices of failures to print from worst to best. Default to 1.",
     )
     parser.addoption(
-        "--f90nml_namelist_only",
-        action="store_true",
-        default=False,
-        help="When specified, translate tests will use f90nml.Namelist exclusively, without ndsl.Namelist. (Default to False -- which means ndsl.Namelist is used). This flag should be removed after NDSL Issue#64 has been resolved.",
+        "--legacy_namelist_support",
+        action="store",
+        default="True",
+        help="Keeps support for `ndsl.Namelist` in translate tests (which we are trying to get rid off, see NDSL issue #64. Defaults to True.",
     )
     parser.addoption(
         "--grid",
@@ -234,6 +234,18 @@ def get_savepoint_restriction(metafunc):
     return int(svpt) if svpt else None
 
 
+def get_legacy_namelist_support(metafunc):
+    use_legacy = metafunc.config.getoption("legacy_namelist_support").lower()
+    if use_legacy in ("true", "t", "1", "yes", "y"):
+        return True
+    elif use_legacy in ("false", "f", "0", "no", "n"):
+        return False
+    else:
+        raise ValueError(
+            f"Invalid value for legacy_namelist_support flag: {use_legacy}"
+        )
+
+
 def get_config(backend: str, communicator: Optional[Communicator]):
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -260,7 +272,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
     no_report = metafunc.config.getoption("no_report")
 
     # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
-    f90nml_namelist_only = metafunc.config.getoption("f90nml_namelist_only")
+    legacy_namelist_support = get_legacy_namelist_support(metafunc)
 
     return _savepoint_cases(
         savepoint_names,
@@ -274,7 +286,7 @@ def sequential_savepoint_cases(metafunc, data_path, namelist_filename, *, backen
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        f90nml_namelist_only=f90nml_namelist_only,  # Issue#64: tmp flag
+        legacy_namelist_support=legacy_namelist_support,  # Issue#64: tmp flag
     )
 
 
@@ -290,7 +302,7 @@ def _savepoint_cases(
     topology_mode: bool,
     sort_report: str,
     no_report: bool,
-    f90nml_namelist_only: bool,  # Issue#64: tmp flag
+    legacy_namelist_support: bool,  # Issue#64: tmp flag
 ):
     grid_params = grid_params_from_f90nml(namelist)
     return_list = []
@@ -328,8 +340,8 @@ def _savepoint_cases(
         for test_name in sorted(list(savepoint_names)):
             # Temporary check (Issue#64): TODO Remove check and conversion from
             # f90nml.Namelist to ndsl.Namelist after ndsl.Namelist is removed
-            if not f90nml_namelist_only:
-                if type(namelist) is not NdslNamelist:
+            if legacy_namelist_support:
+                if not isinstance(namelist, NdslNamelist):
                     namelist = NdslNamelist.from_f90nml(namelist)
 
             testobj = get_test_class_instance(
@@ -382,7 +394,7 @@ def parallel_savepoint_cases(
     savepoint_to_replay = get_savepoint_restriction(metafunc)
 
     # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
-    f90nml_namelist_only = metafunc.config.getoption("f90nml_namelist_only")
+    legacy_namelist_support = get_legacy_namelist_support(metafunc)
 
     return _savepoint_cases(
         savepoint_names,
@@ -396,7 +408,7 @@ def parallel_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        f90nml_namelist_only=f90nml_namelist_only,  # Issue#64: tmp flag
+        legacy_namelist_support=legacy_namelist_support,  # Issue#64: tmp flag
     )
 
 

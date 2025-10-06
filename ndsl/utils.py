@@ -119,6 +119,7 @@ def safe_mpi_allocate(
 # Helpers for loading and working with Fortran Namelists
 # TODO: Consider moving these to a separate utils/namelist.py
 
+
 DEFAULT_GRID_NML_GROUPS = ["fv_core_nml"]
 
 
@@ -146,6 +147,8 @@ def flatten_nml_to_dict(nml: f90nml.Namelist) -> dict:
     return flatter_namelist
 
 
+# TODO: Consider a more universal loader, e.g., load_config(path),
+#       rather than a f90nml-specific loader (See PR#246).
 def load_f90nml(namelist_path: Path) -> f90nml.Namelist:
     """Loads a Fortran namelist given its path and return a f90nml.Namelist
 
@@ -158,7 +161,7 @@ def load_f90nml(namelist_path: Path) -> f90nml.Namelist:
 def load_f90nml_as_dict(
     namelist_path: Path,
     flatten: bool = True,
-    target_groups=None,
+    target_groups=list[str] | None,
 ) -> dict:
     """Loads a Fortran namelist given its path and returns a
     dict representation. If target_groups are specified, then
@@ -180,7 +183,7 @@ def load_f90nml_as_dict(
 def f90nml_as_dict(
     nml: f90nml.Namelist,
     flatten: bool = True,
-    target_groups=None,
+    target_groups=list[str] | None,
 ) -> dict:
     """Uses a f90nml.Namelist and returns a dict representation.
     If target_groups are specified, then the dict is created using only those
@@ -188,7 +191,7 @@ def f90nml_as_dict(
     information or keep the group information.
 
     Args:
-        namelist_path: Path to the Fortran namelist file
+        nml: f90nml.Namelist
         flatten: If True, flattens the loaded namelist (without groups) before
                  returning it. (Default: True) Otherwise, it returns the f90nml.Namelist
                  dict representation.
@@ -199,7 +202,7 @@ def f90nml_as_dict(
     if target_groups is not None:
         extracted_groups = f90nml.Namelist()
         for group in target_groups:
-            if group in nml:
+            if group in nml.keys():
                 extracted_groups[group] = nml[group]
     else:
         extracted_groups = nml
@@ -209,5 +212,15 @@ def f90nml_as_dict(
     return extracted_groups.todict()
 
 
-def grid_params_from_f90nml(nml):
+def grid_params_from_f90nml(nml: f90nml.Namelist) -> dict:
+    """Uses a f90nml.Namelist and returns a dict representation
+    of parameters useful for grid generation. The return dict
+    will be flattened with key-value pairs from the nml's
+    DEFAULT_GRID_NML_GROUPS.
+
+    Args:
+        nml: f90nml.Namelist
+    """
+    # TODO: Consider returning a {Cartesian,CubeSphere}GridParameters class
+    #       rather than a dict (See PR#246).
     return f90nml_as_dict(nml, flatten=True, target_groups=DEFAULT_GRID_NML_GROUPS)
