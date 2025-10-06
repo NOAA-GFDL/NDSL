@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import os
 import pathlib
 
 import xarray as xr
@@ -15,7 +16,6 @@ except ImportError:
 import ndsl.constants as constants
 from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.typing import Float
-from ndsl.filesystem import get_fs
 from ndsl.grid.generation import MetricTerms
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
@@ -130,15 +130,15 @@ class VerticalGridData:
     """
     Terms defining the vertical grid.
 
-    Eulerian vertical grid is defined by p = ak + bk * p_ref
+    Eulerian vertical grid is defined by p = ak + bk * p_ref.
     """
 
     # TODO: make these non-optional, make FloatFieldK a true type and use it
     ak: Quantity
     bk: Quantity
     """
-    reference pressure (Pa) used to define pressure at vertical interfaces,
-    where p = ak + bk * p_ref
+    Reference pressure (Pa) used to define pressure at vertical interfaces,
+    where p = ak + bk * p_ref.
     """
 
     def __post_init__(self):
@@ -155,14 +155,13 @@ class VerticalGridData:
 
     @classmethod
     def from_restart(cls, restart_path: str, quantity_factory: QuantityFactory):
-        fs = get_fs(restart_path)
-        restart_files = fs.ls(restart_path)
+        restart_files = os.listdir(restart_path)
         data_file = restart_files[
             [fname.endswith("fv_core.res.nc") for fname in restart_files].index(True)
         ]
 
         ak_bk_data_file = pathlib.Path(restart_path) / data_file
-        if not fs.isfile(ak_bk_data_file):
+        if not ak_bk_data_file.is_file():
             raise ValueError(
                 """vertical_grid_from_restart is true,
                 but no fv_core.res.nc in restart data file."""
@@ -170,7 +169,7 @@ class VerticalGridData:
 
         ak = quantity_factory.zeros([Z_INTERFACE_DIM], units="Pa")
         bk = quantity_factory.zeros([Z_INTERFACE_DIM], units="")
-        with fs.open(ak_bk_data_file, "rb") as f:
+        with open(ak_bk_data_file, "rb") as f:
             ds = xr.open_dataset(f).isel(Time=0).drop_vars("Time")
             ak.view[:] = ds["ak"].values
             bk.view[:] = ds["bk"].values
@@ -179,9 +178,7 @@ class VerticalGridData:
 
     @property
     def p_ref(self) -> float:
-        """
-        reference pressure (Pa)
-        """
+        """Reference pressure (Pa)"""
         return 1e5
 
     @property
@@ -230,9 +227,7 @@ class VerticalGridData:
 
     @property
     def ptop(self) -> Float:
-        """
-        top of atmosphere pressure (Pa)
-        """
+        """Top of atmosphere pressure (Pa)"""
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
         if is_gpu_backend(self.ak.gt4py_backend):
