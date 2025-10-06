@@ -213,7 +213,6 @@ class DaceConfig:
                 "args",
                 value=f"-march={march_cpu} -std=c++17 -fPIC -Wall -Wextra -O{optimization_level}",
             )
-            dace.config.Config.set("compiler", "build_type", value="Release")
             # Potentially buggy - deactivate
             dace.config.Config.set(
                 "compiler",
