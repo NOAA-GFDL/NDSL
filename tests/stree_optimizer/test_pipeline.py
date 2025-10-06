@@ -1,12 +1,8 @@
-from ndsl.dsl.gt4py import (
-    computation,
-    interval,
-    PARALLEL,
-)
+from ndsl import StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-from ndsl import StencilFactory, orchestrate
 
 
 def double_map(in_field: FloatField, out_field: FloatField):
