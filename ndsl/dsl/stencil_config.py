@@ -168,7 +168,7 @@ class CompilationConfig:
 class StencilConfig(Hashable):
     compare_to_numpy: bool = False
     compilation_config: CompilationConfig = CompilationConfig()
-    dace_config: Optional[DaceConfig] = None
+    dace_config: DaceConfig = None
     verbose: bool = False
 
     def __post_init__(self):
