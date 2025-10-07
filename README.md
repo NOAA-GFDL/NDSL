@@ -5,7 +5,6 @@
 
 :warning: :dragon: This is the equivalent of a "release" branch for the NASA Team's Milestone 2 work. In particular, we include the following experimental features:
 
-- "Hybrid" indexing that allows absolute K-indices
 - Access to the iteration variable in K, working title `THIS_K`
 
 Your standard readme continues below.
