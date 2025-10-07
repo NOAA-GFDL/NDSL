@@ -92,6 +92,7 @@ class State:
     def empty(
         cls,
         quantity_factory: QuantityFactory,
+        *,
         data_dimensions: dict[str, int] = {},
     ) -> Self:
         """Allocate all quantities. Do not expect 0 on values, values are random.
@@ -111,6 +112,7 @@ class State:
     def zeros(
         cls,
         quantity_factory: QuantityFactory,
+        *,
         data_dimensions: dict[str, int] = {},
     ) -> Self:
         """Allocate all quantities and fill their value to zeros
@@ -130,6 +132,7 @@ class State:
     def ones(
         cls,
         quantity_factory: QuantityFactory,
+        *,
         data_dimensions: dict[str, int] = {},
     ) -> Self:
         """Allocate all quantities and fill their value to ones
@@ -146,10 +149,34 @@ class State:
         return state
 
     @classmethod
+    def full(
+        cls,
+        quantity_factory: QuantityFactory,
+        value: Number,
+        *,
+        data_dimensions: dict[str, int] = {},
+    ) -> Self:
+        """Allocate all quantities and fill them with the input value
+
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            value: number to initialize the buffers with.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+
+        with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.empty)
+        state.fill(value)
+        return state
+
+    @classmethod
     def copy_memory(
         cls,
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
+        *,
         data_dimensions: dict[str, int] = {},
     ) -> Self:
         """Allocate all quantities and fill their value based
@@ -173,8 +200,8 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
-        data_dimensions: dict[str, int] = {},
         *,
+        data_dimensions: dict[str, int] = {},
         check_shape_and_strides: bool = True,
     ) -> Self:
         """Allocate all quantities and move memory based on
@@ -190,7 +217,7 @@ class State:
                 previously allocated memory.
         """
 
-        state = cls.zeros(quantity_factory, data_dimensions)
+        state = cls.zeros(quantity_factory, data_dimensions=data_dimensions)
         state.update_move_memory(
             memory_map,
             check_shape_and_strides=check_shape_and_strides,
@@ -198,11 +225,11 @@ class State:
 
         return state
 
-    def fill(self, value: Number):
+    def fill(self, value: Number) -> None:
         def _fill_recursive(
             state: State,
             value: Number,
-        ):
+        ) -> None:
             for _field in dataclasses.fields(state):
                 if dataclasses.is_dataclass(_field.type):
                     _fill_recursive(state.__getattribute__(_field.name), value)

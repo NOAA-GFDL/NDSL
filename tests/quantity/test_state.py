@@ -80,6 +80,12 @@ def test_basic_state(tmpdir):
     assert (microphys_state2.inner_A.A.field[:] == 18.18).all()
     assert (microphys_state2.inner_B.B.field[:] == 18.18).all()
 
+    # Test full
+    microphys_state3 = CodeState.full(quantity_factory, 90.90)
+    assert (microphys_state3.inner_A.A.field[:] == 90.90).all()
+    assert (microphys_state3.inner_B.B.field[:] == 90.90).all()
+    assert (microphys_state3.C.field[:] == 90.90).all()
+
 
 @dataclasses.dataclass
 class CodeStateWithDDim(State):
