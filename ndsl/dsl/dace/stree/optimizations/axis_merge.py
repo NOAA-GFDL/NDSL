@@ -13,6 +13,11 @@ from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
     AxisIterator,
     no_data_dependencies_on_cartesian_axis,
 )
+from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
+    detect_cycle,
+    list_index,
+    swap_node_position_in_tree,
+)
 
 
 def _is_axis_map(node: dst.MapScope, axis: AxisIterator) -> bool:
@@ -45,46 +50,6 @@ def _can_merge_axis_maps(
         second,
         axis,
     )
-
-
-def _swap_node_position_in_tree(top_node, child_node):
-    """Top node becomes child, child becomes top node"""
-    # Take refs before swap
-    top_children = top_node.parent.children
-    top_level_parent = top_node.parent
-
-    # Swap childrens
-    top_node.children = child_node.children
-    child_node.children = [top_node]
-    top_children.insert(_list_index(top_children, top_node), child_node)
-
-    # Re-parent
-    top_node.parent = child_node
-    child_node.parent = top_level_parent
-
-    # Remove now-pushed original node
-    top_children.remove(top_node)
-
-
-def _detect_cycle(nodes, visited: set):
-    for n in nodes:
-        if id(n) in visited:
-            breakpoint()
-        visited.add(id(n))
-        if hasattr(n, "children"):
-            _detect_cycle(n.children, visited)
-
-
-def _list_index(list: List[dst.ScheduleTreeNode], node: dst.ScheduleTreeNode) -> int:
-    """Check if node is in list with "is" operator."""
-    index = 0
-    for element in list:
-        # compare with "is" to get memory comparison. ".index()" uses value comparison
-        if element is node:
-            return index
-        index += 1
-
-    raise StopIteration
 
 
 class InsertOvercomputationGuard(dst.ScheduleNodeTransformer):
@@ -133,11 +98,11 @@ def _get_next_node(
     nodes: list[dst.ScheduleTreeNode],
     node: dst.ScheduleTreeNode,
 ) -> dst.ScheduleTreeNode:
-    return nodes[_list_index(nodes, node) + 1]
+    return nodes[list_index(nodes, node) + 1]
 
 
 def _last_node(nodes: list[dst.ScheduleTreeNode], node: dst.ScheduleTreeNode) -> bool:
-    return _list_index(nodes, node) >= len(nodes) - 1
+    return list_index(nodes, node) >= len(nodes) - 1
 
 
 def _sanitize_axis(axis: AxisIterator, name_to_normalize: str) -> str:
@@ -249,7 +214,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
             if "__pystate" in [tasklet.data for tasklet in the_tasklet.input_memlets()]:
                 return 0  # Tasklet is a callback
 
-        next_index = _list_index(nodes, the_tasklet)
+        next_index = list_index(nodes, the_tasklet)
         if next_index == len(nodes):
             return 0  # Last node - done
 
@@ -278,7 +243,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         merged = 0
 
         # Recurse down if/else/elif
-        if_index = _list_index(nodes, the_if)
+        if_index = list_index(nodes, the_if)
         if len(the_if.children) != 0:
             merged += self._merge_node(the_if.children[0], the_if.children)
         for else_index in range(if_index + 1, len(nodes)):
@@ -324,8 +289,8 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         inner_if_map = the_if.children[0]
 
         # Swap IF & maps
-        if_index = _list_index(nodes, the_if)
-        _swap_node_position_in_tree(the_if, inner_if_map)
+        if_index = list_index(nodes, the_if)
+        swap_node_position_in_tree(the_if, inner_if_map)
 
         # Swap ELIF/ELSE & maps
         for else_index in range(if_index + 1, len(nodes)):
@@ -333,7 +298,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
                 isinstance(nodes[else_index], dst.ElseScope)
                 or isinstance(nodes[else_index], dst.ElifScope)
             ):
-                _swap_node_position_in_tree(
+                swap_node_position_in_tree(
                     nodes[else_index], nodes[else_index].children[0]
                 )
             else:
@@ -407,7 +372,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         first_map.node.map.range = merged_range
 
         # delete now-merged second_map
-        del nodes[_list_index(nodes, next_node)]
+        del nodes[list_index(nodes, next_node)]
 
         return 1
 
@@ -415,7 +380,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
         merged = 0
 
         if __debug__:
-            _detect_cycle(node.children, set())
+            detect_cycle(node.children, set())
 
         i_candidate = 0
         while i_candidate < len(node.children):
@@ -424,7 +389,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
             i_candidate += 1
 
         if __debug__:
-            _detect_cycle(node.children, set())
+            detect_cycle(node.children, set())
 
         return merged
 
@@ -455,7 +420,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
                 merged = self._merge(node)
                 overall_merged += merged
                 if __debug__:
-                    _detect_cycle(node.children, set())
+                    detect_cycle(node.children, set())
             except RecursionError as re:
                 breakpoint()
                 raise re
