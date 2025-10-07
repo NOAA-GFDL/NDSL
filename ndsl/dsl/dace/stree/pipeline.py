@@ -16,7 +16,11 @@ class StreePipeline(Protocol):
         raise NotImplementedError("Missing implementation of __repr__")
 
     @abstractmethod
-    def run(self, stree: dst.ScheduleTreeRoot, verbose=False) -> dst.ScheduleTreeRoot:
+    def run(
+        self,
+        stree: dst.ScheduleTreeRoot,
+        verbose: bool = False,
+    ) -> dst.ScheduleTreeRoot:
         raise NotImplementedError("Missing implementation of run")
 
 
@@ -32,7 +36,11 @@ class CPUPipeline(StreePipeline):
     def __hash__(self) -> int:
         return hash(repr(self))
 
-    def run(self, stree: dst.ScheduleTreeRoot, verbose=False) -> dst.ScheduleTreeRoot:
+    def run(
+        self,
+        stree: dst.ScheduleTreeRoot,
+        verbose: bool = False,
+    ) -> dst.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
                 print(f"[Stree OPT] {p}")
@@ -51,7 +59,11 @@ class GPUPipeline(StreePipeline):
     def __hash__(self) -> int:
         return hash(repr(self))
 
-    def run(self, stree: dst.ScheduleTreeRoot, verbose=False) -> dst.ScheduleTreeRoot:
+    def run(
+        self,
+        stree: dst.ScheduleTreeRoot,
+        verbose: bool = False,
+    ) -> dst.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
                 print(f"[Stree OPT] {p}")
