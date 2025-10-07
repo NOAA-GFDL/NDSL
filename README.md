@@ -6,6 +6,7 @@
 :warning: :dragon: This is the equivalent of a "release" branch for the NASA Team's Milestone 2 work. In particular, we include the following experimental features:
 
 - Access to the iteration variable in K, working title `THIS_K`
+- "schedule tree roundtrip work": fixes in the gt4py/dace bridge and in dace's stree/sdfg conversions to validate PyFV3 translate tests (with the AI2 data)
 
 Your standard readme continues below.
 

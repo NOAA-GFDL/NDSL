@@ -33,6 +33,8 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -40,6 +42,13 @@ from ndsl.dsl.dace.utils import (
 )
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+
+
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
+"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
+
+_INTERNAL__SCHEDULE_TREE_PASSES = [CartesianAxisMerge(AxisIterator._K)]
+"""INTERNAL: Default schedule passes for CPU. To be replaced with proper configuration."""
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -123,6 +132,7 @@ def _build_sdfg(
 ) -> None:
     """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
+    device_type = DaceDeviceType.GPU if config.is_gpu_backend() else DaceDeviceType.CPU
 
     if is_compiling:
         with DaCeProgress(config, "Validate original SDFG"):
@@ -143,12 +153,18 @@ def _build_sdfg(
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
 
-        # TODO uncomment if you want to test schedule tree roundtrip change and/or remove once
-        # we have the schedule tree optimization pipeline.
-        # with DaCeProgress(config, "Schedule tree roundtrip"):
-        #     stree = sdfg.as_schedule_tree()
-        #     # ScalarToSymbolPromotion is messing with us, so we disable it.
-        #     sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+        if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
+                stree = sdfg.as_schedule_tree()
+
+            with DaCeProgress(config, "Schedule Tree: optimization"):
+                if config.is_gpu_backend():
+                    GPUPipeline().run(stree)
+                else:
+                    CPUPipeline(passes=_INTERNAL__SCHEDULE_TREE_PASSES).run(stree)
+
+            with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
+                sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
         # Make the transients array persistents
         if config.is_gpu_backend():
@@ -156,7 +172,7 @@ def _build_sdfg(
             # The following should happen on the stree level
             _to_gpu(sdfg)
 
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.GPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
             # Upload args to device
             _upload_to_device(list(args) + list(kwargs.values()))
@@ -166,7 +182,7 @@ def _build_sdfg(
             for _sd, _aname, arr in sdfg.arrays_recursive():
                 if arr.shape == (1,):
                     arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.CPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
         # Build non-constants & non-transients from the sdfg_kwargs
         sdfg_kwargs = dace_program._create_sdfg_args(sdfg, args, kwargs)
