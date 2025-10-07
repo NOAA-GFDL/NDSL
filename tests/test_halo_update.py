@@ -8,7 +8,6 @@ from ndsl import (
     CubedSpherePartitioner,
     DummyComm,
     HaloUpdater,
-    OutOfBoundsError,
     Quantity,
     TileCommunicator,
     TilePartitioner,
@@ -383,7 +382,7 @@ def test_halo_update_timer(
     ranks_per_tile,
 ):
     """
-    test that halo update produces nonzero timings for all expected labels
+    Test that halo update produces nonzero timings for all expected labels.
     """
     halo_updater_list = []
     for communicator, quantity in zip(communicator_list, zeros_quantity_list):
@@ -422,7 +421,7 @@ def test_depth_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that written values have the correct orientation"""
+    """Test that written values have the correct orientation."""
     sample_quantity = depth_quantity_list[0]
     y_dim, x_dim = get_horizontal_dims(sample_quantity.dims)
     y_index = sample_quantity.dims.index(y_dim)
@@ -462,7 +461,7 @@ def test_depth_tile_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that written values have the correct orientation on a tile"""
+    """Test that written values have the correct orientation on a tile."""
     sample_quantity = tile_depth_quantity_list[0]
     y_dim, x_dim = get_horizontal_dims(sample_quantity.dims)
     y_index = sample_quantity.dims.index(y_dim)
@@ -542,10 +541,12 @@ def test_too_many_points_requested(
     n_points_update,
 ):
     """
-    test that an exception is raised when trying to update more halo points than exist
+    Test that an exception is raised when trying to update more halo points than exist.
     """
     for communicator, quantity in zip(communicator_list, zeros_quantity_list):
-        with pytest.raises(OutOfBoundsError):
+        with pytest.raises(
+            IndexError, match="Boundary slice extends past end of domain.*"
+        ):
             communicator.start_halo_update(quantity, n_points_update)
 
 
@@ -559,11 +560,11 @@ def test_too_many_points_requested_tile(
     n_points_update,
 ):
     """
-    test that an exception is raised when trying to update more halo points than exist
-    on a tile
+    Test that an exception is raised when trying to update more halo points than exist
+    on a tile.
     """
     for communicator, quantity in zip(tile_communicator_list, zeros_quantity_tile_list):
-        with pytest.raises(OutOfBoundsError):
+        with pytest.raises(IndexError):
             communicator.start_halo_update(quantity, n_points_update)
 
 
@@ -621,7 +622,7 @@ def test_tile_halo_update_unsupported_layout(
     tile_communicator_list,
     n_points_update,
 ):
-    """test that correct exception is raised if layout is unsupported"""
+    """Test that correct exception is raised if layout is unsupported."""
     # if you delete this test because this is now implemented,
     # please add the appropriate layout cases to the main halo update test
     for communicator, quantity in zip(tile_communicator_list, zeros_quantity_tile_list):
@@ -642,8 +643,8 @@ def test_zeros_tile_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that zeros from adjacent domains get written over ones on local halo
-    on a single tile"""
+    """Test that zeros from adjacent domains get written over ones on local halo
+    on a single tile."""
     halo_updater_list = []
     if 0 < n_points_update <= n_points:
         for communicator, quantity in zip(
@@ -688,7 +689,7 @@ def test_zeros_vector_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that zeros from adjacent domains get written over ones on local halo"""
+    """Test that zeros from adjacent domains get written over ones on local halo."""
     x_list = zeros_quantity_list
     y_list = copy.deepcopy(x_list)
     if 0 < n_points_update <= n_points:
@@ -738,8 +739,8 @@ def test_zeros_vector_tile_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that zeros from adjacent domains get written over ones on local halo
-    on a single tile"""
+    """Test that zeros from adjacent domains get written over ones on local halo
+    on a single tile."""
     x_list = zeros_quantity_tile_list
     y_list = copy.deepcopy(x_list)
     if 0 < n_points_update <= n_points:
@@ -794,7 +795,7 @@ def test_vector_halo_update_timer(
     ranks_per_tile,
 ):
     """
-    test that halo update produces nonzero timings for all expected labels
+    Test that halo update produces nonzero timings for all expected labels.
     """
     x_list = zeros_quantity_list
     y_list = copy.deepcopy(x_list)

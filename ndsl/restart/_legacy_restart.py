@@ -5,7 +5,6 @@ from typing import BinaryIO, Generator, Iterable
 import xarray as xr
 
 import ndsl.constants as constants
-import ndsl.filesystem as filesystem
 import ndsl.io as io
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import get_tile_index
@@ -54,16 +53,16 @@ def open_restart(
             raise ValueError("no restart files found at {}".format(dirname))
 
         for filename in filenames:
-            with filesystem.open(filename, "rb") as file:
+            with open(filename, "rb") as file:
                 state.update(
                     load_partial_state_from_restart_file(
                         file, restart_properties, only_names=only_names
                     )
                 )
         coupler_res_filename = get_coupler_res_filename(dirname, label)
-        if filesystem.is_file(coupler_res_filename):
+        if os.path.isfile(coupler_res_filename):
             if only_names is None or "time" in only_names:
-                with filesystem.open(coupler_res_filename, "r") as f:
+                with open(coupler_res_filename, "r") as f:
                     state["time"] = io.get_current_date_from_coupler_res(f)
     if to_state is None:
         state = communicator.tile.scatter_state(state)
@@ -78,7 +77,7 @@ def get_coupler_res_filename(dirname, label):
 
 def restart_files(dirname, tile_index, label) -> Generator[BinaryIO, None, None]:
     for filename in restart_filenames(dirname, tile_index, label):
-        with filesystem.open(filename, "rb") as f:
+        with open(filename, "rb") as f:
             yield f
 
 
@@ -89,7 +88,7 @@ def restart_filenames(dirname, tile_index, label):
         filename = os.path.join(dirname, prepend_label(name, label) + suffix)
         if (
             (name in RESTART_NAMES)
-            or filesystem.is_file(filename)
+            or os.path.isfile(filename)
             or os.path.exists(filename)
         ):
             return_list.append(filename)
