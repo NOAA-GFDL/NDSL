@@ -1,4 +1,5 @@
 from typing import Collection
+
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
 
 
