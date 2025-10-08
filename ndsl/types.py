@@ -45,7 +45,3 @@ class AsyncRequest(Protocol):
     def wait(self):
         """Block the current thread waiting for the request to be completed"""
         ...
-
-
-class MISSING:
-    """Class for optional arguments to dataclasses that can't trivially construct."""
