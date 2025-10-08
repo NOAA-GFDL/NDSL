@@ -240,7 +240,7 @@ class StencilConfig(Hashable):
             kwargs.pop("device_sync", None)
         if skip_passes or kwargs.get("skip_passes", ()):
             kwargs["oir_pipeline"] = StencilConfig._get_oir_pipeline(
-                list(kwargs.pop("skip_passes", ())) + list(skip_passes)  # type: ignore
+                list(kwargs.pop("skip_passes", ())) + list(skip_passes)
             )
         return kwargs
 

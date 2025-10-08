@@ -65,9 +65,10 @@ profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 [tool.mypy]
-explicit_package_bases = "true"
-ignore_missing_imports = "true"
-warn_unreachable = "true"
+explicit_package_bases = true
+ignore_missing_imports = true
+warn_unreachable = true
+warn_unused_ignores = true
 
 [tool.setuptools]
 include-package-data = true

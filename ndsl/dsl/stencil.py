@@ -352,7 +352,7 @@ class FrozenStencil(SDFGConvertible):
                 dtypes={float: Float},
                 **stencil_kwargs,
                 build_info=(build_info := {}),
-            )  # type: ignore
+            )
 
             if (
                 compilation_config.use_minimal_caching
@@ -424,7 +424,7 @@ class FrozenStencil(SDFGConvertible):
                 domain=self.domain,
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
-            )  # type: ignore
+            )
         else:
             self.stencil_object.run(
                 **args_as_kwargs,
@@ -501,9 +501,7 @@ class FrozenStencil(SDFGConvertible):
             field_name
             for field_name in field_info
             if field_info[field_name]
-            and bool(
-                field_info[field_name].access & gt_definitions.AccessKind.WRITE  # type: ignore
-            )
+            and bool(field_info[field_name].access & gt_definitions.AccessKind.WRITE)
         ]
         return write_fields
 

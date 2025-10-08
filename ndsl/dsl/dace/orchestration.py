@@ -225,7 +225,7 @@ def _build_sdfg(
                 raise ValueError("Couldn't load SDFG post build")
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
-            )  # type: ignore
+            )
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
 

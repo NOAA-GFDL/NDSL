@@ -63,7 +63,7 @@ def get_serializer(data_path: str, rank: int, data_name: Optional[str] = None):
         name = data_name
     else:
         name = f"Generator_rank{rank}"
-    return serialbox.Serializer(serialbox.OpenModeKind.Read, data_path, name)  # type: ignore
+    return serialbox.Serializer(serialbox.OpenModeKind.Read, data_path, name)
 
 
 def main(
@@ -82,7 +82,7 @@ def main(
     if namelist_filename_out != namelist_filename_in:
         shutil.copyfile(os.path.join(data_path, "input.nml"), namelist_filename_out)
     namelist = f90nml.read(namelist_filename_out)
-    fv_core_nml: Dict[str, Any] = namelist["fv_core_nml"]  # type: ignore
+    fv_core_nml: Dict[str, Any] = namelist["fv_core_nml"]
     if fv_core_nml["grid_type"] <= 3:
         total_ranks = 6 * fv_core_nml["layout"][0] * fv_core_nml["layout"][1]
     else:

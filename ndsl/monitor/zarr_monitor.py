@@ -127,7 +127,7 @@ class ZarrMonitor:
                 name=name,
                 partitioner=self.partitioner,
             )
-            constant_writer.append(quantity)  # type: ignore[index]
+            constant_writer.append(quantity)
             self._constants.append(name)
 
     def cleanup(self):
