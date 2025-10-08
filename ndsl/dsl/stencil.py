@@ -151,13 +151,13 @@ class CompareToNumpyStencil:
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: Tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Optional[Tuple[str, ...]] = None,
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         self._actual = FrozenStencil(
             func=func,
@@ -174,7 +174,6 @@ class CompareToNumpyStencil:
             rebuild=stencil_config.compilation_config.rebuild,
             validate_args=stencil_config.compilation_config.validate_args,
             format_source=True,
-            device_sync=None,
             run_mode=RunMode.BuildAndRun,
             use_minimal_caching=False,
         )
@@ -257,13 +256,13 @@ class FrozenStencil(SDFGConvertible):
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
+        externals: Mapping[str, Any] | None = None,
         skip_passes: Tuple[str, ...] = (),
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         """
         Args:

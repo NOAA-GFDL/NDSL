@@ -275,10 +275,15 @@ def sdfg_nan_checker(
     """
     all_maps_filtered = _filter_all_maps(sdfg, blacklist=["diss_estd"])
 
-    if i_range or j_range or k_range:
-        array_range = [i_range, j_range, k_range]
-    else:
+    if i_range is None and j_range is None and k_range is None:
         array_range = None
+    else:
+        if i_range is not None and j_range is not None and k_range is not None:
+            array_range = [i_range, j_range, k_range]
+        else:
+            raise RuntimeError(
+                "It looks like you have to specify either all or not of the ranges."
+            )
 
     for state, node, e in all_maps_filtered:
         _check_node(

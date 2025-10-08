@@ -28,7 +28,7 @@ class Quantity:
 
     def __init__(
         self,
-        data,
+        data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
         origin: Optional[Sequence[int]] = None,
@@ -83,10 +83,10 @@ class Quantity:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
-            dimensions: Tuple[Union[str, int], ...] = tuple(
+            dimensions: tuple[str | int, ...] = tuple(
                 [
                     (
-                        axis
+                        axis  # type: ignore # mypy can't parse this list construction of hell
                         if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
                         else str(data.shape[index])
                     )
