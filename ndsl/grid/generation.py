@@ -1507,14 +1507,14 @@ class MetricTerms:
         """The area of each a-grid cell."""
         if self._area is None:
             self._area, self._area64 = self._compute_area()
-        return self._area
+        return self._area  # type: ignore[return-value]
 
     @property
     def area64(self) -> Quantity:
         """The area of each a-grid cell, at 64-bit precision."""
         if self._area64 is None:
             self._area, self._area64 = self._compute_area()
-        return self._area64
+        return self._area64  # type: ignore[return-value]
 
     @property
     def area_c(self) -> Quantity:

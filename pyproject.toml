@@ -67,6 +67,7 @@ sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 [tool.mypy]
 # TODO: let's attempt to remove this in the future
 ignore_missing_imports = true
+strict_optional = "true"
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_configs = true
