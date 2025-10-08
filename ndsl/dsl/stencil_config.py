@@ -10,6 +10,7 @@ from ndsl.comm.decomposition import determine_rank_is_compiling, set_distributed
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.gt4py_utils import is_gpu_backend
+from ndsl.types import MISSING
 
 
 class RunMode(enum.Enum):
@@ -168,7 +169,7 @@ class CompilationConfig:
 class StencilConfig(Hashable):
     compare_to_numpy: bool = False
     compilation_config: CompilationConfig = CompilationConfig()
-    dace_config: DaceConfig = dataclasses.field(init=False)
+    dace_config: DaceConfig = dataclasses.field(default=MISSING)
     verbose: bool = False
 
     def __post_init__(self):
@@ -181,7 +182,7 @@ class StencilConfig(Hashable):
         # We need a DaceConfig to know if orchestration is part of the build system
         # but we can't hash it very well (for now). The workaround is to make
         # sure we have a default Python orchestrated config.
-        if not hasattr(self, "dace_config"):
+        if self.dace_config is MISSING:
             self.dace_config = DaceConfig(
                 communicator=None,
                 backend=self.compilation_config.backend,
