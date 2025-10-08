@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, List, Optional
+from typing import Any
 
 from ndsl.comm.communicator import Communicator
 from ndsl.dsl.dace.orchestration import dace_inhibitor
@@ -19,9 +19,9 @@ class WrappedHaloUpdater:
         self,
         updater: HaloUpdater,
         state,
-        qty_x_names: List[str],
-        qty_y_names: List[str] = None,
-        comm: Optional[Communicator] = None,
+        qty_x_names: list[str],
+        qty_y_names: list[str] | None = None,
+        comm: Communicator | None = None,
     ) -> None:
         self._updater = updater
         self._state = state

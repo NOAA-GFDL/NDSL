@@ -69,7 +69,7 @@ explicit_package_bases = "true"
 follow_imports = "normal"
 ignore_missing_imports = "true"
 namespace_packages = "true"
-strict_optional = "false"
+strict_optional = "true"
 warn_unreachable = "true"
 
 [tool.setuptools]

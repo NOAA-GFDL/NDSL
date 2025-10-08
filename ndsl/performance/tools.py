@@ -47,8 +47,8 @@ ACTION_SDFG_KERNEL_THEORETICAL_TIMING = "sdfg_kernel_theoretical_timing"
 )
 def command_line(
     action: str,
-    sdfg_path: Optional[str],
-    report_detail: Optional[bool],
+    sdfg_path: str,
+    report_detail: bool,
     hardware_bw_in_gb_s: Optional[float],
     output_format: Optional[str],
     backend: Optional[str],

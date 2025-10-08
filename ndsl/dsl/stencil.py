@@ -298,7 +298,7 @@ class FrozenStencil(SDFGConvertible):
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object: StencilObject | None = None
+        self.stencil_object: StencilObject
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 

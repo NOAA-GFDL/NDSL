@@ -553,7 +553,7 @@ def orchestrate(
 
 
 def orchestrate_function(
-    config: DaceConfig = None,
+    config: DaceConfig,
     dace_compiletime_args: Sequence[str] | None = None,
 ) -> Callable[..., Any] | _LazyComputepathFunction:
     """

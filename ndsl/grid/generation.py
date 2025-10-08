@@ -595,42 +595,42 @@ class MetricTerms:
         """The distance between grid corners along the x-direction."""
         if self._dx is None:
             self._dx, self._dy = self._compute_dxdy()
-        return self._dx
+        return self._dx  # type: ignore[return-value]
 
     @property
     def dy(self) -> Quantity:
         """The distance between grid corners along the y-direction."""
         if self._dy is None:
             self._dx, self._dy = self._compute_dxdy()
-        return self._dy
+        return self._dy  # type: ignore[return-value]
 
     @property
     def dxa(self) -> Quantity:
         """The with of each grid cell along the x-direction."""
         if self._dx_agrid is None:
             self._dx_agrid, self._dy_agrid = self._compute_dxdy_agrid()
-        return self._dx_agrid
+        return self._dx_agrid  # type: ignore[return-value]
 
     @property
     def dya(self) -> Quantity:
         """The with of each grid cell along the y-direction."""
         if self._dy_agrid is None:
             self._dx_agrid, self._dy_agrid = self._compute_dxdy_agrid()
-        return self._dy_agrid
+        return self._dy_agrid  # type: ignore[return-value]
 
     @property
     def dxc(self) -> Quantity:
         """The distance between cell centers along the x-direction."""
         if self._dx_center is None:
             self._dx_center, self._dy_center = self._compute_dxdy_center()
-        return self._dx_center
+        return self._dx_center  # type: ignore[return-value]
 
     @property
     def dyc(self) -> Quantity:
         """The distance between cell centers along the y-direction."""
         if self._dy_center is None:
             self._dx_center, self._dy_center = self._compute_dxdy_center()
-        return self._dy_center
+        return self._dy_center  # type: ignore[return-value]
 
     @property
     def ks(self) -> int:
@@ -669,7 +669,7 @@ class MetricTerms:
         """
         if self._ec1 is None:
             self._ec1, self._ec2 = self._calculate_center_vectors()
-        return self._ec1
+        return self._ec1  # type: ignore[return-value]
 
     @property
     def ec2(self) -> Quantity:
@@ -680,7 +680,7 @@ class MetricTerms:
         """
         if self._ec2 is None:
             self._ec1, self._ec2 = self._calculate_center_vectors()
-        return self._ec2
+        return self._ec2  # type: ignore[return-value]
 
     @property
     def ew1(self) -> Quantity:
@@ -691,7 +691,7 @@ class MetricTerms:
         """
         if self._ew1 is None:
             self._ew1, self._ew2 = self._calculate_vectors_west()
-        return self._ew1
+        return self._ew1  # type: ignore[return-value]
 
     @property
     def ew2(self) -> Quantity:
@@ -702,7 +702,7 @@ class MetricTerms:
         """
         if self._ew2 is None:
             self._ew1, self._ew2 = self._calculate_vectors_west()
-        return self._ew2
+        return self._ew2  # type: ignore[return-value]
 
     @property
     def cos_sg1(self) -> Quantity:
@@ -717,7 +717,7 @@ class MetricTerms:
         """
         if self._cos_sg1 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg1
+        return self._cos_sg1  # type: ignore[return-value]
 
     @property
     def cos_sg2(self) -> Quantity:
@@ -732,7 +732,7 @@ class MetricTerms:
         """
         if self._cos_sg2 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg2
+        return self._cos_sg2  # type: ignore[return-value]
 
     @property
     def cos_sg3(self) -> Quantity:
@@ -747,7 +747,7 @@ class MetricTerms:
         """
         if self._cos_sg3 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg3
+        return self._cos_sg3  # type: ignore[return-value]
 
     @property
     def cos_sg4(self) -> Quantity:
@@ -762,7 +762,7 @@ class MetricTerms:
         """
         if self._cos_sg4 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg4
+        return self._cos_sg4  # type: ignore[return-value]
 
     @property
     def cos_sg5(self) -> Quantity:
@@ -778,7 +778,7 @@ class MetricTerms:
         """
         if self._cos_sg5 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg5
+        return self._cos_sg5  # type: ignore[return-value]
 
     @property
     def cos_sg6(self) -> Quantity:
@@ -793,7 +793,7 @@ class MetricTerms:
         """
         if self._cos_sg6 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg6
+        return self._cos_sg6  # type: ignore[return-value]
 
     @property
     def cos_sg7(self) -> Quantity:
@@ -808,7 +808,7 @@ class MetricTerms:
         """
         if self._cos_sg7 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg7
+        return self._cos_sg7  # type: ignore[return-value]
 
     @property
     def cos_sg8(self) -> Quantity:
@@ -823,7 +823,7 @@ class MetricTerms:
         """
         if self._cos_sg8 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg8
+        return self._cos_sg8  # type: ignore[return-value]
 
     @property
     def cos_sg9(self) -> Quantity:
@@ -838,7 +838,7 @@ class MetricTerms:
         """
         if self._cos_sg9 is None:
             self._init_cell_trigonometry()
-        return self._cos_sg9
+        return self._cos_sg9  # type: ignore[return-value]
 
     @property
     def sin_sg1(self) -> Quantity:
@@ -853,7 +853,7 @@ class MetricTerms:
         """
         if self._sin_sg1 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg1
+        return self._sin_sg1  # type: ignore[return-value]
 
     @property
     def sin_sg2(self) -> Quantity:
@@ -868,7 +868,7 @@ class MetricTerms:
         """
         if self._sin_sg2 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg2
+        return self._sin_sg2  # type: ignore[return-value]
 
     @property
     def sin_sg3(self) -> Quantity:
@@ -883,7 +883,7 @@ class MetricTerms:
         """
         if self._sin_sg3 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg3
+        return self._sin_sg3  # type: ignore[return-value]
 
     @property
     def sin_sg4(self) -> Quantity:
@@ -898,7 +898,7 @@ class MetricTerms:
         """
         if self._sin_sg4 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg4
+        return self._sin_sg4  # type: ignore[return-value]
 
     @property
     def sin_sg5(self) -> Quantity:
@@ -915,7 +915,7 @@ class MetricTerms:
         """
         if self._sin_sg5 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg5
+        return self._sin_sg5  # type: ignore[return-value]
 
     @property
     def sin_sg6(self) -> Quantity:
@@ -930,7 +930,7 @@ class MetricTerms:
         """
         if self._sin_sg6 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg6
+        return self._sin_sg6  # type: ignore[return-value]
 
     @property
     def sin_sg7(self) -> Quantity:
@@ -945,7 +945,7 @@ class MetricTerms:
         """
         if self._sin_sg7 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg7
+        return self._sin_sg7  # type: ignore[return-value]
 
     @property
     def sin_sg8(self) -> Quantity:
@@ -960,7 +960,7 @@ class MetricTerms:
         """
         if self._sin_sg8 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg8
+        return self._sin_sg8  # type: ignore[return-value]
 
     @property
     def sin_sg9(self) -> Quantity:
@@ -975,7 +975,7 @@ class MetricTerms:
         """
         if self._sin_sg9 is None:
             self._init_cell_trigonometry()
-        return self._sin_sg9
+        return self._sin_sg9  # type: ignore[return-value]
 
     @property
     def cosa(self) -> Quantity:
@@ -986,7 +986,7 @@ class MetricTerms:
         """
         if self._cosa is None:
             self._init_cell_trigonometry()
-        return self._cosa
+        return self._cosa  # type: ignore[return-value]
 
     @property
     def sina(self) -> Quantity:
@@ -997,7 +997,7 @@ class MetricTerms:
         """
         if self._sina is None:
             self._init_cell_trigonometry()
-        return self._sina
+        return self._sina  # type: ignore[return-value]
 
     @property
     def cosa_u(self) -> Quantity:
@@ -1008,7 +1008,7 @@ class MetricTerms:
         """
         if self._cosa_u is None:
             self._init_cell_trigonometry()
-        return self._cosa_u
+        return self._cosa_u  # type: ignore[return-value]
 
     @property
     def cosa_v(self) -> Quantity:
@@ -1019,7 +1019,7 @@ class MetricTerms:
         """
         if self._cosa_v is None:
             self._init_cell_trigonometry()
-        return self._cosa_v
+        return self._cosa_v  # type: ignore[return-value]
 
     @property
     def cosa_s(self) -> Quantity:
@@ -1030,7 +1030,7 @@ class MetricTerms:
         """
         if self._cosa_s is None:
             self._init_cell_trigonometry()
-        return self._cosa_s
+        return self._cosa_s  # type: ignore[return-value]
 
     @property
     def sina_u(self) -> Quantity:
@@ -1041,7 +1041,7 @@ class MetricTerms:
         """
         if self._sina_u is None:
             self._init_cell_trigonometry()
-        return self._sina_u
+        return self._sina_u  # type: ignore[return-value]
 
     @property
     def sina_v(self) -> Quantity:
@@ -1052,7 +1052,7 @@ class MetricTerms:
         """
         if self._sina_v is None:
             self._init_cell_trigonometry()
-        return self._sina_v
+        return self._sina_v  # type: ignore[return-value]
 
     @property
     def rsin_u(self) -> Quantity:
@@ -1062,7 +1062,7 @@ class MetricTerms:
         """
         if self._rsin_u is None:
             self._init_cell_trigonometry()
-        return self._rsin_u
+        return self._rsin_u  # type: ignore[return-value]
 
     @property
     def rsin_v(self) -> Quantity:
@@ -1072,7 +1072,7 @@ class MetricTerms:
         """
         if self._rsin_v is None:
             self._init_cell_trigonometry()
-        return self._rsin_v
+        return self._rsin_v  # type: ignore[return-value]
 
     @property
     def rsina(self) -> Quantity:
@@ -1082,7 +1082,7 @@ class MetricTerms:
         """
         if self._rsina is None:
             self._init_cell_trigonometry()
-        return self._rsina
+        return self._rsina  # type: ignore[return-value]
 
     @property
     def rsin2(self) -> Quantity:
@@ -1092,7 +1092,7 @@ class MetricTerms:
         """
         if self._rsin2 is None:
             self._init_cell_trigonometry()
-        return self._rsin2
+        return self._rsin2  # type: ignore[return-value]
 
     @property
     def l2c_v(self) -> Quantity:
@@ -1102,7 +1102,7 @@ class MetricTerms:
         """
         if self._l2c_v is None:
             self._l2c_v, self._l2c_u = self._calculate_latlon_momentum_correction()
-        return self._l2c_v
+        return self._l2c_v  # type: ignore[return-value]
 
     @property
     def l2c_u(self) -> Quantity:
@@ -1112,7 +1112,7 @@ class MetricTerms:
         """
         if self._l2c_u is None:
             self._l2c_v, self._l2c_u = self._calculate_latlon_momentum_correction()
-        return self._l2c_u
+        return self._l2c_u  # type: ignore[return-value]
 
     @property
     def es1(self) -> Quantity:
@@ -1124,7 +1124,7 @@ class MetricTerms:
         """
         if self._es1 is None:
             self._es1, self._es2 = self._calculate_vectors_south()
-        return self._es1
+        return self._es1  # type: ignore[return-value]
 
     @property
     def es2(self) -> Quantity:
@@ -1136,7 +1136,7 @@ class MetricTerms:
         """
         if self._es2 is None:
             self._es1, self._es2 = self._calculate_vectors_south()
-        return self._es2
+        return self._es2  # type: ignore[return-value]
 
     @property
     def ee1(self) -> Quantity:
@@ -1148,7 +1148,7 @@ class MetricTerms:
         """
         if self._ee1 is None:
             self._ee1, self._ee2 = self._calculate_xy_unit_vectors()
-        return self._ee1
+        return self._ee1  # type: ignore[return-value]
 
     @property
     def ee2(self) -> Quantity:
@@ -1160,7 +1160,7 @@ class MetricTerms:
         """
         if self._ee2 is None:
             self._ee1, self._ee2 = self._calculate_xy_unit_vectors()
-        return self._ee2
+        return self._ee2  # type: ignore[return-value]
 
     @property
     def divg_u(self) -> Quantity:
@@ -1174,7 +1174,7 @@ class MetricTerms:
                 self._divg_u,
                 self._divg_v,
             ) = self._calculate_divg_del6()
-        return self._divg_u
+        return self._divg_u  # type: ignore[return-value]
 
     @property
     def divg_v(self) -> Quantity:
@@ -1188,7 +1188,7 @@ class MetricTerms:
                 self._divg_u,
                 self._divg_v,
             ) = self._calculate_divg_del6()
-        return self._divg_v
+        return self._divg_v  # type: ignore[return-value]
 
     @property
     def del6_u(self) -> Quantity:
@@ -1202,7 +1202,7 @@ class MetricTerms:
                 self._divg_u,
                 self._divg_v,
             ) = self._calculate_divg_del6()
-        return self._del6_u
+        return self._del6_u  # type: ignore[return-value]
 
     @property
     def del6_v(self) -> Quantity:
@@ -1216,7 +1216,7 @@ class MetricTerms:
                 self._divg_u,
                 self._divg_v,
             ) = self._calculate_divg_del6()
-        return self._del6_v
+        return self._del6_v  # type: ignore[return-value]
 
     @property
     def vlon(self) -> Quantity:
@@ -1227,7 +1227,7 @@ class MetricTerms:
         """
         if self._vlon is None:
             self._vlon, self._vlat = self._calculate_unit_vectors_lonlat()
-        return self._vlon
+        return self._vlon  # type: ignore[return-value]
 
     @property
     def vlat(self) -> Quantity:
@@ -1238,7 +1238,7 @@ class MetricTerms:
         """
         if self._vlat is None:
             self._vlon, self._vlat = self._calculate_unit_vectors_lonlat()
-        return self._vlat
+        return self._vlat  # type: ignore[return-value]
 
     @property
     def z11(self) -> Quantity:
@@ -1248,7 +1248,7 @@ class MetricTerms:
         """
         if self._z11 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
-        return self._z11
+        return self._z11  # type: ignore[return-value]
 
     @property
     def z12(self) -> Quantity:
@@ -1258,7 +1258,7 @@ class MetricTerms:
         """
         if self._z12 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
-        return self._z12
+        return self._z12  # type: ignore[return-value]
 
     @property
     def z21(self) -> Quantity:
@@ -1268,7 +1268,7 @@ class MetricTerms:
         """
         if self._z21 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
-        return self._z21
+        return self._z21  # type: ignore[return-value]
 
     @property
     def z22(self) -> Quantity:
@@ -1278,7 +1278,7 @@ class MetricTerms:
         """
         if self._z22 is None:
             self._z11, self._z12, self._z21, self._z22 = self._calculate_grid_z()
-        return self._z22
+        return self._z22  # type: ignore[return-value]
 
     @property
     def a11(self) -> Quantity:
@@ -1287,7 +1287,7 @@ class MetricTerms:
         """
         if self._a11 is None:
             self._a11, self._a12, self._a21, self._a22 = self._calculate_grid_a()
-        return self._a11
+        return self._a11  # type: ignore[return-value]
 
     @property
     def a12(self) -> Quantity:
@@ -1296,7 +1296,7 @@ class MetricTerms:
         """
         if self._a12 is None:
             self._a11, self._a12, self._a21, self._a22 = self._calculate_grid_a()
-        return self._a12
+        return self._a12  # type: ignore[return-value]
 
     @property
     def a21(self) -> Quantity:
@@ -1305,7 +1305,7 @@ class MetricTerms:
         """
         if self._a21 is None:
             self._a11, self._a12, self._a21, self._a22 = self._calculate_grid_a()
-        return self._a21
+        return self._a21  # type: ignore[return-value]
 
     @property
     def a22(self) -> Quantity:
@@ -1314,7 +1314,7 @@ class MetricTerms:
         """
         if self._a22 is None:
             self._a11, self._a12, self._a21, self._a22 = self._calculate_grid_a()
-        return self._a22
+        return self._a22  # type: ignore[return-value]
 
     @property
     def edge_w(self) -> Quantity:
@@ -1328,7 +1328,7 @@ class MetricTerms:
                 self._edge_s,
                 self._edge_n,
             ) = self._calculate_edge_factors()
-        return self._edge_w
+        return self._edge_w  # type: ignore[return-value]
 
     @property
     def edge_e(self) -> Quantity:
@@ -1342,7 +1342,7 @@ class MetricTerms:
                 self._edge_s,
                 self._edge_n,
             ) = self._calculate_edge_factors()
-        return self._edge_e
+        return self._edge_e  # type: ignore[return-value]
 
     @property
     def edge_s(self) -> Quantity:
@@ -1356,7 +1356,7 @@ class MetricTerms:
                 self._edge_s,
                 self._edge_n,
             ) = self._calculate_edge_factors()
-        return self._edge_s
+        return self._edge_s  # type: ignore[return-value]
 
     @property
     def edge_n(self) -> Quantity:
@@ -1370,7 +1370,7 @@ class MetricTerms:
                 self._edge_s,
                 self._edge_n,
             ) = self._calculate_edge_factors()
-        return self._edge_n
+        return self._edge_n  # type: ignore[return-value]
 
     @property
     def edge_vect_w_1d(self) -> Quantity:
@@ -1384,7 +1384,7 @@ class MetricTerms:
                 self._edge_vect_s,
                 self._edge_vect_n,
             ) = self._calculate_edge_a2c_vect_factors()
-        return self._edge_vect_w
+        return self._edge_vect_w  # type: ignore[return-value]
 
     @property
     def edge_vect_w(self) -> Quantity:
@@ -1397,7 +1397,7 @@ class MetricTerms:
                 self._edge_vect_e_2d,
                 self._edge_vect_w_2d,
             ) = self._calculate_2d_edge_a2c_vect_factors()
-        return self._edge_vect_w_2d
+        return self._edge_vect_w_2d  # type: ignore[return-value]
 
     @property
     def edge_vect_e_1d(self) -> Quantity:
@@ -1411,7 +1411,7 @@ class MetricTerms:
                 self._edge_vect_s,
                 self._edge_vect_n,
             ) = self._calculate_edge_a2c_vect_factors()
-        return self._edge_vect_e
+        return self._edge_vect_e  # type: ignore[return-value]
 
     @property
     def edge_vect_e(self) -> Quantity:
@@ -1424,7 +1424,7 @@ class MetricTerms:
                 self._edge_vect_e_2d,
                 self._edge_vect_w_2d,
             ) = self._calculate_2d_edge_a2c_vect_factors()
-        return self._edge_vect_e_2d
+        return self._edge_vect_e_2d  # type: ignore[return-value]
 
     @property
     def edge_vect_s(self) -> Quantity:
@@ -1438,7 +1438,7 @@ class MetricTerms:
                 self._edge_vect_s,
                 self._edge_vect_n,
             ) = self._calculate_edge_a2c_vect_factors()
-        return self._edge_vect_s
+        return self._edge_vect_s  # type: ignore[return-value]
 
     @property
     def edge_vect_n(self) -> Quantity:
@@ -1452,7 +1452,7 @@ class MetricTerms:
                 self._edge_vect_s,
                 self._edge_vect_n,
             ) = self._calculate_edge_a2c_vect_factors()
-        return self._edge_vect_n
+        return self._edge_vect_n  # type: ignore[return-value]
 
     @property
     def da_min(self) -> float:
@@ -1464,7 +1464,7 @@ class MetricTerms:
         """
         if self._da_min is None:
             self._reduce_global_area_minmaxes()
-        return self._da_min
+        return self._da_min  # type: ignore[return-value]
 
     @property
     def da_max(self) -> float:
@@ -1476,7 +1476,7 @@ class MetricTerms:
         """
         if self._da_max is None:
             self._reduce_global_area_minmaxes()
-        return self._da_max
+        return self._da_max  # type: ignore[return-value]
 
     @property
     def da_min_c(self) -> float:
@@ -1488,7 +1488,7 @@ class MetricTerms:
         """
         if self._da_min_c is None:
             self._reduce_global_area_minmaxes()
-        return self._da_min_c
+        return self._da_min_c  # type: ignore[return-value]
 
     @property
     def da_max_c(self) -> float:
@@ -1500,28 +1500,28 @@ class MetricTerms:
         """
         if self._da_max_c is None:
             self._reduce_global_area_minmaxes()
-        return self._da_max_c
+        return self._da_max_c  # type: ignore[return-value]
 
     @property
     def area(self) -> Quantity:
         """The area of each a-grid cell."""
         if self._area is None:
             self._area, self._area64 = self._compute_area()
-        return self._area
+        return self._area  # type: ignore[return-value]
 
     @property
     def area64(self) -> Quantity:
         """The area of each a-grid cell, at 64-bit precision."""
         if self._area64 is None:
             self._area, self._area64 = self._compute_area()
-        return self._area64
+        return self._area64  # type: ignore[return-value]
 
     @property
     def area_c(self) -> Quantity:
         """The area of each c-grid cell."""
         if self._area_c is None:
             self._area_c = self._compute_area_c()
-        return self._area_c
+        return self._area_c  # type: ignore[return-value]
 
     @functools.cached_property
     def _dgrid_xyz_64(self) -> Quantity:

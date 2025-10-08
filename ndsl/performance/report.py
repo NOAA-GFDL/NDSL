@@ -91,7 +91,7 @@ def gather_timing_data(
         comm.Gather(sendbuf, recvbuf, root=0)
         if is_root:
             timing_info[timer_name] = TimeReport(
-                hits=0, times=copy.deepcopy(recvbuf.tolist())
+                hits=0, times=copy.deepcopy(recvbuf.tolist())  # type: ignore[union-attr] # (recvbuf is defined on root rank)
             )
     return timing_info
 

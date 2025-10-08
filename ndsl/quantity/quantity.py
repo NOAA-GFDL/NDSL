@@ -131,9 +131,9 @@ class Quantity:
     def from_data_array(
         cls,
         data_array: xr.DataArray,
-        origin: Sequence[int] = None,
-        extent: Sequence[int] = None,
-        gt4py_backend: Union[str, None] = None,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
+        gt4py_backend: str | None = None,
     ) -> Quantity:
         """
         Initialize a Quantity from an xarray.DataArray.

@@ -115,7 +115,7 @@ class Communicator(abc.ABC):
         self,
         input_quantity: Quantity,
         op: ReductionOperator,
-        output_quantity: Quantity = None,
+        output_quantity: Quantity | None = None,
     ):
         reduced_quantity_data = self.comm.allreduce(input_quantity.data, op)
         if output_quantity is None:
@@ -243,8 +243,8 @@ class Communicator(abc.ABC):
         return recv_quantity
 
     def gather(
-        self, send_quantity: Quantity, recv_quantity: Quantity = None
-    ) -> Optional[Quantity]:
+        self, send_quantity: Quantity, recv_quantity: Quantity | None = None
+    ) -> Quantity | None:
         """Transfer subtile regions of a full-tile quantity
         from each rank to the tile root rank.
 
@@ -255,7 +255,7 @@ class Communicator(abc.ABC):
         Returns:
             recv_quantity: quantity if on root rank, otherwise None
         """
-        result: Optional[Quantity]
+        result: Quantity | None
         if self.rank == constants.ROOT_RANK:
             with array_buffer(
                 send_quantity.np.zeros,
