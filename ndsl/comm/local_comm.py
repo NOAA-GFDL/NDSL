@@ -1,7 +1,7 @@
 import copy
 from typing import Any
 
-from ndsl.comm.comm_abc import Comm
+from ndsl.comm.comm_abc import Comm, ReductionOperator
 from ndsl.logging import ndsl_log
 from ndsl.utils import ensure_contiguous, safe_assign_array
 
@@ -198,5 +198,11 @@ class LocalComm(Comm):
     def Allreduce(self, sendobj, recvobj, op) -> Any:
         raise NotImplementedError(
             "Allreduce fundamentally cannot be written for LocalComm, "
+            "as it requires synchronicity"
+        )
+
+    def Allreduce_inplace(self, obj: Any, op: ReductionOperator) -> Any:
+        raise NotImplementedError(
+            "Allreduce_inplace fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"
         )
