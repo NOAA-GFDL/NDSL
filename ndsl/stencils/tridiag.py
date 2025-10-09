@@ -10,7 +10,7 @@ def tridiag_solve(
     d: FloatField,
     x: FloatField,
     delta: FloatField,
-):
+) -> None:
     """
     This stencil solves a square, k x k tridiagonal matrix system
     with coefficients a, b, and c, and vectors p and d using the Thomas algorithm:
@@ -58,7 +58,7 @@ def masked_tridiag_solve(
     x: FloatField,
     delta: FloatField,
     mask: BoolFieldIJ,
-):
+) -> None:
     """
     Same as tridiag_solve but restricted to a subset of horizontal points
 

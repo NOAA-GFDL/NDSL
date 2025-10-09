@@ -57,7 +57,9 @@ def _upload_to_device(host_data: list) -> None:
             host_data[i] = cp.asarray(data)
 
 
-def _download_results_from_dace(config: DaceConfig, dace_result: list | None):
+def _download_results_from_dace(
+    config: DaceConfig, dace_result: list | None
+) -> list | None:
     """Move all data from DaCe memory space to GT4Py"""
     if dace_result is None:
         return None
@@ -66,7 +68,7 @@ def _download_results_from_dace(config: DaceConfig, dace_result: list | None):
     return [storage.from_array(result, backend=backend) for result in dace_result]
 
 
-def _to_gpu(sdfg: SDFG):
+def _to_gpu(sdfg: SDFG) -> None:
     """Flag memory in SDFG to GPU.
     Force deactivate OpenMP sections for sanity."""
 
@@ -102,11 +104,11 @@ def _simplify(
     validate: bool = True,
     validate_all: bool = False,
     verbose: bool = False,
-):
+) -> None:
     """Override of sdfg.simplify to skip failing transformation
     per https://github.com/spcl/dace/issues/1328
     """
-    return SimplifyPass(
+    SimplifyPass(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
@@ -118,7 +120,7 @@ def _simplify(
 
 
 def _build_sdfg(
-    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
+    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
 ) -> None:
     """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
@@ -229,7 +231,9 @@ def _build_sdfg(
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
 
-def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs):
+def _call_sdfg(
+    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
+) -> list | None:
     """Dispatch to either SDFG execution and/or build."""
 
     with config.performance_collector.timestep_timer.clock(f"{dace_program.name}.Call"):
@@ -286,8 +290,8 @@ def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, 
 def _parse_sdfg(
     dace_program: DaceProgram,
     config: DaceConfig,
-    *args,
-    **kwargs,
+    *args: Any,
+    **kwargs: Any,
 ) -> SDFG | CompiledSDFG | None:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
@@ -400,7 +404,9 @@ class _LazyComputepathMethod:
     bound_callables: dict[tuple[int, int], SDFGEnabledCallable] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
-        def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
+        def __init__(
+            self, lazy_method: _LazyComputepathMethod, obj_to_bind: object
+        ) -> None:
             methodwrapper = dace_method(lazy_method.func)
             self.obj_to_bind = obj_to_bind
             self.lazy_method = lazy_method
@@ -448,7 +454,7 @@ class _LazyComputepathMethod:
         self.func = func
         self.config = config
 
-    def __get__(self, obj, objtype=None) -> SDFGEnabledCallable:
+    def __get__(self, obj: object, objtype: Any = None) -> SDFGEnabledCallable:
         """Return SDFGEnabledCallable wrapping original obj.method from cache.
         Update cache first if need be"""
         if (id(obj), id(self.func)) not in _LazyComputepathMethod.bound_callables:
@@ -465,7 +471,7 @@ def orchestrate(
     config: DaceConfig,
     method_to_orchestrate: str = "__call__",
     dace_compiletime_args: Sequence[str] | None = None,
-):
+) -> None:
     """
     Orchestrate a method of an object with DaCe.
     The method object is patched in place, replacing the original Callable with
@@ -569,7 +575,7 @@ def orchestrate_function(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    def _decorator(func: Callable[..., Any]):
+    def _decorator(func: Callable[..., Any]):  # type: ignore
         def _wrapper(*args, **kwargs):
             for argument in dace_compiletime_args:
                 func.__annotations__[argument] = DaceCompiletime

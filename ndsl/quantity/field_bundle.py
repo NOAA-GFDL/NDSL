@@ -56,7 +56,7 @@ class FieldBundle:
             assert len(quantity.shape) == 4
             FieldBundleType.register(bundle_name, quantity.shape[3:])
 
-    def map(self, index: _DataDimensionIndex, name: str):
+    def map(self, index: _DataDimensionIndex, name: str) -> None:
         """Map a single `index` to ` name`"""
         self._indexer[name] = index
 
@@ -148,7 +148,7 @@ class FieldBundleType:
     _field_type_registrar: dict[str, gtscript._FieldDescriptor] = {}
 
     @classmethod
-    def register(
+    def register(  # type: ignore
         cls, name: str, data_dims: tuple[int], dtype=Float
     ) -> gtscript._FieldDescriptor:
         """Register a name type by name by giving the size of its data dimensions.

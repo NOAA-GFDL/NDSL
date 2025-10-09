@@ -19,7 +19,7 @@ FMS_TO_CFTIME_TYPE = {
 }
 
 
-def to_xarray_dataset(state) -> xr.Dataset:
+def to_xarray_dataset(state: dict) -> xr.Dataset:
     data_vars = {
         name: value.data_as_xarray for name, value in state.items() if name != "time"
     }

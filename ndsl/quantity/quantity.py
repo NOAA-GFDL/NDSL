@@ -157,7 +157,9 @@ class Quantity:
             gt4py_backend=gt4py_backend,
         )
 
-    def to_netcdf(self, path: str, name="var", rank: int = -1, all_data=False) -> None:
+    def to_netcdf(
+        self, path: str, name: str = "var", rank: int = -1, all_data: bool = False
+    ) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
             if all_data:
                 self.data_as_xarray.to_dataset(name=name).to_netcdf(
@@ -201,7 +203,7 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):
+    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):  # type: ignore
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
         storage = gt_storage.from_array(
             data,
@@ -260,7 +262,7 @@ class Quantity:
         return self._data
 
     @data.setter
-    def data(self, input_data: np.ndarray | cupy.ndarray):
+    def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "

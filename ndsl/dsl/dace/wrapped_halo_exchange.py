@@ -18,7 +18,7 @@ class WrappedHaloUpdater:
     def __init__(
         self,
         updater: HaloUpdater,
-        state,
+        state: Any,  # no typehint on purpose to avoid dependency on PyFV3
         qty_x_names: list[str],
         qty_y_names: list[str] | None = None,
         comm: Communicator | None = None,
@@ -30,7 +30,7 @@ class WrappedHaloUpdater:
         self._comm = comm
 
     @staticmethod
-    def check_for_attribute(state: Any, attr: str):
+    def check_for_attribute(state: Any, attr: str) -> bool:
         if dataclasses.is_dataclass(state):
             return state.__getattribute__(attr)  # type: ignore
         if isinstance(state, dict):

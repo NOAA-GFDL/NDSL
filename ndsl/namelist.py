@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Tuple
+from typing import Self
 
 import f90nml
 
@@ -344,7 +344,7 @@ class Namelist:
     kord_tm: int = DEFAULT_INT
     kord_tr: int = DEFAULT_INT
     kord_wz: int = DEFAULT_INT
-    layout: Tuple[int, int] = (1, 1)
+    layout: tuple[int, int] = (1, 1)
     # make_nh: bool
     # mountain: bool
     n_split: int = DEFAULT_INT
@@ -608,7 +608,7 @@ class Namelist:
     """Flag to replace cosz with daily mean value in physics"""
 
     @classmethod
-    def from_f90nml(cls, namelist: f90nml.Namelist):
+    def from_f90nml(cls, namelist: f90nml.Namelist) -> Self:
         namelist_dict = namelist_to_flatish_dict(namelist.items())
         namelist_dict = {
             key: value

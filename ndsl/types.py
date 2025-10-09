@@ -9,7 +9,7 @@ Number: TypeAlias = int | float | np.int32 | np.int64 | np.float32 | np.float64
 
 
 class Allocator(Protocol):
-    def __call__(self, shape: Iterable[int], dtype: type):
+    def __call__(self, shape: Iterable[int], dtype: type) -> None:
         pass
 
 

@@ -1,7 +1,17 @@
 import dataclasses
 import enum
 import hashlib
-from typing import Any, Callable, Dict, Hashable, Iterable, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Hashable,
+    Iterable,
+    Optional,
+    Self,
+    Sequence,
+    Tuple,
+)
 
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
@@ -150,7 +160,7 @@ class CompilationConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> Self:
         instance = cls(
             backend=data.get("backend", "numpy"),
             rebuild=data.get("rebuild", False),
@@ -229,7 +239,7 @@ class StencilConfig(Hashable):
 
     def stencil_kwargs(
         self, *, func: Callable[..., None], skip_passes: Iterable[str] = ()
-    ):
+    ) -> dict:
         kwargs = {
             "backend": self.compilation_config.backend,
             "rebuild": self.compilation_config.rebuild,

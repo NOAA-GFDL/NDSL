@@ -26,7 +26,9 @@ class _Snapshots:
         self._savepoints = collections.defaultdict(list)
         self._arrays = collections.defaultdict(list)
 
-    def store(self, savepoint_name: str, variable_name: str, python_data):
+    def store(
+        self, savepoint_name: str, variable_name: str, python_data: np.ndarray
+    ) -> None:
         self._savepoints[variable_name].append(savepoint_name)
         self._arrays[variable_name].append(python_data)
 

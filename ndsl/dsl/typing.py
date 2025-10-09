@@ -110,7 +110,7 @@ def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     return val
 
 
-def is_float(dtype: type):
+def is_float(dtype: type) -> bool:
     """Expected floating point type"""
     return dtype in [
         Float,

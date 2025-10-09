@@ -66,7 +66,7 @@ class Partitioner(abc.ABC):
     ) -> Optional[bd.SimpleBoundary]: ...
 
     @abc.abstractmethod
-    def tile_index(self, rank: int):
+    def tile_index(self, rank: int) -> int:
         pass
 
     @abc.abstractmethod
@@ -143,7 +143,7 @@ class TilePartitioner(Partitioner):
         self.edge_interior_ratio = edge_interior_ratio
         self.tile = self
 
-    def tile_index(self, rank: int):
+    def tile_index(self, rank: int) -> int:
         return 0
 
     @classmethod
@@ -359,7 +359,7 @@ def _get_corner(
     rank: int,
     edge_func_1: Callable[[int], bd.Boundary],
     edge_func_2: Callable[[int], bd.Boundary],
-):
+) -> bd.SimpleBoundary:
     edge_1 = edge_func_1(rank)
     edge_2 = edge_func_2(edge_1.to_rank)
     rotations = edge_1.n_clockwise_rotations + edge_2.n_clockwise_rotations
@@ -717,21 +717,21 @@ def rotate_subtile_rank(
     return to_tile_rank
 
 
-def transpose_subtile_rank(rank, layout):
+def transpose_subtile_rank(rank: int, layout: tuple[int, int]) -> int:
     """Returns the rank position where this rank would be if you transposed
     the tile.
     """
     return transform_subtile_rank(np.transpose, rank, layout)
 
 
-def fliplr_subtile_rank(rank, layout):
+def fliplr_subtile_rank(rank: int, layout: tuple[int, int]) -> int:
     """Returns the rank position where this rank would be if you flipped the
     tile along a vertical axis
     """
     return transform_subtile_rank(np.fliplr, rank, layout)
 
 
-def flipud_subtile_rank(rank, layout):
+def flipud_subtile_rank(rank: int, layout: tuple[int, int]) -> int:
     """Returns the rank position where this rank would be if you flipped the
     tile along a horizontal axis
     """
@@ -741,8 +741,8 @@ def flipud_subtile_rank(rank, layout):
 def transform_subtile_rank(
     transform_func: Callable[[np.ndarray], np.ndarray],
     rank: int,
-    layout: Tuple[int, int],
-):
+    layout: tuple[int, int],
+) -> int:
     """Returns the rank position where this rank would be if you performed
     a transformation on the tile which strictly moves ranks.
     """
@@ -869,7 +869,9 @@ def _rank_slice_from_tile_metadata_cached(
 T = TypeVar("T")
 
 
-def discard_dimension(dims, dim_name: str, data: Sequence[T]) -> List[T]:
+def discard_dimension(
+    dims: tuple[str, ...], dim_name: str, data: Sequence[T]
+) -> List[T]:
     return [item for (item, dim) in zip(data, dims) if dim != dim_name]
 
 

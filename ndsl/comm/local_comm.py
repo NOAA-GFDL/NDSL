@@ -56,7 +56,7 @@ class LocalComm(Comm):
             self._buffer[buffer_type].append(in_value)
         return self._buffer[buffer_type][i_buffer]
 
-    def _get_send_recv(self, from_rank, tag: int):
+    def _get_send_recv(self, from_rank, tag: int):  # type: ignore[no-untyped-def]
         key = (from_rank, self.rank, tag)
         if "send_recv" not in self._buffer:
             raise ConcurrencyError(
@@ -70,7 +70,7 @@ class LocalComm(Comm):
         return_value = self._buffer["send_recv"][key].pop(0)
         return return_value
 
-    def _put_send_recv(self, value, to_rank, tag: int):
+    def _put_send_recv(self, value, to_rank, tag: int) -> None:  # type: ignore[no-untyped-def]
         key = (self.rank, to_rank, tag)
         self._buffer["send_recv"] = self._buffer.get("send_recv", {})
         self._buffer["send_recv"][key] = self._buffer["send_recv"].get(key, [])
@@ -146,11 +146,11 @@ class LocalComm(Comm):
             "cannot implement allgather on local comm due to its inherent parallelism"
         )
 
-    def Send(self, sendbuf, dest, tag: int = 0, **kwargs):
+    def Send(self, sendbuf, dest, tag: int = 0, **kwargs: Any):  # type: ignore[no-untyped-def]
         ensure_contiguous(sendbuf)
         self._put_send_recv(sendbuf, dest, tag)
 
-    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs):
+    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs: Any):  # type: ignore[no-untyped-def]
         result = self.Send(sendbuf, dest, tag)
 
         def send():
@@ -158,11 +158,11 @@ class LocalComm(Comm):
 
         return AsyncResult(send)
 
-    def Recv(self, recvbuf, source, tag: int = 0, **kwargs):
+    def Recv(self, recvbuf, source, tag: int = 0, **kwargs):  # type: ignore[no-untyped-def]
         ensure_contiguous(recvbuf)
         safe_assign_array(recvbuf, self._get_send_recv(source, tag))
 
-    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs):
+    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs):  # type: ignore[no-untyped-def]
         def receive():
             return self.Recv(recvbuf, source, tag)
 
@@ -189,13 +189,13 @@ class LocalComm(Comm):
         self._split_comms[color].append(new_comm)
         return new_comm
 
-    def allreduce(self, sendobj, op=None, recvobj=None) -> Any:
+    def allreduce(self, sendobj, op=None, recvobj=None) -> Any:  # type: ignore[no-untyped-def]
         raise NotImplementedError(
             "allreduce fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"
         )
 
-    def Allreduce(self, sendobj, recvobj, op) -> Any:
+    def Allreduce(self, sendobj, recvobj, op) -> Any:  # type: ignore[no-untyped-def]
         raise NotImplementedError(
             "Allreduce fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"

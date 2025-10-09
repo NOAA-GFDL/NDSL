@@ -19,7 +19,7 @@ AVAILABLE_LOG_LEVELS = {
 }
 
 
-def _get_log_level(default: str = "info"):
+def _get_log_level(default: str = "info") -> str:
     if os.getenv("PACE_LOGLEVEL", ""):
         logging.warning("PACE_LOGLEVEL is deprecated. Use NDSL_LOGLEVEL instead.")
         if os.getenv("NDSL_LOGLEVEL", ""):

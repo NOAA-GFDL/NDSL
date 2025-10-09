@@ -69,7 +69,7 @@ def collect_keys_from_data(times_per_step: List[Mapping[str, float]]) -> List[st
 
 def gather_timing_data(
     times_per_step: List[Mapping[str, float]],
-    comm,
+    comm: Comm,
     root: int = 0,
 ) -> Dict[str, Any]:
     """returns an updated version of the results dictionary owned

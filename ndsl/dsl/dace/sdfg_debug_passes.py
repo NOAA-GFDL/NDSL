@@ -15,7 +15,7 @@ def _filter_all_maps(
     sdfg: dace.SDFG,
     whitelist: list[str] = [],
     blacklist: list[str] = [],
-    skip_dynamic_memlet=True,
+    skip_dynamic_memlet: bool = True,
 ) -> list[
     tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]
 ]:
@@ -79,7 +79,7 @@ def _check_node(
     comment_c_code: str,
     assert_out: bool = False,
     array_range: list[tuple[int, int, int]] | None = None,
-):
+) -> None:
     """
     Grab all maps outputs and filter by variable name (either black or whitelist)
 
@@ -170,7 +170,7 @@ def _check_node(
     )
 
 
-def trace_all_outputs_at_index(sdfg: dace.SDFG, i: int, j: int, k: int):
+def trace_all_outputs_at_index(sdfg: dace.SDFG, i: int, j: int, k: int) -> None:
     """Prints value for all variable when written for a specific index.
 
 
@@ -227,7 +227,7 @@ def negative_delp_checker(sdfg: dace.SDFG) -> None:
     ndsl_log.info(f"Added {len(all_maps_filtered)} delp* < 0 checks")
 
 
-def negative_qtracers_checker(sdfg: dace.SDFG):
+def negative_qtracers_checker(sdfg: dace.SDFG) -> None:
     """
     Adds a negative check on every tracers via their name when
     written to. Assert when check is True.
@@ -268,7 +268,7 @@ def sdfg_nan_checker(
     i_range: tuple[int, int, int] | None = None,
     j_range: tuple[int, int, int] | None = None,
     k_range: tuple[int, int, int] | None = None,
-):
+) -> None:
     """
     Insert a check on array after each computational map to check for NaN
     in the domain. Assert when check is True.
@@ -301,7 +301,7 @@ def sdfg_nan_checker(
     ndsl_log.info(f"Added {len(all_maps_filtered)} NaN checks")
 
 
-def sdfg_execution_progress(sdfg: dace.SDFG):
+def sdfg_execution_progress(sdfg: dace.SDFG) -> None:
     all_maps_filtered = _filter_all_maps(sdfg)
 
     for state, node, e in all_maps_filtered:

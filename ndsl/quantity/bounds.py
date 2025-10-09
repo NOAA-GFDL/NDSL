@@ -80,9 +80,9 @@ class BoundedArrayView:
     array, while view.interior[-1:1, -1:1, :] would also include one halo point.
     """
 
-    def __init__(
+    def __init__(  # type: ignore
         self, array, dims: Sequence[str], origin: Sequence[int], extent: Sequence[int]
-    ):
+    ) -> None:
         self._data = array
         self._dims = tuple(dims)
         self._origin = tuple(origin)

@@ -40,7 +40,7 @@ class Comm(abc.ABC):
     def Get_size(self) -> int: ...
 
     @abc.abstractmethod
-    def bcast(self, value: Optional[T], root=0) -> T: ...
+    def bcast(self, value: Optional[T], root: int = 0) -> T: ...
 
     @abc.abstractmethod
     def barrier(self): ...
@@ -49,31 +49,31 @@ class Comm(abc.ABC):
     def Barrier(self): ...
 
     @abc.abstractmethod
-    def Scatter(self, sendbuf, recvbuf, root=0, **kwargs): ...
+    def Scatter(self, sendbuf, recvbuf, root: int = 0, **kwargs): ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
-    def Gather(self, sendbuf, recvbuf, root=0, **kwargs): ...
+    def Gather(self, sendbuf, recvbuf, root: int = 0, **kwargs): ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
     def allgather(self, sendobj: T) -> List[T]: ...
 
     @abc.abstractmethod
-    def Send(self, sendbuf, dest, tag: int = 0, **kwargs): ...
+    def Send(self, sendbuf, dest, tag: int = 0, **kwargs): ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
     def sendrecv(self, sendbuf, dest, **kwargs): ...
 
     @abc.abstractmethod
-    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs) -> Request: ...
+    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs) -> Request: ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
-    def Recv(self, recvbuf, source, tag: int = 0, **kwargs): ...
+    def Recv(self, recvbuf, source, tag: int = 0, **kwargs): ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
-    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs) -> Request: ...
+    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs) -> Request: ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
-    def Split(self, color, key) -> Comm: ...
+    def Split(self, color, key) -> Comm: ...  # type: ignore[no-untyped-def]
 
     @abc.abstractmethod
     def allreduce(

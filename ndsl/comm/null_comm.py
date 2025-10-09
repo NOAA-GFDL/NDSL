@@ -1,7 +1,10 @@
 import copy
-from typing import Any, Mapping
+from typing import Any, Mapping, TypeVar
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
+
+
+T = TypeVar("T")
 
 
 class NullAsyncResult(Request):
@@ -91,12 +94,12 @@ class NullComm(Comm):
         self._split_comms[color].append(new_comm)
         return new_comm
 
-    def allreduce(self, sendobj, op: ReductionOperator | None = None) -> Any:
+    def allreduce(self, sendobj: T, op: ReductionOperator | None = None) -> T:
         return self._fill_value
 
-    def Allreduce(self, sendobj, recvobj, op: ReductionOperator) -> Any:
+    def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
         recvobj = sendobj
         return recvobj
 
-    def Allreduce_inplace(self, obj: Any, op: ReductionOperator) -> Any:
+    def Allreduce_inplace(self, obj: T, op: ReductionOperator) -> T:
         raise NotImplementedError("NullComm.Allreduce_inplace")

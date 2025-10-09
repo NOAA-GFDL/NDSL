@@ -271,7 +271,7 @@ class State:
         def _update_from_memory_recursive(
             state: State,
             memory_map: StateMemoryMapping,
-        ):
+        ) -> None:
             for name, array in memory_map.items():
                 if array is None:
                     raise TypeError(
@@ -331,7 +331,9 @@ class State:
                 shape and strides as the original quantity
         """
 
-        def _update_zero_copy_recursive(state: State, memory_map: StateMemoryMapping):
+        def _update_zero_copy_recursive(
+            state: State, memory_map: StateMemoryMapping
+        ) -> None:
             for name, array in memory_map.items():
                 if array is None:
                     state.__setattr__(name, None)
@@ -373,7 +375,7 @@ class State:
         """
         Save state to NetCDF. Can be reloaded with `update_from_netcdf`.
 
-        If applicable, will save seperate NetCDF files for each running rank.
+        If applicable, will save separate NetCDF files for each running rank.
 
         The file names are deduced from the class name, and post fix with rank number
         in the case of a multi-process use.
@@ -382,7 +384,7 @@ class State:
             directory_path: directory to save the netcdf in
         """
 
-        def _save_recursive(state: State):
+        def _save_recursive(state: State) -> dict:
             local_data = {}
             for _field in dataclasses.fields(state):
                 if dataclasses.is_dataclass(_field.type):
@@ -429,7 +431,9 @@ class State:
         datatree_as_dict = datatree.to_dict()
 
         # All other cases - recursing downward
-        def _load_recursive(data_tree_as_dict: dict[str, xr.Dataset] | xr.Dataset):
+        def _load_recursive(
+            data_tree_as_dict: dict[str, xr.Dataset] | xr.Dataset,
+        ) -> dict:
             local_data_dict = {}
             for name, data_array in data_tree_as_dict.items():
                 # Case of the top_level "/"

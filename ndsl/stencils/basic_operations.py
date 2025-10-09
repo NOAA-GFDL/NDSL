@@ -2,7 +2,7 @@ from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
 
 
-def copy_defn(q_in: FloatField, q_out: FloatField):
+def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
     """
     Copy q_in to q_out.
 
@@ -14,7 +14,7 @@ def copy_defn(q_in: FloatField, q_out: FloatField):
         q_out = q_in
 
 
-def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField):
+def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
     """
     Multiplies every element of q_out by every element of the adjustment field over the
     interval, replacing the elements of q_out by the result of the multiplication.
@@ -27,7 +27,7 @@ def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField):
         q_out = q_out * adjustment
 
 
-def set_value_defn(q_out: FloatField, value: Float):
+def set_value_defn(q_out: FloatField, value: Float) -> None:
     """
     Sets every element of q_out to the value specified by value argument.
 
@@ -39,7 +39,7 @@ def set_value_defn(q_out: FloatField, value: Float):
         q_out = value
 
 
-def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField):
+def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField) -> None:
     """
     Divides every element of q_out by every element of the adjustment field over the
     interval, replacing the elements of q_out by the result of the multiplication.
@@ -57,7 +57,7 @@ def select_k(
     out_field: FloatFieldIJ,
     k_mask: IntField,
     k_select: IntFieldIJ,
-):
+) -> None:
     """
     Saves a specific k-index of a 3D field to a new 2D array. The k-value can be
     different for each i,j point.
@@ -77,7 +77,7 @@ def select_k(
 def average_in(
     q_out: FloatField,
     adjustment: FloatField,
-):
+) -> None:
     """
     Averages every element of q_out with every element of the adjustment field,
     overwriting q_out.

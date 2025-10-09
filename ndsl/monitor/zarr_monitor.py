@@ -43,8 +43,8 @@ class ZarrMonitor:
         store: Union[str, "zarr.storage.MutableMapping"],
         partitioner: Partitioner,
         mode: str = "w",
-        mpi_comm=DummyComm(),
-    ):
+        mpi_comm: DummyComm = DummyComm(),
+    ) -> None:
         """Create a ZarrMonitor.
 
         Args:
@@ -266,7 +266,7 @@ def array_chunks(
     layout: Tuple[int, int],
     tile_array_shape: Tuple[int, ...],
     array_dims: Tuple[str, ...],
-):
+) -> tuple:
     layout_by_dims = list_by_dims(array_dims, layout, 1)
     chunks_list = []
     for extent, dim, n_ranks in zip(tile_array_shape, array_dims, layout_by_dims):
@@ -379,7 +379,7 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
         self.comm.barrier()
 
 
-def get_calendar(time: Union[datetime, timedelta, cftime.datetime]):
+def get_calendar(time: Union[datetime, timedelta, cftime.datetime]) -> str:
     try:
         return time.calendar  # type: ignore
     except AttributeError:

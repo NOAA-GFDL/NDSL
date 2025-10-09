@@ -65,12 +65,41 @@ profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 [tool.mypy]
+disallow_incomplete_defs = true
 ignore_missing_imports = true
 strict_optional = "true"
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.dsl.gt4py_utils"
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.grid.*"
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.restart.*"
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.stencils.corners"
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.stencils.testing.*"
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.testing.*"
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+module = "ndsl.viz.*"
 
 [tool.setuptools]
 include-package-data = true
