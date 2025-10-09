@@ -386,38 +386,12 @@ class FrozenStencil(SDFGConvertible):
 
             setattr(self, "__call__", nothing_function)
 
-    def argument_size_checker(self, *args, **kwargs):
-        """Checks that the sizes of all arguments are compatible with the domain of the stencil.
-
-        Raises:
-            ValueError: If the quantity's size is a mismatch to the domain.
-        """
-        all_args = dict(zip(self._argument_names, args)) | kwargs
-        for name, argument in all_args.items():
-            if isinstance(argument, Quantity):
-                if not self.domain_size_comparison(argument, name, self.domain):
-                    raise ValueError(
-                        f"Quantity {name} is too small for the targeted domain."
-                    )
-
-    def domain_size_comparison(self, quantity: Quantity) -> bool:
-        """Checks if the given quantity can support computation on the specified domain.
-
-        Args:
-            quantity (Quantity): Quantity to check
-        """
-        domain_sizes = dict(zip(("x", "y", "z"), self.domain))
-        for axis, quantity_size in zip(quantity.dims, quantity.extent):
-            if quantity_size < domain_sizes[axis[0]]:
-                return False
-        return True
-
     def __call__(self, *args, **kwargs) -> None:
         # Verbose stencil execution
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
 
-        self.argument_size_checker(args, kwargs)
+        self._validate_quantity_sizes(args, kwargs)
 
         # Marshal arguments
         args_list = list(args)
@@ -565,6 +539,26 @@ class FrozenStencil(SDFGConvertible):
         return self.stencil_object.closure_resolver(
             constant_args, given_args, parent_closure=parent_closure
         )
+
+    def _validate_quantity_sizes(self, *args, **kwargs):
+        """Checks that the sizes of quantities are compatible with the domain of the stencil.
+
+        Raises:
+            ValueError: If the quantity's size is a mismatch to the domain.
+        """
+        all_args_as_kwargs = dict(zip(self._argument_names, args)) | kwargs
+        domain_sizes = dict(zip(("x", "y", "z"), self.domain))
+
+        for name, argument in all_args_as_kwargs.items():
+            if not isinstance(argument, Quantity):
+                continue
+
+            for axis, quantity_size in zip(argument.dims, argument.extent):
+                if quantity_size < domain_sizes[axis[0]]:
+                    raise ValueError(
+                        f"Quantity `{name}` is too small for the targeted "
+                        f"domain in axis {axis[0]}: {quantity_size} < {domain_sizes[axis[0]]}."
+                    )
 
 
 def _convert_quantities_to_storage(args, kwargs):

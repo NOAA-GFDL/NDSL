@@ -1,3 +1,5 @@
+from contextlib import nullcontext as does_not_raise
+from typing import Callable
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -80,24 +82,24 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):  # type: ignore
 
 
 @pytest.mark.parametrize(
-    "extent,dimensions,domain,expected_result",
+    "extent,dimensions,domain,expectation",
     [
-        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), True),
-        ((20, 20), ["x", "y"], (20, 20, 30), True),
-        ((20, 20), ["x_interface", "y"], (20, 20, 30), True),
-        ((20, 20), ["x", "y_interface"], (20, 20, 30), True),
-        ((20,), ["z"], (20, 20, 10), True),
-        ((20,), ["z_interface"], (20, 20, 10), True),
-        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), False),
-        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), False),
-        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), False),
+        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), does_not_raise()),
+        ((20, 20), ["x", "y"], (20, 20, 30), does_not_raise()),
+        ((20, 20), ["x_interface", "y"], (20, 20, 30), does_not_raise()),
+        ((20, 20), ["x", "y_interface"], (20, 20, 30), does_not_raise()),
+        ((20,), ["z"], (20, 20, 10), does_not_raise()),
+        ((20,), ["z_interface"], (20, 20, 10), does_not_raise()),
+        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), pytest.raises(ValueError)),
+        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), pytest.raises(ValueError)),
+        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), pytest.raises(ValueError)),
     ],
 )
 def test_domain_size_comparison(
     extent: tuple[int],
     dimensions: list[str],
     domain: tuple[int],
-    expected_result: bool,
+    expectation: Callable,
 ):
     quantity = Quantity(np.zeros(extent), dimensions, "n/a", extent=extent)
     stencil = FrozenStencil(
@@ -106,5 +108,5 @@ def test_domain_size_comparison(
         domain=domain,
         stencil_config=MagicMock(spec=StencilConfig),
     )
-
-    assert stencil.domain_size_comparison(quantity) == expected_result
+    with expectation:
+        stencil._validate_quantity_sizes(quantity)
