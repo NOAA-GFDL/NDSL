@@ -278,7 +278,6 @@ class FrozenStencil(SDFGConvertible):
         """
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
-        origin = cast(Union[Index3D, Mapping[str, Tuple[int, ...]]], origin)
         self.origin = origin
         self.domain: Index3D = cast_to_index3d(domain)
         self.stencil_config: StencilConfig = stencil_config
