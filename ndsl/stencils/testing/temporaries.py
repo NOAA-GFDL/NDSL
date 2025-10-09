@@ -6,7 +6,7 @@ import numpy as np
 from ndsl.quantity import Quantity
 
 
-def copy_temporaries(obj, max_depth: int) -> dict:
+def copy_temporaries(obj: object, max_depth: int) -> dict:
     temporaries = {}
     attrs = [a for a in dir(obj) if not a.startswith("__")]
     for attr_name in attrs:
@@ -24,7 +24,7 @@ def copy_temporaries(obj, max_depth: int) -> dict:
     return temporaries
 
 
-def assert_same_temporaries(dict1: dict, dict2: dict):
+def assert_same_temporaries(dict1: dict, dict2: dict) -> None:
     diffs = _assert_same_temporaries(dict1, dict2)
     if len(diffs) > 0:
         raise AssertionError(f"{len(diffs)} differing temporaries found: {diffs}")
