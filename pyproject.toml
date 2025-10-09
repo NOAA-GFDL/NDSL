@@ -69,6 +69,7 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 # TODO: understand what's wrong with imports and fix
 ignore_missing_imports = true
+strict_equality = true
 strict_optional = "true"
 warn_redundant_casts = true
 warn_unreachable = true
