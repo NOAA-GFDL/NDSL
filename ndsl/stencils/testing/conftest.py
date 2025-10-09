@@ -1,11 +1,7 @@
 import os
 import re
-<<<<<<< HEAD
 from pathlib import Path
-from typing import Optional, Tuple
-=======
 from typing import Any
->>>>>>> 0c34ab2 (moar types)
 
 import pytest
 import xarray as xr
@@ -135,11 +131,13 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 @pytest.fixture()
-def data_path(pytestconfig: pytest.Config) -> tuple[str, str]:
+def data_path(pytestconfig: pytest.Config) -> tuple[Path, Path]:
     return data_path_and_namelist_filename_from_config(pytestconfig)
 
 
-def data_path_and_namelist_filename_from_config(config:pytest.Config) -> tuple[Path, Path]:
+def data_path_and_namelist_filename_from_config(
+    config: pytest.Config,
+) -> tuple[Path, Path]:
     data_path = Path(config.getoption("data_path"))
     return data_path, data_path / "input.nml"
 
@@ -187,7 +185,7 @@ def get_test_class_instance(
     return translate_class(grid, namelist, stencil_factory)
 
 
-def get_all_savepoint_names(metafunc: Any, data_path: str) -> set[str]:
+def get_all_savepoint_names(metafunc: Any, data_path: Path) -> set[str]:
     only_names = metafunc.config.getoption("which_modules")
     if only_names is None:
         names = [
@@ -203,7 +201,7 @@ def get_all_savepoint_names(metafunc: Any, data_path: str) -> set[str]:
     return savepoint_names
 
 
-def get_sequential_savepoint_names(metafunc: Any, data_path: str) -> list[str]:
+def get_sequential_savepoint_names(metafunc: Any, data_path: Path) -> list[str]:
     all_names = get_all_savepoint_names(metafunc, data_path)
     sequential_names = []
     for name in all_names:
@@ -212,7 +210,7 @@ def get_sequential_savepoint_names(metafunc: Any, data_path: str) -> list[str]:
     return sequential_names
 
 
-def get_parallel_savepoint_names(metafunc: Any, data_path: str) -> list[str]:
+def get_parallel_savepoint_names(metafunc: Any, data_path: Path) -> list[str]:
     all_names = get_all_savepoint_names(metafunc, data_path)
     parallel_names = []
     for name in all_names:
@@ -257,7 +255,7 @@ def get_config(backend: str, communicator: Communicator | None) -> StencilConfig
 
 
 def sequential_savepoint_cases(
-    metafunc: Any, data_path: str, namelist_filename: str, *, backend: str
+    metafunc: Any, data_path: Path, namelist_filename: Path, *, backend: str
 ) -> list[SavepointCase]:
     savepoint_names = get_sequential_savepoint_names(metafunc, data_path)
     namelist = load_f90nml(namelist_filename)
@@ -386,8 +384,8 @@ def compute_grid_data(
 
 def parallel_savepoint_cases(
     metafunc: Any,
-    data_path: str,
-    namelist_filename: str,
+    data_path: Path,
+    namelist_filename: Path,
     mpi_rank: int,
     *,
     backend: str,
