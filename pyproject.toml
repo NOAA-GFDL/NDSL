@@ -65,8 +65,6 @@ profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 [tool.mypy]
-<<<<<<< HEAD
-# TODO: let's attempt to remove this in the future
 ignore_missing_imports = true
 strict_optional = "true"
 warn_redundant_casts = true
