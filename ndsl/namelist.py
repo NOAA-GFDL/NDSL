@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Self
+from typing import Any, Self
 
 import f90nml
 
@@ -234,7 +234,7 @@ class NamelistDefaults:
     """flag for turning on shallow water conditions in dyn core"""
 
     @classmethod
-    def as_dict(cls):
+    def as_dict(cls) -> dict:
         return {
             name: default
             for name, default in cls.__dict__.items()
@@ -618,7 +618,7 @@ class Namelist:
         return cls(**namelist_dict)
 
 
-def namelist_to_flatish_dict(nml_input):
+def namelist_to_flatish_dict(nml_input: Any) -> dict:
     nml = dict(nml_input)
     for name, value in nml.items():
         if isinstance(value, f90nml.Namelist):

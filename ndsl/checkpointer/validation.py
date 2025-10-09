@@ -6,13 +6,8 @@ from typing import MutableMapping, Tuple
 import numpy as np
 import xarray as xr
 
-from ndsl.checkpointer.base import Checkpointer
-from ndsl.checkpointer.thresholds import (
-    ArrayLike,
-    SavepointName,
-    SavepointThresholds,
-    cast_to_ndarray,
-)
+from ndsl.checkpointer.base import ArrayLike, Checkpointer, SavepointName
+from ndsl.checkpointer.thresholds import SavepointThresholds, cast_to_ndarray
 
 
 def _clip_pace_array_to_target(
@@ -90,7 +85,7 @@ class ValidationCheckpointer(Checkpointer):
         self._n_calls: MutableMapping[SavepointName, int] = collections.defaultdict(int)
 
     @contextlib.contextmanager
-    def trial(self):
+    def trial(self):  # type: ignore[no-untyped-def]
         """
         Context manager for a trial.
 

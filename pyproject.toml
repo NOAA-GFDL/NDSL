@@ -66,6 +66,7 @@ sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 [tool.mypy]
 disallow_incomplete_defs = true
+disallow_untyped_defs = true
 # TODO: understand what's wrong with imports and fix
 ignore_missing_imports = true
 strict_optional = "true"
@@ -76,38 +77,35 @@ warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 disallow_incomplete_defs = false
-# Unclear what happens to this module in the future
-module = "ndsl.dsl.gt4py_utils"
+disallow_untyped_defs = false
+module = [
+  # TODO: fix issues and remove this override
+  "ndsl.grid.*",
+  "ndsl.viz.*",
+  # Unclear what happens to this module in the future
+  "ndsl.dsl.gt4py_utils",
+  # We don't fix legacy (unless we really need it)
+  "ndsl.restart._legacy_restart",
+  # Corner are deprecated
+  "ndsl.stencils.corners",
+  # translate test system is "beyond repair"
+  "ndsl.stencils.testing.translate",
+  "ndsl.stencils.testing.parallel_translate"
+]
 
 [[tool.mypy.overrides]]
-disallow_incomplete_defs = false
-# TODO: fix issues and remove this override
-module = "ndsl.grid.*"
-
-[[tool.mypy.overrides]]
-disallow_incomplete_defs = false
-# We don't fix legacy (unless we really need it)
-module = "ndsl.restart._legacy_restart"
-
-[[tool.mypy.overrides]]
-disallow_incomplete_defs = false
-# Corners are deprecated
-module = "ndsl.stencils.corners"
-
-[[tool.mypy.overrides]]
-disallow_incomplete_defs = false
-# translate test system is "beyond repair"
-module = "ndsl.stencils.testing.translate"
-
-[[tool.mypy.overrides]]
-disallow_incomplete_defs = false
-# translate test system is "beyond repair"
-module = "ndsl.stencils.testing.parallel_translate"
-
-[[tool.mypy.overrides]]
-disallow_incomplete_defs = false
-# TODO: fix issues and remove this override
-module = "ndsl.viz.*"
+disallow_untyped_defs = false
+module = [
+  # Unclear what the state of these modules is
+  "ndsl.monitor.*",
+  "ndsl.stencils.testing.serialbox_to_netcdf",
+  # deprecated
+  "ndsl.filesystem",
+  # TODO: fix issue and remove this override
+  "ndsl.types",
+  "ndsl.comm._boundary_utils",
+  "ndsl.quantity.bounds"
+]
 
 [tool.setuptools]
 include-package-data = true

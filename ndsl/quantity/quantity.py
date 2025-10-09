@@ -183,7 +183,7 @@ class Quantity:
             self.metadata.dtype,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Quantity(\n    data=\n{self.data},\n    dims={self.dims},\n"
             f"    units={self.units},\n    origin={self.origin},\n"
@@ -232,7 +232,7 @@ class Quantity:
         return dict(**self._attrs, units=self._metadata.units)
 
     @property
-    def dims(self) -> Tuple[str, ...]:
+    def dims(self) -> tuple[str, ...]:
         """Names of each dimension"""
         return self.metadata.dims
 
@@ -306,15 +306,15 @@ class Quantity:
         return self.metadata.np
 
     @property
-    def __array_interface__(self):
+    def __array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__array_interface__
 
     @property
-    def __cuda_array_interface__(self):
+    def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__cuda_array_interface__
 
     @property
-    def shape(self):
+    def shape(self):  # type: ignore[no-untyped-def]
         return self.data.shape
 
     def __descriptor__(self) -> Any:
@@ -384,7 +384,7 @@ class Quantity:
         transposed._attrs = self._attrs
         return transposed
 
-    def plot_k_level(self, k_index=0):
+    def plot_k_level(self, k_index: int = 0) -> None:
         field = self.data
         print(
             "Min and max values:",
@@ -401,11 +401,13 @@ class Quantity:
         plt.show()
 
 
-def _transpose_sequence(sequence, order):
+def _transpose_sequence(sequence, order):  # type: ignore[no-untyped-def]
     return sequence.__class__(sequence[i] for i in order)
 
 
-def _collapse_dims(target_dims, dims):
+def _collapse_dims(
+    target_dims: Sequence[str | Iterable[str]], dims: tuple[str, ...]
+) -> list[str]:
     return_list = []
     for target in target_dims:
         if isinstance(target, str):
@@ -431,7 +433,7 @@ def _collapse_dims(target_dims, dims):
     return return_list
 
 
-def _validate_quantity_property_lengths(shape, dims, origin, extent):
+def _validate_quantity_property_lengths(shape, dims, origin, extent):  # type: ignore[no-untyped-def]
     n_dims = len(shape)
     for var, desc in (
         (dims, "dimension names"),
@@ -444,7 +446,7 @@ def _validate_quantity_property_lengths(shape, dims, origin, extent):
             )
 
 
-def _ensure_int_tuple(arg, arg_name):
+def _ensure_int_tuple(arg: Sequence, arg_name: str) -> tuple:
     return_list = []
     for item in arg:
         try:

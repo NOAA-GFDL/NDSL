@@ -44,7 +44,7 @@ class State:
     def _init(cls, quantity_factory_allocator: Callable) -> Self:
         """Allocate memory and init with a blind quantity init operation"""
 
-        def _init_recursive(cls):
+        def _init_recursive(cls: Any) -> dict:
             initial_quantities = {}
             for _field in dataclasses.fields(cls):
                 if dataclasses.is_dataclass(_field.type):

@@ -70,14 +70,14 @@ class HaloUpdater:
         self._inflight_y_quantities: Optional[tuple[Quantity, ...]] = None
         self._finalize_on_wait = False
 
-    def force_finalize_on_wait(self):
+    def force_finalize_on_wait(self) -> None:
         """HaloDataTransformer are finalized after a wait call
 
         This is a temporary fix. See DSL-816 which will remove self._finalize_on_wait.
         """
         self._finalize_on_wait = True
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Clean up all buffers on garbage collection"""
         if (
             self._inflight_x_quantities is not None

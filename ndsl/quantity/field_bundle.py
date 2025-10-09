@@ -93,12 +93,12 @@ class FieldBundle:
         return self._indexer[name]
 
     @property
-    def __array_interface__(self):
+    def __array_interface__(self):  # type: ignore[no-untyped-def]
         """Memory interface for CPU."""
         return self._quantity.__array_interface__
 
     @property
-    def __cuda_array_interface__(self):
+    def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
         """Memory interface for GPU memory as defined by cupy."""
         return self._quantity.__cuda_array_interface__
 

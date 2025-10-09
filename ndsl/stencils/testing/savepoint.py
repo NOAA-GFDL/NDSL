@@ -61,7 +61,7 @@ class SavepointCase:
     sort_report: str
     no_report: bool
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.savepoint_name}-rank={self.grid.rank}-call={self.i_call}"
 
     @property

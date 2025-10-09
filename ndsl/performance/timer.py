@@ -70,7 +70,7 @@ class Timer:
         # which self-destroys itself when called, we can't orchestrate
         # it easily in DaCe. Waiting for a fix DaCe side to this Python
         # ridiculousness (see contelib.py:_GeneratorContextManager.__enter__)
-        def dace_inhibitor(func):
+        def dace_inhibitor(func):  # type: ignore[no-untyped-def]
             return func
 
         class Wrapper:
@@ -79,11 +79,11 @@ class Timer:
                 self.name = name
 
             @dace_inhibitor
-            def __enter__(self):
+            def __enter__(self) -> None:
                 self.timer.start(name)
 
             @dace_inhibitor
-            def __exit__(self, type, value, traceback):
+            def __exit__(self, type, value, traceback):  # type: ignore[no-untyped-def]
                 self.timer.stop(name)
 
         return Wrapper(self, name)
@@ -112,16 +112,16 @@ class Timer:
             )
         return self._hit_count.copy()
 
-    def reset(self):
+    def reset(self) -> None:
         """Remove all accumulated timings."""
         self._accumulated_time.clear()
         self._hit_count.clear()
 
-    def enable(self):
+    def enable(self) -> None:
         """Enable the Timer."""
         self._enabled = True
 
-    def disable(self):
+    def disable(self) -> None:
         """Disable the Timer."""
         if len(self._clock_starts) > 0:
             raise RuntimeError(
@@ -142,11 +142,11 @@ class NullTimer(Timer):
     Meant to be used in place of an optional timer.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._enabled = False
+        self._enabled: bool = False
 
-    def enable(self):
+    def enable(self) -> None:
         """Enable the Timer."""
         raise NotImplementedError(
             "NullTimer cannot be enabled, maybe create a Timer and "

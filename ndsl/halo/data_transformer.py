@@ -135,7 +135,7 @@ class HaloExchangeSpec:
     pack_clockwise_rotation: int
     unpack_slices: tuple[slice, ...]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._id = uuid1()
         self.pack_buffer_size = _slices_size(self.pack_slices)
         self._unpack_buffer_size = _slices_size(self.unpack_slices)
@@ -221,7 +221,7 @@ class HaloDataTransformer(abc.ABC):
         self._unpack_buffer = None
         self._compile()
 
-    def finalize(self):
+    def finalize(self) -> None:
         """Deletion routine, making sure all buffers were inserted back into cache."""
         # Synchronize all work
         self.synchronize()
@@ -303,7 +303,7 @@ class HaloDataTransformer(abc.ABC):
         self.synchronize()
         return self._pack_buffer
 
-    def _compile(self):
+    def _compile(self) -> None:
         """Allocate contiguous memory buffers from description queued."""
 
         # Compute required size
@@ -318,10 +318,10 @@ class HaloDataTransformer(abc.ABC):
 
         # Retrieve two properly sized buffers
         self._pack_buffer = Buffer.pop_from_cache(
-            self._np_module.zeros, (buffer_size), dtype
+            self._np_module.zeros, (buffer_size,), dtype  # type: ignore[arg-type]
         )
         self._unpack_buffer = Buffer.pop_from_cache(
-            self._np_module.zeros, (buffer_size), dtype
+            self._np_module.zeros, (buffer_size,), dtype  # type: ignore[arg-type]
         )
 
     def ready(self) -> bool:
@@ -370,7 +370,7 @@ class HaloDataTransformer(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def synchronize(self):
+    def synchronize(self) -> None:
         """Synchronize all operations.
 
         Guarantees all memory is now safe to access.
@@ -384,7 +384,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
     Default behavior, could be done with any numpy-like library.
     """
 
-    def synchronize(self):
+    def synchronize(self) -> None:
         if self._pack_buffer is not None:
             self._pack_buffer.finalize_memory_transfer()
         if self._unpack_buffer is not None:
@@ -634,7 +634,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
         # We don't return a copy since the indices are read-only in the algorithm
         return INDICES_CACHE[key]
 
-    def _compile(self):
+    def _compile(self) -> None:
         # Super to get buffer allocation
         super()._compile()
         # Allocate the streams & build the indices arrays
@@ -643,10 +643,10 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                 self._cu_kernel_args[info_x._id] = HaloDataTransformerGPU._CuKernelArgs(
                     stream=_pop_stream(),
                     x_send_indices=self._flatten_indices(
-                        info_x, info_x.pack_slices, True
+                        info_x, info_x.pack_slices, True  # type: ignore[arg-type]
                     ),
                     x_recv_indices=self._flatten_indices(
-                        info_x, info_x.unpack_slices, False
+                        info_x, info_x.unpack_slices, False  # type: ignore[arg-type]
                     ),
                     y_send_indices=None,
                     y_recv_indices=None,
@@ -657,30 +657,30 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                 self._cu_kernel_args[info_x._id] = HaloDataTransformerGPU._CuKernelArgs(
                     stream=_pop_stream(),
                     x_send_indices=self._flatten_indices(
-                        info_x, info_x.pack_slices, True
+                        info_x, info_x.pack_slices, True  # type: ignore[arg-type]
                     ),
                     x_recv_indices=self._flatten_indices(
-                        info_x, info_x.unpack_slices, False
+                        info_x, info_x.unpack_slices, False  # type: ignore[arg-type]
                     ),
                     y_send_indices=self._flatten_indices(
-                        info_y, info_y.pack_slices, True
+                        info_y, info_y.pack_slices, True  # type: ignore[arg-type]
                     ),
                     y_recv_indices=self._flatten_indices(
-                        info_y, info_y.unpack_slices, False
+                        info_y, info_y.unpack_slices, False  # type: ignore[arg-type]
                     ),
                 )
 
-    def synchronize(self):
+    def synchronize(self) -> None:
         if self._CODE_PATH_DEVICE_WIDE_SYNC:
             self._safe_synchronize()
         else:
             self._streamed_synchronize()
 
-    def _streamed_synchronize(self):
+    def _streamed_synchronize(self) -> None:
         for cu_kernel in self._cu_kernel_args.values():
             cu_kernel.stream.synchronize()
 
-    def _safe_synchronize(self):
+    def _safe_synchronize(self) -> None:
         device_synchronize()
 
     def _get_stream(self, stream: "cp.cuda.stream") -> "cp.cuda.stream":

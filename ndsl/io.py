@@ -78,7 +78,7 @@ def read_state(filename: str) -> dict:
     return out_dict
 
 
-def _get_integer_tokens(line, n_tokens):
+def _get_integer_tokens(line: str, n_tokens: int) -> list[int]:
     all_tokens = line.split()
     return [int(token) for token in all_tokens[:n_tokens]]
 

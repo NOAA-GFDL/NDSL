@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List, Tuple, Union
+from typing import List, Tuple, TypeVar, Union
 
 import cftime
 import xarray as xr
@@ -14,22 +14,24 @@ from ndsl.utils import list_by_dims
 
 __all__ = ["ZarrMonitor"]
 
+T = TypeVar("T")
+
 
 class DummyComm:
-    def Get_rank(self):
+    def Get_rank(self) -> int:
         return 0
 
-    def Get_size(self):
+    def Get_size(self) -> int:
         return 1
 
-    def bcast(self, value, root=0):
+    def bcast(self, value: T, root: int = 0) -> T:
         assert root == 0, (
             "DummyComm should only be used on a single core, "
             "so root should only ever be 0"
         )
         return value
 
-    def barrier(self):
+    def barrier(self) -> None:
         return
 
 
@@ -130,7 +132,7 @@ class ZarrMonitor:
             constant_writer.append(quantity)
             self._constants.append(name)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
 
 
@@ -182,7 +184,7 @@ class _ZarrVariableWriter:
             fill_value=None,
         )
 
-    def sync_array(self):
+    def sync_array(self) -> None:
         self.array = self.comm.bcast(self.array, root=0)
 
     def _match_dim_order(self, quantity):

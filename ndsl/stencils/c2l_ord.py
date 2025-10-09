@@ -26,9 +26,9 @@ C2 = -0.125
 
 
 def mock_exchange(
-    quantity,
-    domain_2d,
-):
+    quantity: Any,
+    domain_2d: list[list],
+) -> None:
     isc = domain_2d[0][0]
     iec = domain_2d[0][1]
     isd = domain_2d[1][0]

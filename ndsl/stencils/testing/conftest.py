@@ -32,7 +32,7 @@ from ndsl.stencils.testing.translate import TranslateGrid
 from ndsl.utils import grid_params_from_f90nml, load_f90nml
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Option for the Translate Test system
 
     See -h or inline help for details.
@@ -120,7 +120,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     # register an additional marker
     config.addinivalue_line(
         "markers", "sequential(name): mark test as running sequentially on ranks"
@@ -298,7 +298,7 @@ def _savepoint_cases(
     backend: str,
     data_path: Path,
     grid_mode: str,
-    topology_mode: bool,
+    topology_mode: str,
     sort_report: str,
     no_report: bool,
     no_legacy_namelist: bool,  # Issue#64: tmp flag
@@ -368,7 +368,13 @@ def _savepoint_cases(
     return return_list
 
 
-def compute_grid_data(grid, grid_params, backend, layout, topology_mode):
+def compute_grid_data(
+    grid: Grid,
+    grid_params: dict,
+    backend: str,
+    layout: tuple[int, int],
+    topology_mode: str,
+) -> None:
     grid.make_grid_data(
         npx=grid_params["npx"],
         npy=grid_params["npy"],
@@ -471,30 +477,30 @@ def get_communicator(
 
 
 @pytest.fixture()
-def print_failures(pytestconfig):
+def print_failures(pytestconfig: pytest.Config) -> str:
     return pytestconfig.getoption("print_failures")
 
 
 @pytest.fixture()
-def failure_stride(pytestconfig):
+def failure_stride(pytestconfig: pytest.Config) -> int:
     return int(pytestconfig.getoption("failure_stride"))
 
 
 @pytest.fixture()
-def multimodal_metric(pytestconfig):
+def multimodal_metric(pytestconfig: pytest.Config) -> bool:
     return bool(pytestconfig.getoption("multimodal_metric"))
 
 
 @pytest.fixture()
-def grid(pytestconfig):
+def grid(pytestconfig: pytest.Config) -> str:
     return pytestconfig.getoption("grid")
 
 
 @pytest.fixture()
-def topology_mode(pytestconfig):
+def topology_mode(pytestconfig: pytest.Config) -> str:
     return pytestconfig.getoption("topology_mode")
 
 
 @pytest.fixture()
-def backend(pytestconfig):
+def backend(pytestconfig: pytest.Config) -> str:
     return pytestconfig.getoption("backend")

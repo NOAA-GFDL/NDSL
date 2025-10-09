@@ -143,7 +143,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
             len(self.hits_per_step) - 1,
             backend,
             is_orchestrated,
-            git_hash,
+            git_hash,  # type: ignore[arg-type]
             self.comm,
             self.hits_per_step,
             self.times_per_step,
@@ -153,7 +153,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
 
 
 class NullPerformanceCollector(AbstractPerformanceCollector):
-    def __init__(self):
+    def __init__(self) -> None:
         self.total_timer = NullTimer()
         self.timestep_timer = NullTimer()
 

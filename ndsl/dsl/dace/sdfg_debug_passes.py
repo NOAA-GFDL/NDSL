@@ -116,7 +116,7 @@ def _check_node(
     index_printf = ", ".join(["%d"] * len(input_array.shape))
 
     # Get range from memlet (which may not be the entire array size)
-    def evaluate(expr):
+    def evaluate(expr):  # type: ignore[no-untyped-def]
         return expr.subs({sp.Function("int_floor"): symbolic.int_floor})
 
     # A bug in DaCe can lead to an edge labeled for storage on CPU

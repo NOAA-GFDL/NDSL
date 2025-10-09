@@ -91,7 +91,7 @@ def average_in(
 
 
 @function
-def sign(a, b):
+def sign(a, b):  # type: ignore[no-untyped-def]
     """
     Defines a_sign_b as the absolute value of a, and checks if b is positive or
     negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
@@ -105,7 +105,7 @@ def sign(a, b):
 
 
 @function
-def dim(a, b):
+def dim(a, b):  # type: ignore[no-untyped-def]
     """
     Calculates a - b, camped to 0, i.e. max(a - b, 0).
     """

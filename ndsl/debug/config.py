@@ -31,7 +31,7 @@ from ndsl.logging import ndsl_log
 ndsl_debugger = None
 
 
-def _set_debugger():
+def _set_debugger() -> None:
     config = os.getenv("NDSL_DEBUG_CONFIG", "")
     if not os.path.exists(config):
         if config != "":

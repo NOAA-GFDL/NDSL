@@ -80,7 +80,7 @@ def safe_assign_array(to_array: np.ndarray, from_array: np.ndarray) -> None:
             raise
 
 
-def device_synchronize():
+def device_synchronize() -> None:
     """Synchronize all memory communication"""
     if GPU_AVAILABLE:
         cp.cuda.runtime.deviceSynchronize()

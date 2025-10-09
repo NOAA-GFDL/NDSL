@@ -43,7 +43,7 @@ from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
-def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
+def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):  # type: ignore[no-untyped-def]
     report_head = f"comparing against numpy for func {function_name}, gt_id {gt_id}:"
     report_segments = []
     for i, (arg, numpy_arg) in enumerate(zip(args, args_copy)):
@@ -380,7 +380,7 @@ class FrozenStencil(SDFGConvertible):
 
         if stencil_config.compilation_config.run_mode == RunMode.Build:
 
-            def nothing_function(*args, **kwargs):
+            def nothing_function(*args, **kwargs):  # type: ignore[no-untyped-def]
                 pass
 
             setattr(self, "__call__", nothing_function)
@@ -511,7 +511,7 @@ class FrozenStencil(SDFGConvertible):
         skip_steps = [step_map[pass_name] for pass_name in skip_passes]
         return DefaultPipeline(skip=skip_steps)
 
-    def __sdfg__(self, *args, **kwargs):
+    def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Implemented SDFG generation"""
         args_as_kwargs = dict(zip(self._argument_names, args))
         return self.stencil_object.__sdfg__(
@@ -521,22 +521,22 @@ class FrozenStencil(SDFGConvertible):
             **kwargs,
         )
 
-    def __sdfg_signature__(self):
+    def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
         """Implemented SDFG signature lookup"""
         return self.stencil_object.__sdfg_signature__()
 
-    def __sdfg_closure__(self, *args, **kwargs):
+    def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Implemented SDFG closure build"""
         return self.stencil_object.__sdfg_closure__(*args, **kwargs)
 
-    def closure_resolver(self, constant_args, given_args, parent_closure=None):
+    def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
         """Implemented SDFG closure resolver build"""
         return self.stencil_object.closure_resolver(
             constant_args, given_args, parent_closure=parent_closure
         )
 
 
-def _convert_quantities_to_storage(args, kwargs):
+def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def]
     for i, arg in enumerate(args):
         try:
             # Check that 'dims' is an attribute of arg. If so,
@@ -594,11 +594,11 @@ class GridIndexing:
         self.east_edge = east_edge
 
     @property
-    def domain(self):
+    def domain(self) -> Index3D:
         return self._domain
 
     @domain.setter
-    def domain(self, domain):
+    def domain(self, domain: Index3D) -> None:
         self._domain = domain
         self._sizer = SubtileGridSizer(
             nx=domain[0],
@@ -632,7 +632,7 @@ class GridIndexing:
         )
 
     @property
-    def max_shape(self):
+    def max_shape(self) -> Index3D:
         """
         Maximum required storage shape, corresponding to the shape of a cell-corner
         variable with maximum halo points.
@@ -645,59 +645,59 @@ class GridIndexing:
         return self.domain_full(add=(1, 1, 1 + self.origin[2]))
 
     @property
-    def isc(self):
+    def isc(self) -> int:
         """Start of the compute domain along the x-axis"""
         return self.origin[0]
 
     @property
-    def iec(self):
+    def iec(self) -> int:
         """Last index of the compute domain along the x-axis"""
         return self.origin[0] + self.domain[0] - 1
 
     @property
-    def jsc(self):
+    def jsc(self) -> int:
         """Start of the compute domain along the y-axis"""
         return self.origin[1]
 
     @property
-    def jec(self):
+    def jec(self) -> int:
         """Last index of the compute domain along the y-axis"""
         return self.origin[1] + self.domain[1] - 1
 
     @property
-    def isd(self):
+    def isd(self) -> int:
         """Start of the full domain including halos along the x-axis"""
         return self.origin[0] - self.n_halo
 
     @property
-    def ied(self):
+    def ied(self) -> int:
         """Index of the last data point along the x-axis"""
         return self.isd + self.domain[0] + 2 * self.n_halo - 1
 
     @property
-    def jsd(self):
+    def jsd(self) -> int:
         """Start of the full domain including halos along the y-axis"""
         return self.origin[1] - self.n_halo
 
     @property
-    def jed(self):
+    def jed(self) -> int:
         """Index of the last data point along the y-axis"""
         return self.jsd + self.domain[1] + 2 * self.n_halo - 1
 
     @property
-    def nw_corner(self):
+    def nw_corner(self) -> bool:
         return self.north_edge and self.west_edge
 
     @property
-    def sw_corner(self):
+    def sw_corner(self) -> bool:
         return self.south_edge and self.west_edge
 
     @property
-    def ne_corner(self):
+    def ne_corner(self) -> bool:
         return self.north_edge and self.east_edge
 
     @property
-    def se_corner(self):
+    def se_corner(self) -> bool:
         return self.south_edge and self.east_edge
 
     def origin_full(self, add: Index3D = (0, 0, 0)) -> Index3D:
@@ -918,7 +918,7 @@ class StencilFactory:
         self.comm = comm
 
     @property
-    def backend(self):
+    def backend(self) -> str:
         return self.config.compilation_config.backend
 
     def from_origin_domain(

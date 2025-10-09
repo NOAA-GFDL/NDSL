@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import enum
 import hashlib
@@ -208,10 +210,10 @@ class StencilConfig(Hashable):
         self._hash = self._compute_hash()
 
     @property
-    def backend(self):
+    def backend(self) -> str:
         return self.compilation_config.backend
 
-    def _compute_hash(self):
+    def _compute_hash(self) -> int:
         md5 = hashlib.md5()
         md5.update(self.compilation_config.backend.encode())
         for attr in (
@@ -222,16 +224,16 @@ class StencilConfig(Hashable):
             self.backend_opts["format_source"],
         ):
             md5.update(bytes(attr))
-        attr = self.backend_opts.get("device_sync", None)
+        attr = self.backend_opts.get("device_sync", False)
         if attr:
             md5.update(bytes(attr))
         md5.update(bytes(self.compilation_config.run_mode.value))
         return int(md5.hexdigest(), base=16)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self._hash
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         try:
             return self.__hash__() == other.__hash__()
         except AttributeError:

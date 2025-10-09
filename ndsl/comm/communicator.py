@@ -92,7 +92,7 @@ class Communicator(abc.ABC):
         return module
 
     @staticmethod
-    def _device_synchronize():
+    def _device_synchronize() -> None:
         """Wait for all work that could be in-flight to finish."""
         # this is a method so we can profile it separately from other device syncs
         device_synchronize()
@@ -148,12 +148,12 @@ class Communicator(abc.ABC):
         device_synchronize()
         self.comm.Allreduce_inplace(quantity.data, op)
 
-    def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
+    def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):  # type: ignore[no-untyped-def]
         with send_buffer(numpy_module.zeros, sendbuf) as send:
             with recv_buffer(numpy_module.zeros, recvbuf) as recv:
                 self.comm.Scatter(send, recv, **kwargs)
 
-    def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):
+    def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):  # type: ignore[no-untyped-def]
         with send_buffer(numpy_module.zeros, sendbuf) as send:
             with recv_buffer(numpy_module.zeros, recvbuf) as recv:
                 self.comm.Gather(send, recv, **kwargs)
@@ -176,9 +176,11 @@ class Communicator(abc.ABC):
             raise TypeError("send_quantity is a required argument on the root rank")
         if self.rank == constants.ROOT_RANK:
             send_quantity = cast(Quantity, send_quantity)
-            metadata = self.comm.bcast(send_quantity.metadata, root=constants.ROOT_RANK)
+            metadata: QuantityMetadata = self.comm.bcast(
+                send_quantity.metadata, root=constants.ROOT_RANK
+            )  # type: ignore[assignment]
         else:
-            metadata = self.comm.bcast(None, root=constants.ROOT_RANK)
+            metadata = self.comm.bcast(None, root=constants.ROOT_RANK)  # type: ignore[assignment]
         shape = self.partitioner.subtile_extent(metadata, self.rank)
         if recv_quantity is None:
             recv_quantity = self._get_scatter_recv_quantity(shape, metadata)
@@ -297,7 +299,7 @@ class Communicator(abc.ABC):
             result = None
         return result
 
-    def gather_state(self, send_state=None, recv_state=None, transfer_type=None):
+    def gather_state(self, send_state=None, recv_state=None, transfer_type=None):  # type: ignore[no-untyped-def]
         """Transfer a state dictionary from subtile ranks to the tile root rank.
 
         'time' is assumed to be the same on all ranks, and its value will be set
@@ -335,7 +337,7 @@ class Communicator(abc.ABC):
                 del gather_quantity
         return recv_state
 
-    def scatter_state(self, send_state=None, recv_state=None):
+    def scatter_state(self, send_state=None, recv_state=None):  # type: ignore[no-untyped-def]
         """Transfer a state dictionary from the tile root rank to all subtiles.
 
         Args:
@@ -347,13 +349,13 @@ class Communicator(abc.ABC):
             rank_state: the state corresponding to this rank's subdomain
         """
 
-        def scatter_root():
+        def scatter_root() -> None:
             if send_state is None:
                 raise TypeError("send_state is a required argument on the root rank")
             name_list = list(send_state.keys())
             while "time" in name_list:
                 name_list.remove("time")
-            name_list = self.comm.bcast(name_list, root=constants.ROOT_RANK)
+            name_list = self.comm.bcast(name_list, root=constants.ROOT_RANK)  # type: ignore[assignment]
             array_list = [send_state[name] for name in name_list]
             for name, array in zip(name_list, array_list):
                 if name in recv_state:
@@ -364,9 +366,9 @@ class Communicator(abc.ABC):
                 send_state.get("time", None), root=constants.ROOT_RANK
             )
 
-        def scatter_client():
+        def scatter_client() -> None:
             name_list = self.comm.bcast(None, root=constants.ROOT_RANK)
-            for name in name_list:
+            for name in name_list:  # type: ignore
                 if name in recv_state:
                     self.scatter(recv_quantity=recv_state[name])
                 else:
@@ -626,7 +628,7 @@ class Communicator(abc.ABC):
         return self._boundaries
 
 
-def bcast_metadata_list(comm, quantity_list):
+def bcast_metadata_list(comm: CommABC, quantity_list: list[Quantity]):  # type: ignore[no-untyped-def]
     is_root = comm.Get_rank() == constants.ROOT_RANK
     if is_root:
         metadata_list = []
@@ -637,7 +639,7 @@ def bcast_metadata_list(comm, quantity_list):
     return comm.bcast(metadata_list, root=constants.ROOT_RANK)
 
 
-def bcast_metadata(comm, array):
+def bcast_metadata(comm: CommABC, array: Quantity):  # type: ignore[no-untyped-def]
     return bcast_metadata_list(comm, [array])[0]
 
 
@@ -676,7 +678,7 @@ class TileCommunicator(Communicator):
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
 
     @property
-    def tile(self):
+    def tile(self) -> TileCommunicator:
         return self
 
     def start_halo_update(
@@ -815,7 +817,7 @@ class CubedSphereCommunicator(Communicator):
             self._initialize_tile_communicator()
         return cast(TileCommunicator, self._tile_communicator)
 
-    def _initialize_tile_communicator(self):
+    def _initialize_tile_communicator(self) -> None:
         tile_comm = self.comm.Split(
             color=self.partitioner.tile_index(self.rank), key=self.rank
         )

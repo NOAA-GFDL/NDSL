@@ -347,13 +347,13 @@ class _LazyComputepathFunction(SDFGConvertible):
                    that will be compiled but not regenerated.
     """
 
-    def __init__(self, func: Callable, config: DaceConfig):
+    def __init__(self, func: Callable, config: DaceConfig) -> None:
         self.func = func
         self.config = config
         self.daceprog: DaceProgram = dace_program(self.func)
         self._sdfg = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         assert self.config.is_dace_orchestrated()
         sdfg = _parse_sdfg(
             self.daceprog,
@@ -370,23 +370,23 @@ class _LazyComputepathFunction(SDFGConvertible):
         )
 
     @property
-    def global_vars(self):
+    def global_vars(self):  # type: ignore[no-untyped-def]
         return self.daceprog.global_vars
 
     @global_vars.setter
-    def global_vars(self, value):
+    def global_vars(self, value):  # type: ignore[no-untyped-def]
         self.daceprog.global_vars = value
 
-    def __sdfg__(self, *args, **kwargs):
+    def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return _parse_sdfg(self.daceprog, self.config, *args, **kwargs)
 
-    def __sdfg_closure__(self, *args, **kwargs):
+    def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return self.daceprog.__sdfg_closure__(*args, **kwargs)
 
-    def __sdfg_signature__(self):
+    def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
         return self.daceprog.argnames, self.daceprog.constant_args
 
-    def closure_resolver(self, constant_args, given_args, parent_closure=None):
+    def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
         return self.daceprog.closure_resolver(constant_args, given_args, parent_closure)
 
 
@@ -413,14 +413,14 @@ class _LazyComputepathMethod:
             self.daceprog: DaceProgram = methodwrapper.__get__(obj_to_bind)
 
         @property
-        def global_vars(self):
+        def global_vars(self):  # type: ignore[no-untyped-def]
             return self.daceprog.global_vars
 
         @global_vars.setter
-        def global_vars(self, value):
+        def global_vars(self, value):  # type: ignore[no-untyped-def]
             self.daceprog.global_vars = value
 
-        def __call__(self, *args, **kwargs):
+        def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             assert self.lazy_method.config.is_dace_orchestrated()
             sdfg = _parse_sdfg(
                 self.daceprog,
@@ -436,16 +436,16 @@ class _LazyComputepathMethod:
                 kwargs,
             )
 
-        def __sdfg__(self, *args, **kwargs):
+        def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             return _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
 
-        def __sdfg_closure__(self, reevaluate=None):
+        def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
             return self.daceprog.__sdfg_closure__(reevaluate)
 
-        def __sdfg_signature__(self):
+        def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
             return self.daceprog.argnames, self.daceprog.constant_args
 
-        def closure_resolver(self, constant_args, given_args, parent_closure=None):
+        def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
             return self.daceprog.closure_resolver(
                 constant_args, given_args, parent_closure
             )
@@ -531,19 +531,19 @@ def orchestrate(
             __qualname__ = f"{type(obj).__qualname__}_patched"
             __name__ = f"{type(obj).__name__}_patched"
 
-            def __call__(self, *arg, **kwarg):
+            def __call__(self, *arg, **kwarg):  # type: ignore[no-untyped-def]
                 return wrapped(*arg, **kwarg)
 
-            def __sdfg__(self, *args, **kwargs):
+            def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
                 return wrapped.__sdfg__(*args, **kwargs)
 
-            def __sdfg_closure__(self, reevaluate=None):
+            def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
                 return wrapped.__sdfg_closure__(reevaluate)
 
-            def __sdfg_signature__(self):
+            def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
                 return wrapped.__sdfg_signature__()
 
-            def closure_resolver(self, constant_args, given_args, parent_closure=None):
+            def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
                 return wrapped.closure_resolver(
                     constant_args, given_args, parent_closure
                 )
@@ -575,8 +575,8 @@ def orchestrate_function(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    def _decorator(func: Callable[..., Any]):  # type: ignore
-        def _wrapper(*args, **kwargs):
+    def _decorator(func: Callable[..., Any]):  # type: ignore[no-untyped-def]
+        def _wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
             for argument in dace_compiletime_args:
                 func.__annotations__[argument] = DaceCompiletime
             return _LazyComputepathFunction(func, config)

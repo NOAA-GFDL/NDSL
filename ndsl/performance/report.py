@@ -33,7 +33,7 @@ class Report:
     sim_status: str = "Finished"
     SYPD: float = 0.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.SYPD = get_sypd(self.times, self.dt_atmos)
 
 
