@@ -52,7 +52,7 @@ class LocalComm(Comm[T]):
     def Get_size(self) -> int:
         return self.total_ranks
 
-    def _get_buffer(self, buffer_type: str, in_value: T) -> T:
+    def _get_buffer(self, buffer_type: str, in_value: T | None) -> T:
         i_buffer = self._i_buffer.get(buffer_type, 0)
         self._i_buffer[buffer_type] = i_buffer + 1
         if buffer_type not in self._buffer:
@@ -105,7 +105,6 @@ class LocalComm(Comm[T]):
                 "LocalComm assumes ranks are called in order, so root must be "
                 "the bcast source"
             )
-        assert value is not None
         value = self._get_buffer("bcast", value)
         ndsl_log.debug(f"bcast {value} to rank {self.rank}")
         return value
@@ -127,7 +126,7 @@ class LocalComm(Comm[T]):
         if sendbuf is not None:
             sendbuf = self._get_buffer("scatter", copy.deepcopy(sendbuf))
         else:
-            sendbuf = self._get_buffer("scatter", None)  # type: ignore[arg-type]
+            sendbuf = self._get_buffer("scatter", None)
         safe_assign_array(recvbuf, sendbuf[self.rank])
 
     def Gather(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
