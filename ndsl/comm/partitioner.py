@@ -61,6 +61,16 @@ class Partitioner(abc.ABC):
     tile: TilePartitioner
     layout: tuple[int, int]
 
+    def __init__(
+        self, tile: TilePartitioner, layout: tuple[int, int] | list[int]
+    ) -> None:
+        self.tile = tile
+        if len(layout) != 2:
+            raise ValueError(
+                f"Expected layout to be a tuple/list of two integers. Got {layout} instead."
+            )
+        self.layout = tuple(layout)  # type: ignore[assignment]
+
     @abc.abstractmethod
     def boundary(
         self, boundary_type: int, rank: int
@@ -136,13 +146,12 @@ class Partitioner(abc.ABC):
 class TilePartitioner(Partitioner):
     def __init__(
         self,
-        layout: tuple[int, int],
+        layout: tuple[int, int] | list[int],
         edge_interior_ratio: float = 1.0,
     ):
         """Create an object for fv3gfs tile decomposition."""
-        self.layout = layout
         self.edge_interior_ratio = edge_interior_ratio
-        self.tile = self
+        super().__init__(self, layout)
 
     def tile_index(self, rank: int) -> int:
         return 0
@@ -381,8 +390,7 @@ class CubedSpherePartitioner(Partitioner):
         """
         if not isinstance(tile, TilePartitioner):
             raise TypeError("tile must be a TilePartitioner")
-        self.tile = tile
-        self.layout = tile.layout
+        super().__init__(tile, tile.layout)
 
     @classmethod
     def from_namelist(cls, namelist: f90nml.Namelist) -> Self:
