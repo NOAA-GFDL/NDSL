@@ -1,4 +1,5 @@
 from . import dsl  # isort:skip
+from .initialization.allocator import QuantityFactory  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
@@ -20,7 +21,6 @@ from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from .exceptions import OutOfBoundsError
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
-from .initialization.allocator import QuantityFactory
 from .initialization.sizer import GridSizer, SubtileGridSizer
 from .logging import ndsl_log
 from .monitor.netcdf_monitor import NetCDFMonitor
