@@ -1,11 +1,11 @@
 import functools
-from typing import Iterable, TypeVar
+from typing import Iterable, TypeAlias
 
 import numpy as np
 from typing_extensions import Protocol
 
 
-Array = TypeVar("Array")
+Number: TypeAlias = int | float | np.int32 | np.int64 | np.float32 | np.float64
 
 
 class Allocator(Protocol):
@@ -14,7 +14,6 @@ class Allocator(Protocol):
 
 
 class NumpyModule(Protocol):
-
     empty: Allocator
     zeros: Allocator
     ones: Allocator
