@@ -157,7 +157,7 @@ def test_sequential_savepoint(
     xy_indices=True,
 ):
     if case.testobj is None:
-        pytest.xfail(
+        raise ValueError(
             f"No translate object available for savepoint {case.savepoint_name}."
         )
     stencil_config = StencilConfig(
@@ -366,8 +366,8 @@ def test_parallel_savepoint(
         )
         communicator = get_communicator(mpi_comm, layout)
     if case.testobj is None:
-        pytest.xfail(
-            f"no translate object available for savepoint {case.savepoint_name}"
+        raise ValueError(
+            f"No translate object available for savepoint {case.savepoint_name}"
         )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(backend=backend),
