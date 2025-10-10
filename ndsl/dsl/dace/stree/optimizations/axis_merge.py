@@ -405,10 +405,12 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
             Then exit.
         """
 
-        # ndsl_log.debug(f"🧹 Normalizing {self.axis} loop symbol")
+        # TODO: many interval generate many iterator name right now
+        #    e.g. _k_0, _k_1...
+        # This makes merging more difficult. We could write a pre-pass
+        # that cleans this up BUT we have an issue with the THIS_K feature
+        # in the tasklet...
         # NormalizeAxisSymbol(self.axis).visit(node)
-        # with open("stree-IN-sanitized.txt", "w") as f:
-        #     f.write(node.as_string(-1))
 
         overall_merged = 0
         i = 0
@@ -422,7 +424,6 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
                 if __debug__:
                     detect_cycle(node.children, set())
             except RecursionError as re:
-                breakpoint()
                 raise re
 
             # If we didn't merge, we revert the children

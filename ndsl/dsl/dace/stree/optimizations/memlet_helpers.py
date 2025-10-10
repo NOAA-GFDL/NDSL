@@ -3,6 +3,8 @@ from enum import Enum
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
 from dace.memlet import Memlet
 
+from ndsl import ndsl_log
+
 
 class AxisIterator(Enum):
     _I = ("__i", 0)
@@ -22,7 +24,7 @@ def no_data_dependencies_on_cartesian_axis(
     axis: AxisIterator,
 ) -> bool:
     """Check for read after write. Allow when indexation on the axis
-    is not offseted."""
+    is not offset."""
 
     write_collector = MemletCollector(collect_reads=False)
     write_collector.visit(first)
@@ -39,7 +41,7 @@ def no_data_dependencies_on_cartesian_axis(
         for read in read_collector.in_memlets:
             if write.data == read.data:
                 if previous_axis_index != read.subset[axis.as_cartesian_index()][0]:
-                    print(
+                    ndsl_log.debug(
                         f"[{axis.name} Merge] Found read after write conflict "
                         f"for {write.data} "
                         f"w/ different offset to {axis.name} ("
