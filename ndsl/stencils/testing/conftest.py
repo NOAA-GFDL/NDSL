@@ -269,7 +269,7 @@ def sequential_savepoint_cases(
     no_report = metafunc.config.getoption("no_report")
 
     # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
-    no_legacy_namelist = metafunc.config.getoption("no_legacy_namelist")
+    use_legacy_namelist = not metafunc.config.getoption("no_legacy_namelist")
 
     return _savepoint_cases(
         savepoint_names,
@@ -283,7 +283,7 @@ def sequential_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        no_legacy_namelist=no_legacy_namelist,  # Issue#64: tmp flag
+        use_legacy_namelist=use_legacy_namelist,  # Issue#64: tmp flag
     )
 
 
@@ -299,7 +299,7 @@ def _savepoint_cases(
     topology_mode: str,
     sort_report: str,
     no_report: bool,
-    no_legacy_namelist: bool,  # Issue#64: tmp flag
+    use_legacy_namelist: bool,  # Issue#64: tmp flag
 ) -> list[SavepointCase]:
     grid_params = grid_params_from_f90nml(namelist)
     return_list = []
@@ -337,9 +337,9 @@ def _savepoint_cases(
         for test_name in sorted(list(savepoint_names)):
             # Temporary check (Issue#64): TODO Remove check and conversion from
             # f90nml.Namelist to ndsl.Namelist after ndsl.Namelist is removed
-            if not no_legacy_namelist:  # This means we use NdslNamelist.
-                if not isinstance(namelist, NdslNamelist):
-                    namelist = NdslNamelist.from_f90nml(namelist)
+            if use_legacy_namelist and not isinstance(namelist, NdslNamelist):
+                assert isinstance(namelist, Namelist)
+                namelist = NdslNamelist.from_f90nml(namelist)
 
             testobj = get_test_class_instance(
                 test_name, grid, namelist, stencil_factory
@@ -403,7 +403,7 @@ def parallel_savepoint_cases(
     savepoint_to_replay = get_savepoint_restriction(metafunc)
 
     # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
-    no_legacy_namelist = metafunc.config.getoption("no_legacy_namelist")
+    use_legacy_namelist = not metafunc.config.getoption("no_legacy_namelist")
 
     return _savepoint_cases(
         savepoint_names,
@@ -417,7 +417,7 @@ def parallel_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        no_legacy_namelist=no_legacy_namelist,  # Issue#64: tmp flag
+        use_legacy_namelist=use_legacy_namelist,  # Issue#64: tmp flag
     )
 
 
