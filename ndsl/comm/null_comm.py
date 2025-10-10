@@ -44,7 +44,7 @@ class NullComm(Comm[T]):
     def Get_size(self) -> int:
         return self.total_ranks
 
-    def bcast(self, value: T | None, _root: int = 0) -> T | None:
+    def bcast(self, value: T | None, root: int = 0) -> T | None:
         return value
 
     def barrier(self) -> None:
