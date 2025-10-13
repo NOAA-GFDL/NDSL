@@ -103,7 +103,7 @@ def get_sdfg_path(
                 f"cannot be run with current resolution {config.tile_resolution}"
             )
 
-    print(f"[DaCe Config] Rank {config.my_rank} loading SDFG {sdfg_dir_path}")
+    ndsl_log.debug(f"[DaCe Config] Rank {config.my_rank} loading SDFG {sdfg_dir_path}")
 
     return sdfg_dir_path
 

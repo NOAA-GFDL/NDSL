@@ -21,8 +21,7 @@ from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from .exceptions import OutOfBoundsError
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
-from .initialization.allocator import QuantityFactory
-from .initialization.sizer import GridSizer, SubtileGridSizer
+from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
 from .monitor.netcdf_monitor import NetCDFMonitor
 from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector

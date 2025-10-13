@@ -1,5 +1,5 @@
 import dataclasses
-import os
+from pathlib import Path
 from typing import Dict, Protocol, Union
 
 import numpy as np
@@ -22,7 +22,7 @@ def _process_if_scalar(value: np.ndarray) -> Union[np.ndarray, float, int]:
 
 
 class DataLoader:
-    def __init__(self, rank: int, data_path: str):
+    def __init__(self, rank: int, data_path: Path):
         self._data_path = data_path
         self._rank = rank
 
@@ -33,7 +33,7 @@ class DataLoader:
         i_call: int = 0,
     ) -> Dict[str, Union[np.ndarray, float, int]]:
         return dataset_to_dict(
-            xr.open_dataset(os.path.join(self._data_path, f"{name}{postfix}.nc"))
+            xr.open_dataset(self._data_path / f"{name}{postfix}.nc")
             .isel(rank=self._rank)
             .isel(savepoint=i_call)
         )
@@ -54,7 +54,7 @@ class SavepointCase:
     """
 
     savepoint_name: str
-    data_dir: str
+    data_dir: Path
     i_call: int
     testobj: Translate
     grid: Grid
@@ -67,16 +67,16 @@ class SavepointCase:
     @property
     def exists(self) -> bool:
         return (
-            xr.open_dataset(
-                os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc")
-            ).sizes["rank"]
+            xr.open_dataset(self.data_dir / f"{self.savepoint_name}-In.nc").sizes[
+                "rank"
+            ]
             > self.grid.rank
         )
 
     @property
     def ds_in(self) -> xr.Dataset:
         return (
-            xr.open_dataset(os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc"))
+            xr.open_dataset(self.data_dir / f"{self.savepoint_name}-In.nc")
             .isel(rank=self.grid.rank)
             .isel(savepoint=self.i_call)
         )
@@ -84,9 +84,7 @@ class SavepointCase:
     @property
     def ds_out(self) -> xr.Dataset:
         return (
-            xr.open_dataset(
-                os.path.join(self.data_dir, f"{self.savepoint_name}-Out.nc")
-            )
+            xr.open_dataset(self.data_dir / f"{self.savepoint_name}-Out.nc")
             .isel(rank=self.grid.rank)
             .isel(savepoint=self.i_call)
         )

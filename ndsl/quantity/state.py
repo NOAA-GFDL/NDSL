@@ -9,6 +9,8 @@ import xarray as xr
 from mpi4py import MPI
 from numpy.typing import ArrayLike
 
+from ndsl.types import Number
+
 
 if TYPE_CHECKING:
     from ndsl import QuantityFactory
@@ -66,34 +68,129 @@ class State:
         dict_of_quantities = _init_recursive(cls)
         return dacite.from_dict(data_class=cls, data=dict_of_quantities)
 
+    class _FactorySwapDimensionsDefinitions:
+        """INTERNAL: QuantityFactory carry a sizer which has a full definition of the dimensions.
+        It's this sizer that is leveraged for the factory to figure out allocations.
+        In a regular pattern of use, data dimensions fields tend to be _the exception_ rather
+        than the rule and therefor would need a Factory defined _for a few cases_.
+        We bring this tool to override temporarly the allocations based on a single descriptions of
+        the data dimenions at allocation time.
+        """
+
+        def __init__(self, factory: QuantityFactory, ddims: dict[str, int]):
+            self._ddims = ddims
+            self._factory = factory
+
+        def __enter__(self):
+            self._original_dims = self._factory.sizer.extra_dim_lengths
+            self._factory.sizer.extra_dim_lengths = self._ddims
+
+        def __exit__(self, type, value, traceback):
+            self._factory.sizer.extra_dim_lengths = self._original_dims
+
     @classmethod
-    def empty(cls, quantity_factory: QuantityFactory) -> Self:
-        """Allocate all quantities"""
+    def empty(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] = {},
+    ) -> Self:
+        """Allocate all quantities. Do not expect 0 on values, values are random.
 
-        return cls._init(quantity_factory.empty)
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+
+        with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.empty)
+        return state
 
     @classmethod
-    def zeros(cls, quantity_factory: QuantityFactory) -> Self:
-        """Allocate all quantities and fill their value to zeros"""
+    def zeros(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] = {},
+    ) -> Self:
+        """Allocate all quantities and fill their value to zeros
 
-        return cls._init(quantity_factory.zeros)
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+
+        with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.zeros)
+        return state
 
     @classmethod
-    def ones(cls, quantity_factory: QuantityFactory) -> Self:
-        """Allocate all quantities and fill their value to ones"""
+    def ones(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] = {},
+    ) -> Self:
+        """Allocate all quantities and fill their value to ones
 
-        return cls._init(quantity_factory.ones)
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+
+        with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.ones)
+        return state
+
+    @classmethod
+    def full(
+        cls,
+        quantity_factory: QuantityFactory,
+        value: Number,
+        *,
+        data_dimensions: dict[str, int] = {},
+    ) -> Self:
+        """Allocate all quantities and fill them with the input value
+
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            value: number to initialize the buffers with.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+
+        with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.empty)
+        state.fill(value)
+        return state
 
     @classmethod
     def copy_memory(
         cls,
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
+        *,
+        data_dimensions: dict[str, int] = {},
     ) -> Self:
         """Allocate all quantities and fill their value based
-        on the given memory map. See `update_from_memory`"""
+        on the given memory map. See `update_from_memory`.
 
-        state = cls.zeros(quantity_factory)
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            memory_map: Dict of name/buffer. See `update_from_memory`.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+
+        state = cls.zeros(quantity_factory, data_dimensions=data_dimensions)
         state.update_copy_memory(memory_map)
 
         return state
@@ -104,18 +201,42 @@ class State:
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
         *,
+        data_dimensions: dict[str, int] = {},
         check_shape_and_strides: bool = True,
     ) -> Self:
         """Allocate all quantities and move memory based on
-        on the given memory map. See `update_move_memory`."""
+        on the given memory map. See `update_move_memory`.
 
-        state = cls.zeros(quantity_factory)
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            memory_map: Dict of name/buffer. See `update_from_memory`.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+            check_shape_and_strides: Check for evey given buffer that the shape & strides match the
+                previously allocated memory.
+        """
+
+        state = cls.zeros(quantity_factory, data_dimensions=data_dimensions)
         state.update_move_memory(
             memory_map,
             check_shape_and_strides=check_shape_and_strides,
         )
 
         return state
+
+    def fill(self, value: Number) -> None:
+        def _fill_recursive(
+            state: State,
+            value: Number,
+        ) -> None:
+            for _field in dataclasses.fields(state):
+                if dataclasses.is_dataclass(_field.type):
+                    _fill_recursive(state.__getattribute__(_field.name), value)
+                else:
+                    state.__getattribute__(_field.name).field[:] = value
+
+        _fill_recursive(self, value)
 
     def update_copy_memory(self, memory_map: dict[str, Any]) -> None:
         """Copy data into the Quantities carried by the state.

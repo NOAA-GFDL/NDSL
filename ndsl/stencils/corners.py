@@ -1,8 +1,10 @@
+import warnings
 from typing import Optional, Sequence, Tuple
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
+from ndsl import StencilFactory
 from ndsl.constants import (
     X_DIM,
     X_INTERFACE_DIM,
@@ -10,7 +12,7 @@ from ndsl.constants import (
     Y_INTERFACE_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
+from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
 
@@ -22,6 +24,13 @@ class CopyCorners:
 
     def __init__(self, direction: str, stencil_factory: StencilFactory) -> None:
         """The grid for this stencil"""
+        warnings.warn(
+            "Usage of the GT4Py implementation of CopyCorners is discouraged and will"
+            "be removed in the next release. Use `CopyCornersX` or `CopyCornersY` in PyFV3"
+            "for a more future-proof implementation of the same code.",
+            DeprecationWarning,
+            2,
+        )
         grid_indexing = stencil_factory.grid_indexing
 
         n_halo = grid_indexing.n_halo

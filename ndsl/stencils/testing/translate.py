@@ -60,7 +60,13 @@ class TranslateFortranData2Py:
     mmr_relative_fraction = -1
     mmr_ulp = -1
 
-    def __init__(self, grid, stencil_factory: StencilFactory, origin=utils.origin):
+    def __init__(
+        self,
+        grid,
+        stencil_factory: StencilFactory,
+        origin=utils.origin,
+        skip_test: bool = False,
+    ):
         self.origin = origin
         self.stencil_factory = stencil_factory
         self.in_vars: Dict[str, Any] = {"data_vars": {}, "parameters": []}
@@ -70,7 +76,7 @@ class TranslateFortranData2Py:
         self.maxshape: Tuple[int, ...] = grid.domain_shape_full(add=(1, 1, 1))
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: Dict[str, Any] = {}
-        self.skip_test: bool = False
+        self.skip_test = skip_test
 
     def extra_data_load(self, data_loader: DataLoader):
         pass
