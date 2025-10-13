@@ -117,7 +117,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        value,  # no type hint because it would be a TypeVar = Type[dtype] and mypy says no
+        value: Any,  # no type hint because it would be a TypeVar = Type[dtype] and mypy says no
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:

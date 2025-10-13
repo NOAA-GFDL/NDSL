@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, Self, TypeAlias
 
 import dacite
@@ -72,20 +73,25 @@ class State:
         """INTERNAL: QuantityFactory carry a sizer which has a full definition of the dimensions.
         It's this sizer that is leveraged for the factory to figure out allocations.
         In a regular pattern of use, data dimensions fields tend to be _the exception_ rather
-        than the rule and therefor would need a Factory defined _for a few cases_.
-        We bring this tool to override temporarly the allocations based on a single descriptions of
-        the data dimenions at allocation time.
+        than the rule and therefore would need a Factory defined _for a few cases_.
+        We bring this tool to override temporarily the allocations based on a single descriptions of
+        the data dimensions at allocation time.
         """
 
         def __init__(self, factory: QuantityFactory, ddims: dict[str, int]):
             self._ddims = ddims
             self._factory = factory
 
-        def __enter__(self):
+        def __enter__(self) -> None:
             self._original_dims = self._factory.sizer.extra_dim_lengths
             self._factory.sizer.extra_dim_lengths = self._ddims
 
-        def __exit__(self, type, value, traceback):
+        def __exit__(
+            self,
+            type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+        ) -> None:
             self._factory.sizer.extra_dim_lengths = self._original_dims
 
     @classmethod
@@ -213,7 +219,7 @@ class State:
             memory_map: Dict of name/buffer. See `update_from_memory`.
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
-            check_shape_and_strides: Check for evey given buffer that the shape & strides match the
+            check_shape_and_strides: Check for every given buffer that the shape & strides match the
                 previously allocated memory.
         """
 
