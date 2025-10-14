@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from gt4py.cartesian import config as gt_config
 from gt4py.storage import empty, ones
-from mpi4py import MPI
 
 from ndsl import (
     CompilationConfig,
@@ -16,6 +15,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
+from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 from ndsl.dsl.stencil import CompareToNumpyStencil, FrozenStencil

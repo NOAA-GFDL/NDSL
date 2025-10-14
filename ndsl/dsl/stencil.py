@@ -25,11 +25,11 @@ from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
-from mpi4py import MPI
 
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
+from ndsl.comm.mpi import MPI
 from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
