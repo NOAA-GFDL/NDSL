@@ -17,6 +17,7 @@ from typing import (
     Union,
     cast,
 )
+import warnings
 
 import dace
 import numpy as np
@@ -551,7 +552,13 @@ class FrozenStencil(SDFGConvertible):
 
         for name, argument in all_args_as_kwargs.items():
             if not isinstance(argument, Quantity):
-                continue
+                warnings.warn(
+                    "Absolute indexing in `K` is an experimental feature. Please read "
+                    "<https://github.com/GridTools/gt4py/blob/main/docs/development/ADRs/cartesian/experimental-features.md> "
+                    "to understand the consequences.",
+                    category=UserWarning,
+                    stacklevel=2,
+                )
 
             for axis, quantity_size in zip(argument.dims, argument.extent):
                 if quantity_size < domain_sizes[axis[0]]:
