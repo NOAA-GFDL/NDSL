@@ -18,6 +18,7 @@ from ndsl.dsl.stencil import _convert_quantities_to_storage
 from ndsl.dsl.typing import Float, FloatField
 
 
+# GT4Py direct import need to be down after any `ndsl`
 import gt4py.cartesian.gtscript  # isort: skip
 from gt4py.cartesian import definitions  # isort: skip
 
