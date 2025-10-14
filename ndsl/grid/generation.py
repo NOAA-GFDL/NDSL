@@ -53,8 +53,7 @@ from ndsl.grid.gnomonic import (
     set_tile_border_dyc,
 )
 from ndsl.grid.mirror import mirror_grid
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.initialization import QuantityFactory, SubtileGridSizer
 from ndsl.quantity import Quantity
 from ndsl.stencils.corners import (
     fill_corners_2d,

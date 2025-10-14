@@ -8,7 +8,7 @@ from gt4py import storage as gt_storage
 
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
-from ndsl.initialization.sizer import GridSizer
+from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 

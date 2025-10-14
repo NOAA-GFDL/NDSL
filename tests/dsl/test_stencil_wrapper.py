@@ -1,10 +1,8 @@
 import contextlib
 import unittest.mock
 
-import gt4py.cartesian.gtscript
 import numpy as np
 import pytest
-from gt4py.cartesian import definitions
 
 from ndsl import (
     CompilationConfig,
@@ -18,6 +16,11 @@ from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
 from ndsl.dsl.typing import Float, FloatField
+
+
+# GT4Py direct import need to be down after any `ndsl`
+import gt4py.cartesian.gtscript  # isort: skip
+from gt4py.cartesian import definitions  # isort: skip
 
 
 def get_stencil_config(

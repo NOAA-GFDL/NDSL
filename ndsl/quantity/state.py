@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any, Callable, Self, TypeAlias
 
 import dacite
 import xarray as xr
-from mpi4py import MPI
 from numpy.typing import ArrayLike
 
+from ndsl.comm.mpi import MPI
 from ndsl.types import Number
 
 
