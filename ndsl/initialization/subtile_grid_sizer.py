@@ -1,32 +1,9 @@
-import dataclasses
-from typing import Dict, Iterable, Sequence, Tuple
+from typing import Dict, Iterable, Tuple
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
 from ndsl.constants import N_HALO_DEFAULT
-
-
-@dataclasses.dataclass
-class GridSizer:
-    nx: int
-    """length of the x compute dimension for produced arrays"""
-    ny: int
-    """length of the y compute dimension for produced arrays"""
-    nz: int
-    """length of the z compute dimension for produced arrays"""
-    n_halo: int
-    """number of horizontal halo points for produced arrays"""
-    extra_dim_lengths: Dict[str, int]
-    """lengths of any non-x/y/z dimensions, such as land or radiation dimensions"""
-
-    def get_origin(self, dims: Sequence[str]) -> Tuple[int, ...]:
-        raise NotImplementedError()
-
-    def get_extent(self, dims: Sequence[str]) -> Tuple[int, ...]:
-        raise NotImplementedError()
-
-    def get_shape(self, dims: Sequence[str]) -> Tuple[int, ...]:
-        raise NotImplementedError()
+from ndsl.initialization.grid_sizer import GridSizer
 
 
 class SubtileGridSizer(GridSizer):

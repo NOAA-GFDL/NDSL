@@ -3,7 +3,8 @@ import os
 import sys
 from typing import Literal
 
-from ndsl.comm.mpi import MPI
+from mpi4py import MPI
+
 from ndsl.logging import ndsl_log
 
 

@@ -7,6 +7,7 @@ import pytest
 import xarray as xr
 import yaml
 from f90nml import Namelist
+from mpi4py import MPI
 
 from ndsl import CompilationConfig, StencilConfig, StencilFactory
 from ndsl.comm.communicator import (
@@ -14,7 +15,7 @@ from ndsl.comm.communicator import (
     CubedSphereCommunicator,
     TileCommunicator,
 )
-from ndsl.comm.mpi import MPI, MPIComm
+from ndsl.comm.mpi import MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 

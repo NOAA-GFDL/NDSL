@@ -19,8 +19,7 @@ from ndsl.grid.helper import (
     VerticalGridData,
 )
 from ndsl.halo.data_transformer import QuantityHaloSpec
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.initialization import QuantityFactory, SubtileGridSizer
 from ndsl.quantity import Quantity
 
 

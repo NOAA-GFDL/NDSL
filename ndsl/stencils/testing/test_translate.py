@@ -5,9 +5,10 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pytest
+from mpi4py import MPI
 
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
-from ndsl.comm.mpi import MPI, MPIComm
+from ndsl.comm.mpi import MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
