@@ -300,4 +300,3 @@ def test_raise_on_data_copy_option():
             gt4py_backend="dace:cpu",
             raise_on_data_copy=True,
         )
-

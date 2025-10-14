@@ -1,7 +1,6 @@
 from .metadata import QuantityHaloSpec, QuantityMetadata
 from .quantity import Quantity
 from .state import State
-from .tracer_bundle import TracerBundle
 from .tracer_bundle import Tracer, TracerBundle
 from .tracer_bundle_type import TracerBundleTypeRegistry
 
