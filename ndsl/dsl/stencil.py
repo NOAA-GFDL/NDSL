@@ -392,7 +392,7 @@ class FrozenStencil(SDFGConvertible):
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
 
-        self._validate_quantity_sizes(args, kwargs)
+        self._validate_quantity_sizes(*args, **kwargs)
 
         # Marshal arguments
         args_list = list(args)
@@ -547,25 +547,24 @@ class FrozenStencil(SDFGConvertible):
         Raises:
             ValueError: If the quantity's size is a mismatch to the domain.
         """
-        all_args_as_kwargs = dict(zip(self._argument_names, args)) | kwargs
+        all_args_as_kwargs = dict(zip(self._argument_names, tuple(list(args)))) | kwargs
+
         domain_sizes = dict(zip(("x", "y", "z"), self.domain))
 
         for name, argument in all_args_as_kwargs.items():
-            if not isinstance(argument, Quantity):
+            if isinstance(argument, Quantity):
+                for axis, quantity_size in zip(argument.dims, argument.extent):
+                    if quantity_size < domain_sizes[axis[0]]:
+                        raise ValueError(
+                            f"Quantity `{name}` is too small for the targeted "
+                            f"domain in axis {axis[0]}: {quantity_size} < {domain_sizes[axis[0]]}."
+                        )
+            elif not isinstance(argument, (int, float)):
                 warnings.warn(
-                    "Absolute indexing in `K` is an experimental feature. Please read "
-                    "<https://github.com/GridTools/gt4py/blob/main/docs/development/ADRs/cartesian/experimental-features.md> "
-                    "to understand the consequences.",
+                    "Found an array-type argument that is not a Quantity. Some domain-size checks omitted. ",
                     category=UserWarning,
                     stacklevel=2,
                 )
-
-            for axis, quantity_size in zip(argument.dims, argument.extent):
-                if quantity_size < domain_sizes[axis[0]]:
-                    raise ValueError(
-                        f"Quantity `{name}` is too small for the targeted "
-                        f"domain in axis {axis[0]}: {quantity_size} < {domain_sizes[axis[0]]}."
-                    )
 
 
 def _convert_quantities_to_storage(args, kwargs):
