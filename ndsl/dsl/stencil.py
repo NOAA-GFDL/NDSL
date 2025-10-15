@@ -151,13 +151,13 @@ class CompareToNumpyStencil:
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: Tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Optional[Tuple[str, ...]] = None,
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         self._actual = FrozenStencil(
             func=func,
@@ -174,7 +174,6 @@ class CompareToNumpyStencil:
             rebuild=stencil_config.compilation_config.rebuild,
             validate_args=stencil_config.compilation_config.validate_args,
             format_source=True,
-            device_sync=None,
             run_mode=RunMode.BuildAndRun,
             use_minimal_caching=False,
         )
@@ -257,13 +256,13 @@ class FrozenStencil(SDFGConvertible):
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
+        externals: Mapping[str, Any] | None = None,
         skip_passes: Tuple[str, ...] = (),
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         """
         Args:
@@ -279,7 +278,6 @@ class FrozenStencil(SDFGConvertible):
         """
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
-        origin = cast(Union[Index3D, Mapping[str, Tuple[int, ...]]], origin)
         self.origin = origin
         self.domain: Index3D = cast_to_index3d(domain)
         self.stencil_config: StencilConfig = stencil_config
@@ -298,7 +296,7 @@ class FrozenStencil(SDFGConvertible):
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object: StencilObject | None = None
+        self.stencil_object: StencilObject
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
@@ -353,7 +351,7 @@ class FrozenStencil(SDFGConvertible):
                 dtypes={float: Float},
                 **stencil_kwargs,
                 build_info=(build_info := {}),
-            )  # type: ignore
+            )
 
             if (
                 compilation_config.use_minimal_caching
@@ -425,7 +423,7 @@ class FrozenStencil(SDFGConvertible):
                 domain=self.domain,
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
-            )  # type: ignore
+            )
         else:
             self.stencil_object.run(
                 **args_as_kwargs,
@@ -502,9 +500,7 @@ class FrozenStencil(SDFGConvertible):
             field_name
             for field_name in field_info
             if field_info[field_name]
-            and bool(
-                field_info[field_name].access & gt_definitions.AccessKind.WRITE  # type: ignore
-            )
+            and bool(field_info[field_name].access & gt_definitions.AccessKind.WRITE)
         ]
         return write_fields
 

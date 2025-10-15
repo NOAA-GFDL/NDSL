@@ -28,7 +28,7 @@ class Quantity:
 
     def __init__(
         self,
-        data,
+        data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
         origin: Optional[Sequence[int]] = None,
@@ -83,10 +83,10 @@ class Quantity:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
-            dimensions: Tuple[Union[str, int], ...] = tuple(
+            dimensions: tuple[str | int, ...] = tuple(
                 [
                     (
-                        axis
+                        axis  # type: ignore # mypy can't parse this list construction of hell
                         if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
                         else str(data.shape[index])
                     )
@@ -131,9 +131,9 @@ class Quantity:
     def from_data_array(
         cls,
         data_array: xr.DataArray,
-        origin: Sequence[int] = None,
-        extent: Sequence[int] = None,
-        gt4py_backend: Union[str, None] = None,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
+        gt4py_backend: str | None = None,
     ) -> Quantity:
         """
         Initialize a Quantity from an xarray.DataArray.

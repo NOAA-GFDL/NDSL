@@ -81,7 +81,9 @@ class MPIComm(Comm):
     def Split(self, color, key) -> Comm:
         return self._comm.Split(color, key)
 
-    def allreduce(self, sendobj: T, op: Optional[ReductionOperator] = None) -> T:
+    def allreduce(
+        self, sendobj: T, op: ReductionOperator = ReductionOperator.NO_OP
+    ) -> T:
         return self._comm.allreduce(sendobj, self._op_mapping[op])
 
     def Allreduce(self, sendobj_or_inplace: T, recvobj: T, op: ReductionOperator) -> T:

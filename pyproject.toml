@@ -65,12 +65,12 @@ profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 [tool.mypy]
-explicit_package_bases = "true"
-follow_imports = "normal"
-ignore_missing_imports = "true"
-namespace_packages = "true"
-strict_optional = "false"
-warn_unreachable = "true"
+# TODO: let's attempt to remove this in the future
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
 
 [tool.setuptools]
 include-package-data = true

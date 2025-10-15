@@ -1,4 +1,4 @@
-from typing import Tuple, TypeAlias, Union, cast
+from typing import Tuple, TypeAlias, Union
 
 import numpy as np
 from gt4py.cartesian import gtscript
@@ -106,8 +106,8 @@ def set_4d_field_size(n, dtype):
 
 def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     if len(val) != 3:
-        raise ValueError(f"expected 3d index, received {val}")
-    return cast(Index3D, val)
+        raise ValueError(f"Expected 3d index, received {val}")
+    return val
 
 
 def is_float(dtype: type):

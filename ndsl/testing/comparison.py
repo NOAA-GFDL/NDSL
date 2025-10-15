@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Union
 
 import numpy as np
@@ -20,7 +21,7 @@ def _fixed_width_float_2e(value: np.floating[Any]) -> str:
         return f"{value:.2e}"
 
 
-class BaseMetric:
+class BaseMetric(ABC):
     def __init__(
         self,
         reference_values: np.ndarray,
@@ -30,12 +31,16 @@ class BaseMetric:
         self.computed = np.atleast_1d(computed_values)
         self.check = False
 
+    @abstractmethod
     def __str__(self) -> str: ...
 
+    @abstractmethod
     def __repr__(self) -> str: ...
 
+    @abstractmethod
     def report(self, file_path: Optional[str] = None) -> List[str]: ...
 
+    @abstractmethod
     def one_line_report(self) -> str: ...
 
 

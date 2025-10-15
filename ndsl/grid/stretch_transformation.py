@@ -102,4 +102,4 @@ def direct_transform(
         lon_out = lon_transformed
         lat_out = lat_transformed
 
-    return lon_out, lat_out  # type: ignore
+    return lon_out, lat_out

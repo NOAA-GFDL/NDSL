@@ -60,7 +60,11 @@ def _min_max_from_percentiles(x, min_percentile=2, max_percentile=98):
 
 
 def _infer_color_limits(
-    xmin: float, xmax: float, vmin: float = None, vmax: float = None, cmap: str = None
+    xmin: float,
+    xmax: float,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    cmap: str | None = None,
 ):
     """ "auto-magical" handling of color limits and colormap if not supplied by
     user
@@ -100,22 +104,24 @@ def _infer_color_limits(
         else:
             vmin, vmax = xmin, xmax
             cmap = "viridis" if not cmap else cmap
-    elif vmin is None:
+    elif vmin is None and vmax is not None:
         if xmin < 0 and vmax > 0:
             vmin = -vmax
             cmap = "RdBu_r" if not cmap else cmap
         else:
             vmin = xmin
             cmap = "viridis" if not cmap else cmap
-    elif vmax is None:
+    elif vmax is None and vmin is not None:
         if xmax > 0 and vmin < 0:
             vmax = -vmin
             cmap = "RdBu_r" if not cmap else cmap
         else:
             vmax = xmax
             cmap = "viridis" if not cmap else cmap
-    elif not cmap:
+    elif not cmap and vmin is not None and vmax is not None:
         cmap = "RdBu_r" if vmin == -vmax else "viridis"
+    else:
+        raise ValueError("Inconsistent arguments supplied.")
 
     return vmin, vmax, cmap
 

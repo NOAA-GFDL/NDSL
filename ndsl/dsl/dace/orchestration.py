@@ -225,7 +225,7 @@ def _build_sdfg(
                 raise ValueError("Couldn't load SDFG post build")
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
-            )  # type: ignore
+            )
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
 
@@ -553,7 +553,7 @@ def orchestrate(
 
 
 def orchestrate_function(
-    config: DaceConfig = None,
+    config: DaceConfig,
     dace_compiletime_args: Sequence[str] | None = None,
 ) -> Callable[..., Any] | _LazyComputepathFunction:
     """

@@ -613,7 +613,7 @@ class Namelist:
         namelist_dict = {
             key: value
             for key, value in namelist_dict.items()
-            if key in cls.__dataclass_fields__  # type: ignore
+            if key in cls.__dataclass_fields__
         }
         return cls(**namelist_dict)
 

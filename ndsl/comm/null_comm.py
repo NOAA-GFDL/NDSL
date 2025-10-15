@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
@@ -91,9 +91,12 @@ class NullComm(Comm):
         self._split_comms[color].append(new_comm)
         return new_comm
 
-    def allreduce(self, sendobj, op: Optional[ReductionOperator] = None) -> Any:
+    def allreduce(self, sendobj, op: ReductionOperator | None = None) -> Any:
         return self._fill_value
 
     def Allreduce(self, sendobj, recvobj, op: ReductionOperator) -> Any:
         recvobj = sendobj
         return recvobj
+
+    def Allreduce_inplace(self, obj: Any, op: ReductionOperator) -> Any:
+        raise NotImplementedError("NullComm.Allreduce_inplace")

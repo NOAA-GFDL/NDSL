@@ -16,7 +16,7 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         extra_dim_lengths: Dict[str, int],
         layout: Tuple[int, int],
-        tile_partitioner: TilePartitioner = None,
+        tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
     ):
         """Create a SubtileGridSizer from parameters about the full tile.
@@ -60,7 +60,7 @@ class SubtileGridSizer(GridSizer):
     def from_namelist(
         cls,
         namelist: dict,
-        tile_partitioner: TilePartitioner = None,
+        tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
     ):
         """Create a SubtileGridSizer from a Fortran namelist.
