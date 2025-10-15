@@ -23,22 +23,9 @@ from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 #    - dtype can be derived from registered type (via type_name)
 
 _TRACER_BUNDLE_TYPENAME = "TracerBundleTypeWorkflowTests"
-_TracerBundleType = TracerBundleTypeRegistry.register(_TRACER_BUNDLE_TYPENAME, 5)
-
-
-def copy_into_tracer(in_field: FloatField, out_field: FloatField):
-    with computation(PARALLEL), interval(...):
-        out_field = in_field
-
-
-def loop_over_tracers(
-    out_field: _TracerBundleType, n_tracers: int, fill_value: int = 42
-):
-    with computation(PARALLEL), interval(...):
-        n = 0
-        while n < n_tracers:
-            out_field[0, 0, 0][n] = fill_value
-            n = n + 1
+_TracerBundleStencilType, _TracerBundleDaCeType = TracerBundleTypeRegistry.register(
+    _TRACER_BUNDLE_TYPENAME, size=5
+)
 
 
 class IceTracerSetup:
@@ -49,19 +36,23 @@ class IceTracerSetup:
             dace_compiletime_args=["tracers"],
         )
 
+    def __call__(self, tracers: _TracerBundleDaCeType) -> None:
+        tracers.ice.data[:] = 20
+        tracers.ice.field[:] = 10
+
     # def __call__(self, quantity: Quantity):
     #    # single tracer representing all memory
     #    quantity.data[:] = 20
     #    quantity.field[:] = 10
 
-    def __call__(self, tracers: TracerBundle):
-        # # single tracer representing all memory
-        # tracers.ice.data[:] = 20
-        # tracers.ice.field[:] = 10
-
-        tracers.fill_tracer_by_name("ice", value=20)
-        # single tracer sliced into the compute domain
-        tracers.fill_tracer_by_name("ice", value=10, compute_domain_only=True)
+    # def __call__(self, tracers: _TracerBundleDaCeType):
+    #     # # single tracer representing all memory
+    #     # tracers.ice.data[:] = 20
+    #     # tracers.ice.field[:] = 10
+    #
+    #     tracers.fill_tracer_by_name("ice", value=20)
+    #     # single tracer sliced into the compute domain
+    #     tracers.fill_tracer_by_name("ice", value=10, compute_domain_only=True)
 
 
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
@@ -110,6 +101,11 @@ def test_orchestrated_ice_tracer_setup() -> None:
     assert (tracers.ice.field[:] == 10).all()  # check the compute domain
 
 
+def copy_into_tracer(in_field: FloatField, out_field: FloatField):
+    with computation(PARALLEL), interval(...):
+        out_field = in_field
+
+
 class CopyIntoVaporTracer:
     def __init__(self, stencil_factory: StencilFactory):
         orchestrate(
@@ -147,6 +143,16 @@ def test_stencil_copy_into_vapor_tracer(backend) -> None:
     field = quantity_factory.ones(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
     vapor_setup(tracers, field)
     assert (tracers.vapor.field[:] == 1).all()
+
+
+def loop_over_tracers(
+    out_field: _TracerBundleStencilType, n_tracers: int, fill_value: int = 42
+):
+    with computation(PARALLEL), interval(...):
+        n = 0
+        while n < n_tracers:
+            out_field[0, 0, 0][n] = fill_value
+            n = n + 1
 
 
 class ResetTracers:

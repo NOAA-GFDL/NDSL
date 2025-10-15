@@ -1,8 +1,13 @@
 from dataclasses import dataclass
+from typing import TypeAlias
 
+import dace
 from gt4py.cartesian import gtscript
 
 from ndsl.dsl.typing import Float
+
+
+BundleTypes: TypeAlias = tuple[gtscript._FieldDescriptor, dace.data.Structure]
 
 
 @dataclass
@@ -10,7 +15,7 @@ class MarkupTracerBundleType:
     """Markup a `TracerBundle` to delay specialization.
 
     Properties:
-        name: name of the future type to retrieve from the registry.
+        name: Name of the future type to retrieve from the registry.
     """
 
     name: str
@@ -24,10 +29,10 @@ class TracerBundleTypeRegistry:
         T: access to any registered type for type hinting.
     """
 
-    _type_registry: dict[str, gtscript._FieldDescriptor] = {}
+    _type_registry: dict[str, BundleTypes] = {}
 
     @classmethod
-    def register(cls, name: str, size: int, dtype=Float) -> gtscript._FieldDescriptor:
+    def register(cls, name: str, *, size: int, dtype=Float) -> BundleTypes:
         """Register a name type by name by giving the size of its data dimensions.
 
         The same type cannot be registered twice and will error out.
@@ -43,13 +48,31 @@ class TracerBundleTypeRegistry:
                 f"Names of `TracerBundle` types must be unique. `{name}` is already taken."
             )
 
-        cls._type_registry[name] = gtscript.Field[gtscript.IJK, (dtype, ((size,)))]
+        if " " in name:
+            raise ValueError("DaCe can't handle space in bundle names.")
+
+        # TODO: do this properly
+        N = dace.symbol(f"{name}_item_size")
+
+        cls._type_registry[name] = (
+            gtscript.Field[gtscript.IJK, (dtype, ((size,)))],
+            dace.data.Structure(
+                members={
+                    # TODO: funnel dtype
+                    # TODO: what to do about tracer size `N`?
+                    "data": dace.data.Array(dace.float32, (size, N)),
+                    "ice": dace.data.ArrayReference(dace.float32, (N,)),
+                    "vapor": dace.data.ArrayReference(dace.float32, (N,)),
+                },
+                name=name,
+            ),
+        )
         return cls._type_registry[name]
 
     @classmethod
     def T(
         cls, name: str, *, do_markup: bool = True
-    ) -> gtscript._FieldDescriptor | MarkupTracerBundleType:
+    ) -> BundleTypes | MarkupTracerBundleType:
         """
         Retrieve a previously registered type.
 

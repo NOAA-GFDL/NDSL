@@ -2,32 +2,9 @@ import copy
 from enum import Enum, auto
 from typing import Any
 
-from dace import SDFG, SDFGState
-from dace.frontend.common import op_repository as oprepo
-from dace.frontend.python.newast import ProgramVisitor
-
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.initialization.allocator import Quantity, QuantityFactory
 from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
-
-
-@oprepo.replaces_method("TracerBundle", "fill_tracer")
-def _tracer_bundle_fill_tracer(
-    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
-):
-    raise NotImplementedError("let's just see if we get here")
-
-
-@oprepo.replaces_method("TracerBundle", "fill_tracer_by_name")
-def _tracer_bundle_fill_tracer_by_name(
-    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
-):
-    raise NotImplementedError("let's just see if we get here")
-
-
-# @oprepo.replaces_attribute("Tracer", "fill")
-# def _tracer_fill(pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, fill_value: Any, **kwargs):
-#     raise NotImplementedError("let's just see if we get here")
 
 
 class Region(Enum):
@@ -85,31 +62,18 @@ class TracerBundle:
             mapping: Optional mapping of names to tracer ids, e.g. `{"vapor": 3}`.
             unit: Optional unit of the tracers (one for all).
         """
-        type: Any = TracerBundleTypeRegistry.T(type_name, do_markup=False)
-        size = type.data_dims[0]
+        types: Any = TracerBundleTypeRegistry.T(type_name, do_markup=False)
+
+        size = types[0].data_dims[0]
         factory = _tracer_quantity_factory(quantity_factory, size)
 
         # TODO: zeros() or empty()? should this be an option?
         self._quantity = factory.zeros(
-            [X_DIM, Y_DIM, Z_DIM, "tracers"], dtype=type.dtype, units=unit
+            [X_DIM, Y_DIM, Z_DIM, "tracers"], dtype=types[0].dtype, units=unit
         )
         self._size = size
         self._name_mapping = mapping
         self._data_mapping: _TracerDataMapping = {}
-
-    @property
-    def __array_interface__(self):
-        """Memory interface for CPU."""
-        return self._quantity.__array_interface__
-
-    @property
-    def __cuda_array_interface__(self):
-        """Memory interface for GPU memory as defined by cupy."""
-        return self._quantity.__cuda_array_interface__
-
-    def __descriptor__(self) -> Any:
-        """Data descriptor for DaCe."""
-        return self._quantity.__descriptor__()
 
     def __len__(self) -> int:
         """Number of tracers in this bundle."""

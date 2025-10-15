@@ -8,7 +8,7 @@ from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 
 _TRACER_BUNDLE_TYPENAME = "TracerBundleTypeUnitTests"
-TracerBundleTypeRegistry.register(_TRACER_BUNDLE_TYPENAME, 5)
+TracerBundleTypeRegistry.register(_TRACER_BUNDLE_TYPENAME, size=5)
 
 
 def test_query_size_of_bundle_with_len() -> None:
