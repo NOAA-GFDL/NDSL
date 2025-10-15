@@ -47,7 +47,9 @@ class Quantity:
             computational domain. Defaults to None.
             extent (Sequence[int] | None, optional): number of points along each axis
                 within the computational domain. Defaults to None.
-            gt4py_backend (str | None, optional): _description_. Defaults to None.
+            gt4py_backend (str | None, optional): backend to use for gt4py storages,
+                if not given this will be derived from a Storage
+                if given as the data argument. Defaults to None.
             allow_mismatch_float_precision (bool, optional): allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points (int, optional): Number of halo points used. Defaults to 0.
@@ -178,7 +180,10 @@ class Quantity:
         # This is a preliminary check to see if this is ever triggered.
         # If not, we can remove it down the line and change the call signature.
         if n_halo != self._metadata.n_halo:
-            warnings.warn("Found inconsistency with number of halo points in Quantity")
+            warnings.warn(
+                "Found inconsistency with number of halo points in Quantity:"
+                + f"{n_halo} vs {self._metadata.n_halo}"
+            )
         return QuantityHaloSpec(
             n_halo,
             self.data.strides,
