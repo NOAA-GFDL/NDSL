@@ -20,10 +20,10 @@ class Tracer(Quantity):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    def fill(self, value: Any, *, restrict_to: Restriction | None = None) -> None:
+    def fill(self, value: Any, *, restrict_to: Region | None = None) -> None:
         if restrict_to is None:
             super().data[:] = value
-        elif restrict_to is Tracer.Restriction.compute_domain:
+        elif restrict_to is Region.compute_domain:
             super().field[:] = value
         else:
             raise NotImplementedError(f"Unknown restriction {restrict_to}.")
