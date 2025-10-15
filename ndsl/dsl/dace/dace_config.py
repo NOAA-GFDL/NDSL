@@ -9,6 +9,7 @@ from dace.frontend.python.parser import DaceProgram
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
 from ndsl.comm.communicator import Communicator
+from ndsl.comm.null_comm import NullComm
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
@@ -16,6 +17,7 @@ from ndsl.dsl.gt4py_utils import is_gpu_backend
 from ndsl.dsl.typing import get_precision
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
 
 
 # This can be turned on to revert compilation for orchestration
@@ -152,11 +154,39 @@ class DaceConfig:
         tile_nx: int = 0,
         tile_nz: int = 0,
         orchestration: DaCeOrchestration | None = None,
+        time: bool = False,
     ):
+        """Specialize the DaCe configuration for NDSL use.
+
+        Dev note: This class wrongly carries two runtime values:
+            - `loaded_precompiled_SDFG`: cache of SDFG loaded post build
+            - `performance_collector`: runtime timer shared for all runtime call
+                of orchestrate code
+
+        Args:
+            communicator: used for setting the distributed caches
+            backend: string for the backend
+            tile_nx: x/y domain size for a single time
+            tile_nz: z domain size for a single time
+            orchestration: orchestration mode from DaCeOrchestration
+            time: trigger performance collection, available to user with
+                `performance_collector`
+        """
+
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
         self.loaded_precompiled_SDFG: dict[DaceProgram, dace.CompiledSDFG] = {}
+        self.performance_collector = (
+            PerformanceCollector(
+                "InternalOrchestrationTimer",
+                comm=(
+                    communicator.comm if communicator is not None else NullComm(0, 6, 0)
+                ),
+            )
+            if time
+            else NullPerformanceCollector()
+        )
 
         # Temporary. This is a bit too out of the ordinary for the common user.
         # We should refactor the architecture to allow for a `gtc:orchestrated:dace:X`
@@ -175,7 +205,7 @@ class DaceConfig:
         # have the configuration at NDSL level, but we do use the GT4Py
         # level
         # TODO: if GT4PY opt level is funneled via NDSL - use it here
-        optimization_level = GT4PY_COMPILE_OPT_LEVEL
+        optimization_level = int(GT4PY_COMPILE_OPT_LEVEL)
 
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
@@ -188,7 +218,13 @@ class DaceConfig:
                 == b"NVIDIA GH200 480GB"
             )
 
-            dace.config.Config.set("compiler", "build_type", value="Release")
+            if optimization_level == 0:
+                dace.config.Config.set("compiler", "build_type", value="Debug")
+            elif optimization_level == 2 or optimization_level == 1:
+                dace.config.Config.set("compiler", "build_type", value="RelWithDebInfo")
+            else:
+                dace.config.Config.set("compiler", "build_type", value="Release")
+
             # Required to True for gt4py storage/memory
             dace.config.Config.set(
                 "compiler",

@@ -168,25 +168,34 @@ class CompilationConfig:
 class StencilConfig(Hashable):
     compare_to_numpy: bool = False
     compilation_config: CompilationConfig = CompilationConfig()
-    dace_config: Optional[DaceConfig] = None
     verbose: bool = False
+    dace_config: DaceConfig = dataclasses.field(init=False)
 
-    def __post_init__(self):
+    def __init__(
+        self,
+        *,
+        compare_to_numpy: bool = False,
+        compilation_config: CompilationConfig = CompilationConfig(),
+        verbose: bool = False,
+        dace_config: DaceConfig | None = None,
+    ):
+        self.compare_to_numpy = compare_to_numpy
+        self.compilation_config = compilation_config
+        self.verbose = verbose
+        self.dace_config = (
+            dace_config
+            if dace_config is not None
+            else DaceConfig(
+                communicator=None,
+                backend=self.compilation_config.backend,
+                orchestration=DaCeOrchestration.Python,
+            )
+        )
         self.backend_opts = {
             "device_sync": self.compilation_config.device_sync,
             "format_source": self.compilation_config.format_source,
         }
         self._hash = self._compute_hash()
-
-        # We need a DaceConfig to know if orchestration is part of the build system
-        # but we can't hash it very well (for now). The workaround is to make
-        # sure we have a default Python orchestrated config.
-        if self.dace_config is None:
-            self.dace_config = DaceConfig(
-                communicator=None,
-                backend=self.compilation_config.backend,
-                orchestration=DaCeOrchestration.Python,
-            )
 
     @property
     def backend(self):

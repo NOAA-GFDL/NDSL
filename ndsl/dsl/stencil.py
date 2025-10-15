@@ -37,7 +37,7 @@ from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
-from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
+from ndsl.initialization import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType

@@ -1,13 +1,6 @@
 import numpy as np
 import pytest
 
-
-try:
-    import ndsl.dsl  # noqa: F401
-except ModuleNotFoundError as error:
-    error.msg = f"NDSL cannot be loaded because {error.msg}"
-    raise error
-
 from ndsl.optional_imports import cupy
 
 

@@ -1,4 +1,4 @@
-from mpi4py import MPI
+from ndsl.comm.mpi import MPI
 
 
 if MPI.COMM_WORLD.Get_size() == 1:

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from dace import SDFG, CompiledSDFG
 from dace import compiletime as DaceCompiletime
@@ -45,7 +46,7 @@ def dace_inhibitor(func: Callable) -> Callable:
     return func
 
 
-def _upload_to_device(host_data: List[Any]) -> None:
+def _upload_to_device(host_data: list) -> None:
     """Make sure any ndarrays gets uploaded to the device
 
     This will raise an assertion if cupy is not installed.
@@ -56,9 +57,7 @@ def _upload_to_device(host_data: List[Any]) -> None:
             host_data[i] = cp.asarray(data)
 
 
-def _download_results_from_dace(
-    config: DaceConfig, dace_result: Optional[List[Any]], args: List[Any]
-):
+def _download_results_from_dace(config: DaceConfig, dace_result: list | None):
     """Move all data from DaCe memory space to GT4Py"""
     if dace_result is None:
         return None
@@ -111,14 +110,17 @@ def _simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
+        # We disable ScalarToSymbolPromotion because it might push symbols onto edges
+        # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
+        # calls or (complicated) field accesses.
         skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
 
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs
-):
-    """Build the .so out of the SDFG on the top tile ranks only"""
+) -> None:
+    """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
 
     if is_compiling:
@@ -212,7 +214,7 @@ def _build_sdfg(
     if mode == DaCeOrchestration.BuildAndRun:
         if not is_compiling:
             ndsl_log.info(
-                f"{DaCeProgress.default_prefix(config)} Rank is not compiling."
+                f"{DaCeProgress.default_prefix(config)} Rank is not compiling. "
                 "Waiting for compilation to end on all other ranks..."
             )
         MPI.COMM_WORLD.Barrier()
@@ -226,16 +228,33 @@ def _build_sdfg(
             )  # type: ignore
             config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
-        return _call_sdfg(dace_program, sdfg, config, args, kwargs)
-
 
 def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, kwargs):
-    """Dispatch the SDFG execution and/or build"""
-    # Pre-compiled SDFG code path does away with any data checks and
-    # cached the marshalling - leading to almost direct C call
-    # DaceProgram performs argument transformation & checks for a cost ~200ms
-    # of overhead
-    if dace_program in config.loaded_precompiled_SDFG:
+    """Dispatch to either SDFG execution and/or build."""
+
+    with config.performance_collector.timestep_timer.clock(f"{dace_program.name}.Call"):
+        # Check if we need to build first
+        mode = config.get_orchestrate()
+        if (
+            mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
+            and dace_program not in config.loaded_precompiled_SDFG  # already cached
+        ):
+            ndsl_log.info("Building DaCe orchestration")
+            _build_sdfg(dace_program, sdfg, config, args, kwargs)
+
+        if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
+            raise ValueError(f"Unexpected DaceOrchestration mode `{mode}`.")
+
+        if dace_program not in config.loaded_precompiled_SDFG:
+            raise RuntimeError(
+                "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
+                "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
+            )
+
+        # Pre-compiled SDFG code path does away with any data checks and
+        # cached the marshalling - leading to almost direct C call
+        # DaceProgram performs argument transformation & checks for a cost ~200ms
+        # of overhead
         with DaCeProgress(config, "Run"):
             if config.is_gpu_backend():
                 _upload_to_device(list(args) + list(kwargs.values()))
@@ -245,27 +264,23 @@ def _call_sdfg(dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args, 
             # function that expects all pointers to have been made C worthy. This is
             # something we did with "FrozenCompileSDFG" but we undid because it meant that
             # external changing memory (reallocation...) would quietly fail
-            current_sdfg_args = dace_program._create_sdfg_args(
-                config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
-            )
+            with config.performance_collector.timestep_timer.clock(
+                f"{dace_program.name}.ArgMarshalling"
+            ):
+                current_sdfg_args = dace_program._create_sdfg_args(
+                    config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
+                )
 
-            res = config.loaded_precompiled_SDFG[dace_program](**current_sdfg_args)
-            res = _download_results_from_dace(
-                config, res, list(args) + list(kwargs.values())
-            )
-        return res
+            with config.performance_collector.timestep_timer.clock(
+                f"{dace_program.name}.Runtime"
+            ):
+                results = config.loaded_precompiled_SDFG[dace_program](
+                    **current_sdfg_args
+                )
 
-    mode = config.get_orchestrate()
-    if mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]:
-        ndsl_log.info("Building DaCe orchestration")
-        return _build_sdfg(dace_program, sdfg, config, args, kwargs)
+    config.performance_collector.collect_performance()
 
-    if mode == DaCeOrchestration.Run:
-        # We should never hit this, it should be caught by the
-        # loaded_precompiled_SDFG check above
-        raise RuntimeError("Unexpected call - pre-compiled SDFG failed to load")
-    else:
-        raise NotImplementedError(f"Mode '{mode}' unimplemented at call time")
+    return _download_results_from_dace(config, results)
 
 
 def _parse_sdfg(
@@ -273,7 +288,7 @@ def _parse_sdfg(
     config: DaceConfig,
     *args,
     **kwargs,
-) -> Optional[SDFG | CompiledSDFG]:
+) -> SDFG | CompiledSDFG | None:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
 
@@ -382,7 +397,7 @@ class _LazyComputepathMethod:
 
     # In order to not regenerate SDFG for the same obj.method callable
     # we cache the SDFGEnabledCallable we have already init
-    bound_callables: Dict[Tuple[int, int], "SDFGEnabledCallable"] = dict()
+    bound_callables: dict[tuple[int, int], SDFGEnabledCallable] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
         def __init__(self, lazy_method: _LazyComputepathMethod, obj_to_bind):
@@ -447,9 +462,9 @@ class _LazyComputepathMethod:
 def orchestrate(
     *,
     obj: object,
-    config: Optional[DaceConfig],
+    config: DaceConfig,
     method_to_orchestrate: str = "__call__",
-    dace_compiletime_args: Optional[Sequence[str]] = None,
+    dace_compiletime_args: Sequence[str] | None = None,
 ):
     """
     Orchestrate a method of an object with DaCe.
@@ -464,83 +479,83 @@ def orchestrate(
         dace_compiletime_args: list of names of arguments to be flagged has
                                dace.compiletime for orchestration to behave
     """
+    if not config.is_dace_orchestrated():
+        return
+
     if config is None:
         raise ValueError("DaCe config cannot be None")
+
+    if not hasattr(obj, method_to_orchestrate):
+        raise RuntimeError(
+            f"Could not orchestrate, "
+            f"{type(obj).__name__}.{method_to_orchestrate} "
+            "does not exists"
+        )
 
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    if config.is_dace_orchestrated():
-        if not hasattr(obj, method_to_orchestrate):
-            raise RuntimeError(
-                f"Could not orchestrate, "
-                f"{type(obj).__name__}.{method_to_orchestrate} "
-                "does not exists"
-            )
+    func = type.__getattribute__(type(obj), method_to_orchestrate)
 
-        func = type.__getattribute__(type(obj), method_to_orchestrate)
+    # Flag argument as dace.constant
+    for argument in dace_compiletime_args:
+        func.__annotations__[argument] = DaceCompiletime
 
-        # Flag argument as dace.constant
-        for argument in dace_compiletime_args:
-            func.__annotations__[argument] = DaceCompiletime
+    # Build DaCe orchestrated wrapper
+    # This is a JIT object, e.g. DaCe compilation will happen on call
+    wrapped = _LazyComputepathMethod(func, config).__get__(obj)
 
-        # Build DaCe orchestrated wrapper
-        # This is a JIT object, e.g. DaCe compilation will happen on call
-        wrapped = _LazyComputepathMethod(func, config).__get__(obj)
+    if method_to_orchestrate == "__call__":
+        # Grab the function from the type of the child class
+        # Dev note: we need to use type for dunder call because:
+        #   a = A()
+        #   a()
+        # resolved to: type(a).__call__(a)
+        # therefore patching the instance call (e.g a.__call__) is not enough.
+        # We could patch the type(self), ergo the class itself
+        # but that would patch _every_ instance of A.
+        # What we can do is patch the instance.__class__ with a local made class
+        # in order to keep each instance with it's own patch.
+        #
+        # Re: type:ignore
+        # Mypy is unhappy about dynamic class name and the devs (per github
+        # issues discussion) is to make a plugin. Too much work -> ignore mypy
 
-        if method_to_orchestrate == "__call__":
-            # Grab the function from the type of the child class
-            # Dev note: we need to use type for dunder call because:
-            #   a = A()
-            #   a()
-            # resolved to: type(a).__call__(a)
-            # therefore patching the instance call (e.g a.__call__) is not enough.
-            # We could patch the type(self), ergo the class itself
-            # but that would patch _every_ instance of A.
-            # What we can do is patch the instance.__class__ with a local made class
-            # in order to keep each instance with it's own patch.
-            #
-            # Re: type:ignore
-            # Mypy is unhappy about dynamic class name and the devs (per github
-            # issues discussion) is to make a plugin. Too much work -> ignore mypy
+        class _(type(obj)):  # type: ignore
+            __qualname__ = f"{type(obj).__qualname__}_patched"
+            __name__ = f"{type(obj).__name__}_patched"
 
-            class _(type(obj)):  # type: ignore
-                __qualname__ = f"{type(obj).__qualname__}_patched"
-                __name__ = f"{type(obj).__name__}_patched"
+            def __call__(self, *arg, **kwarg):
+                return wrapped(*arg, **kwarg)
 
-                def __call__(self, *arg, **kwarg):
-                    return wrapped(*arg, **kwarg)
+            def __sdfg__(self, *args, **kwargs):
+                return wrapped.__sdfg__(*args, **kwargs)
 
-                def __sdfg__(self, *args, **kwargs):
-                    return wrapped.__sdfg__(*args, **kwargs)
+            def __sdfg_closure__(self, reevaluate=None):
+                return wrapped.__sdfg_closure__(reevaluate)
 
-                def __sdfg_closure__(self, reevaluate=None):
-                    return wrapped.__sdfg_closure__(reevaluate)
+            def __sdfg_signature__(self):
+                return wrapped.__sdfg_signature__()
 
-                def __sdfg_signature__(self):
-                    return wrapped.__sdfg_signature__()
+            def closure_resolver(self, constant_args, given_args, parent_closure=None):
+                return wrapped.closure_resolver(
+                    constant_args, given_args, parent_closure
+                )
 
-                def closure_resolver(
-                    self, constant_args, given_args, parent_closure=None
-                ):
-                    return wrapped.closure_resolver(
-                        constant_args, given_args, parent_closure
-                    )
-
-            # We keep the original class type name to not perturb
-            # the workflows that uses it to build relevant info (path, hash...)
-            previous_cls_name = type(obj).__name__
-            obj.__class__ = _
-            type(obj).__name__ = previous_cls_name
-        else:
-            # For regular attribute - we can just patch as usual
-            setattr(obj, method_to_orchestrate, wrapped)
+        # We keep the original class type name to not perturb
+        # the workflows that uses it to build relevant info (path, hash...)
+        previous_cls_name = type(obj).__name__
+        obj.__class__ = _
+        type(obj).__name__ = previous_cls_name
+    else:
+        # For regular attribute - we can just patch as usual
+        setattr(obj, method_to_orchestrate, wrapped)
 
 
 def orchestrate_function(
     config: DaceConfig = None,
-    dace_compiletime_args: Optional[Sequence[str]] = None,
-) -> Union[Callable[..., Any], _LazyComputepathFunction]:
+    dace_compiletime_args: Sequence[str] | None = None,
+) -> Callable[..., Any] | _LazyComputepathFunction:
     """
     Decorator orchestrating a method of an object with DaCe.
     If the model configuration doesn't demand orchestration, this won't do anything.

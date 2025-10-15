@@ -8,7 +8,7 @@ from gt4py import storage as gt_storage
 
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
-from ndsl.initialization.sizer import GridSizer
+from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
@@ -78,6 +78,9 @@ class QuantityFactory:
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
+        """Allocate a Quantity - values are random.
+
+        Equivalent to `numpy.empty`"""
         return self._allocate(
             self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
         )
@@ -89,6 +92,9 @@ class QuantityFactory:
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
+        """Allocate a Quantity and fill it with the value 0.
+
+        Equivalent to `numpy.zeros`"""
         return self._allocate(
             self._numpy.zeros, dims, units, dtype, allow_mismatch_float_precision
         )
@@ -100,9 +106,29 @@ class QuantityFactory:
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
+        """Allocate a Quantity and fill it with the value 1.
+
+        Equivalent to `numpy.ones`"""
         return self._allocate(
             self._numpy.ones, dims, units, dtype, allow_mismatch_float_precision
         )
+
+    def full(
+        self,
+        dims: Sequence[str],
+        units: str,
+        value,  # no type hint because it would be a TypeVar = Type[dtype] and mypy says no
+        dtype: type = Float,
+        allow_mismatch_float_precision: bool = False,
+    ) -> Quantity:
+        """Allocate a Quantity and fill it with the value.
+
+        Equivalent to `numpy.full`"""
+        quantity = self._allocate(
+            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+        )
+        quantity.data[:] = value
+        return quantity
 
     def from_array(
         self,
