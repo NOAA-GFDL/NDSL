@@ -3,7 +3,8 @@
 import pytest
 
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.quantity import Tracer, TracerBundle, TracerBundleTypeRegistry
+from ndsl.quantity.tracer_bundle import Tracer, TracerBundle
+from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 
 _TRACER_BUNDLE_TYPENAME = "TracerBundleTypeUnitTests"

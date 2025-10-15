@@ -26,8 +26,9 @@ from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
 from ndsl.initialization import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
-from ndsl.quantity import Quantity, TracerBundle
+from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
+from ndsl.quantity.tracer_bundle import TracerBundle
 from ndsl.quantity.tracer_bundle_type import MarkupTracerBundleType
 from ndsl.testing.comparison import LegacyMetric
 

@@ -11,7 +11,8 @@ from ndsl.boilerplate import (
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-from ndsl.quantity import TracerBundle, TracerBundleTypeRegistry
+from ndsl.quantity.tracer_bundle import TracerBundle
+from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 
 # workflow
