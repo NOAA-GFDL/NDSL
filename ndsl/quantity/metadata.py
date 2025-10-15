@@ -17,6 +17,8 @@ class QuantityMetadata:
     "the start of the computational domain"
     extent: Tuple[int, ...]
     "the shape of the computational domain"
+    n_halo: int
+    "Number of halo-points used in the horizontal"
     dims: Tuple[str, ...]
     "names of each dimension"
     units: str
