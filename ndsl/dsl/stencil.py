@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 import dataclasses
 import inspect
+import numbers
+import warnings
 from typing import (
     Any,
     Callable,
@@ -17,7 +19,6 @@ from typing import (
     Union,
     cast,
 )
-import warnings
 
 import dace
 import numpy as np
@@ -559,7 +560,7 @@ class FrozenStencil(SDFGConvertible):
                             f"Quantity `{name}` is too small for the targeted "
                             f"domain in axis {axis[0]}: {quantity_size} < {domain_sizes[axis[0]]}."
                         )
-            elif not isinstance(argument, (int, float)):
+            elif not isinstance(argument, numbers.Real):
                 warnings.warn(
                     "Found an array-type argument that is not a Quantity. Some domain-size checks omitted. ",
                     category=UserWarning,
