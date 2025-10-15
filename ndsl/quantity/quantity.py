@@ -9,9 +9,9 @@ import numpy as np
 import xarray as xr
 from gt4py import storage as gt_storage
 from gt4py.cartesian import backend as gt_backend
-from mpi4py import MPI
 
 import ndsl.constants as constants
+from ndsl.comm.mpi import MPI
 from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
@@ -81,7 +81,6 @@ class Quantity:
 
         if gt4py_backend is not None:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
-            assert gt4py_backend_cls is not None
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
             dimensions: Tuple[Union[str, int], ...] = tuple(
@@ -256,14 +255,29 @@ class Quantity:
         return self._compute_domain_view[:]
 
     @property
-    def data(self) -> Union[np.ndarray, cupy.ndarray]:
+    def data(self) -> np.ndarray | cupy.ndarray:
         """The underlying array of data"""
         return self._data
 
     @data.setter
-    def data(self, inputData):
-        if type(inputData) in [np.ndarray, cupy.ndarray]:
-            self._data = inputData
+    def data(self, input_data: np.ndarray | cupy.ndarray):
+        if type(input_data) not in [np.ndarray, cupy.ndarray]:
+            raise TypeError(
+                "Quantity.data buffer swap failed: "
+                f"given data is not an array (type: {type(input_data)})"
+            )
+
+        if input_data.shape < self.extent:
+            raise ValueError(
+                "Quantity.data buffer swap failed: "
+                f"new data ({input_data.shape}) is smaller "
+                f"than expected extent ({self.extent})."
+            )
+
+        self._data = input_data
+        self._compute_domain_view = BoundedArrayView(
+            self.data, self.dims, self.origin, self.extent
+        )
 
     @property
     def origin(self) -> Tuple[int, ...]:

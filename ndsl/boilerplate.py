@@ -76,15 +76,19 @@ def _get_factories(
 
 
 def get_factories_single_tile_orchestrated(
-    nx: int, ny: int, nz: int, nhalo: int, on_cpu: bool = True
+    nx: int, ny: int, nz: int, nhalo: int, backend: str = "dace:cpu"
 ) -> tuple[StencilFactory, QuantityFactory]:
-    """Build a Stencil & Quantity factory for orchestrated CPU, on a single tile topology."""
+    """Build the pair of (StencilFactory, QuantityFactory) for orchestrated code on a single tile topology."""
+
+    if backend is not None and not backend.startswith("dace"):
+        raise ValueError("Only `dace:*` backends can be orchestrated.")
+
     return _get_factories(
         nx=nx,
         ny=ny,
         nz=nz,
         nhalo=nhalo,
-        backend="dace:cpu" if on_cpu else "dace:gpu",
+        backend=backend,
         orchestration=DaCeOrchestration.BuildAndRun,
         topology="tile",
     )
@@ -93,6 +97,7 @@ def get_factories_single_tile_orchestrated(
 def get_factories_single_tile(
     nx: int, ny: int, nz: int, nhalo: int, backend: str = "numpy"
 ) -> tuple[StencilFactory, QuantityFactory]:
+    """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
     return _get_factories(
         nx=nx,
         ny=ny,

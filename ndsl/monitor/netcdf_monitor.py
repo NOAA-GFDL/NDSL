@@ -1,15 +1,12 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 from warnings import warn
 
-import fsspec
 import numpy as np
 import xarray as xr
 
 from ndsl.comm.communicator import Communicator
 from ndsl.dsl.typing import Float, get_precision
-from ndsl.filesystem import get_fs
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
 from ndsl.quantity import Quantity
@@ -46,17 +43,14 @@ class _TimeChunkedVariable:
 class _ChunkedNetCDFWriter:
     FILENAME_FORMAT = "state_{chunk:04d}_tile{tile}.nc"
 
-    def __init__(
-        self, path: str, tile: int, fs: fsspec.AbstractFileSystem, time_chunk_size: int
-    ):
+    def __init__(self, path: str, tile: int, time_chunk_size: int) -> None:
         self._path = path
         self._tile = tile
-        self._fs = fs
         self._time_chunk_size = time_chunk_size
         self._i_time = 0
-        self._chunked: Optional[Dict[str, _TimeChunkedVariable]] = None
-        self._times: List[Any] = []
-        self._time_units: Optional[str] = None
+        self._chunked: dict[str, _TimeChunkedVariable] | None = None
+        self._times: list = []
+        self._time_units: str | None = None
 
     def append(self, state):
         ndsl_log.debug("appending at time %d", self._i_time)
@@ -128,11 +122,10 @@ class NetCDFMonitor:
         rank = communicator.rank
         self._tile_index = communicator.partitioner.tile_index(rank)
         self._path = path
-        self._fs = get_fs(path)
         self._communicator = communicator
         self._time_chunk_size = time_chunk_size
-        self.__writer: Optional[_ChunkedNetCDFWriter] = None
-        self._expected_vars: Optional[Set[str]] = None
+        self.__writer: _ChunkedNetCDFWriter | None = None
+        self._expected_vars: set[str] | None = None
         self._transfer_type = precision
         if self._transfer_type == np.float32 and get_precision() > 32:
             warn(
@@ -145,7 +138,6 @@ class NetCDFMonitor:
             self.__writer = _ChunkedNetCDFWriter(
                 path=self._path,
                 tile=self._tile_index,
-                fs=self._fs,
                 time_chunk_size=self._time_chunk_size,
             )
         return self.__writer
@@ -178,7 +170,7 @@ class NetCDFMonitor:
         if state is not None:  # we are on root rank
             self._writer.append(state)
 
-    def store_constant(self, state: Dict[str, Quantity]) -> None:
+    def store_constant(self, state: dict[str, Quantity]) -> None:
         state = self._communicator.gather_state(
             state, transfer_type=self._transfer_type
         )
@@ -189,7 +181,7 @@ class NetCDFMonitor:
             for name, quantity in state.items():
                 path_for_grid = constants_filename + "_" + name + ".nc"
 
-                if self._fs.exists(path_for_grid):
+                if os.path.exists(path_for_grid):
                     ds = xr.open_dataset(path_for_grid)
                     ds = ds.load()
                     ds[name] = xr.DataArray(

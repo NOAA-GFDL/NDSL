@@ -3,7 +3,6 @@ from typing import TextIO
 import cftime
 import xarray as xr
 
-import ndsl.filesystem as filesystem
 from ndsl.quantity import Quantity
 
 
@@ -39,7 +38,7 @@ def write_state(state: dict, filename: str) -> None:
     if "time" not in state:
         raise ValueError('state must include a value for "time"')
     ds = to_xarray_dataset(state)
-    with filesystem.open(filename, "wb") as f:
+    with open(filename, "wb") as f:
         ds.to_netcdf(f)
 
 
@@ -68,7 +67,7 @@ def read_state(filename: str) -> dict:
         state: a model state dictionary
     """
     out_dict = {}
-    with filesystem.open(filename, "rb") as f:
+    with open(filename, "rb") as f:
         time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
         ds = xr.open_dataset(f, decode_times=time_coder)
         for name, value in ds.data_vars.items():
