@@ -555,7 +555,10 @@ class FrozenStencil(SDFGConvertible):
         for name, argument in all_args_as_kwargs.items():
             if isinstance(argument, Quantity):
                 for axis, quantity_size in zip(argument.dims, argument.extent):
-                    if quantity_size < domain_sizes[axis[0]]:
+                    if (
+                        axis[0] in domain_sizes.keys()
+                        and quantity_size < domain_sizes[axis[0]]
+                    ):
                         raise ValueError(
                             f"Quantity `{name}` is too small for the targeted "
                             f"domain in axis {axis[0]}: {quantity_size} < {domain_sizes[axis[0]]}."
