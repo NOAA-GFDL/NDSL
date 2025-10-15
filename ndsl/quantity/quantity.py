@@ -35,6 +35,8 @@ class Quantity:
         extent: Optional[Sequence[int]] = None,
         gt4py_backend: Union[str, None] = None,
         allow_mismatch_float_precision: bool = False,
+        *,
+        transient: bool = False,
     ):
         """
         Initialize a Quantity.
@@ -49,6 +51,8 @@ class Quantity:
                 be derived from a Storage if given as the data argument, otherwise the
                 storage attribute is disabled and will raise an exception. Will raise
                 a TypeError if this is given with a gt4py storage type as data
+            transient: [DEV ONLY] Flag the quantity for Transient use within DaCe
+                orchestration
         """
 
         if (
@@ -69,6 +73,8 @@ class Quantity:
             extent = tuple(length - start for length, start in zip(data.shape, origin))
         else:
             extent = tuple(extent)
+
+        self.transient = transient
 
         if isinstance(data, (int, float, list)):
             # If converting basic data, use a numpy ndarray.
@@ -322,7 +328,9 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        return dace.data.create_datadescriptor(self.data)
+        desc = dace.data.create_datadescriptor(self.data)
+        desc.transient = self.transient
+        return desc
 
     def transpose(
         self,
