@@ -9,9 +9,9 @@ import numpy as np
 import xarray as xr
 from gt4py import storage as gt_storage
 from gt4py.cartesian import backend as gt_backend
-from mpi4py import MPI
 
 import ndsl.constants as constants
+from ndsl.comm.mpi import MPI
 from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView

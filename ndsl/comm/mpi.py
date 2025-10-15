@@ -1,3 +1,10 @@
+"""Wrapper around mpi4py.
+
+This module defines a light-weight wrapper around mpi4py. It is the only
+place where we directly import from mpi4py. This allows to potentially
+swap mpi4py in the future.
+"""
+
 from typing import Dict, List, Optional, TypeVar, cast
 
 from mpi4py import MPI
