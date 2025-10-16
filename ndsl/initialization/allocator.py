@@ -76,13 +76,20 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity - values are random.
 
         Equivalent to `numpy.empty`"""
         return self._allocate(
-            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.empty,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
+            is_local,
         )
 
     def zeros(
@@ -90,13 +97,20 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 0.
 
         Equivalent to `numpy.zeros`"""
         return self._allocate(
-            self._numpy.zeros, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.zeros,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
+            is_local,
         )
 
     def ones(
@@ -104,13 +118,20 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 1.
 
         Equivalent to `numpy.ones`"""
         return self._allocate(
-            self._numpy.ones, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.ones,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
+            is_local,
         )
 
     def full(
@@ -119,13 +140,20 @@ class QuantityFactory:
         units: str,
         value,  # no type hint because it would be a TypeVar = Type[dtype] and mypy says no
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value.
 
         Equivalent to `numpy.full`"""
         quantity = self._allocate(
-            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.empty,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
+            is_local,
         )
         quantity.data[:] = value
         return quantity
@@ -135,7 +163,9 @@ class QuantityFactory:
         data: np.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         """
         Create a Quantity from a numpy array.
@@ -148,8 +178,8 @@ class QuantityFactory:
             units=units,
             dtype=data.dtype,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
+            is_local=is_local,
         )
-        base.data[:] = base.np.asarray(data)
         return base
 
     def from_compute_array(
@@ -157,7 +187,9 @@ class QuantityFactory:
         data: np.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         """
         Create a Quantity from a numpy array.
@@ -170,6 +202,7 @@ class QuantityFactory:
             units=units,
             dtype=data.dtype,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
+            is_local=is_local,
         )
         base.view[:] = base.np.asarray(data)
         return base
@@ -181,6 +214,7 @@ class QuantityFactory:
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
+        is_local: bool = False,
     ) -> Quantity:
         origin = self.sizer.get_origin(dims)
         extent = self.sizer.get_extent(dims)
@@ -201,7 +235,7 @@ class QuantityFactory:
             )
         except TypeError:
             data = allocator(shape, dtype=dtype)
-        return Quantity(
+        quantity = Quantity(
             data,
             dims=dims,
             units=units,
@@ -210,6 +244,8 @@ class QuantityFactory:
             gt4py_backend=self._backend(),
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
+        quantity._transient = is_local
+        return quantity
 
     def get_quantity_halo_spec(
         self,
