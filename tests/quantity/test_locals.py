@@ -1,36 +1,8 @@
-import dataclasses
-
-from ndsl import Quantity, QuantityFactory, State, StencilFactory, orchestrate
+from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Float
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-
-
-@dataclasses.dataclass
-class CodeState(State):
-    @dataclasses.dataclass
-    class Inner:
-        A: Quantity = dataclasses.field(
-            metadata={
-                "name": "A",
-                "dims": [X_DIM, Y_DIM, Z_DIM],
-                "units": "kg kg-1",
-                "intent": "?",
-                "dtype": Float,
-            }
-        )
-
-    inner: Inner
-    C: Quantity = dataclasses.field(
-        metadata={
-            "name": "C",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
-            "units": "kg kg-1",
-            "intent": "?",
-            "dtype": Float,
-        }
-    )
 
 
 def the_copy_stencil(from_: FloatField, to: FloatField):
@@ -45,7 +17,7 @@ class Code:
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,
-            dace_compiletime_args=["state", "tmps"],
+            dace_compiletime_args=["A", "B"],
         )
 
         self.copy = stencil_factory.from_dims_halo(
@@ -55,9 +27,9 @@ class Code:
             [X_DIM, Y_DIM, Z_DIM], units="n/a", is_local=True
         )
 
-    def __call__(self, state: CodeState):
-        self.copy(state.inner.A, self.local)
-        self.copy(self.local, state.C)
+    def __call__(self, A, B):
+        self.copy(A, self.local)
+        self.copy(self.local, B)
 
 
 def test_locals():
@@ -65,12 +37,13 @@ def test_locals():
         5, 5, 3, 0, backend="dace:cpu_kfirst"
     )
 
-    state = CodeState.full(quantity_factory, 42.42)
+    A_ = quantity_factory.ones(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
+    B_ = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
 
     c = Code(stencil_factory, quantity_factory)
-    c(state)
+    c(A_, B_)
 
     assert c.local._transient
-    assert not state.inner.A._transient
-    assert not state.C._transient
-    assert (state.inner.A.data[:] == state.C.data[:]).all()
+    assert not A_._transient
+    assert not B_._transient
+    assert (A_.field[:] == B_.field[:]).all()
