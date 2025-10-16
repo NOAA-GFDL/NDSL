@@ -209,6 +209,7 @@ class QuantityFactory:
             extent=extent,
             gt4py_backend=self._backend(),
             allow_mismatch_float_precision=allow_mismatch_float_precision,
+            number_of_halo_points=self.sizer.n_halo,
         )
 
     def get_quantity_halo_spec(
