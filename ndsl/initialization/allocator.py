@@ -180,6 +180,7 @@ class QuantityFactory:
             allow_mismatch_float_precision=allow_mismatch_float_precision,
             is_local=is_local,
         )
+        base.data[:] = base.np.asarray(data)
         return base
 
     def from_compute_array(
