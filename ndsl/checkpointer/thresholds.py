@@ -3,17 +3,12 @@ from __future__ import annotations
 import collections
 import contextlib
 import dataclasses
-from typing import Dict, List, Mapping, Union
+from typing import Dict, List, Mapping
 
 import numpy as np
 
-from ndsl.checkpointer.base import Checkpointer
+from ndsl.checkpointer.base import ArrayLike, Checkpointer, SavepointName, VariableName
 from ndsl.quantity import Quantity
-
-
-SavepointName = str
-VariableName = str
-ArrayLike = Union[Quantity, np.ndarray]
 
 
 class InsufficientTrialsError(Exception):
@@ -82,7 +77,7 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
         self._n_trials = 0
         self._n_calls: Mapping[SavepointName, int] = collections.defaultdict(int)
 
-    def __call__(self, savepoint_name, **kwargs):
+    def __call__(self, savepoint_name: SavepointName, **kwargs: ArrayLike) -> None:
         """
         Record values for a savepoint.
 
@@ -100,19 +95,19 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
             )
             self._abs_sums[savepoint_name].append(collections.defaultdict(lambda: 0.0))
         for varname, array in kwargs.items():
-            array: np.ndarray = cast_to_ndarray(array)
-            self._minimums[savepoint_name][i_call][varname] = np.minimum(
+            array = cast_to_ndarray(array)
+            self._minimums[savepoint_name][i_call][varname] = np.minimum(  # type: ignore[index]
                 self._minimums[savepoint_name][i_call][varname], array
             )
-            self._maximums[savepoint_name][i_call][varname] = np.maximum(
+            self._maximums[savepoint_name][i_call][varname] = np.maximum(  # type: ignore[index]
                 self._maximums[savepoint_name][i_call][varname], array
             )
-            self._abs_sums[savepoint_name][i_call][varname] += np.abs(array)
+            self._abs_sums[savepoint_name][i_call][varname] += np.abs(array)  # type: ignore[index]
 
-        self._n_calls[savepoint_name] += 1
+        self._n_calls[savepoint_name] += 1  # type: ignore[index]
 
     @contextlib.contextmanager
-    def trial(self):
+    def trial(self):  # type: ignore[no-untyped-def]
         """
         Context manager for a trial.
 

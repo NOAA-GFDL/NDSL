@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Tuple
+from typing import Iterable, Self
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
@@ -14,11 +14,11 @@ class SubtileGridSizer(GridSizer):
         ny_tile: int,
         nz: int,
         n_halo: int,
-        extra_dim_lengths: Dict[str, int],
-        layout: Tuple[int, int],
+        extra_dim_lengths: dict[str, int],
+        layout: tuple[int, int],
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
-    ):
+    ) -> Self:
         """Create a SubtileGridSizer from parameters about the full tile.
 
         Args:
@@ -62,7 +62,7 @@ class SubtileGridSizer(GridSizer):
         namelist: dict,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
-    ):
+    ) -> Self:
         """Create a SubtileGridSizer from a Fortran namelist.
 
         Args:
@@ -102,7 +102,7 @@ class SubtileGridSizer(GridSizer):
         )
 
     @property
-    def dim_extents(self) -> Dict[str, int]:
+    def dim_extents(self) -> dict[str, int]:
         return_dict = self.extra_dim_lengths.copy()
         return_dict.update(
             {
@@ -116,17 +116,17 @@ class SubtileGridSizer(GridSizer):
         )
         return return_dict
 
-    def get_origin(self, dims: Iterable[str]) -> Tuple[int, ...]:
+    def get_origin(self, dims: Iterable[str]) -> tuple[int, ...]:
         return_list = [
             self.n_halo if dim in constants.HORIZONTAL_DIMS else 0 for dim in dims
         ]
         return tuple(return_list)
 
-    def get_extent(self, dims: Iterable[str]) -> Tuple[int, ...]:
+    def get_extent(self, dims: Iterable[str]) -> tuple[int, ...]:
         extents = self.dim_extents
         return tuple(extents[dim] for dim in dims)
 
-    def get_shape(self, dims: Iterable[str]) -> Tuple[int, ...]:
+    def get_shape(self, dims: Iterable[str]) -> tuple[int, ...]:
         shape_dict = self.extra_dim_lengths.copy()
         # must pad non-interface variables to have the same shape as interface variables
         shape_dict.update(

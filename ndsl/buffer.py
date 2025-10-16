@@ -63,7 +63,7 @@ class Buffer:
             return cls(key, array)
 
     @staticmethod
-    def push_to_cache(buffer: Buffer):
+    def push_to_cache(buffer: Buffer) -> None:
         """Push the buffer back into the cache.
 
         Args:
@@ -71,7 +71,7 @@ class Buffer:
         """
         BUFFER_CACHE[buffer._key].append(buffer)
 
-    def finalize_memory_transfer(self):
+    def finalize_memory_transfer(self) -> None:
         """Finalize any memory transfer"""
         device_synchronize()
 
@@ -80,7 +80,7 @@ class Buffer:
         destination_array: np.ndarray,
         buffer_slice: IndexExpression = np.index_exp[:],
         buffer_reshape: IndexExpression = None,
-    ):
+    ) -> None:
         """Assign internal array to destination_array.
 
         Args:
@@ -96,7 +96,7 @@ class Buffer:
 
     def assign_from(
         self, source_array: np.ndarray, buffer_slice: IndexExpression = np.index_exp[:]
-    ):
+    ) -> None:
         """Assign source_array to internal array.
 
         Args:

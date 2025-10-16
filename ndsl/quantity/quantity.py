@@ -157,7 +157,9 @@ class Quantity:
             gt4py_backend=gt4py_backend,
         )
 
-    def to_netcdf(self, path: str, name="var", rank: int = -1, all_data=False) -> None:
+    def to_netcdf(
+        self, path: str, name: str = "var", rank: int = -1, all_data: bool = False
+    ) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
             if all_data:
                 self.data_as_xarray.to_dataset(name=name).to_netcdf(
@@ -181,7 +183,7 @@ class Quantity:
             self.metadata.dtype,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Quantity(\n    data=\n{self.data},\n    dims={self.dims},\n"
             f"    units={self.units},\n    origin={self.origin},\n"
@@ -201,7 +203,7 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):
+    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):  # type: ignore
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
         storage = gt_storage.from_array(
             data,
@@ -230,7 +232,7 @@ class Quantity:
         return dict(**self._attrs, units=self._metadata.units)
 
     @property
-    def dims(self) -> Tuple[str, ...]:
+    def dims(self) -> tuple[str, ...]:
         """Names of each dimension"""
         return self.metadata.dims
 
@@ -260,7 +262,7 @@ class Quantity:
         return self._data
 
     @data.setter
-    def data(self, input_data: np.ndarray | cupy.ndarray):
+    def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
@@ -304,15 +306,15 @@ class Quantity:
         return self.metadata.np
 
     @property
-    def __array_interface__(self):
+    def __array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__array_interface__
 
     @property
-    def __cuda_array_interface__(self):
+    def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__cuda_array_interface__
 
     @property
-    def shape(self):
+    def shape(self):  # type: ignore[no-untyped-def]
         return self.data.shape
 
     def __descriptor__(self) -> Any:
@@ -382,7 +384,7 @@ class Quantity:
         transposed._attrs = self._attrs
         return transposed
 
-    def plot_k_level(self, k_index=0):
+    def plot_k_level(self, k_index: int = 0) -> None:
         field = self.data
         print(
             "Min and max values:",
@@ -399,11 +401,13 @@ class Quantity:
         plt.show()
 
 
-def _transpose_sequence(sequence, order):
+def _transpose_sequence(sequence, order):  # type: ignore[no-untyped-def]
     return sequence.__class__(sequence[i] for i in order)
 
 
-def _collapse_dims(target_dims, dims):
+def _collapse_dims(
+    target_dims: Sequence[str | Iterable[str]], dims: tuple[str, ...]
+) -> list[str]:
     return_list = []
     for target in target_dims:
         if isinstance(target, str):
@@ -429,7 +433,7 @@ def _collapse_dims(target_dims, dims):
     return return_list
 
 
-def _validate_quantity_property_lengths(shape, dims, origin, extent):
+def _validate_quantity_property_lengths(shape, dims, origin, extent):  # type: ignore[no-untyped-def]
     n_dims = len(shape)
     for var, desc in (
         (dims, "dimension names"),
@@ -442,7 +446,7 @@ def _validate_quantity_property_lengths(shape, dims, origin, extent):
             )
 
 
-def _ensure_int_tuple(arg, arg_name):
+def _ensure_int_tuple(arg: Sequence, arg_name: str) -> tuple:
     return_list = []
     for item in arg:
         try:

@@ -65,12 +65,50 @@ profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 
 [tool.mypy]
-# TODO: let's attempt to remove this in the future
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+# TODO: understand what's wrong with imports and fix
 ignore_missing_imports = true
+strict_equality = true
+strict_optional = true
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
+module = [
+  # TODO: fix issues and remove this override
+  "ndsl.grid.*",
+  "ndsl.viz.*",
+  # Unclear what happens to this module in the future
+  "ndsl.dsl.gt4py_utils",
+  # We don't fix legacy (unless we really need it)
+  "ndsl.restart._legacy_restart",
+  # These files are deprecated
+  "ndsl.exceptions",
+  "ndsl.stencils.corners",
+  "ndsl.units",
+  # translate test system is "beyond repair"
+  "ndsl.stencils.testing.translate",
+  "ndsl.stencils.testing.parallel_translate"
+]
+
+[[tool.mypy.overrides]]
+disallow_untyped_defs = false
+module = [
+  # Unclear what the state of these modules is
+  "ndsl.monitor.*",
+  "ndsl.stencils.testing.serialbox_to_netcdf",
+  # deprecated
+  "ndsl.filesystem",
+  # TODO: fix issue and remove this override
+  "ndsl.types",
+  "ndsl.comm._boundary_utils",
+  "ndsl.quantity.bounds"
+]
 
 [tool.setuptools]
 include-package-data = true

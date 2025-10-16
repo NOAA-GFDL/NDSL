@@ -33,7 +33,7 @@ class Report:
     sim_status: str = "Finished"
     SYPD: float = 0.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.SYPD = get_sypd(self.times, self.dt_atmos)
 
 
@@ -69,7 +69,7 @@ def collect_keys_from_data(times_per_step: List[Mapping[str, float]]) -> List[st
 
 def gather_timing_data(
     times_per_step: List[Mapping[str, float]],
-    comm,
+    comm: Comm,
     root: int = 0,
 ) -> Dict[str, Any]:
     """returns an updated version of the results dictionary owned
