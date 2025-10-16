@@ -5,33 +5,12 @@ from ndsl import (
     QuantityFactory,
     State,
     StencilFactory,
-    Temporaries,
     orchestrate,
 )
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Float
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-
-
-@dataclasses.dataclass
-class CodeTmps(Temporaries):
-    @dataclasses.dataclass
-    class Inner:
-        TmpA: Quantity = dataclasses.field(
-            metadata={
-                "dims": [X_DIM, Y_DIM, Z_DIM],
-                "dtype": Float,
-            }
-        )
-
-    inner: Inner
-    TmpC: Quantity = dataclasses.field(
-        metadata={
-            "dims": [X_DIM, Y_DIM, Z_DIM],
-            "dtype": Float,
-        }
-    )
 
 
 @dataclasses.dataclass
@@ -78,14 +57,16 @@ class Code:
         self.copy = stencil_factory.from_dims_halo(
             the_copy_stencil, compute_dims=[X_DIM, Y_DIM, Z_DIM]
         )
-        self.tmps = CodeTmps.zeros(quantity_factory)
+        self.local = quantity_factory.empty(
+            [X_DIM, Y_DIM, Z_DIM], units="n/a", is_local=True
+        )
 
     def __call__(self, state: CodeState):
-        self.copy(state.inner.A, self.tmps.inner.TmpA)
-        self.copy(self.tmps.inner.TmpA, state.C)
+        self.copy(state.inner.A, self.local)
+        self.copy(self.local, state.C)
 
 
-def test_temporaries():
+def test_locals():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 3, 0, backend="dace:cpu_kfirst"
     )
@@ -95,8 +76,7 @@ def test_temporaries():
     c = Code(stencil_factory, quantity_factory)
     c(state)
 
-    assert c.tmps.inner.TmpA.transient
-    assert c.tmps.TmpC.transient
-    assert not state.inner.A.transient
-    assert not state.C.transient
+    assert c.local._transient
+    assert not state.inner.A._transient
+    assert not state.C._transient
     assert (state.inner.A.data[:] == state.C.data[:]).all()
