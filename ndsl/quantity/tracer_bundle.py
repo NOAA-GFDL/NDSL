@@ -2,9 +2,34 @@ import copy
 from enum import Enum, auto
 from typing import Any
 
+from dace import SDFG, SDFGState
+from dace.frontend.common import op_repository as oprepo
+from dace.frontend.python.newast import ProgramVisitor
+
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.initialization.allocator import Quantity, QuantityFactory
 from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
+
+
+@oprepo.replaces_method("ndsl.quantity.tracer_bundle.TracerBundle", "size")
+def _tracer_bundle_fill_tracer(
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
+):
+    raise NotImplementedError("let's just see if we get here")
+
+
+@oprepo.replaces_method("ndsl.quantity.TracerBundle", "size")
+def _tracer_bundle_fill_tracer_2(
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
+):
+    raise NotImplementedError("let's just see if we get here 2")
+
+
+@oprepo.replaces_method("tracers", "size")
+def _tracer_bundle_fill_tracer_3(
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
+):
+    raise NotImplementedError("let's just see if we get here 3")
 
 
 class Region(Enum):
@@ -13,9 +38,6 @@ class Region(Enum):
 
 class Tracer(Quantity):
     """A Tracer is a specialized Quantity, grouped together in a TracerBundle."""
-
-    class Restriction(Enum):
-        compute_domain = auto()
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -68,7 +90,7 @@ class TracerBundle:
         factory = _tracer_quantity_factory(quantity_factory, size)
 
         # TODO: zeros() or empty()? should this be an option?
-        self._quantity = factory.zeros(
+        self.data = factory.zeros(
             [X_DIM, Y_DIM, Z_DIM, "tracers"], dtype=types[0].dtype, units=unit
         )
         self._size = size
@@ -77,6 +99,9 @@ class TracerBundle:
 
     def __len__(self) -> int:
         """Number of tracers in this bundle."""
+        return self._size
+
+    def size(self) -> int:
         return self._size
 
     def __getattr__(self, name: _TracerName) -> Tracer | None:
@@ -104,11 +129,11 @@ class TracerBundle:
         # regardless of whether users access through __getattr__() or __getitem__().
         if index not in self._data_mapping:
             self._data_mapping[index] = Tracer(
-                data=self._quantity.data[:, :, :, index],
-                dims=self._quantity.dims[:-1],
-                origin=self._quantity.origin[:-1],
-                extent=self._quantity.extent[:-1],
-                units=self._quantity.units,
+                data=self.data.data[:, :, :, index],
+                dims=self.data.dims[:-1],
+                origin=self.data.origin[:-1],
+                extent=self.data.extent[:-1],
+                units=self.data.units,
                 # Ensure we never copy data into a tracer
                 raise_on_data_copy=True,
             )
@@ -119,9 +144,9 @@ class TracerBundle:
         self, index: _TracerIndex, *, value: Any, compute_domain_only: bool = False
     ) -> None:
         if compute_domain_only:
-            self._quantity.field[:, :, :, index] = value
+            self.data.field[:, :, :, index] = value
         else:
-            self._quantity.data[:, :, :, index] = value
+            self.data.data[:, :, :, index] = value
 
     def fill_tracer_by_name(
         self, name: str, *, value: Any, compute_domain_only: bool = False
@@ -129,9 +154,9 @@ class TracerBundle:
         index = self._name_mapping[name]
 
         if compute_domain_only:
-            self._quantity.field[:, :, :, index] = value
+            self.data.field[:, :, :, index] = value
         else:
-            self._quantity.data[:, :, :, index] = value
+            self.data.data[:, :, :, index] = value
 
 
 def _tracer_quantity_factory(

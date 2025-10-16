@@ -28,7 +28,6 @@ from ndsl.initialization import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
-from ndsl.quantity.tracer_bundle import TracerBundle
 from ndsl.quantity.tracer_bundle_type import MarkupTracerBundleType
 from ndsl.testing.comparison import LegacyMetric
 
@@ -541,18 +540,18 @@ def _convert_NDSL_concepts_to_storage(args: tuple, kwargs: dict) -> tuple[tuple,
     arg_list = list(args)
 
     for index, argument in enumerate(args):
-        if isinstance(argument, TracerBundle):
-            # Reduce the TracerBundle to a Quantity (which is handled below)
-            arg_list[index] = argument._quantity.data
+        # if isinstance(argument, TracerBundle):
+        #    # Reduce the TracerBundle to a Quantity (which is handled below)
+        #    arg_list[index] = argument.data.data
 
         if isinstance(argument, Quantity):
             # For Quantities, we need to pass on the underlying ndarray
             arg_list[index] = argument.data
 
     for name, argument in kwargs.items():
-        if isinstance(argument, TracerBundle):
-            # Reduce the TracerBundle to a Quantity (which is handled below)
-            kwargs[name] = argument._quantity
+        # if isinstance(argument, TracerBundle):
+        #    # Reduce the TracerBundle to a Quantity (which is handled below)
+        #    kwargs[name] = argument.data
 
         if isinstance(argument, Quantity):
             # For Quantities, we need to pass on the underlying ndarray

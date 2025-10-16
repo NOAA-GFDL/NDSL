@@ -11,7 +11,7 @@ from ndsl.boilerplate import (
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-from ndsl.quantity.tracer_bundle import Region, TracerBundle
+from ndsl.quantity.tracer_bundle import TracerBundle
 from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 
@@ -36,32 +36,19 @@ class IceTracerSetup:
             dace_compiletime_args=["tracers"],
         )
 
-    def __call__(self, tracers: _TracerBundleDaCeType) -> None:
-        tracers.ice.fill(20)
-        tracers.ice.fill(10, restrict_to=Region.compute_domain)
-
-    # def __call__(self, quantity: Quantity):
-    #    # single tracer representing all memory
-    #    quantity.data[:] = 20
-    #    quantity.field[:] = 10
-
-    # def __call__(self, tracers: _TracerBundleDaCeType):
-    #     # # single tracer representing all memory
-    #     # tracers.ice.data[:] = 20
-    #     # tracers.ice.field[:] = 10
-    #
-    #     tracers.fill_tracer_by_name("ice", value=20)
-    #     # single tracer sliced into the compute domain
-    #     tracers.fill_tracer_by_name("ice", value=10, compute_domain_only=True)
+    def __call__(self, tracers: TracerBundle) -> None:
+        bla = tracers.size()
+        tracers.ice.data[:] = 20 + bla
+        tracers.ice.field[:] = 10
 
 
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
 def test_stencil_ice_tracer_setup(backend) -> None:
     domain = (2, 3, 4)
-    halo_points = 1
+    halo_size = 1
 
     stencil_factory, quantity_factory = get_factories_single_tile(
-        domain[0], domain[1], domain[2], halo_points, backend=backend
+        domain[0], domain[1], domain[2], halo_size, backend=backend
     )
 
     tracers = TracerBundle(
@@ -79,13 +66,13 @@ def test_stencil_ice_tracer_setup(backend) -> None:
 
 def test_orchestrated_ice_tracer_setup() -> None:
     domain = (2, 3, 4)
-    halo_points = 1
+    halo_size = 1
 
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0],
         domain[1],
         domain[2],
-        halo_points,
+        halo_size,
     )
 
     tracers = TracerBundle(
@@ -127,10 +114,10 @@ class CopyIntoVaporTracer:
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
 def test_stencil_copy_into_vapor_tracer(backend) -> None:
     domain = (2, 3, 4)
-    halo_points = 1
+    halo_size = 1
 
     stencil_factory, quantity_factory = get_factories_single_tile(
-        domain[0], domain[1], domain[2], halo_points, backend=backend
+        domain[0], domain[1], domain[2], halo_size, backend=backend
     )
 
     tracers = TracerBundle(
@@ -183,10 +170,10 @@ class ResetTracers:
 )
 def test_stencil_reset_tracers(backend) -> None:
     domain = (2, 3, 4)
-    halo_points = 1
+    halo_size = 1
 
     stencil_factory, quantity_factory = get_factories_single_tile(
-        domain[0], domain[1], domain[2], halo_points, backend=backend
+        domain[0], domain[1], domain[2], halo_size, backend=backend
     )
 
     tracers = TracerBundle(
@@ -222,10 +209,10 @@ class CopyIntoAllTracers:
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
 def test_stencil_copy_into_all_tracer(backend) -> None:
     domain = (2, 3, 4)
-    halo_points = 1
+    halo_size = 1
 
     stencil_factory, quantity_factory = get_factories_single_tile(
-        domain[0], domain[1], domain[2], halo_points, backend=backend
+        domain[0], domain[1], domain[2], halo_size, backend=backend
     )
 
     tracers = TracerBundle(
