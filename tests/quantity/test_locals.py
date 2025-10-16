@@ -1,12 +1,6 @@
 import dataclasses
 
-from ndsl import (
-    Quantity,
-    QuantityFactory,
-    State,
-    StencilFactory,
-    orchestrate,
-)
+from ndsl import Quantity, QuantityFactory, State, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Float
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
