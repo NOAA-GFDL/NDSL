@@ -26,7 +26,6 @@ nav:
           - "constants": docstrings/top/constants.md
           - "exceptions": docstrings/top/exceptions.md
           - "filesystem": docstrings/top/filesystem.md
-          - "global_config": docstrings/top/global_config.md
           - "io": docstrings/top/io.md
           - "logging": docstrings/top/logging.md
           - "namelist": docstrings/top/namelist.md
@@ -77,7 +76,8 @@ nav:
           - "updater": docstrings/halo/updater.md
       - initialization:
           - "allocator": docstrings/initialization/allocator.md
-          - "sizer": docstrings/initialization/sizer.md
+          - "grid_sizer": docstrings/initialization/grid_sizer.md
+          - "subtile_grid_sizer": docstrings/initialization/subtile_grid_sizer.md
       - monitor:
           - "convert": docstrings/monitor/convert.md
           - "netcdf_monitor": docstrings/monitor/netcdf_monitor.md
@@ -95,6 +95,7 @@ nav:
           - "field_bundle": docstrings/quantity/field_bundle.md
           - "metadata": docstrings/quantity/metadata.md
           - "quantity": docstrings/quantity/quantity.md
+          - "state": docstrings/quantity/state.md
       - restart:
           - "_legacy_restart": docstrings/restart/_legacy_restart.md
           - "_properties": docstrings/restart/_properties.md
