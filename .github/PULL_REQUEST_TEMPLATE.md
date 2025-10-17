@@ -18,7 +18,7 @@ enough information so someone can reproduce your tests.
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+- [ ] I have made corresponding changes to the documentation (e.g. add new modules to docs/docstrings/)
 - [ ] My changes generate no new warnings
 - [ ] Any dependent changes have been merged and published in downstream modules
 - [ ] New check tests, if applicable, are included
