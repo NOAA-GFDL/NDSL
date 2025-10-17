@@ -3,7 +3,7 @@ from typing import Mapping
 import numpy as np
 
 
-def perturb(input: Mapping[str, np.ndarray]):
+def perturb(input: Mapping[str, np.ndarray]) -> None:
     """
     Adds roundoff-level noise to the input array in-place through multiplication.
 

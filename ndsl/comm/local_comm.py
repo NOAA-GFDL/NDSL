@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import copy
-from typing import Any
+from typing import Any, TypeVar
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator
 from ndsl.logging import ndsl_log
 from ndsl.utils import ensure_contiguous, safe_assign_array
+
+
+T = TypeVar("T")
 
 
 class ConcurrencyError(Exception):
@@ -14,40 +19,40 @@ class ConcurrencyError(Exception):
 
 
 class AsyncResult:
-    def __init__(self, result):
+    def __init__(self, result) -> None:  # type: ignore[no-untyped-def]
         self._result = result
 
-    def wait(self):
+    def wait(self):  # type: ignore[no-untyped-def]
         return self._result()
 
 
-class LocalComm(Comm):
-    def __init__(self, rank, total_ranks, buffer_dict):
+class LocalComm(Comm[T]):
+    def __init__(self, rank: int, total_ranks: int, buffer_dict: dict) -> None:
         self.rank = rank
         self.total_ranks = total_ranks
         self._buffer = buffer_dict
-        self._i_buffer = {}
+        self._i_buffer: dict = {}
 
     @property
-    def _split_comms(self):
+    def _split_comms(self) -> dict:
         self._buffer["split_comms"] = self._buffer.get("split_comms", {})
         return self._buffer["split_comms"]
 
     @property
-    def _split_buffers(self):
+    def _split_buffers(self) -> dict:
         self._buffer["split_buffers"] = self._buffer.get("split_buffers", {})
         return self._buffer["split_buffers"]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"LocalComm(rank={self.rank}, total_ranks={self.total_ranks})"
 
-    def Get_rank(self):
+    def Get_rank(self) -> int:
         return self.rank
 
-    def Get_size(self):
+    def Get_size(self) -> int:
         return self.total_ranks
 
-    def _get_buffer(self, buffer_type, in_value):
+    def _get_buffer(self, buffer_type: str, in_value: T | None) -> T:
         i_buffer = self._i_buffer.get(buffer_type, 0)
         self._i_buffer[buffer_type] = i_buffer + 1
         if buffer_type not in self._buffer:
@@ -56,7 +61,7 @@ class LocalComm(Comm):
             self._buffer[buffer_type].append(in_value)
         return self._buffer[buffer_type][i_buffer]
 
-    def _get_send_recv(self, from_rank, tag: int):
+    def _get_send_recv(self, from_rank, tag: int):  # type: ignore[no-untyped-def]
         key = (from_rank, self.rank, tag)
         if "send_recv" not in self._buffer:
             raise ConcurrencyError(
@@ -70,31 +75,31 @@ class LocalComm(Comm):
         return_value = self._buffer["send_recv"][key].pop(0)
         return return_value
 
-    def _put_send_recv(self, value, to_rank, tag: int):
+    def _put_send_recv(self, value, to_rank, tag: int) -> None:  # type: ignore[no-untyped-def]
         key = (self.rank, to_rank, tag)
         self._buffer["send_recv"] = self._buffer.get("send_recv", {})
         self._buffer["send_recv"][key] = self._buffer["send_recv"].get(key, [])
         self._buffer["send_recv"][key].append(copy.deepcopy(value))
 
     @property
-    def _bcast_buffer(self):
+    def _bcast_buffer(self) -> list:
         if "bcast" not in self._buffer:
             self._buffer["bcast"] = []
         return self._buffer["bcast"]
 
     @property
-    def _scatter_buffer(self):
+    def _scatter_buffer(self) -> list:
         if "scatter" not in self._buffer:
             self._buffer["scatter"] = []
         return self._buffer["scatter"]
 
     @property
-    def _gather_buffer(self):
+    def _gather_buffer(self) -> list:
         if "gather" not in self._buffer:
             self._buffer["gather"] = [None for i in range(self.total_ranks)]
         return self._buffer["gather"]
 
-    def bcast(self, value, root=0):
+    def bcast(self, value: T | None, root: int = 0) -> T | None:
         if root != 0:
             raise NotImplementedError(
                 "LocalComm assumes ranks are called in order, so root must be "
@@ -104,13 +109,13 @@ class LocalComm(Comm):
         ndsl_log.debug(f"bcast {value} to rank {self.rank}")
         return value
 
-    def Barrier(self):
+    def Barrier(self) -> None:
         return
 
-    def barrier(self):
+    def barrier(self) -> None:
         return
 
-    def Scatter(self, sendbuf, recvbuf, root=0, **kwargs):
+    def Scatter(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         ensure_contiguous(sendbuf)
         ensure_contiguous(recvbuf)
         if root != 0:
@@ -124,7 +129,7 @@ class LocalComm(Comm):
             sendbuf = self._get_buffer("scatter", None)
         safe_assign_array(recvbuf, sendbuf[self.rank])
 
-    def Gather(self, sendbuf, recvbuf, root=0, **kwargs):
+    def Gather(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         ensure_contiguous(sendbuf)
         ensure_contiguous(recvbuf)
         gather_buffer = self._gather_buffer
@@ -141,47 +146,47 @@ class LocalComm(Comm):
             for i, sendbuf in enumerate(gather_buffer):
                 safe_assign_array(recvbuf[i, :], sendbuf)
 
-    def allgather(self, sendobj):
+    def allgather(self, sendobj: T) -> list[T]:
         raise NotImplementedError(
             "cannot implement allgather on local comm due to its inherent parallelism"
         )
 
-    def Send(self, sendbuf, dest, tag: int = 0, **kwargs):
+    def Send(self, sendbuf, dest, tag: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         ensure_contiguous(sendbuf)
         self._put_send_recv(sendbuf, dest, tag)
 
-    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs):
+    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         result = self.Send(sendbuf, dest, tag)
 
-        def send():
+        def send():  # type: ignore[no-untyped-def]
             return result
 
         return AsyncResult(send)
 
-    def Recv(self, recvbuf, source, tag: int = 0, **kwargs):
+    def Recv(self, recvbuf, source, tag: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         ensure_contiguous(recvbuf)
         safe_assign_array(recvbuf, self._get_send_recv(source, tag))
 
-    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs):
-        def receive():
+    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
+        def receive():  # type: ignore[no-untyped-def]
             return self.Recv(recvbuf, source, tag)
 
         return AsyncResult(receive)
 
-    def sendrecv(self, sendbuf, dest, **kwargs):
+    def sendrecv(self, sendbuf, dest, **kwargs: dict):  # type: ignore[no-untyped-def]
         raise NotImplementedError(
             "sendrecv fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"
         )
 
-    def Split(self, color, key):
+    def Split(self, color, key) -> LocalComm:  # type: ignore[no-untyped-def]
         # key argument is ignored, assumes we're calling the ranks from least to
         # greatest when mocking Split
         self._split_comms[color] = self._split_comms.get(color, [])
         self._split_buffers[color] = self._split_buffers.get(color, {})
         rank = len(self._split_comms[color])
         total_ranks = rank + 1
-        new_comm = LocalComm(
+        new_comm: LocalComm = LocalComm(
             rank=rank, total_ranks=total_ranks, buffer_dict=self._split_buffers[color]
         )
         for comm in self._split_comms[color]:
@@ -189,13 +194,13 @@ class LocalComm(Comm):
         self._split_comms[color].append(new_comm)
         return new_comm
 
-    def allreduce(self, sendobj, op=None, recvobj=None) -> Any:
+    def allreduce(self, sendobj, op=None, recvobj=None) -> Any:  # type: ignore[no-untyped-def]
         raise NotImplementedError(
             "allreduce fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"
         )
 
-    def Allreduce(self, sendobj, recvobj, op) -> Any:
+    def Allreduce(self, sendobj, recvobj, op) -> Any:  # type: ignore[no-untyped-def]
         raise NotImplementedError(
             "Allreduce fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"

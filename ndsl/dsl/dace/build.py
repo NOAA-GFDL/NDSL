@@ -1,5 +1,3 @@
-from typing import List, Optional, Tuple
-
 from dace import config as dace_conf
 from dace.sdfg import SDFG
 from gt4py.cartesian import config as gt_config
@@ -13,7 +11,7 @@ from ndsl.logging import ndsl_log
 # Distributed compilation
 
 
-def unblock_waiting_tiles(comm, sdfg_path: str) -> None:
+def unblock_waiting_tiles(comm, sdfg_path: str) -> None:  # type: ignore
     if comm and comm.Get_size() > 1:
         for tile in range(1, 6):
             tilesize = comm.Get_size() / 6
@@ -25,8 +23,8 @@ def build_info_filepath() -> str:
 
 
 def write_build_info(
-    sdfg: SDFG, layout: Tuple[int, int], resolution_per_tile: List[int], backend: str
-):
+    sdfg: SDFG, layout: tuple[int, int], resolution_per_tile: list[int], backend: str
+) -> None:
     """Write down all relevant information on the build to identify
     it at load time."""
     # Dev NOTE: we should be able to leverage sdfg.make_key to get a hash or
@@ -50,9 +48,9 @@ def write_build_info(
 def get_sdfg_path(
     daceprog_name: str,
     config: DaceConfig,
-    sdfg_file_path: Optional[str] = None,
-    override_run_only=False,
-) -> Optional[str]:
+    sdfg_file_path: str | None = None,
+    override_run_only: bool = False,
+) -> str | None:
     """Build an SDFG path from the qualified program name or it's direct path to .sdfg
 
     Args:
@@ -108,7 +106,7 @@ def get_sdfg_path(
     return sdfg_dir_path
 
 
-def set_distributed_caches(config: DaceConfig):
+def set_distributed_caches(config: DaceConfig) -> None:
     """In Run mode, check required file then point current rank cache to source cache"""
 
     # Execute specific initialization per orchestration state

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, Self, TypeAlias
 
 import dacite
@@ -44,7 +45,7 @@ class State:
     def _init(cls, quantity_factory_allocator: Callable) -> Self:
         """Allocate memory and init with a blind quantity init operation"""
 
-        def _init_recursive(cls):
+        def _init_recursive(cls: Any) -> dict:
             initial_quantities = {}
             for _field in dataclasses.fields(cls):
                 if dataclasses.is_dataclass(_field.type):
@@ -76,20 +77,25 @@ class State:
         """INTERNAL: QuantityFactory carry a sizer which has a full definition of the dimensions.
         It's this sizer that is leveraged for the factory to figure out allocations.
         In a regular pattern of use, data dimensions fields tend to be _the exception_ rather
-        than the rule and therefor would need a Factory defined _for a few cases_.
-        We bring this tool to override temporarly the allocations based on a single descriptions of
-        the data dimenions at allocation time.
+        than the rule and therefore would need a Factory defined _for a few cases_.
+        We bring this tool to override temporarily the allocations based on a single descriptions of
+        the data dimensions at allocation time.
         """
 
         def __init__(self, factory: QuantityFactory, ddims: dict[str, int]):
             self._ddims = ddims
             self._factory = factory
 
-        def __enter__(self):
+        def __enter__(self) -> None:
             self._original_dims = self._factory.sizer.extra_dim_lengths
             self._factory.sizer.extra_dim_lengths = self._ddims
 
-        def __exit__(self, type, value, traceback):
+        def __exit__(
+            self,
+            type: type[BaseException] | None,
+            value: BaseException | None,
+            traceback: TracebackType | None,
+        ) -> None:
             self._factory.sizer.extra_dim_lengths = self._original_dims
 
     @classmethod
@@ -217,7 +223,7 @@ class State:
             memory_map: Dict of name/buffer. See `update_from_memory`.
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
-            check_shape_and_strides: Check for evey given buffer that the shape & strides match the
+            check_shape_and_strides: Check for every given buffer that the shape & strides match the
                 previously allocated memory.
         """
 
@@ -275,7 +281,7 @@ class State:
         def _update_from_memory_recursive(
             state: State,
             memory_map: StateMemoryMapping,
-        ):
+        ) -> None:
             for name, array in memory_map.items():
                 if array is None:
                     raise TypeError(
@@ -335,7 +341,9 @@ class State:
                 shape and strides as the original quantity
         """
 
-        def _update_zero_copy_recursive(state: State, memory_map: StateMemoryMapping):
+        def _update_zero_copy_recursive(
+            state: State, memory_map: StateMemoryMapping
+        ) -> None:
             for name, array in memory_map.items():
                 if array is None:
                     state.__setattr__(name, None)
@@ -377,7 +385,7 @@ class State:
         """
         Save state to NetCDF. Can be reloaded with `update_from_netcdf`.
 
-        If applicable, will save seperate NetCDF files for each running rank.
+        If applicable, will save separate NetCDF files for each running rank.
 
         The file names are deduced from the class name, and post fix with rank number
         in the case of a multi-process use.
@@ -386,7 +394,7 @@ class State:
             directory_path: directory to save the netcdf in
         """
 
-        def _save_recursive(state: State):
+        def _save_recursive(state: State) -> dict:
             local_data = {}
             for _field in dataclasses.fields(state):
                 if dataclasses.is_dataclass(_field.type):
@@ -433,7 +441,9 @@ class State:
         datatree_as_dict = datatree.to_dict()
 
         # All other cases - recursing downward
-        def _load_recursive(data_tree_as_dict: dict[str, xr.Dataset] | xr.Dataset):
+        def _load_recursive(
+            data_tree_as_dict: dict[str, xr.Dataset] | xr.Dataset,
+        ) -> dict:
             local_data_dict = {}
             for name, data_array in data_tree_as_dict.items():
                 # Case of the top_level "/"

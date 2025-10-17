@@ -23,10 +23,10 @@ class FV3CodePath(enum.Enum):
     Bottom = "FV3_B"
     Center = "FV3_C"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.value
 
     def __format__(self, format_spec: str) -> str:

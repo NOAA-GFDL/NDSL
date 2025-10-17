@@ -96,7 +96,7 @@ BoolFieldIJ = Field[gtscript.IJ, Bool]
 Index3D = Tuple[int, int, int]
 
 
-def set_4d_field_size(n, dtype):
+def set_4d_field_size(n: int, dtype: type):  # type: ignore[no-untyped-def]
     """
     Defines a 4D field with a given size and type
     The extra data dimension is not parallel
@@ -110,7 +110,7 @@ def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     return val
 
 
-def is_float(dtype: type):
+def is_float(dtype: type) -> bool:
     """Expected floating point type"""
     return dtype in [
         Float,

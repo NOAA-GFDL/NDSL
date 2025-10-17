@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 import os
-from typing import Any
+from typing import Any, Self
 
 import dace.config
 from dace.frontend.python.parser import DaceProgram
@@ -55,23 +55,23 @@ def _is_corner(rank: int, partitioner: Partitioner) -> bool:
     return False
 
 
-def _smallest_rank_bottom(x: int, y: int, layout: tuple[int, int]):
+def _smallest_rank_bottom(x: int, y: int, layout: tuple[int, int]) -> bool:
     return y == 0 and x == 1
 
 
-def _smallest_rank_top(x: int, y: int, layout: tuple[int, int]):
+def _smallest_rank_top(x: int, y: int, layout: tuple[int, int]) -> bool:
     return y == layout[1] - 1 and x == 1
 
 
-def _smallest_rank_left(x: int, y: int, layout: tuple[int, int]):
+def _smallest_rank_left(x: int, y: int, layout: tuple[int, int]) -> bool:
     return x == 0 and y == 1
 
 
-def _smallest_rank_right(x: int, y: int, layout: tuple[int, int]):
+def _smallest_rank_right(x: int, y: int, layout: tuple[int, int]) -> bool:
     return x == layout[0] - 1 and y == 1
 
 
-def _smallest_rank_middle(x: int, y: int, layout: tuple[int, int]):
+def _smallest_rank_middle(x: int, y: int, layout: tuple[int, int]) -> bool:
     return layout[0] > 1 and layout[1] > 1 and x == 1 and y == 1
 
 
@@ -386,7 +386,7 @@ class DaceConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> Self:
         config = cls(
             None,
             backend=data["_backend"],

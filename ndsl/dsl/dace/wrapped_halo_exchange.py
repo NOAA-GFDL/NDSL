@@ -18,7 +18,7 @@ class WrappedHaloUpdater:
     def __init__(
         self,
         updater: HaloUpdater,
-        state,
+        state: Any,  # no typehint on purpose to avoid dependency on PyFV3
         qty_x_names: list[str],
         qty_y_names: list[str] | None = None,
         comm: Communicator | None = None,
@@ -30,7 +30,7 @@ class WrappedHaloUpdater:
         self._comm = comm
 
     @staticmethod
-    def check_for_attribute(state: Any, attr: str):
+    def check_for_attribute(state: Any, attr: str) -> bool:
         if dataclasses.is_dataclass(state):
             return state.__getattribute__(attr)  # type: ignore
         if isinstance(state, dict):
@@ -38,11 +38,11 @@ class WrappedHaloUpdater:
         return False
 
     @dace_inhibitor
-    def start(self):
+    def start(self) -> None:
         if self._qtx_y_names is None:
             if dataclasses.is_dataclass(self._state):
                 self._updater.start(
-                    [self._state.__getattribute__(x) for x in self._qtx_x_names]
+                    [self._state.__getattribute__(x) for x in self._qtx_x_names]  # type: ignore
                 )
             elif isinstance(self._state, dict):
                 self._updater.start([self._state[x] for x in self._qtx_x_names])
@@ -51,8 +51,8 @@ class WrappedHaloUpdater:
         else:
             if dataclasses.is_dataclass(self._state):
                 self._updater.start(
-                    [self._state.__getattribute__(x) for x in self._qtx_x_names],
-                    [self._state.__getattribute__(y) for y in self._qtx_y_names],
+                    [self._state.__getattribute__(x) for x in self._qtx_x_names],  # type: ignore
+                    [self._state.__getattribute__(y) for y in self._qtx_y_names],  # type: ignore
                 )
             elif isinstance(self._state, dict):
                 self._updater.start(
@@ -63,16 +63,18 @@ class WrappedHaloUpdater:
                 raise NotImplementedError
 
     @dace_inhibitor
-    def wait(self):
+    def wait(self) -> None:
         self._updater.wait()
 
     @dace_inhibitor
-    def update(self):
+    def update(self) -> None:
         self.start()
         self.wait()
 
     @dace_inhibitor
-    def interface(self):
+    def interface(self) -> None:
+        assert self._comm is not None
+        assert self._qtx_y_names is not None
         assert len(self._qtx_x_names) == 1
         assert len(self._qtx_y_names) == 1
         self._comm.synchronize_vector_interfaces(
