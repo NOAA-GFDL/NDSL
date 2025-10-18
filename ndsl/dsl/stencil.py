@@ -3,20 +3,8 @@ from __future__ import annotations
 import copy
 import dataclasses
 import inspect
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any, Optional, Union, cast
 
 import dace
 import numpy as np
@@ -88,8 +76,8 @@ class TimingCollector:
         exec_info: contains info about the execution of each stencil.
     """
 
-    build_info: Dict[str, dict] = dataclasses.field(default_factory=dict)
-    exec_info: Dict[str, Any] = dataclasses.field(
+    build_info: dict[str, dict] = dataclasses.field(default_factory=dict)
+    exec_info: dict[str, Any] = dataclasses.field(
         default_factory=lambda: {"__aggregate_data": True}
     )
 
@@ -106,7 +94,7 @@ class TimingCollector:
 
     @staticmethod
     def _show_report(
-        infos: Dict[str, Any],
+        infos: dict[str, Any],
         keys: Iterable[str],
         secondary_key: str,
         *,
@@ -127,7 +115,7 @@ class TimingCollector:
 
         format = f".{digits}e"
 
-        outputs: List[str] = [f"Total: {sum(d[1] for d in data):{format}}"]
+        outputs: list[str] = [f"Total: {sum(d[1] for d in data):{format}}"]
         for name, val in sorted_data:
             if len(name) > name_width:
                 width = int(name_width / 2) - 3
@@ -152,7 +140,7 @@ class CompareToNumpyStencil:
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
         domain: tuple[int, ...],
         stencil_config: StencilConfig,
         externals: Mapping[str, Any] | None = None,
@@ -261,7 +249,7 @@ class FrozenStencil(SDFGConvertible):
         domain: tuple[int, ...],
         stencil_config: StencilConfig,
         externals: Mapping[str, Any] | None = None,
-        skip_passes: Tuple[str, ...] = (),
+        skip_passes: tuple[str, ...] = (),
         timing_collector: TimingCollector | None = None,
         comm: Comm | None = None,
     ):
@@ -366,12 +354,12 @@ class FrozenStencil(SDFGConvertible):
         )
         field_info = self.stencil_object.field_info
 
-        self._field_origins: Dict[str, Tuple[int, ...]] = (
+        self._field_origins: dict[str, tuple[int, ...]] = (
             FrozenStencil._compute_field_origins(field_info, self.origin)
         )
         """Mapping from field names to field origins"""
 
-        self._stencil_run_kwargs: Dict[str, Any] = {
+        self._stencil_run_kwargs: dict[str, Any] = {
             "_origin_": self._field_origins,
             "_domain_": self.domain,
         }
@@ -615,7 +603,7 @@ class GridIndexing:
         # TODO: if this class is refactored to split off the *_edge booleans,
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
-            Tuple[int, int, int],
+            tuple[int, int, int],
             sizer.get_extent([X_DIM, Y_DIM, Z_DIM]),
         )
         south_edge = comm.tile.partitioner.on_tile_bottom(comm.rank)
@@ -779,7 +767,7 @@ class GridIndexing:
 
     def get_origin_domain(
         self, dims: Sequence[str], halos: Sequence[int] = tuple()
-    ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """
         Get the origin and domain for a computation that occurs over a certain grid
         configuration (given by dims) and a certain number of halo points.
@@ -802,7 +790,7 @@ class GridIndexing:
     def get_2d_compute_origin_domain(
         self,
         klevel: int = 0,
-    ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """
         Get the origin and domain for a computation that occurs on the lowest klevel over a certain grid
         configuration (given by dims) and a certain number of halo points.
@@ -818,7 +806,7 @@ class GridIndexing:
         domain = (self.iec + 1 - self.isc, self.jec + 1 - self.jsc, 1)
         return (origin, domain)
 
-    def _origin_from_dims(self, dims: Iterable[str]) -> List[int]:
+    def _origin_from_dims(self, dims: Iterable[str]) -> list[int]:
         return_origin = []
         for dim in dims:
             if dim in X_DIMS:
@@ -831,7 +819,7 @@ class GridIndexing:
 
     def get_shape(
         self, dims: Sequence[str], halos: Sequence[int] = tuple()
-    ) -> Tuple[int, ...]:
+    ) -> tuple[int, ...]:
         """
         Get the storage shape required for an array with the given dimensions
         which is accessed up to a given number of halo points.
@@ -924,10 +912,10 @@ class StencilFactory:
     def from_origin_domain(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: Union[tuple[int, ...], Mapping[str, tuple[int, ...]]],
+        domain: tuple[int, ...],
         externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Tuple[str, ...] = (),
+        skip_passes: tuple[str, ...] = (),
     ) -> Union[FrozenStencil, CompareToNumpyStencil]:
         """
         Args:
@@ -939,7 +927,7 @@ class StencilFactory:
             skip_passes: compiler passes to skip when building stencil
         """
         if self.config.compare_to_numpy:
-            cls: Type = CompareToNumpyStencil
+            cls: type = CompareToNumpyStencil
         else:
             cls = FrozenStencil
         return cls(
@@ -959,7 +947,7 @@ class StencilFactory:
         compute_dims: Sequence[str],
         compute_halos: Sequence[int] = tuple(),
         externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Tuple[str, ...] = (),
+        skip_passes: tuple[str, ...] = (),
     ) -> Union[FrozenStencil, CompareToNumpyStencil]:
         """
         Initialize a stencil from dimensions and number of halo points.
@@ -1014,11 +1002,11 @@ class StencilFactory:
 
 def get_stencils_with_varied_bounds(
     func: Callable[..., None],
-    origins: List[Index3D],
-    domains: List[Index3D],
+    origins: list[Index3D],
+    domains: list[Index3D],
     stencil_factory: StencilFactory,
     externals: Optional[Mapping[str, Any]] = None,
-) -> List[Union[FrozenStencil, CompareToNumpyStencil]]:
+) -> list[Union[FrozenStencil, CompareToNumpyStencil]]:
     assert len(origins) == len(domains), (
         "Lists of origins and domains need to have the same length, you provided "
         + str(len(origins))

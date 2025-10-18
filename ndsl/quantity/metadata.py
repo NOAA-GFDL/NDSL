@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Union
 
 import numpy as np
 
@@ -15,11 +15,11 @@ if cupy is None:
 
 @dataclasses.dataclass
 class QuantityMetadata:
-    origin: Tuple[int, ...]
+    origin: tuple[int, ...]
     "the start of the computational domain"
-    extent: Tuple[int, ...]
+    extent: tuple[int, ...]
     "the shape of the computational domain"
-    dims: Tuple[str, ...]
+    dims: tuple[str, ...]
     "names of each dimension"
     units: str
     "units of the quantity"
@@ -31,7 +31,7 @@ class QuantityMetadata:
     "backend to use for gt4py storages"
 
     @property
-    def dim_lengths(self) -> Dict[str, int]:
+    def dim_lengths(self) -> dict[str, int]:
         """mapping of dimension names to their lengths"""
         return dict(zip(self.dims, self.extent))
 
@@ -62,11 +62,11 @@ class QuantityHaloSpec:
     """Describe the memory to be exchanged, including size of the halo."""
 
     n_points: int
-    strides: Tuple[int]
+    strides: tuple[int]
     itemsize: int
-    shape: Tuple[int]
-    origin: Tuple[int, ...]
-    extent: Tuple[int, ...]
-    dims: Tuple[str, ...]
+    shape: tuple[int]
+    origin: tuple[int, ...]
+    extent: tuple[int, ...]
+    dims: tuple[str, ...]
     numpy_module: NumpyModule
     dtype: Any

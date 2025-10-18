@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Mapping, Optional, Self, Sequence, Union, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, Optional, Self, Union, cast
 
 import numpy as np
 

@@ -1,5 +1,4 @@
 # type: ignore
-from typing import Dict, Tuple
 
 import numpy as np
 
@@ -380,11 +379,11 @@ class Grid:
         }
         return {**self.default_domain_dict(), **horizontal_dict}
 
-    def domain_shape_full(self, *, add: Tuple[int, int, int] = (0, 0, 0)):
+    def domain_shape_full(self, *, add: tuple[int, int, int] = (0, 0, 0)):
         """Domain shape for the full array including halo points."""
         return (self.nid + add[0], self.njd + add[1], self.npz + add[2])
 
-    def domain_shape_compute(self, *, add: Tuple[int, int, int] = (0, 0, 0)):
+    def domain_shape_compute(self, *, add: tuple[int, int, int] = (0, 0, 0)):
         """Compute domain shape excluding halo points."""
         return (self.nic + add[0], self.njc + add[1], self.npz + add[2])
 
@@ -413,11 +412,11 @@ class Grid:
     def vvar_edge_halo(self, var):
         return self.copy_right_edge(var, self.ie + 1, self.je + 2)
 
-    def compute_origin(self, add: Tuple[int, int, int] = (0, 0, 0)):
+    def compute_origin(self, add: tuple[int, int, int] = (0, 0, 0)):
         """Start of the compute domain (e.g. (halo, halo, 0))"""
         return (self.is_ + add[0], self.js + add[1], add[2])
 
-    def full_origin(self, add: Tuple[int, int, int] = (0, 0, 0)):
+    def full_origin(self, add: tuple[int, int, int] = (0, 0, 0)):
         """Start of the full array including halo points (e.g. (0, 0, 0))"""
         return (self.isd + add[0], self.jsd + add[1], add[2])
 
@@ -483,7 +482,7 @@ class Grid:
         # The translate code pads ndarray axes with zeros in certain cases,
         # in particular the vertical axis. Since we're deprecating those tests,
         # we simply "fix" those arrays here.
-        clipped_data: Dict[str, Quantity] = {}
+        clipped_data: dict[str, Quantity] = {}
         for name in (
             "ee1",
             "ee2",

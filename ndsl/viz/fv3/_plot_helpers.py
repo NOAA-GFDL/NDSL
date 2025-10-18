@@ -1,5 +1,5 @@
 import textwrap
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 
@@ -157,7 +157,7 @@ def infer_cmap_params(
     vmax: Optional[float] = None,
     cmap: Optional[str] = None,
     robust: bool = False,
-) -> Tuple[float, float, str]:
+) -> tuple[float, float, str]:
     """Determine useful colorbar limits and cmap for given data.
 
     Args:

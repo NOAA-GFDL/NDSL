@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Sequence
+from typing import Optional
 from uuid import UUID, uuid1
 
 import numpy as np

@@ -1,4 +1,5 @@
-from typing import Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Union
 
 import numpy as np
 
@@ -104,12 +105,12 @@ class BoundedArrayView:
         )
 
     @property
-    def origin(self) -> Tuple[int, ...]:
+    def origin(self) -> tuple[int, ...]:
         """the start of the computational domain"""
         return self._origin
 
     @property
-    def extent(self) -> Tuple[int, ...]:
+    def extent(self) -> tuple[int, ...]:
         """the shape of the computational domain"""
         return self._extent
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
+from collections.abc import Iterable, Sequence
+from typing import Any, Optional, Union, cast
 
 import dace
 import matplotlib.pyplot as plt
@@ -150,7 +151,7 @@ class Quantity:
             raise ValueError("need units attribute to create Quantity from DataArray")
         return cls(
             data_array.values,
-            cast(Tuple[str], data_array.dims),
+            cast(tuple[str], data_array.dims),
             data_array.attrs["units"],
             origin=origin,
             extent=extent,
@@ -203,7 +204,7 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):  # type: ignore
+    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: tuple):  # type: ignore
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
         storage = gt_storage.from_array(
             data,
@@ -282,12 +283,12 @@ class Quantity:
         )
 
     @property
-    def origin(self) -> Tuple[int, ...]:
+    def origin(self) -> tuple[int, ...]:
         """The start of the computational domain"""
         return self.metadata.origin
 
     @property
-    def extent(self) -> Tuple[int, ...]:
+    def extent(self) -> tuple[int, ...]:
         """The shape of the computational domain"""
         return self.metadata.extent
 

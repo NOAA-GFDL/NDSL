@@ -1,4 +1,5 @@
-from typing import Iterable, Mapping, Union
+from collections.abc import Iterable, Mapping
+from typing import Union
 
 from ..constants import (
     X_DIM,

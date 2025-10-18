@@ -1,5 +1,5 @@
 import copy
-from typing import Tuple, TypeVar, Union
+from typing import TypeVar, Union
 
 import numpy as np
 
@@ -17,7 +17,7 @@ def direct_transform(
     lon_target: float,
     lat_target: float,
     np,
-) -> Tuple[T, T]:
+) -> tuple[T, T]:
     """
     The direct_transform subroutine from fv_grid_utils.F90.
     Takes in latitude and longitude in radians.

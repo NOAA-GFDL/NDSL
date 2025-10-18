@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -29,8 +29,8 @@ def pad_field_in_j(field, nj: int, backend: str):
 
 
 def as_numpy(
-    value: Union[Dict[str, Any], Quantity, np.ndarray],
-) -> Union[np.ndarray, Dict[str, np.ndarray]]:
+    value: Union[dict[str, Any], Quantity, np.ndarray],
+) -> Union[np.ndarray, dict[str, np.ndarray]]:
     def _convert(value: Union[Quantity, np.ndarray]) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
@@ -69,13 +69,13 @@ class TranslateFortranData2Py:
     ):
         self.origin = origin
         self.stencil_factory = stencil_factory
-        self.in_vars: Dict[str, Any] = {"data_vars": {}, "parameters": []}
-        self.out_vars: Dict[str, Any] = {}
-        self.write_vars: List = []
+        self.in_vars: dict[str, Any] = {"data_vars": {}, "parameters": []}
+        self.out_vars: dict[str, Any] = {}
+        self.write_vars: list = []
         self.grid = grid
-        self.maxshape: Tuple[int, ...] = grid.domain_shape_full(add=(1, 1, 1))
+        self.maxshape: tuple[int, ...] = grid.domain_shape_full(add=(1, 1, 1))
         self.ordered_input_vars = None
-        self.ignore_near_zero_errors: Dict[str, Any] = {}
+        self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
 
     def extra_data_load(self, data_loader: DataLoader):
@@ -106,7 +106,7 @@ class TranslateFortranData2Py:
 
         Hypothesis: `inputs` are `gt4py.storages`
 
-        Return: Outputs in the form of a Dict[str, gt4py.storages]
+        Return: Outputs in the form of a dict[str, gt4py.storages]
         """
         outputs = self.compute_func(**inputs)
         if outputs is not None:
@@ -130,9 +130,9 @@ class TranslateFortranData2Py:
         istart: int = 0,
         jstart: int = 0,
         kstart: int = 0,
-        dummy_axes: Optional[Tuple[int, int, int]] = None,
+        dummy_axes: Optional[tuple[int, int, int]] = None,
         axis: int = 2,
-        names_4d: Optional[List[str]] = None,
+        names_4d: Optional[list[str]] = None,
         read_only: bool = False,
         full_shape: bool = False,
     ) -> Field:
@@ -140,7 +140,7 @@ class TranslateFortranData2Py:
 
         `array` is copied. Takes care of the device upload if necessary.
 
-        Return: Array in the form of a Dict[str, gt4py.storages]
+        Return: Array in the form of a dict[str, gt4py.storages]
         """
         use_shape = list(self.maxshape)
         if dummy_axes:

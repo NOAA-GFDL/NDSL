@@ -2,7 +2,7 @@ import copy
 import os.path
 import subprocess
 from collections.abc import Mapping
-from typing import List, Protocol
+from typing import Protocol
 
 import numpy as np
 
@@ -56,8 +56,8 @@ class AbstractPerformanceCollector(Protocol):
 
 class PerformanceCollector(AbstractPerformanceCollector):
     def __init__(self, experiment_name: str, comm: Comm) -> None:
-        self.times_per_step: List[Mapping[str, float]] = []
-        self.hits_per_step: List[Mapping[str, int]] = []
+        self.times_per_step: list[Mapping[str, float]] = []
+        self.hits_per_step: list[Mapping[str, int]] = []
         self.timestep_timer = Timer()
         self.total_timer = Timer()
         self.experiment_name = experiment_name
@@ -84,7 +84,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
             while {} in self.hits_per_step:
                 self.hits_per_step.remove({})
             keys = collect_keys_from_data(self.times_per_step)
-            data: List[float] = []
+            data: list[float] = []
             timing_info = {}
             for timer_name in keys:
                 data.clear()

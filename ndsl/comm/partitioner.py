@@ -3,7 +3,8 @@ from __future__ import annotations
 import abc
 import copy
 import functools
-from typing import Callable, Optional, Self, Sequence, TypeVar, Union, cast
+from collections.abc import Callable, Sequence
+from typing import Optional, Self, TypeVar, Union, cast
 
 import f90nml
 import numpy as np

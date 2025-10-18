@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
+from collections.abc import Callable, Generator, Iterable
+from typing import Optional
 
 import numpy as np
 from numpy.lib.index_tricks import IndexExpression
@@ -16,8 +17,8 @@ from ndsl.utils import (
 )
 
 
-BufferKey = Tuple[Callable, Iterable[int], type]
-BUFFER_CACHE: Dict[BufferKey, List["Buffer"]] = {}
+BufferKey = tuple[Callable, Iterable[int], type]
+BUFFER_CACHE: dict[BufferKey, list["Buffer"]] = {}
 
 
 class Buffer:
