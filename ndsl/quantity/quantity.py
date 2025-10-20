@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Iterable, Sequence
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, cast
 
 import dace
 import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ class Quantity:
         units: str,
         origin: Optional[Sequence[int]] = None,
         extent: Optional[Sequence[int]] = None,
-        gt4py_backend: Union[str, None] = None,
+        gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
     ):
         """
@@ -191,7 +191,7 @@ class Quantity:
             f"    extent={self.extent}\n)"
         )
 
-    def sel(self, **kwargs: Union[slice, int]) -> np.ndarray:
+    def sel(self, **kwargs: slice | int) -> np.ndarray:
         """Convenience method to perform indexing on `view` using dimension names
         without knowing dimension order.
 
@@ -225,7 +225,7 @@ class Quantity:
         return self.metadata.units
 
     @property
-    def gt4py_backend(self) -> Union[str, None]:
+    def gt4py_backend(self) -> str | None:
         return self.metadata.gt4py_backend
 
     @property
@@ -329,7 +329,7 @@ class Quantity:
 
     def transpose(
         self,
-        target_dims: Sequence[Union[str, Iterable[str]]],
+        target_dims: Sequence[str | Iterable[str]],
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Change the dimension order of this Quantity.

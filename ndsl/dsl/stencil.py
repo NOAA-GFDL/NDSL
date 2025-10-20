@@ -4,7 +4,7 @@ import copy
 import dataclasses
 import inspect
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, cast
 
 import dace
 import numpy as np
@@ -912,11 +912,11 @@ class StencilFactory:
     def from_origin_domain(
         self,
         func: Callable[..., None],
-        origin: Union[tuple[int, ...], Mapping[str, tuple[int, ...]]],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
         domain: tuple[int, ...],
         externals: Optional[Mapping[str, Any]] = None,
         skip_passes: tuple[str, ...] = (),
-    ) -> Union[FrozenStencil, CompareToNumpyStencil]:
+    ) -> FrozenStencil | CompareToNumpyStencil:
         """
         Args:
             func: stencil definition function
@@ -948,7 +948,7 @@ class StencilFactory:
         compute_halos: Sequence[int] = tuple(),
         externals: Optional[Mapping[str, Any]] = None,
         skip_passes: tuple[str, ...] = (),
-    ) -> Union[FrozenStencil, CompareToNumpyStencil]:
+    ) -> FrozenStencil | CompareToNumpyStencil:
         """
         Initialize a stencil from dimensions and number of halo points.
 
@@ -1006,7 +1006,7 @@ def get_stencils_with_varied_bounds(
     domains: list[Index3D],
     stencil_factory: StencilFactory,
     externals: Optional[Mapping[str, Any]] = None,
-) -> list[Union[FrozenStencil, CompareToNumpyStencil]]:
+) -> list[FrozenStencil | CompareToNumpyStencil]:
     assert len(origins) == len(domains), (
         "Lists of origins and domains need to have the same length, you provided "
         + str(len(origins))

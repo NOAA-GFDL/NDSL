@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 
@@ -29,9 +29,9 @@ def pad_field_in_j(field, nj: int, backend: str):
 
 
 def as_numpy(
-    value: Union[dict[str, Any], Quantity, np.ndarray],
-) -> Union[np.ndarray, dict[str, np.ndarray]]:
-    def _convert(value: Union[Quantity, np.ndarray]) -> np.ndarray:
+    value: dict[str, Any] | Quantity | np.ndarray,
+) -> np.ndarray | dict[str, np.ndarray]:
+    def _convert(value: Quantity | np.ndarray) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
         elif cp is not None and isinstance(value, cp.ndarray):

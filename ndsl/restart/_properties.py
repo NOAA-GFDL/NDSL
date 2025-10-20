@@ -1,5 +1,4 @@
 from collections.abc import Iterable, Mapping
-from typing import Union
 
 from ..constants import (
     X_DIM,
@@ -12,7 +11,7 @@ from ..constants import (
 )
 
 
-RestartProperties = Mapping[str, Mapping[str, Union[str, Iterable[str]]]]
+RestartProperties = Mapping[str, Mapping[str, str | Iterable[str]]]
 RESTART_PROPERTIES: RestartProperties = {
     "accumulated_x_courant_number": {
         "dims": [Z_DIM, Y_DIM, X_DIM],

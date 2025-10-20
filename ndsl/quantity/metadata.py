@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class QuantityMetadata:
     "ndarray-like type used to store the data"
     dtype: type
     "dtype of the data in the ndarray-like object"
-    gt4py_backend: Union[str, None] = None
+    gt4py_backend: str | None = None
     "backend to use for gt4py storages"
 
     @property

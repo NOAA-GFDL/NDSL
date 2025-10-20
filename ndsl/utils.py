@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Sequence
 from enum import EnumMeta
 from pathlib import Path
-from typing import TypeVar, Union
+from typing import TypeVar
 
 import f90nml
 import numpy as np
@@ -56,7 +56,7 @@ def is_c_contiguous(array: np.ndarray) -> bool:
     return array.flags["C_CONTIGUOUS"]
 
 
-def ensure_contiguous(maybe_array: Union[np.ndarray, None]) -> None:
+def ensure_contiguous(maybe_array: np.ndarray | None) -> None:
     if maybe_array is not None and not is_contiguous(maybe_array):
         raise BufferError("dlpack: buffer is not contiguous")
 

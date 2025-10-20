@@ -1,12 +1,12 @@
 import copy
-from typing import TypeVar, Union
+from typing import TypeVar
 
 import numpy as np
 
 from ndsl.quantity import Quantity
 
 
-T = TypeVar("T", bound=Union[Quantity, np.ndarray])
+T = TypeVar("T", bound=Quantity | np.ndarray)
 
 
 def direct_transform(

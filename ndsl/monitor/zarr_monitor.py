@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
-from typing import TypeVar, Union
+from typing import TypeVar
 
 import cftime
 import xarray as xr
@@ -42,7 +44,7 @@ class ZarrMonitor:
 
     def __init__(
         self,
-        store: Union[str, "zarr.storage.MutableMapping"],
+        store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
         mode: str = "w",
         mpi_comm: DummyComm = DummyComm(),
@@ -381,7 +383,7 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
         self.comm.barrier()
 
 
-def get_calendar(time: Union[datetime, timedelta, cftime.datetime]) -> str:
+def get_calendar(time: datetime | timedelta | cftime.datetime) -> str:
     try:
         return time.calendar  # type: ignore
     except AttributeError:

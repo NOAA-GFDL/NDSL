@@ -4,7 +4,7 @@ import abc
 import copy
 import functools
 from collections.abc import Callable, Sequence
-from typing import Optional, Self, TypeVar, Union, cast
+from typing import Optional, Self, TypeVar, cast
 
 import f90nml
 import numpy as np
@@ -100,7 +100,7 @@ class Partitioner(abc.ABC):
         global_dims: Sequence[str],
         global_extent: Sequence[int],
         overlap: bool = False,
-    ) -> tuple[Union[int, slice], ...]:
+    ) -> tuple[int | slice, ...]:
         """Return the subtile slice of a given rank on an array.
 
         Global refers to the domain being partitioned. For example, for a partitioning
@@ -178,7 +178,7 @@ class TilePartitioner(Partitioner):
         return self.layout[0] * self.layout[1]
 
     def global_extent(
-        self, rank_metadata: Union[Quantity, QuantityMetadata]
+        self, rank_metadata: Quantity | QuantityMetadata
     ) -> tuple[int, ...]:
         """Return the shape of a full tile representation for the given dimensions.
 
@@ -657,7 +657,7 @@ class CubedSpherePartitioner(Partitioner):
         global_dims: Sequence[str],
         global_extent: Sequence[int],
         overlap: bool = False,
-    ) -> tuple[Union[int, slice], ...]:
+    ) -> tuple[int | slice, ...]:
         """Return the subtile slice of a given rank on an array.
 
         Global refers to the domain being partitioned. For example, for a partitioning
@@ -768,7 +768,7 @@ def subtile_index(
     return j, i
 
 
-def is_even(value: Union[int, float]) -> bool:
+def is_even(value: int | float) -> bool:
     return value % 2 == 0
 
 

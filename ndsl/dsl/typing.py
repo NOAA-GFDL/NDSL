@@ -1,4 +1,4 @@
-from typing import TypeAlias, Union
+from typing import TypeAlias
 
 import numpy as np
 from gt4py.cartesian import gtscript
@@ -20,7 +20,7 @@ J = gtscript.J  # noqa: E741
 K = gtscript.K  # noqa: E741
 
 # Union of valid data types (from gt4py.cartesian.gtscript)
-DTypes = Union[bool, np.bool_, int, np.int32, np.int64, float, np.float32, np.float64]
+DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.float64
 
 
 def get_precision() -> int:

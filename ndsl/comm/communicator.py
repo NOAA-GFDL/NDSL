@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Mapping, Sequence
-from typing import Any, Optional, Self, Union, cast
+from typing import Any, Optional, Self, cast
 
 import numpy as np
 
@@ -440,8 +440,8 @@ class Communicator(abc.ABC):
 
     def vector_halo_update(
         self,
-        x_quantity: Union[Quantity, list[Quantity]],
-        y_quantity: Union[Quantity, list[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> None:
         """Perform a halo update of a horizontal vector quantity or quantities.
@@ -469,8 +469,8 @@ class Communicator(abc.ABC):
 
     def start_vector_halo_update(
         self,
-        x_quantity: Union[Quantity, list[Quantity]],
-        y_quantity: Union[Quantity, list[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> HaloUpdater:
         """Start an asynchronous halo update of a horizontal vector quantity.
@@ -683,7 +683,7 @@ class TileCommunicator(Communicator):
         return self
 
     def start_halo_update(
-        self, quantity: Union[Quantity, list[Quantity]], n_points: int
+        self, quantity: Quantity | list[Quantity], n_points: int
     ) -> HaloUpdater:
         """Start an asynchronous halo update on a quantity.
 
@@ -705,8 +705,8 @@ class TileCommunicator(Communicator):
 
     def start_vector_halo_update(
         self,
-        x_quantity: Union[Quantity, list[Quantity]],
-        y_quantity: Union[Quantity, list[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> HaloUpdater:
         """Start an asynchronous halo update of a horizontal vector quantity.
