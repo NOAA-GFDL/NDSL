@@ -3,6 +3,7 @@ from enum import Enum, auto
 from typing import Any
 
 from dace import SDFG, SDFGState
+from dace.data import create_datadescriptor
 from dace.frontend.common import op_repository as oprepo
 from dace.frontend.python.newast import ProgramVisitor
 
@@ -30,6 +31,25 @@ def _tracer_bundle_fill_tracer_3(
     pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
 ):
     raise NotImplementedError("let's just see if we get here 3")
+
+
+@oprepo.replaces("fill_tracer_by_name")
+def _fill_tracer_by_name(
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
+):
+    bundle = args[0]
+    tracer_name = args[1]
+    fill_value = args[2]
+
+    array_name = f"bundle_{bundle.type_name}"
+    if array_name not in sdfg.arrays:
+        sdfg.arrays[array_name] = create_datadescriptor(bundle.data.data)
+
+    # insert tasklet to assign the value
+
+    # connect tasklet. add missing inputs if necessary
+
+    raise NotImplementedError("let's see if we get here")
 
 
 class Region(Enum):
@@ -96,6 +116,7 @@ class TracerBundle:
         self._size = size
         self._name_mapping = mapping
         self._data_mapping: _TracerDataMapping = {}
+        self.type_name = type_name
 
     def __len__(self) -> int:
         """Number of tracers in this bundle."""

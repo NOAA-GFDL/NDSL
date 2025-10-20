@@ -1,6 +1,8 @@
 """This module includes integration tests for the `TracerBundle` class,
 testing whole workflows."""
 
+from typing import Any
+
 import pytest
 
 from ndsl import Quantity, StencilFactory, orchestrate
@@ -28,6 +30,12 @@ _TracerBundleStencilType, _TracerBundleDaCeType = TracerBundleTypeRegistry.regis
 )
 
 
+def fill_tracer_by_name(
+    bundle: TracerBundle, name: str, value: Any, *, write_halo: bool = False
+) -> None:
+    bundle.fill_tracer_by_name(name, value=value, compute_domain_only=not write_halo)
+
+
 class IceTracerSetup:
     def __init__(self, stencil_factory: StencilFactory):
         orchestrate(
@@ -38,8 +46,11 @@ class IceTracerSetup:
 
     def __call__(self, tracers: TracerBundle) -> None:
         bla = tracers.size()
-        tracers.ice.data[:] = 20 + bla
-        tracers.ice.field[:] = 10
+
+        # tracers.ice.data[:] = 20 + bla
+        fill_tracer_by_name(tracers, "ice", 20 + bla, write_halo=True)
+        # tracers.ice.field[:] = 10
+        fill_tracer_by_name(tracers, "ice", 10)
 
 
 @pytest.mark.parametrize("backend", ("numpy", "dace:cpu"))
@@ -60,7 +71,7 @@ def test_stencil_ice_tracer_setup(backend) -> None:
     setup = IceTracerSetup(stencil_factory)
     setup(tracers)
 
-    assert (tracers.ice.data[0] == 20).all()  # check a part of the halo
+    assert (tracers.ice.data[0] == 25).all()  # check a part of the halo
     assert (tracers.ice.field[:] == 10).all()  # check the compute domain
 
 
@@ -84,7 +95,7 @@ def test_orchestrated_ice_tracer_setup() -> None:
     setup = IceTracerSetup(stencil_factory)
     setup(tracers)
 
-    assert (tracers.ice.data[0] == 20).all()  # check a part of the halo
+    assert (tracers.ice.data[0] == 25).all()  # check a part of the halo
     assert (tracers.ice.field[:] == 10).all()  # check the compute domain
 
 
