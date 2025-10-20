@@ -1,7 +1,7 @@
 import collections
 import contextlib
 import os.path
-from typing import MutableMapping, Tuple
+from collections.abc import MutableMapping
 
 import numpy as np
 import xarray as xr
@@ -11,7 +11,7 @@ from ndsl.checkpointer.thresholds import SavepointThresholds, cast_to_ndarray
 
 
 def _clip_pace_array_to_target(
-    array: np.ndarray, target_shape: Tuple[int, ...]
+    array: np.ndarray, target_shape: tuple[int, ...]
 ) -> np.ndarray:
     """
     Clip an array from pace to align it to a target shape from target serialized data.
@@ -32,7 +32,7 @@ def _clip_pace_array_to_target(
 
 
 def _remove_buffer_if_needed(
-    array: np.ndarray, target_shape: Tuple[int, ...]
+    array: np.ndarray, target_shape: tuple[int, ...]
 ) -> np.ndarray:
     selection = []
     # both arrays are assumed to have the same staggering and an even number of
@@ -49,7 +49,7 @@ def _remove_buffer_if_needed(
 
 
 def _remove_symmetric_halos(
-    array: np.ndarray, target_shape: Tuple[int, ...]
+    array: np.ndarray, target_shape: tuple[int, ...]
 ) -> np.ndarray:
     selection = []
     for array_len, target_len in zip(array.shape, target_shape):

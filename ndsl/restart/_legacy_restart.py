@@ -1,6 +1,7 @@
 import copy
 import os
-from typing import BinaryIO, Generator, Iterable
+from collections.abc import Generator, Iterable
+from typing import BinaryIO
 
 import xarray as xr
 
