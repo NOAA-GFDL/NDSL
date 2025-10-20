@@ -4,7 +4,6 @@ import abc
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 from uuid import UUID, uuid1
 
 import numpy as np
@@ -179,8 +178,8 @@ class HaloDataTransformer(abc.ABC):
     returned to an internal buffer pool.
     """
 
-    _pack_buffer: Optional[Buffer]
-    _unpack_buffer: Optional[Buffer]
+    _pack_buffer: Buffer | None
+    _unpack_buffer: Buffer | None
 
     _infos_x: tuple[HaloExchangeSpec, ...]
     _infos_y: tuple[HaloExchangeSpec, ...]
@@ -189,7 +188,7 @@ class HaloDataTransformer(abc.ABC):
         self,
         np_module: NumpyModule,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
-        exchange_descriptors_y: Optional[Sequence[HaloExchangeSpec]] = None,
+        exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> None:
         """
         Args:
@@ -240,7 +239,7 @@ class HaloDataTransformer(abc.ABC):
     def get(
         np_module: NumpyModule,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
-        exchange_descriptors_y: Optional[Sequence[HaloExchangeSpec]] = None,
+        exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> HaloDataTransformer:
         """Construct a module from a numpy-like module.
 
@@ -333,7 +332,7 @@ class HaloDataTransformer(abc.ABC):
     def async_pack(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         """Pack all given quantities into a single send Buffer.
 
@@ -354,7 +353,7 @@ class HaloDataTransformer(abc.ABC):
     def async_unpack(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         """Unpack the buffer into destination quantities.
 
@@ -394,7 +393,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
     def async_pack(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         # Unpack per type
         if self._type == _HaloDataTransformerType.SCALAR:
@@ -487,7 +486,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
     def async_unpack(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         # Unpack per type
         if self._type == _HaloDataTransformerType.SCALAR:
@@ -578,17 +577,17 @@ class HaloDataTransformerGPU(HaloDataTransformer):
     class _CuKernelArgs:
         """All arguments required for the CUDA kernels."""
 
-        stream: "cp.cuda.Stream"
-        x_send_indices: "cp.ndarray"
-        x_recv_indices: "cp.ndarray"
-        y_send_indices: Optional["cp.ndarray"]
-        y_recv_indices: Optional["cp.ndarray"]
+        stream: cp.cuda.Stream
+        x_send_indices: cp.ndarray
+        x_recv_indices: cp.ndarray
+        y_send_indices: cp.ndarray | None
+        y_recv_indices: cp.ndarray | None
 
     def __init__(
         self,
         np_module: NumpyModule,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
-        exchange_descriptors_y: Optional[Sequence[HaloExchangeSpec]] = None,
+        exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> None:
         self._cu_kernel_args: dict[UUID, HaloDataTransformerGPU._CuKernelArgs] = {}
         super().__init__(
@@ -693,7 +692,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
     def async_pack(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         """Pack the quantities into a single buffer via streamed cuda kernels
 
@@ -846,7 +845,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
     def async_unpack(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         """Unpack the quantities from a single buffer via streamed cuda kernels
 

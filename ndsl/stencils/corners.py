@@ -1,6 +1,5 @@
 import warnings
 from collections.abc import Sequence
-from typing import Optional
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
@@ -126,7 +125,7 @@ class CopyCornersXY:
 
 
 def kslice_from_inputs(
-    kstart: int, nk: Optional[int], grid_indexer: GridIndexing
+    kstart: int, nk: int | None, grid_indexer: GridIndexing
 ) -> tuple[slice, int]:
     # This expects ints, but it casts in case something was implicitly converted
     # to a float before this call.

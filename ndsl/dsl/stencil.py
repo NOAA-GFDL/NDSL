@@ -4,7 +4,7 @@ import copy
 import dataclasses
 import inspect
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import dace
 import numpy as np
@@ -890,7 +890,7 @@ class StencilFactory:
         self,
         config: StencilConfig,
         grid_indexing: GridIndexing,
-        comm: Optional[Comm] = None,
+        comm: Comm | None = None,
     ):
         """
         Args:
@@ -914,7 +914,7 @@ class StencilFactory:
         func: Callable[..., None],
         origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
         domain: tuple[int, ...],
-        externals: Optional[Mapping[str, Any]] = None,
+        externals: Mapping[str, Any] | None = None,
         skip_passes: tuple[str, ...] = (),
     ) -> FrozenStencil | CompareToNumpyStencil:
         """
@@ -946,7 +946,7 @@ class StencilFactory:
         func: Callable[..., None],
         compute_dims: Sequence[str],
         compute_halos: Sequence[int] = tuple(),
-        externals: Optional[Mapping[str, Any]] = None,
+        externals: Mapping[str, Any] | None = None,
         skip_passes: tuple[str, ...] = (),
     ) -> FrozenStencil | CompareToNumpyStencil:
         """
@@ -1005,7 +1005,7 @@ def get_stencils_with_varied_bounds(
     origins: list[Index3D],
     domains: list[Index3D],
     stencil_factory: StencilFactory,
-    externals: Optional[Mapping[str, Any]] = None,
+    externals: Mapping[str, Any] | None = None,
 ) -> list[FrozenStencil | CompareToNumpyStencil]:
     assert len(origins) == len(domains), (
         "Lists of origins and domains need to have the same length, you provided "

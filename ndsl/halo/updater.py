@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -67,8 +67,8 @@ class HaloUpdater:
         self._timer = timer
         self._recv_requests: list[AsyncRequest] = []
         self._send_requests: list[AsyncRequest] = []
-        self._inflight_x_quantities: Optional[tuple[Quantity, ...]] = None
-        self._inflight_y_quantities: Optional[tuple[Quantity, ...]] = None
+        self._inflight_x_quantities: tuple[Quantity, ...] | None = None
+        self._inflight_y_quantities: tuple[Quantity, ...] | None = None
         self._finalize_on_wait = False
 
     def force_finalize_on_wait(self) -> None:
@@ -99,7 +99,7 @@ class HaloUpdater:
         specifications: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
-        optional_timer: Optional[Timer] = None,
+        optional_timer: Timer | None = None,
     ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and
@@ -152,7 +152,7 @@ class HaloUpdater:
         specifications_y: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
-        optional_timer: Optional[Timer] = None,
+        optional_timer: Timer | None = None,
     ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and queue
@@ -212,7 +212,7 @@ class HaloUpdater:
     def update(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         """Exchange the data and blocks until finished."""
         self.start(quantities_x, quantities_y)
@@ -221,7 +221,7 @@ class HaloUpdater:
     def start(
         self,
         quantities_x: list[Quantity],
-        quantities_y: Optional[list[Quantity]] = None,
+        quantities_y: list[Quantity] | None = None,
     ) -> None:
         """Start data exchange."""
         self._comm._device_synchronize()
@@ -314,7 +314,7 @@ class HaloUpdateRequest:
         self,
         send_data: _HaloRequestSendList,
         recv_data: _HaloRequestRecvList,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> None:
         """Build a halo request.
         Args:
@@ -366,7 +366,7 @@ class VectorInterfaceHaloUpdater:
         comm: Comm,
         boundaries: Mapping[int, Boundary],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> None:
         """Initialize a CubedSphereCommunicator.
 

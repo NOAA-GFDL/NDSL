@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Callable, Generator, Iterable
-from typing import Optional
 
 import numpy as np
 from numpy.lib.index_tricks import IndexExpression
@@ -132,7 +131,7 @@ def array_buffer(
 def send_buffer(
     allocator: Callable,
     array: np.ndarray,
-    timer: Optional[Timer] = None,
+    timer: Timer | None = None,
 ) -> np.ndarray:
     """A context manager ensuring that `array` is contiguous in a context where it is
     being sent as data, copying into a recycled buffer array if necessary.
@@ -166,7 +165,7 @@ def send_buffer(
 def recv_buffer(
     allocator: Callable,
     array: np.ndarray,
-    timer: Optional[Timer] = None,
+    timer: Timer | None = None,
 ) -> np.ndarray:
     """A context manager ensuring that array is contiguous in a context where it is
     being used to receive data, using a recycled buffer array and then copying the

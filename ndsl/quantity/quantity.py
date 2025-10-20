@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Iterable, Sequence
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import dace
 import matplotlib.pyplot as plt
@@ -32,8 +32,8 @@ class Quantity:
         data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
-        origin: Optional[Sequence[int]] = None,
-        extent: Optional[Sequence[int]] = None,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
     ):

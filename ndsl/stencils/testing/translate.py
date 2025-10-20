@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -85,7 +85,7 @@ class TranslateFortranData2Py:
         """Transform inputs to gt4py.storages specification (correct device, layout)"""
         self.make_storage_data_input_vars(inputs)
 
-    def compute_func(self, **inputs) -> Optional[dict[str, Any]]:
+    def compute_func(self, **inputs) -> dict[str, Any] | None:
         """Compute function to transform the dictionary of `inputs`.
         Must return a dictionary of updated variables"""
         raise NotImplementedError("Implement a child class compute method")
@@ -130,9 +130,9 @@ class TranslateFortranData2Py:
         istart: int = 0,
         jstart: int = 0,
         kstart: int = 0,
-        dummy_axes: Optional[tuple[int, int, int]] = None,
+        dummy_axes: tuple[int, int, int] | None = None,
         axis: int = 2,
-        names_4d: Optional[list[str]] = None,
+        names_4d: list[str] | None = None,
         read_only: bool = False,
         full_shape: bool = False,
     ) -> Field:

@@ -4,7 +4,7 @@ import abc
 import copy
 import functools
 from collections.abc import Callable, Sequence
-from typing import Optional, Self, TypeVar, cast
+from typing import Self, TypeVar, cast
 
 import f90nml
 import numpy as np
@@ -73,9 +73,7 @@ class Partitioner(abc.ABC):
         self.layout = tuple(layout)  # type: ignore[assignment]
 
     @abc.abstractmethod
-    def boundary(
-        self, boundary_type: int, rank: int
-    ) -> Optional[bd.SimpleBoundary]: ...
+    def boundary(self, boundary_type: int, rank: int) -> bd.SimpleBoundary | None: ...
 
     @abc.abstractmethod
     def tile_index(self, rank: int) -> int:
@@ -262,7 +260,7 @@ class TilePartitioner(Partitioner):
     def on_tile_right(self, rank: int) -> bool:
         return on_tile_right(self.subtile_index(rank), self.layout)
 
-    def boundary(self, boundary_type: int, rank: int) -> Optional[bd.SimpleBoundary]:
+    def boundary(self, boundary_type: int, rank: int) -> bd.SimpleBoundary | None:
         """Returns a boundary of the requested type for a given rank.
 
         Target ranks will be on the same tile as the given rank, wrapping around as
@@ -281,7 +279,7 @@ class TilePartitioner(Partitioner):
     @functools.lru_cache(maxsize=DEFAULT_CACHE_SIZE)
     def _cached_boundary(
         self, boundary_type: int, rank: int
-    ) -> Optional[bd.SimpleBoundary]:
+    ) -> bd.SimpleBoundary | None:
         boundary = {
             WEST: self._left_edge,
             EAST: self._right_edge,
@@ -342,18 +340,18 @@ class TilePartitioner(Partitioner):
             n_clockwise_rotations=0,
         )
 
-    def _top_left_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _top_left_corner(self, rank: int) -> bd.SimpleBoundary | None:
         return _get_corner(constants.NORTHWEST, rank, self._left_edge, self._top_edge)
 
-    def _top_right_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _top_right_corner(self, rank: int) -> bd.SimpleBoundary | None:
         return _get_corner(constants.NORTHEAST, rank, self._right_edge, self._top_edge)
 
-    def _bottom_left_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _bottom_left_corner(self, rank: int) -> bd.SimpleBoundary | None:
         return _get_corner(
             constants.SOUTHWEST, rank, self._left_edge, self._bottom_edge
         )
 
-    def _bottom_right_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _bottom_right_corner(self, rank: int) -> bd.SimpleBoundary | None:
         return _get_corner(
             constants.SOUTHEAST, rank, self._right_edge, self._bottom_edge
         )
@@ -419,7 +417,7 @@ class CubedSpherePartitioner(Partitioner):
         """the number of ranks on the cubed sphere"""
         return 6 * self.tile.total_ranks
 
-    def boundary(self, boundary_type: int, rank: int) -> Optional[bd.SimpleBoundary]:
+    def boundary(self, boundary_type: int, rank: int) -> bd.SimpleBoundary | None:
         """Returns a boundary of the requested type for a given rank, or None.
 
         On tile corners, the boundary across that corner does not exist.
@@ -437,7 +435,7 @@ class CubedSpherePartitioner(Partitioner):
     @functools.lru_cache(maxsize=DEFAULT_CACHE_SIZE)
     def _cached_boundary(
         self, boundary_type: int, rank: int
-    ) -> Optional[bd.SimpleBoundary]:
+    ) -> bd.SimpleBoundary | None:
         boundary = {
             WEST: self._left_edge,
             EAST: self._right_edge,
@@ -538,7 +536,7 @@ class CubedSpherePartitioner(Partitioner):
                 boundary.to_rank -= self.tile.total_ranks
         return boundary
 
-    def _top_left_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _top_left_corner(self, rank: int) -> bd.SimpleBoundary | None:
         if self.tile.on_tile_top(rank) and self.tile.on_tile_left(rank):
             corner = None
         else:
@@ -553,7 +551,7 @@ class CubedSpherePartitioner(Partitioner):
             )
         return corner
 
-    def _top_right_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _top_right_corner(self, rank: int) -> bd.SimpleBoundary | None:
         if on_tile_top(self.tile.subtile_index(rank), self.layout) and on_tile_right(
             self.tile.subtile_index(rank), self.layout
         ):
@@ -570,7 +568,7 @@ class CubedSpherePartitioner(Partitioner):
             )
         return corner
 
-    def _bottom_left_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _bottom_left_corner(self, rank: int) -> bd.SimpleBoundary | None:
         if on_tile_bottom(self.tile.subtile_index(rank)) and on_tile_left(
             self.tile.subtile_index(rank)
         ):
@@ -587,7 +585,7 @@ class CubedSpherePartitioner(Partitioner):
             )
         return corner
 
-    def _bottom_right_corner(self, rank: int) -> Optional[bd.SimpleBoundary]:
+    def _bottom_right_corner(self, rank: int) -> bd.SimpleBoundary | None:
         if on_tile_bottom(self.tile.subtile_index(rank)) and on_tile_right(
             self.tile.subtile_index(rank), self.layout
         ):

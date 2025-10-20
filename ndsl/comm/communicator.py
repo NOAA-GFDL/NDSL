@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Mapping, Sequence
-from typing import Any, Optional, Self, cast
+from typing import Any, Self, cast
 
 import numpy as np
 
@@ -69,7 +69,7 @@ class Communicator(abc.ABC):
         comm: CommABC,
         layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> Self:
         pass
 
@@ -161,8 +161,8 @@ class Communicator(abc.ABC):
 
     def scatter(
         self,
-        send_quantity: Optional[Quantity] = None,
-        recv_quantity: Optional[Quantity] = None,
+        send_quantity: Quantity | None = None,
+        recv_quantity: Quantity | None = None,
     ) -> Quantity:
         """Transfer subtile regions of a full-tile quantity
         from the tile root rank to all subtiles.
@@ -673,7 +673,7 @@ class TileCommunicator(Communicator):
         comm: CommABC,
         layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> TileCommunicator:
         partitioner = TilePartitioner(layout=layout)
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
@@ -772,7 +772,7 @@ class CubedSphereCommunicator(Communicator):
         comm: CommABC,
         partitioner: CubedSpherePartitioner,
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ):
         """Initialize a CubedSphereCommunicator.
 
@@ -793,7 +793,7 @@ class CubedSphereCommunicator(Communicator):
                 f"comm object with only {comm.Get_size()} ranks, are we running "
                 "with mpi and the correct number of ranks?"
             )
-        self._tile_communicator: Optional[TileCommunicator] = None
+        self._tile_communicator: TileCommunicator | None = None
         self._force_cpu = force_cpu
         super(CubedSphereCommunicator, self).__init__(
             comm, partitioner, force_cpu, timer
@@ -806,7 +806,7 @@ class CubedSphereCommunicator(Communicator):
         comm: CommABC,
         layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> CubedSphereCommunicator:
         partitioner = CubedSpherePartitioner(tile=TilePartitioner(layout=layout))
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
