@@ -57,7 +57,7 @@ class FieldBundle:
             assert len(quantity.shape) == 4
             FieldBundleType.register(bundle_name, quantity.shape[3:])
 
-    def map(self, index: _DataDimensionIndex, name: str):
+    def map(self, index: _DataDimensionIndex, name: str) -> None:
         """Map a single `index` to ` name`"""
         self._indexer[name] = index
 
@@ -100,12 +100,12 @@ class FieldBundle:
         return self._indexer[name]
 
     @property
-    def __array_interface__(self):
+    def __array_interface__(self):  # type: ignore[no-untyped-def]
         """Memory interface for CPU."""
         return self._quantity.__array_interface__
 
     @property
-    def __cuda_array_interface__(self):
+    def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
         """Memory interface for GPU memory as defined by cupy."""
         return self._quantity.__cuda_array_interface__
 
@@ -155,7 +155,7 @@ class FieldBundleType:
     _field_type_registrar: dict[str, gtscript._FieldDescriptor] = {}
 
     @classmethod
-    def register(
+    def register(  # type: ignore
         cls, name: str, data_dims: tuple[int], dtype=Float
     ) -> gtscript._FieldDescriptor:
         """Register a name type by name by giving the size of its data dimensions.

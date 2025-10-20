@@ -22,7 +22,7 @@ class _TimeChunkedVariable:
         self._units = initial.units
         self._i_time = 1
 
-    def append(self, quantity: Quantity):
+    def append(self, quantity: Quantity) -> None:
         # Allow mismatch precision here since this is I/O
         self._data[self._i_time, ...] = to_numpy(
             quantity.transpose(self._dims, allow_mismatch_float_precision=True).view[:]
@@ -105,13 +105,13 @@ class NetCDFMonitor:
 
     _CONSTANT_FILENAME = "constants"
 
-    def __init__(
+    def __init__(  # type: ignore[no-untyped-def]
         self,
         path: str,
         communicator: Communicator,
         time_chunk_size: int = 1,
         precision=Float,
-    ):
+    ) -> None:
         """Create a NetCDFMonitor.
 
         Args:

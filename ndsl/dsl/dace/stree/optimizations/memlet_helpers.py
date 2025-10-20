@@ -55,7 +55,7 @@ def no_data_dependencies_on_cartesian_axis(
 def no_data_dependencies(
     first: dst.MapScope,
     second: dst.MapScope,
-    restrict_check_to_k=False,
+    restrict_check_to_k: bool = False,
 ) -> bool:
     write_collector = MemletCollector(collect_reads=False)
     write_collector.visit(first)
@@ -97,7 +97,9 @@ class MemletCollector(dst.ScheduleNodeVisitor):
     in_memlets: list[Memlet]
     out_memlets: list[Memlet]
 
-    def __init__(self, *, collect_reads=True, collect_writes=True):
+    def __init__(
+        self, *, collect_reads: bool = True, collect_writes: bool = True
+    ) -> None:
         self._collect_reads = collect_reads
         self._collect_writes = collect_writes
 

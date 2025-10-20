@@ -6,15 +6,12 @@ import pathlib
 
 import xarray as xr
 
+import ndsl.constants as constants
+from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
 
 # TODO: if we can remove translate tests in favor of checkpointer tests,
 # we can remove this "disallowed" import (ndsl.util does not depend on ndsl.dsl)
-try:
-    from ndsl.dsl.gt4py_utils import is_gpu_backend, split_cartesian_into_storages
-except ImportError:
-    split_cartesian_into_storages = None
-import ndsl.constants as constants
-from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.gt4py_utils import is_gpu_backend, split_cartesian_into_storages
 from ndsl.dsl.typing import Float
 from ndsl.grid.generation import MetricTerms
 from ndsl.initialization.allocator import QuantityFactory
@@ -230,7 +227,7 @@ class VerticalGridData:
         """Top of atmosphere pressure (Pa)"""
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
-        if is_gpu_backend(self.ak.gt4py_backend):
+        if self.ak.gt4py_backend is not None and is_gpu_backend(self.ak.gt4py_backend):
             return Float(self.ak.view[0].get())
         else:
             return Float(self.ak.view[0])
@@ -337,14 +334,14 @@ class GridData:
         self._vertical_data = vertical_data
         self._contravariant_data = contravariant_data
         self._angle_data = angle_data
-        if fc is not None:
-            self._fC = GridData._fC_from_data(fc, horizontal_data.lat)
-        else:
-            self._fC = None
-        if fc_agrid is not None:
-            self._fC_agrid = GridData._fC_from_data(fc_agrid, horizontal_data.lat)
-        else:
-            self._fC_agrid = None
+        self._fC = (
+            None if fc is None else GridData._fC_from_data(fc, horizontal_data.lat)
+        )
+        self._fC_agrid = (
+            None
+            if fc_agrid is None
+            else GridData._fC_from_data(fc_agrid, horizontal_data.lat)
+        )
 
     @classmethod
     def new_from_metric_terms(cls, metric_terms: MetricTerms):

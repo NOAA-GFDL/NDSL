@@ -393,7 +393,7 @@ class CartesianAxisMerge(dst.ScheduleNodeTransformer):
 
         return merged
 
-    def visit_ScheduleTreeRoot(self, node: dst.ScheduleTreeRoot):
+    def visit_ScheduleTreeRoot(self, node: dst.ScheduleTreeRoot) -> None:
         """Merge as many maps as possible.
 
         The algorithm works as follows:

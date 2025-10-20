@@ -23,6 +23,7 @@ import numpy as np
 from gt4py.cartesian import config as gt_config
 from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
+from gt4py.cartesian.definitions import FieldInfo
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
 
@@ -42,7 +43,7 @@ from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
-def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
+def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):  # type: ignore[no-untyped-def]
     report_head = f"comparing against numpy for func {function_name}, gt_id {gt_id}:"
     report_segments = []
     for i, (arg, numpy_arg) in enumerate(zip(args, args_copy)):
@@ -68,7 +69,7 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
         print(report_head + report_body)
 
 
-def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label) -> str:
+def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label: str) -> str:
     metric = LegacyMetric(
         reference_values=arg,
         computed_values=numpy_arg,
@@ -76,7 +77,7 @@ def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label) -> str:
         ignore_near_zero_errors=False,
         near_zero=0,
     )
-    return metric.__repr__()
+    return f"{label}: {metric.__repr__()}"
 
 
 @dataclasses.dataclass
@@ -92,12 +93,12 @@ class TimingCollector:
         default_factory=lambda: {"__aggregate_data": True}
     )
 
-    def build_report(self, key: str = "build_time", **kwargs) -> str:
+    def build_report(self, key: str = "build_time", **kwargs: Any) -> str:
         return type(self)._show_report(
             self.build_info, self.build_info.keys(), key, **kwargs
         )
 
-    def exec_report(self, key: str = "total_run_time", **kwargs) -> str:
+    def exec_report(self, key: str = "total_run_time", **kwargs: Any) -> str:
         # NOTE: Uses the build_info keys to distinguish stencils
         return type(self)._show_report(
             self.exec_info, self.build_info.keys(), key, **kwargs
@@ -151,13 +152,13 @@ class CompareToNumpyStencil:
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: Tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Optional[Tuple[str, ...]] = None,
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         self._actual = FrozenStencil(
             func=func,
@@ -174,7 +175,6 @@ class CompareToNumpyStencil:
             rebuild=stencil_config.compilation_config.rebuild,
             validate_args=stencil_config.compilation_config.validate_args,
             format_source=True,
-            device_sync=None,
             run_mode=RunMode.BuildAndRun,
             use_minimal_caching=False,
         )
@@ -196,8 +196,8 @@ class CompareToNumpyStencil:
 
     def __call__(
         self,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         args_copy = copy.deepcopy(args)
         kwargs_copy = copy.deepcopy(kwargs)
@@ -213,12 +213,12 @@ class CompareToNumpyStencil:
         )
 
 
-def _stencil_object_name(stencil_object) -> str:
+def _stencil_object_name(stencil_object: StencilObject) -> str:
     """Returns a unique name for each gt4py stencil object, including the hash."""
     return type(stencil_object).__name__
 
 
-def get_pair_rank(rank: int, size: int):
+def get_pair_rank(rank: int, size: int) -> int:
     dycore_ranks = size // 2
     if rank < dycore_ranks:
         return rank + dycore_ranks
@@ -226,7 +226,7 @@ def get_pair_rank(rank: int, size: int):
         return rank - dycore_ranks
 
 
-def compare_ranks(comm: Comm, data) -> Mapping[str, int]:
+def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
     rank = comm.Get_rank()
     size = comm.Get_size()
     pair_rank = get_pair_rank(rank, size)
@@ -257,13 +257,13 @@ class FrozenStencil(SDFGConvertible):
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
+        externals: Mapping[str, Any] | None = None,
         skip_passes: Tuple[str, ...] = (),
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         """
         Args:
@@ -279,7 +279,6 @@ class FrozenStencil(SDFGConvertible):
         """
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
-        origin = cast(Union[Index3D, Mapping[str, Tuple[int, ...]]], origin)
         self.origin = origin
         self.domain: Index3D = cast_to_index3d(domain)
         self.stencil_config: StencilConfig = stencil_config
@@ -298,7 +297,7 @@ class FrozenStencil(SDFGConvertible):
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object: StencilObject | None = None
+        self.stencil_object: StencilObject
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
@@ -353,7 +352,7 @@ class FrozenStencil(SDFGConvertible):
                 dtypes={float: Float},
                 **stencil_kwargs,
                 build_info=(build_info := {}),
-            )  # type: ignore
+            )
 
             if (
                 compilation_config.use_minimal_caching
@@ -377,16 +376,16 @@ class FrozenStencil(SDFGConvertible):
             "_domain_": self.domain,
         }
 
-        self._written_fields: List[str] = FrozenStencil._get_written_fields(field_info)
+        self._written_fields = FrozenStencil._get_written_fields(field_info)
 
         if stencil_config.compilation_config.run_mode == RunMode.Build:
 
-            def nothing_function(*args, **kwargs):
+            def nothing_function(*args, **kwargs):  # type: ignore[no-untyped-def]
                 pass
 
             setattr(self, "__call__", nothing_function)
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
         # Verbose stencil execution
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
@@ -425,7 +424,7 @@ class FrozenStencil(SDFGConvertible):
                 domain=self.domain,
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
-            )  # type: ignore
+            )
         else:
             self.stencil_object.run(
                 **args_as_kwargs,
@@ -492,7 +491,7 @@ class FrozenStencil(SDFGConvertible):
         return field_origins
 
     @classmethod
-    def _get_written_fields(cls, field_info) -> List[str]:
+    def _get_written_fields(cls, field_info: dict[str, FieldInfo]) -> list[str]:
         """Returns the list of fields that are written.
 
         Args:
@@ -502,9 +501,7 @@ class FrozenStencil(SDFGConvertible):
             field_name
             for field_name in field_info
             if field_info[field_name]
-            and bool(
-                field_info[field_name].access & gt_definitions.AccessKind.WRITE  # type: ignore
-            )
+            and bool(field_info[field_name].access & gt_definitions.AccessKind.WRITE)
         ]
         return write_fields
 
@@ -514,7 +511,7 @@ class FrozenStencil(SDFGConvertible):
         skip_steps = [step_map[pass_name] for pass_name in skip_passes]
         return DefaultPipeline(skip=skip_steps)
 
-    def __sdfg__(self, *args, **kwargs):
+    def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Implemented SDFG generation"""
         args_as_kwargs = dict(zip(self._argument_names, args))
         return self.stencil_object.__sdfg__(
@@ -524,22 +521,22 @@ class FrozenStencil(SDFGConvertible):
             **kwargs,
         )
 
-    def __sdfg_signature__(self):
+    def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
         """Implemented SDFG signature lookup"""
         return self.stencil_object.__sdfg_signature__()
 
-    def __sdfg_closure__(self, *args, **kwargs):
+    def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Implemented SDFG closure build"""
         return self.stencil_object.__sdfg_closure__(*args, **kwargs)
 
-    def closure_resolver(self, constant_args, given_args, parent_closure=None):
+    def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
         """Implemented SDFG closure resolver build"""
         return self.stencil_object.closure_resolver(
             constant_args, given_args, parent_closure=parent_closure
         )
 
 
-def _convert_quantities_to_storage(args, kwargs):
+def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def]
     for i, arg in enumerate(args):
         try:
             # Check that 'dims' is an attribute of arg. If so,
@@ -597,11 +594,11 @@ class GridIndexing:
         self.east_edge = east_edge
 
     @property
-    def domain(self):
+    def domain(self) -> Index3D:
         return self._domain
 
     @domain.setter
-    def domain(self, domain):
+    def domain(self, domain: Index3D) -> None:
         self._domain = domain
         self._sizer = SubtileGridSizer(
             nx=domain[0],
@@ -635,7 +632,7 @@ class GridIndexing:
         )
 
     @property
-    def max_shape(self):
+    def max_shape(self) -> Index3D:
         """
         Maximum required storage shape, corresponding to the shape of a cell-corner
         variable with maximum halo points.
@@ -648,74 +645,74 @@ class GridIndexing:
         return self.domain_full(add=(1, 1, 1 + self.origin[2]))
 
     @property
-    def isc(self):
+    def isc(self) -> int:
         """Start of the compute domain along the x-axis"""
         return self.origin[0]
 
     @property
-    def iec(self):
+    def iec(self) -> int:
         """Last index of the compute domain along the x-axis"""
         return self.origin[0] + self.domain[0] - 1
 
     @property
-    def jsc(self):
+    def jsc(self) -> int:
         """Start of the compute domain along the y-axis"""
         return self.origin[1]
 
     @property
-    def jec(self):
+    def jec(self) -> int:
         """Last index of the compute domain along the y-axis"""
         return self.origin[1] + self.domain[1] - 1
 
     @property
-    def isd(self):
+    def isd(self) -> int:
         """Start of the full domain including halos along the x-axis"""
         return self.origin[0] - self.n_halo
 
     @property
-    def ied(self):
+    def ied(self) -> int:
         """Index of the last data point along the x-axis"""
         return self.isd + self.domain[0] + 2 * self.n_halo - 1
 
     @property
-    def jsd(self):
+    def jsd(self) -> int:
         """Start of the full domain including halos along the y-axis"""
         return self.origin[1] - self.n_halo
 
     @property
-    def jed(self):
+    def jed(self) -> int:
         """Index of the last data point along the y-axis"""
         return self.jsd + self.domain[1] + 2 * self.n_halo - 1
 
     @property
-    def nw_corner(self):
+    def nw_corner(self) -> bool:
         return self.north_edge and self.west_edge
 
     @property
-    def sw_corner(self):
+    def sw_corner(self) -> bool:
         return self.south_edge and self.west_edge
 
     @property
-    def ne_corner(self):
+    def ne_corner(self) -> bool:
         return self.north_edge and self.east_edge
 
     @property
-    def se_corner(self):
+    def se_corner(self) -> bool:
         return self.south_edge and self.east_edge
 
-    def origin_full(self, add: Index3D = (0, 0, 0)):
+    def origin_full(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the origin of the full domain including halos, plus an optional offset.
         """
         return (self.isd + add[0], self.jsd + add[1], self.origin[2] + add[2])
 
-    def origin_compute(self, add: Index3D = (0, 0, 0)):
+    def origin_compute(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the origin of the compute domain, plus an optional offset
         """
         return (self.isc + add[0], self.jsc + add[1], self.origin[2] + add[2])
 
-    def domain_full(self, add: Index3D = (0, 0, 0)):
+    def domain_full(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the shape of the full domain including halos, plus an optional offset.
         """
@@ -725,7 +722,7 @@ class GridIndexing:
             self.domain[2] + add[2],
         )
 
-    def domain_compute(self, add: Index3D = (0, 0, 0)):
+    def domain_compute(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the shape of the compute domain, plus an optional offset.
         """
@@ -736,10 +733,8 @@ class GridIndexing:
         )
 
     def axis_offsets(
-        self,
-        origin: Tuple[int, ...],
-        domain: Tuple[int, ...],
-    ) -> Dict[str, Any]:
+        self, origin: tuple[int, ...], domain: tuple[int, ...]
+    ) -> dict[str, Any]:
         if self.west_edge:
             i_start = gtscript.I[0] + self.origin[0] - origin[0]
         else:
@@ -859,7 +854,9 @@ class GridIndexing:
             shape[i] += n
         return tuple(shape)
 
-    def restrict_vertical(self, k_start=0, nk=None) -> GridIndexing:
+    def restrict_vertical(
+        self, k_start: int = 0, nk: int | None = None
+    ) -> GridIndexing:
         """
         Returns a copy of itself with modified vertical origin and domain.
 
@@ -921,7 +918,7 @@ class StencilFactory:
         self.comm = comm
 
     @property
-    def backend(self):
+    def backend(self) -> str:
         return self.config.compilation_config.backend
 
     def from_origin_domain(
@@ -997,18 +994,20 @@ class StencilFactory:
             skip_passes=skip_passes,
         )
 
-    def restrict_vertical(self, k_start=0, nk=None) -> StencilFactory:
+    def restrict_vertical(
+        self, k_start: int = 0, nk: int | None = None
+    ) -> StencilFactory:
         return StencilFactory(
             config=self.config,
             grid_indexing=self.grid_indexing.restrict_vertical(k_start=k_start, nk=nk),
             comm=self.comm,
         )
 
-    def build_report(self, key: str = "build_time", **kwargs) -> str:
+    def build_report(self, key: str = "build_time", **kwargs: Any) -> str:
         """Report all stencils built by this factory."""
         return self.timing_collector.build_report(key, **kwargs)
 
-    def exec_report(self, key: str = "total_run_time", **kwargs) -> str:
+    def exec_report(self, key: str = "total_run_time", **kwargs: Any) -> str:
         """Report all stencils executed that were built by this factory."""
         return self.timing_collector.exec_report(key, **kwargs)
 

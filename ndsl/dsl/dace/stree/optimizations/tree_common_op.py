@@ -3,7 +3,9 @@ from typing import Collection
 import dace.sdfg.analysis.schedule_tree.treenodes as dst
 
 
-def swap_node_position_in_tree(top_node, child_node):
+def swap_node_position_in_tree(
+    top_node: dst.ScheduleTreeScope, child_node: dst.ScheduleTreeScope
+) -> None:
     """Top node becomes child, child becomes top node"""
     # Take refs before swap
     top_children = top_node.parent.children
@@ -22,7 +24,7 @@ def swap_node_position_in_tree(top_node, child_node):
     top_children.remove(top_node)
 
 
-def detect_cycle(nodes, visited: set):
+def detect_cycle(nodes: list[dst.ScheduleTreeNode], visited: set) -> None:
     """Detect the cycles in the tree."""
     # Dev note: isn't there a DaCe tool for this?!
     for n in nodes:

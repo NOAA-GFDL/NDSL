@@ -33,8 +33,8 @@ class PerformanceConfig:
         else:
             return NullPerformanceCollector()
 
-    def build_profiler(self):
+    def build_profiler(self) -> Profiler | NullProfiler:
         if self.collect_cProfile:
             return Profiler()
-        else:
-            return NullProfiler()
+
+        return NullProfiler()

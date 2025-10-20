@@ -6,7 +6,7 @@ import numpy as np
 from ndsl.quantity import Quantity
 
 
-def copy_temporaries(obj, max_depth: int) -> dict:
+def copy_temporaries(obj: object, max_depth: int) -> dict:
     temporaries = {}
     attrs = [a for a in dir(obj) if not a.startswith("__")]
     for attr_name in attrs:
@@ -16,7 +16,7 @@ def copy_temporaries(obj, max_depth: int) -> dict:
             attr = None
         if isinstance(attr, Quantity):
             temporaries[attr_name] = copy.deepcopy(np.asarray(attr.data))
-        elif attr.__class__.__module__.split(".")[0] in ("pyFV3"):  # type: ignore
+        elif attr.__class__.__module__.split(".")[0] in ("pyFV3"):
             if max_depth > 0:
                 sub_temporaries = copy_temporaries(attr, max_depth - 1)
                 if len(sub_temporaries) > 0:
@@ -24,7 +24,7 @@ def copy_temporaries(obj, max_depth: int) -> dict:
     return temporaries
 
 
-def assert_same_temporaries(dict1: dict, dict2: dict):
+def assert_same_temporaries(dict1: dict, dict2: dict) -> None:
     diffs = _assert_same_temporaries(dict1, dict2)
     if len(diffs) > 0:
         raise AssertionError(f"{len(diffs)} differing temporaries found: {diffs}")

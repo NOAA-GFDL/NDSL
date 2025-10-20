@@ -1,4 +1,4 @@
-from typing import Tuple, TypeAlias, Union, cast
+from typing import Tuple, TypeAlias, Union
 
 import numpy as np
 from gt4py.cartesian import gtscript
@@ -96,7 +96,7 @@ BoolFieldIJ = Field[gtscript.IJ, Bool]
 Index3D = Tuple[int, int, int]
 
 
-def set_4d_field_size(n, dtype):
+def set_4d_field_size(n: int, dtype: type):  # type: ignore[no-untyped-def]
     """
     Defines a 4D field with a given size and type
     The extra data dimension is not parallel
@@ -106,11 +106,11 @@ def set_4d_field_size(n, dtype):
 
 def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
     if len(val) != 3:
-        raise ValueError(f"expected 3d index, received {val}")
-    return cast(Index3D, val)
+        raise ValueError(f"Expected 3d index, received {val}")
+    return val
 
 
-def is_float(dtype: type):
+def is_float(dtype: type) -> bool:
     """Expected floating point type"""
     return dtype in [
         Float,

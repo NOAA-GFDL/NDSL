@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 from typing import Any, Dict, Tuple, Union
 
@@ -45,7 +47,7 @@ class QuantityMetadata:
                 f"quantity underlying data is of unexpected type {self.data_type}"
             )
 
-    def duplicate_metadata(self, metadata_copy):
+    def duplicate_metadata(self, metadata_copy: QuantityMetadata) -> None:
         metadata_copy.origin = self.origin
         metadata_copy.extent = self.extent
         metadata_copy.dims = self.dims

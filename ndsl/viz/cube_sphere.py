@@ -26,6 +26,9 @@ def plot_cube_sphere(
     lon = comm.gather(grid_data.lon)
 
     if comm.rank == 0:
+        # We are on the root rank so comm.gather() did gather. This is just to make mypy happy.
+        assert data is not None and lat is not None and lon is not None
+
         fig, ax = plt.subplots(1, 1, subplot_kw={"projection": ccrs.Robinson()})
         pcolormesh_cube(
             lat.view[:] * 180.0 / np.pi,

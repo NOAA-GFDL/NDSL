@@ -25,7 +25,7 @@ T = TypeVar("T")
 
 
 class MetaEnumStr(EnumMeta):
-    def __contains__(cls, item) -> bool:
+    def __contains__(cls, item: object) -> bool:
         return item in cls.__members__.keys()
 
 
@@ -60,7 +60,7 @@ def ensure_contiguous(maybe_array: Union[np.ndarray, None]) -> None:
         raise BufferError("dlpack: buffer is not contiguous")
 
 
-def safe_assign_array(to_array: np.ndarray, from_array: np.ndarray):
+def safe_assign_array(to_array: np.ndarray, from_array: np.ndarray) -> None:
     """Failproof assignment for array on different devices.
 
     The memory will be downloaded/uploaded from GPU if need be.
@@ -80,7 +80,7 @@ def safe_assign_array(to_array: np.ndarray, from_array: np.ndarray):
             raise
 
 
-def device_synchronize():
+def device_synchronize() -> None:
     """Synchronize all memory communication"""
     if GPU_AVAILABLE:
         cp.cuda.runtime.deviceSynchronize()
@@ -106,10 +106,10 @@ def safe_mpi_allocate(
     if cp and (allocator is cp.empty or allocator is cp.zeros):
         original_allocator = cp.cuda.get_allocator()
         cp.cuda.set_allocator(cp.get_default_memory_pool().malloc)
-        array = allocator(shape, dtype=dtype)  # type: np.ndarray
+        array = allocator(shape, dtype=dtype)  # type: ignore # np.ndarray
         cp.cuda.set_allocator(original_allocator)
     else:
-        array = allocator(shape, dtype=dtype)
+        array = allocator(shape, dtype=dtype)  # type: ignore # np.ndarray
         if __debug__ and cp and isinstance(array, cp.ndarray):
             raise RuntimeError("cupy allocation might not be MPI-safe")
     return array

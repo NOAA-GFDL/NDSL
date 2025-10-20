@@ -5,11 +5,12 @@ from typing import Any, Callable
 from ndsl.debug.config import ndsl_debugger
 
 
-def instrument(func) -> Callable:
+def instrument(func: Callable) -> Callable:
     @wraps(func)
-    def wrapper(self, *args: Any, **kwargs: Any):
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         if ndsl_debugger is None:
             return func(self, *args, **kwargs)
+
         savename = func.__qualname__
         params = inspect.signature(func).parameters
         data_as_dict = {}
