@@ -7,7 +7,7 @@ class SpecializeCartesianMaps(dst.ScheduleNodeVisitor):
         super().__init__()
         self._mappings = mappings
 
-    def visit_MapScope(self, node: dst.MapScope):
+    def visit_MapScope(self, node: dst.MapScope) -> None:
         dims = []
         for p in node.node.map.params:
             if p == "__i":
