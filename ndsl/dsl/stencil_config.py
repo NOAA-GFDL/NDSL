@@ -3,17 +3,8 @@ from __future__ import annotations
 import dataclasses
 import enum
 import hashlib
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Hashable,
-    Iterable,
-    Optional,
-    Self,
-    Sequence,
-    Tuple,
-)
+from collections.abc import Callable, Hashable, Iterable, Sequence
+from typing import Any, Self
 
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
@@ -47,7 +38,7 @@ class CompilationConfig:
         device_sync: bool = False,
         run_mode: RunMode = RunMode.BuildAndRun,
         use_minimal_caching: bool = False,
-        communicator: Optional[Communicator] = None,
+        communicator: Communicator | None = None,
     ) -> None:
         if (not ("gpu" in backend or "cuda" in backend)) and device_sync is True:
             raise RuntimeError("Device sync is true on a CPU based backend")
@@ -129,8 +120,8 @@ class CompilationConfig:
         raise RuntimeError("Illegal partition specified")
 
     def get_decomposition_info_from_comm(
-        self, communicator: Optional[Communicator]
-    ) -> Tuple[int, int, int, bool]:
+        self, communicator: Communicator | None
+    ) -> tuple[int, int, int, bool]:
         if communicator:
             self.check_communicator(communicator)
             rank = communicator.rank
@@ -150,7 +141,7 @@ class CompilationConfig:
             is_compiling = True
         return rank, size, equivalent_compiling_rank, is_compiling
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "backend": self.backend,
             "rebuild": self.rebuild,

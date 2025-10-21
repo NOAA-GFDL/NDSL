@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
+from collections.abc import Iterable, Sequence
+from typing import Any, cast
 
 import dace
 import matplotlib.pyplot as plt
@@ -31,9 +32,9 @@ class Quantity:
         data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
-        origin: Optional[Sequence[int]] = None,
-        extent: Optional[Sequence[int]] = None,
-        gt4py_backend: Union[str, None] = None,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
+        gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
     ):
         """
@@ -155,7 +156,7 @@ class Quantity:
             raise ValueError("need units attribute to create Quantity from DataArray")
         return cls(
             data_array.values,
-            cast(Tuple[str], data_array.dims),
+            cast(tuple[str], data_array.dims),
             data_array.attrs["units"],
             origin=origin,
             extent=extent,
@@ -195,7 +196,7 @@ class Quantity:
             f"    extent={self.extent}\n)"
         )
 
-    def sel(self, **kwargs: Union[slice, int]) -> np.ndarray:
+    def sel(self, **kwargs: slice | int) -> np.ndarray:
         """Convenience method to perform indexing on `view` using dimension names
         without knowing dimension order.
 
@@ -208,7 +209,7 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):  # type: ignore
+    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: tuple):  # type: ignore
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
         storage = gt_storage.from_array(
             data,
@@ -229,7 +230,7 @@ class Quantity:
         return self.metadata.units
 
     @property
-    def gt4py_backend(self) -> Union[str, None]:
+    def gt4py_backend(self) -> str | None:
         return self.metadata.gt4py_backend
 
     @property
@@ -287,12 +288,12 @@ class Quantity:
         )
 
     @property
-    def origin(self) -> Tuple[int, ...]:
+    def origin(self) -> tuple[int, ...]:
         """The start of the computational domain"""
         return self.metadata.origin
 
     @property
-    def extent(self) -> Tuple[int, ...]:
+    def extent(self) -> tuple[int, ...]:
         """The shape of the computational domain"""
         return self.metadata.extent
 
@@ -335,7 +336,7 @@ class Quantity:
 
     def transpose(
         self,
-        target_dims: Sequence[Union[str, Iterable[str]]],
+        target_dims: Sequence[str | Iterable[str]],
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Change the dimension order of this Quantity.

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
-from typing import List, Tuple, TypeVar, Union
+from typing import TypeVar
 
 import cftime
 import xarray as xr
@@ -42,7 +44,7 @@ class ZarrMonitor:
 
     def __init__(
         self,
-        store: Union[str, "zarr.storage.MutableMapping"],
+        store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
         mode: str = "w",
         mpi_comm: DummyComm = DummyComm(),
@@ -63,7 +65,7 @@ class ZarrMonitor:
         self._group = mpi_comm.bcast(group)
         self._comm = mpi_comm
         self._writers = None
-        self._constants: List[str] = []
+        self._constants: list[str] = []
         self.partitioner = partitioner
 
     def _init_writers(self, state):
@@ -265,9 +267,9 @@ class _ZarrVariableWriter:
 
 
 def array_chunks(
-    layout: Tuple[int, int],
-    tile_array_shape: Tuple[int, ...],
-    array_dims: Tuple[str, ...],
+    layout: tuple[int, int],
+    tile_array_shape: tuple[int, ...],
+    array_dims: tuple[str, ...],
 ) -> tuple:
     layout_by_dims = list_by_dims(array_dims, layout, 1)
     chunks_list = []
@@ -381,7 +383,7 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
         self.comm.barrier()
 
 
-def get_calendar(time: Union[datetime, timedelta, cftime.datetime]) -> str:
+def get_calendar(time: datetime | timedelta | cftime.datetime) -> str:
     try:
         return time.calendar  # type: ignore
     except AttributeError:

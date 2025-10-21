@@ -264,17 +264,17 @@ class Namelist:
     """
     dycore_only: bool = DEFAULT_BOOL
     # fdiag: float
-    # knob_ugwp_azdir: Tuple[int, int, int, int]
+    # knob_ugwp_azdir: tuple[int, int, int, int]
     # knob_ugwp_doaxyz: int
     # knob_ugwp_doheat: int
     # knob_ugwp_dokdis: int
-    # knob_ugwp_effac: Tuple[int, int, int, int]
+    # knob_ugwp_effac: tuple[int, int, int, int]
     # knob_ugwp_ndx4lh: int
     # knob_ugwp_solver: int
-    # knob_ugwp_source: Tuple[int, int, int, int]
-    # knob_ugwp_stoch: Tuple[int, int, int, int]
+    # knob_ugwp_source: tuple[int, int, int, int]
+    # knob_ugwp_stoch: tuple[int, int, int, int]
     # knob_ugwp_version: int
-    # knob_ugwp_wvspec: Tuple[int, int, int, int]
+    # knob_ugwp_wvspec: tuple[int, int, int, int]
     # launch_level: int
     # reiflag: int
     # reimax: float

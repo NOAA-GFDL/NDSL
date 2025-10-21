@@ -1,5 +1,6 @@
 import functools
-from typing import Iterable, TypeAlias
+from collections.abc import Iterable
+from typing import TypeAlias
 
 import numpy as np
 from typing_extensions import Protocol

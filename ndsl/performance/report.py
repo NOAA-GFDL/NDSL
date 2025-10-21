@@ -1,8 +1,9 @@
 import copy
 import dataclasses
 import json
+from collections.abc import Mapping
 from datetime import datetime
-from typing import Any, Dict, List, Mapping
+from typing import Any
 
 import numpy as np
 
@@ -56,7 +57,7 @@ def get_experiment_info(
     return experiment
 
 
-def collect_keys_from_data(times_per_step: List[Mapping[str, float]]) -> List[str]:
+def collect_keys_from_data(times_per_step: list[Mapping[str, float]]) -> list[str]:
     """Collects all the keys in the list of dicts and returns a sorted version"""
     keys = set()
     for data_point in times_per_step:
@@ -68,15 +69,15 @@ def collect_keys_from_data(times_per_step: List[Mapping[str, float]]) -> List[st
 
 
 def gather_timing_data(
-    times_per_step: List[Mapping[str, float]],
+    times_per_step: list[Mapping[str, float]],
     comm: Comm,
     root: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """returns an updated version of the results dictionary owned
     by the root node to hold data on the substeps as well as the main loop timers"""
     is_root = comm.Get_rank() == root
     keys = collect_keys_from_data(times_per_step)
-    data: List[float] = []
+    data: list[float] = []
     timing_info = {}
     for timer_name in keys:
         data.clear()
@@ -104,8 +105,8 @@ def write_to_timestamped_json(experiment: Report) -> None:
 
 
 def gather_hit_counts(
-    hits_per_step: List[Mapping[str, int]], timing_info: Dict[str, TimeReport]
-) -> Dict[str, TimeReport]:
+    hits_per_step: list[Mapping[str, int]], timing_info: dict[str, TimeReport]
+) -> dict[str, TimeReport]:
     """collects the hit count across all timers called in a program execution"""
     for data_point in hits_per_step:
         for name, value in data_point.items():
@@ -113,7 +114,7 @@ def gather_hit_counts(
     return timing_info
 
 
-def get_sypd(timing_info: Dict[str, TimeReport], dt_atmos: float) -> float:
+def get_sypd(timing_info: dict[str, TimeReport], dt_atmos: float) -> float:
     if "mainloop" in timing_info:
         is_list_of_list = any(
             isinstance(el, list) for el in timing_info["mainloop"].times
@@ -135,8 +136,8 @@ def collect_data_and_write_to_file(
     is_orchestrated: bool,
     git_hash: str,
     comm: Comm,
-    hits_per_step: List,
-    times_per_step: List,
+    hits_per_step: list,
+    times_per_step: list,
     experiment_name: str,
     dt_atmos: float,
 ) -> None:

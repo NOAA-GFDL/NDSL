@@ -1,4 +1,5 @@
-from typing import Iterable, Self
+from collections.abc import Iterable
+from typing import Self
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
