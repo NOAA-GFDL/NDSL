@@ -79,7 +79,6 @@ class QuantityFactory:
         dtype: type = Float,
         *,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity - values are random.
 
@@ -90,7 +89,6 @@ class QuantityFactory:
             units,
             dtype,
             allow_mismatch_float_precision,
-            is_local,
         )
 
     def zeros(
@@ -100,7 +98,6 @@ class QuantityFactory:
         dtype: type = Float,
         *,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 0.
 
@@ -111,7 +108,6 @@ class QuantityFactory:
             units,
             dtype,
             allow_mismatch_float_precision,
-            is_local,
         )
 
     def ones(
@@ -121,7 +117,6 @@ class QuantityFactory:
         dtype: type = Float,
         *,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 1.
 
@@ -132,7 +127,6 @@ class QuantityFactory:
             units,
             dtype,
             allow_mismatch_float_precision,
-            is_local,
         )
 
     def full(
@@ -143,7 +137,6 @@ class QuantityFactory:
         dtype: type = Float,
         *,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value.
 
@@ -154,7 +147,6 @@ class QuantityFactory:
             units,
             dtype,
             allow_mismatch_float_precision,
-            is_local,
         )
         quantity.data[:] = value
         return quantity
@@ -166,7 +158,6 @@ class QuantityFactory:
         units: str,
         *,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         """
         Create a Quantity from a numpy array.
@@ -179,7 +170,6 @@ class QuantityFactory:
             units=units,
             dtype=data.dtype,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
-            is_local=is_local,
         )
         base.data[:] = base.np.asarray(data)
         return base
@@ -191,7 +181,6 @@ class QuantityFactory:
         units: str,
         *,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         """
         Create a Quantity from a numpy array.
@@ -204,7 +193,6 @@ class QuantityFactory:
             units=units,
             dtype=data.dtype,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
-            is_local=is_local,
         )
         base.view[:] = base.np.asarray(data)
         return base
@@ -216,7 +204,6 @@ class QuantityFactory:
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
-        is_local: bool = False,
     ) -> Quantity:
         origin = self.sizer.get_origin(dims)
         extent = self.sizer.get_extent(dims)
@@ -246,7 +233,6 @@ class QuantityFactory:
             gt4py_backend=self._backend(),
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
-        quantity._transient = is_local
         return quantity
 
     def get_quantity_halo_spec(
