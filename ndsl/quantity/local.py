@@ -6,6 +6,7 @@ import numpy as np
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 
+
 if cupy is None:
     import numpy as cupy
 
