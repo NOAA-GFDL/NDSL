@@ -71,11 +71,6 @@ class Quantity:
         else:
             extent = tuple(extent)
 
-        # Dev note: this is a hidden flag to be able to give DaCe the context
-        #           of use for further optimization. It's the equivqlent to `Local`
-        #           in NDSL lingo
-        self._transient = False
-
         if isinstance(data, (int, float, list)):
             # If converting basic data, use a numpy ndarray.
             data = np.asarray(data)
@@ -330,9 +325,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        desc = dace.data.create_datadescriptor(self.data)
-        desc.transient = self._transient
-        return desc
+        return dace.data.create_datadescriptor(self.data)
 
     def transpose(
         self,

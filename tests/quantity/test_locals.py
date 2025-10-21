@@ -23,7 +23,7 @@ class Code(NDSLRuntime):
         self.local = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
 
     def test_check(self):
-        assert self.local._transient
+        assert self.local.__descriptor__().transient
 
     def __call__(self, A, B):
         self.copy(A, self.local)
@@ -49,8 +49,8 @@ def test_local_and_transient_flags():
     code.test_check()
 
     # Check regular quantity are not transient
-    assert not A_._transient
-    assert not B_._transient
+    assert not A_.__descriptor__().transient
+    assert not B_.__descriptor__().transient
 
     # Check numerics
     assert (A_.field[:] == B_.field[:]).all()
