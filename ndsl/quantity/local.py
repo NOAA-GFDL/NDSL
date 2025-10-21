@@ -6,6 +6,9 @@ import numpy as np
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 
+if cupy is None:
+    import numpy as cupy
+
 
 class Local(Quantity):
     """Local is a Quantity that cannot be used outside of the class
