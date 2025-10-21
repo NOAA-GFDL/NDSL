@@ -1,12 +1,12 @@
 import copy
-from typing import Tuple, TypeVar, Union
+from typing import TypeVar
 
 import numpy as np
 
 from ndsl.quantity import Quantity
 
 
-T = TypeVar("T", bound=Union[Quantity, np.ndarray])
+T = TypeVar("T", bound=Quantity | np.ndarray)
 
 
 def direct_transform(
@@ -17,7 +17,7 @@ def direct_transform(
     lon_target: float,
     lat_target: float,
     np,
-) -> Tuple[T, T]:
+) -> tuple[T, T]:
     """
     The direct_transform subroutine from fv_grid_utils.F90.
     Takes in latitude and longitude in radians.
@@ -102,4 +102,4 @@ def direct_transform(
         lon_out = lon_transformed
         lat_out = lat_transformed
 
-    return lon_out, lat_out  # type: ignore
+    return lon_out, lat_out

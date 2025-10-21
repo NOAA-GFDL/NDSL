@@ -6,7 +6,7 @@ def identify_code_path(
     rank: int,
     partitioner: Partitioner,
 ) -> FV3CodePath:
-    if partitioner.layout == (1, 1) or partitioner.layout == [1, 1]:
+    if partitioner.layout == (1, 1):
         return FV3CodePath.All
     elif partitioner.layout[0] == 1 or partitioner.layout[1] == 1:
         raise NotImplementedError(

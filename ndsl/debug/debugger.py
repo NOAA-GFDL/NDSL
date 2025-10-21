@@ -2,6 +2,7 @@ import dataclasses
 import numbers
 import os
 import pathlib
+from typing import Any
 
 import pandas as pd
 import xarray as xr
@@ -26,7 +27,7 @@ class Debugger:
     calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
     track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
 
-    def _to_xarray(self, data, name) -> xr.DataArray:
+    def _to_xarray(self, data: Any, name: str | None) -> xr.DataArray:
         if isinstance(data, Quantity):
             if self.save_compute_domain_only:
                 mem = data.field
@@ -42,13 +43,13 @@ class Debugger:
             or pd.api.types.is_string_dtype(data)
             or isinstance(data, numbers.Number)
         ):
-            return xr.DataArray(data)
+            return xr.DataArray(data, name=name)
         else:
             ndsl_log.error(f"[Debugger] Cannot save data of type {type(data)}")
             return xr.DataArray([0])
         return xr.DataArray(mem, dims=[f"dim_{i}_{s}" for i, s in enumerate(shp)])
 
-    def track_data(self, data_as_dict, source_as_name, is_in) -> None:
+    def track_data(self, data_as_dict: dict, source_as_name: str, is_in: bool) -> None:
         for name, data in data_as_dict.items():
             if name not in self.track_parameter_by_name:
                 continue
@@ -71,10 +72,10 @@ class Debugger:
 
             self.track_parameter_count[name] += 1
 
-    def save_as_dataset(self, data_as_dict, savename, is_in) -> None:
-        """Save dictionnary of data to NetCDF
+    def save_as_dataset(self, data_as_dict: dict, savename: str, is_in: bool) -> None:
+        """Save dictionary of data to NetCDF
 
-        Note: Unknown types in the dictionnary won't be saved.
+        Note: Unknown types in the dictionary won't be saved.
         """
         if savename not in self.stencils_or_class:
             return
@@ -102,7 +103,7 @@ class Debugger:
         except ValueError as e:
             ndsl_log.error(f"[DebugInfo] Failure to save {savename}: {e}")
 
-    def increment_call_count(self, savename: str):
+    def increment_call_count(self, savename: str) -> None:
         """Increment the call count for this savename"""
         if savename not in self.calls_count.keys():
             self.calls_count[savename] = 0

@@ -1,6 +1,6 @@
 import warnings
+from collections.abc import Mapping
 from timeit import default_timer as time
-from typing import Mapping
 
 from ndsl.optional_imports import cupy as cp
 from ndsl.utils import GPU_AVAILABLE
@@ -9,16 +9,16 @@ from ndsl.utils import GPU_AVAILABLE
 class Timer:
     """Class to accumulate timings for named operations."""
 
-    def __init__(self):
-        self._clock_starts = {}
-        self._accumulated_time = {}
-        self._hit_count = {}
-        self._enabled = True
+    def __init__(self) -> None:
+        self._clock_starts: dict = {}
+        self._accumulated_time: dict = {}
+        self._hit_count: dict = {}
+        self._enabled: bool = True
         # Check if we have CUDA device and it's ready to
         # perform tasks
-        self._can_time_CUDA = GPU_AVAILABLE
+        self._can_time_CUDA: bool = GPU_AVAILABLE
 
-    def start(self, name: str):
+    def start(self, name: str) -> None:
         """Start timing a given named operation."""
         if self._can_time_CUDA:
             cp.cuda.Device(0).synchronize()
@@ -29,7 +29,7 @@ class Timer:
             else:
                 self._clock_starts[name] = time()
 
-    def stop(self, name: str):
+    def stop(self, name: str) -> None:
         """Stop timing a given named operation, add the time elapsed to
         accumulated timing and increase the hit count.
         """
@@ -46,7 +46,7 @@ class Timer:
             else:
                 self._hit_count[name] += 1
 
-    def clock(self, name: str):
+    def clock(self, name: str):  # type: ignore
         """Context manager to produce timings of operations.
 
         Args:
@@ -70,20 +70,20 @@ class Timer:
         # which self-destroys itself when called, we can't orchestrate
         # it easily in DaCe. Waiting for a fix DaCe side to this Python
         # ridiculousness (see contelib.py:_GeneratorContextManager.__enter__)
-        def dace_inhibitor(func):
+        def dace_inhibitor(func):  # type: ignore[no-untyped-def]
             return func
 
         class Wrapper:
-            def __init__(self, timer, name) -> None:
+            def __init__(self, timer: Timer, name: str) -> None:
                 self.timer = timer
                 self.name = name
 
             @dace_inhibitor
-            def __enter__(self):
+            def __enter__(self) -> None:
                 self.timer.start(name)
 
             @dace_inhibitor
-            def __exit__(self, type, value, traceback):
+            def __exit__(self, type, value, traceback):  # type: ignore[no-untyped-def]
                 self.timer.stop(name)
 
         return Wrapper(self, name)
@@ -112,16 +112,16 @@ class Timer:
             )
         return self._hit_count.copy()
 
-    def reset(self):
+    def reset(self) -> None:
         """Remove all accumulated timings."""
         self._accumulated_time.clear()
         self._hit_count.clear()
 
-    def enable(self):
+    def enable(self) -> None:
         """Enable the Timer."""
         self._enabled = True
 
-    def disable(self):
+    def disable(self) -> None:
         """Disable the Timer."""
         if len(self._clock_starts) > 0:
             raise RuntimeError(
@@ -142,11 +142,11 @@ class NullTimer(Timer):
     Meant to be used in place of an optional timer.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._enabled = False
+        self._enabled: bool = False
 
-    def enable(self):
+    def enable(self) -> None:
         """Enable the Timer."""
         raise NotImplementedError(
             "NullTimer cannot be enabled, maybe create a Timer and "

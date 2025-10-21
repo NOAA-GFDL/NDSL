@@ -1,6 +1,7 @@
 import copy
 import os
-from typing import BinaryIO, Generator, Iterable
+from collections.abc import Generator, Iterable
+from typing import BinaryIO
 
 import xarray as xr
 
@@ -23,9 +24,9 @@ def open_restart(
     dirname: str,
     communicator: Communicator,
     label: str = "",
-    only_names: Iterable[str] = None,
-    to_state: dict = None,
-    tracer_properties: RestartProperties = None,
+    only_names: Iterable[str] | None = None,
+    to_state: dict | None = None,
+    tracer_properties: RestartProperties | None = None,
 ):
     """Load restart files output by the Fortran model into a state dictionary.
 
@@ -165,7 +166,7 @@ def load_partial_state_from_restart_file(
     return state
 
 
-def _get_restart_standard_names(restart_properties: RestartProperties = None):
+def _get_restart_standard_names(restart_properties: RestartProperties | None = None):
     """Return a list of variable names needed for a smooth restart. By default uses
     restart_properties from RESTART_PROPERTIES."""
     if restart_properties is None:

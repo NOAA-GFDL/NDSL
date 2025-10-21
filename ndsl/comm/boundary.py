@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Tuple
+from typing import Any
 
 from ndsl.comm._boundary_utils import get_boundary_slice
 from ndsl.quantity import Quantity, QuantityHaloSpec
@@ -18,7 +18,7 @@ class Boundary:
     orientation of the axes in from_rank to the orientation of the axes in to_rank.
     """
 
-    def send_view(self, quantity: Quantity, n_points: int):
+    def send_view(self, quantity: Quantity, n_points: int) -> Any:
         """Return a sliced view of points which should be sent at this boundary.
 
         Args:
@@ -27,7 +27,7 @@ class Boundary:
         """
         return self._view(quantity, n_points, interior=True)
 
-    def recv_view(self, quantity: Quantity, n_points: int):
+    def recv_view(self, quantity: Quantity, n_points: int) -> Any:
         """Return a sliced view of points which should be received at this boundary.
 
         Args:
@@ -36,7 +36,7 @@ class Boundary:
         """
         return self._view(quantity, n_points, interior=False)
 
-    def send_slice(self, specification: QuantityHaloSpec) -> Tuple[slice]:
+    def send_slice(self, specification: QuantityHaloSpec) -> tuple[slice]:
         """Return the index slices which should be sent at this boundary.
 
         Args:
@@ -48,7 +48,7 @@ class Boundary:
         """
         return self._slice(specification, interior=True)
 
-    def recv_slice(self, specification: QuantityHaloSpec) -> Tuple[slice]:
+    def recv_slice(self, specification: QuantityHaloSpec) -> tuple[slice]:
         """Return the index slices which should be received at this boundary.
 
         Args:
@@ -60,7 +60,7 @@ class Boundary:
         """
         return self._slice(specification, interior=False)
 
-    def _slice(self, specification: QuantityHaloSpec, interior: bool) -> Tuple[slice]:
+    def _slice(self, specification: QuantityHaloSpec, interior: bool) -> tuple[slice]:
         """Returns a tuple of slices (one per dimensions) indexing the data to be exchange.
 
         Args:
@@ -69,9 +69,9 @@ class Boundary:
         Return:
             A tuple of slices (one per dimensions)
         """
-        raise NotImplementedError()
+        raise NotImplementedError("Boundary._slice()")
 
-    def _view(self, quantity: Quantity, n_points: int, interior: bool):
+    def _view(self, quantity: Quantity, n_points: int, interior: bool) -> Any:
         """Return a sliced view of points in the given quantity at this boundary.
 
         Args:
@@ -80,7 +80,7 @@ class Boundary:
             interior: if True, give points inside the computational domain (default),
                 otherwise give points in the halo
         """
-        raise NotImplementedError()
+        raise NotImplementedError("Boundary._view()")
 
 
 @dataclasses.dataclass
@@ -89,7 +89,7 @@ class SimpleBoundary(Boundary):
 
     boundary_type: int
 
-    def _view(self, quantity: Quantity, n_points: int, interior: bool):
+    def _view(self, quantity: Quantity, n_points: int, interior: bool) -> Any:
         boundary_slice = get_boundary_slice(
             quantity.dims,
             quantity.origin,
@@ -101,7 +101,7 @@ class SimpleBoundary(Boundary):
         )
         return quantity.data[tuple(boundary_slice)]
 
-    def _slice(self, specification: QuantityHaloSpec, interior: bool) -> Tuple[slice]:
+    def _slice(self, specification: QuantityHaloSpec, interior: bool) -> tuple[slice]:
         return get_boundary_slice(
             specification.dims,
             specification.origin,

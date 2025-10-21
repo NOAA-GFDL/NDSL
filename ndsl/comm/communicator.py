@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import abc
-from typing import List, Mapping, Optional, Sequence, Tuple, Union, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, Self, cast
 
 import numpy as np
 
@@ -18,7 +19,7 @@ from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
 
 
-def to_numpy(array, dtype=None) -> np.ndarray:
+def to_numpy(array, dtype=None) -> np.ndarray:  # type: ignore[no-untyped-def]
     """
     Input array can be a numpy array or a cupy array. Returns numpy array.
     """
@@ -45,18 +46,19 @@ class Communicator(abc.ABC):
     def __init__(
         self,
         comm: CommABC,
-        partitioner,
+        partitioner: Partitioner,
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ):
         self.comm = comm
         self.partitioner: Partitioner = partitioner
         self._force_cpu = force_cpu
-        self._boundaries: Optional[Mapping[int, Boundary]] = None
+        self._boundaries: Mapping[int, Boundary] | None = None
         self._last_halo_tag = 0
         self.timer: Timer = timer if timer is not None else NullTimer()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def tile(self) -> TileCommunicator:
         pass
 
@@ -65,10 +67,10 @@ class Communicator(abc.ABC):
     def from_layout(
         cls,
         comm: CommABC,
-        layout: Tuple[int, int],
+        layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
-    ):
+        timer: Timer | None = None,
+    ) -> Self:
         pass
 
     @property
@@ -91,13 +93,13 @@ class Communicator(abc.ABC):
         return module
 
     @staticmethod
-    def _device_synchronize():
+    def _device_synchronize() -> None:
         """Wait for all work that could be in-flight to finish."""
         # this is a method so we can profile it separately from other device syncs
         device_synchronize()
 
     def _create_all_reduce_quantity(
-        self, input_metadata: QuantityMetadata, input_data
+        self, input_metadata: QuantityMetadata, input_data: Any
     ) -> Quantity:
         """Create a Quantity for all_reduce data and metadata"""
         all_reduce_quantity = Quantity(
@@ -115,52 +117,52 @@ class Communicator(abc.ABC):
         self,
         input_quantity: Quantity,
         op: ReductionOperator,
-        output_quantity: Quantity = None,
-    ):
+        output_quantity: Quantity | None = None,
+    ) -> Quantity:
         reduced_quantity_data = self.comm.allreduce(input_quantity.data, op)
         if output_quantity is None:
-            all_reduce_quantity = self._create_all_reduce_quantity(
+            return self._create_all_reduce_quantity(
                 input_quantity.metadata, reduced_quantity_data
             )
-            return all_reduce_quantity
-        else:
-            if output_quantity.data.shape != input_quantity.data.shape:
-                raise TypeError("Shapes not matching")
 
-            input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
+        if output_quantity.data.shape != input_quantity.data.shape:
+            raise TypeError("Shapes not matching")
 
-            output_quantity.data = reduced_quantity_data
+        input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
+
+        output_quantity.data = reduced_quantity_data
+        return output_quantity
 
     def all_reduce_per_element(
         self,
         input_quantity: Quantity,
         output_quantity: Quantity,
         op: ReductionOperator,
-    ):
+    ) -> None:
         self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
 
     def all_reduce_per_element_in_place(
         self, quantity: Quantity, op: ReductionOperator
-    ):
+    ) -> None:
         # Note that device_synchronization is Cupy/Cuda specific
         # at the moment.
         device_synchronize()
         self.comm.Allreduce_inplace(quantity.data, op)
 
-    def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):
+    def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):  # type: ignore[no-untyped-def]
         with send_buffer(numpy_module.zeros, sendbuf) as send:
             with recv_buffer(numpy_module.zeros, recvbuf) as recv:
                 self.comm.Scatter(send, recv, **kwargs)
 
-    def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):
+    def _Gather(self, numpy_module, sendbuf, recvbuf, **kwargs):  # type: ignore[no-untyped-def]
         with send_buffer(numpy_module.zeros, sendbuf) as send:
             with recv_buffer(numpy_module.zeros, recvbuf) as recv:
                 self.comm.Gather(send, recv, **kwargs)
 
     def scatter(
         self,
-        send_quantity: Optional[Quantity] = None,
-        recv_quantity: Optional[Quantity] = None,
+        send_quantity: Quantity | None = None,
+        recv_quantity: Quantity | None = None,
     ) -> Quantity:
         """Transfer subtile regions of a full-tile quantity
         from the tile root rank to all subtiles.
@@ -175,9 +177,11 @@ class Communicator(abc.ABC):
             raise TypeError("send_quantity is a required argument on the root rank")
         if self.rank == constants.ROOT_RANK:
             send_quantity = cast(Quantity, send_quantity)
-            metadata = self.comm.bcast(send_quantity.metadata, root=constants.ROOT_RANK)
+            metadata: QuantityMetadata = self.comm.bcast(
+                send_quantity.metadata, root=constants.ROOT_RANK
+            )  # type: ignore[assignment]
         else:
-            metadata = self.comm.bcast(None, root=constants.ROOT_RANK)
+            metadata = self.comm.bcast(None, root=constants.ROOT_RANK)  # type: ignore[assignment]
         shape = self.partitioner.subtile_extent(metadata, self.rank)
         if recv_quantity is None:
             recv_quantity = self._get_scatter_recv_quantity(shape, metadata)
@@ -219,7 +223,7 @@ class Communicator(abc.ABC):
     ) -> Quantity:
         """Initialize a Quantity for use when receiving global data during gather"""
         recv_quantity = Quantity(
-            send_metadata.np.zeros(global_extent, dtype=send_metadata.dtype),
+            send_metadata.np.zeros(global_extent, dtype=send_metadata.dtype),  # type: ignore
             dims=send_metadata.dims,
             units=send_metadata.units,
             origin=tuple([0 for dim in send_metadata.dims]),
@@ -234,7 +238,7 @@ class Communicator(abc.ABC):
     ) -> Quantity:
         """Initialize a Quantity for use when receiving subtile data during scatter"""
         recv_quantity = Quantity(
-            send_metadata.np.zeros(shape, dtype=send_metadata.dtype),
+            send_metadata.np.zeros(shape, dtype=send_metadata.dtype),  # type: ignore
             dims=send_metadata.dims,
             units=send_metadata.units,
             gt4py_backend=send_metadata.gt4py_backend,
@@ -243,8 +247,8 @@ class Communicator(abc.ABC):
         return recv_quantity
 
     def gather(
-        self, send_quantity: Quantity, recv_quantity: Quantity = None
-    ) -> Optional[Quantity]:
+        self, send_quantity: Quantity, recv_quantity: Quantity | None = None
+    ) -> Quantity | None:
         """Transfer subtile regions of a full-tile quantity
         from each rank to the tile root rank.
 
@@ -255,7 +259,7 @@ class Communicator(abc.ABC):
         Returns:
             recv_quantity: quantity if on root rank, otherwise None
         """
-        result: Optional[Quantity]
+        result: Quantity | None
         if self.rank == constants.ROOT_RANK:
             with array_buffer(
                 send_quantity.np.zeros,
@@ -296,7 +300,7 @@ class Communicator(abc.ABC):
             result = None
         return result
 
-    def gather_state(self, send_state=None, recv_state=None, transfer_type=None):
+    def gather_state(self, send_state=None, recv_state=None, transfer_type=None):  # type: ignore[no-untyped-def]
         """Transfer a state dictionary from subtile ranks to the tile root rank.
 
         'time' is assumed to be the same on all ranks, and its value will be set
@@ -334,7 +338,7 @@ class Communicator(abc.ABC):
                 del gather_quantity
         return recv_state
 
-    def scatter_state(self, send_state=None, recv_state=None):
+    def scatter_state(self, send_state=None, recv_state=None):  # type: ignore[no-untyped-def]
         """Transfer a state dictionary from the tile root rank to all subtiles.
 
         Args:
@@ -346,13 +350,13 @@ class Communicator(abc.ABC):
             rank_state: the state corresponding to this rank's subdomain
         """
 
-        def scatter_root():
+        def scatter_root() -> None:
             if send_state is None:
                 raise TypeError("send_state is a required argument on the root rank")
             name_list = list(send_state.keys())
             while "time" in name_list:
                 name_list.remove("time")
-            name_list = self.comm.bcast(name_list, root=constants.ROOT_RANK)
+            name_list = self.comm.bcast(name_list, root=constants.ROOT_RANK)  # type: ignore[assignment]
             array_list = [send_state[name] for name in name_list]
             for name, array in zip(name_list, array_list):
                 if name in recv_state:
@@ -363,9 +367,9 @@ class Communicator(abc.ABC):
                 send_state.get("time", None), root=constants.ROOT_RANK
             )
 
-        def scatter_client():
+        def scatter_client() -> None:
             name_list = self.comm.bcast(None, root=constants.ROOT_RANK)
-            for name in name_list:
+            for name in name_list:  # type: ignore
                 if name in recv_state:
                     self.scatter(recv_quantity=recv_state[name])
                 else:
@@ -382,7 +386,7 @@ class Communicator(abc.ABC):
             recv_state.pop("time")
         return recv_state
 
-    def halo_update(self, quantity: Union[Quantity, List[Quantity]], n_points: int):
+    def halo_update(self, quantity: Quantity | list[Quantity], n_points: int) -> None:
         """Perform a halo update on a quantity or quantities
 
         Args:
@@ -398,7 +402,7 @@ class Communicator(abc.ABC):
         halo_updater.wait()
 
     def start_halo_update(
-        self, quantity: Union[Quantity, List[Quantity]], n_points: int
+        self, quantity: Quantity | list[Quantity], n_points: int
     ) -> HaloUpdater:
         """Start an asynchronous halo update on a quantity.
 
@@ -436,10 +440,10 @@ class Communicator(abc.ABC):
 
     def vector_halo_update(
         self,
-        x_quantity: Union[Quantity, List[Quantity]],
-        y_quantity: Union[Quantity, List[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
-    ):
+    ) -> None:
         """Perform a halo update of a horizontal vector quantity or quantities.
 
         Assumes the x and y dimension indices are the same between the two quantities.
@@ -465,8 +469,8 @@ class Communicator(abc.ABC):
 
     def start_vector_halo_update(
         self,
-        x_quantity: Union[Quantity, List[Quantity]],
-        y_quantity: Union[Quantity, List[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> HaloUpdater:
         """Start an asynchronous halo update of a horizontal vector quantity.
@@ -523,7 +527,9 @@ class Communicator(abc.ABC):
         halo_updater.start(x_quantities, y_quantities)
         return halo_updater
 
-    def synchronize_vector_interfaces(self, x_quantity: Quantity, y_quantity: Quantity):
+    def synchronize_vector_interfaces(
+        self, x_quantity: Quantity, y_quantity: Quantity
+    ) -> None:
         """
         Synchronize shared points at the edges of a vector interface variable.
 
@@ -572,7 +578,9 @@ class Communicator(abc.ABC):
         req = halo_updater.start_synchronize_vector_interfaces(x_quantity, y_quantity)
         return req
 
-    def get_scalar_halo_updater(self, specifications: List[QuantityHaloSpec]):
+    def get_scalar_halo_updater(
+        self, specifications: list[QuantityHaloSpec]
+    ) -> HaloUpdater:
         if len(specifications) == 0:
             raise RuntimeError("Cannot create updater with specifications list")
         if specifications[0].n_points == 0:
@@ -588,9 +596,9 @@ class Communicator(abc.ABC):
 
     def get_vector_halo_updater(
         self,
-        specifications_x: List[QuantityHaloSpec],
-        specifications_y: List[QuantityHaloSpec],
-    ):
+        specifications_x: list[QuantityHaloSpec],
+        specifications_y: list[QuantityHaloSpec],
+    ) -> HaloUpdater:
         if len(specifications_x) == 0 and len(specifications_y) == 0:
             raise RuntimeError("Cannot create updater with empty specifications list")
         if specifications_x[0].n_points == 0 and specifications_y[0].n_points == 0:
@@ -621,7 +629,7 @@ class Communicator(abc.ABC):
         return self._boundaries
 
 
-def bcast_metadata_list(comm, quantity_list):
+def bcast_metadata_list(comm: CommABC, quantity_list: list[Quantity]):  # type: ignore[no-untyped-def]
     is_root = comm.Get_rank() == constants.ROOT_RANK
     if is_root:
         metadata_list = []
@@ -632,7 +640,7 @@ def bcast_metadata_list(comm, quantity_list):
     return comm.bcast(metadata_list, root=constants.ROOT_RANK)
 
 
-def bcast_metadata(comm, array):
+def bcast_metadata(comm: CommABC, array: Quantity):  # type: ignore[no-untyped-def]
     return bcast_metadata_list(comm, [array])[0]
 
 
@@ -641,11 +649,11 @@ class TileCommunicator(Communicator):
 
     def __init__(
         self,
-        comm,
+        comm: CommABC,
         partitioner: TilePartitioner,
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
-    ):
+        timer: Timer | None = None,
+    ) -> None:
         """Initialize a TileCommunicator.
 
         Args:
@@ -662,20 +670,20 @@ class TileCommunicator(Communicator):
     @classmethod
     def from_layout(
         cls,
-        comm,
-        layout: Tuple[int, int],
+        comm: CommABC,
+        layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> TileCommunicator:
         partitioner = TilePartitioner(layout=layout)
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
 
     @property
-    def tile(self):
+    def tile(self) -> TileCommunicator:
         return self
 
     def start_halo_update(
-        self, quantity: Union[Quantity, List[Quantity]], n_points: int
+        self, quantity: Quantity | list[Quantity], n_points: int
     ) -> HaloUpdater:
         """Start an asynchronous halo update on a quantity.
 
@@ -697,8 +705,8 @@ class TileCommunicator(Communicator):
 
     def start_vector_halo_update(
         self,
-        x_quantity: Union[Quantity, List[Quantity]],
-        y_quantity: Union[Quantity, List[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> HaloUpdater:
         """Start an asynchronous halo update of a horizontal vector quantity.
@@ -764,7 +772,7 @@ class CubedSphereCommunicator(Communicator):
         comm: CommABC,
         partitioner: CubedSpherePartitioner,
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ):
         """Initialize a CubedSphereCommunicator.
 
@@ -785,7 +793,7 @@ class CubedSphereCommunicator(Communicator):
                 f"comm object with only {comm.Get_size()} ranks, are we running "
                 "with mpi and the correct number of ranks?"
             )
-        self._tile_communicator: Optional[TileCommunicator] = None
+        self._tile_communicator: TileCommunicator | None = None
         self._force_cpu = force_cpu
         super(CubedSphereCommunicator, self).__init__(
             comm, partitioner, force_cpu, timer
@@ -795,10 +803,10 @@ class CubedSphereCommunicator(Communicator):
     @classmethod
     def from_layout(
         cls,
-        comm,
-        layout: Tuple[int, int],
+        comm: CommABC,
+        layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> CubedSphereCommunicator:
         partitioner = CubedSpherePartitioner(tile=TilePartitioner(layout=layout))
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
@@ -810,7 +818,7 @@ class CubedSphereCommunicator(Communicator):
             self._initialize_tile_communicator()
         return cast(TileCommunicator, self._tile_communicator)
 
-    def _initialize_tile_communicator(self):
+    def _initialize_tile_communicator(self) -> None:
         tile_comm = self.comm.Split(
             color=self.partitioner.tile_index(self.rank), key=self.rank
         )
@@ -828,7 +836,7 @@ class CubedSphereCommunicator(Communicator):
         # needs to change the quantity dimensions since we add a "tile" dimension,
         # unlike for tile scatter/gather which retains the same dimensions
         recv_quantity = Quantity(
-            metadata.np.zeros(global_extent, dtype=metadata.dtype),
+            metadata.np.zeros(global_extent, dtype=metadata.dtype),  # type: ignore
             dims=(constants.TILE_DIM,) + metadata.dims,
             units=metadata.units,
             origin=(0,) + tuple([0 for dim in metadata.dims]),
@@ -850,7 +858,7 @@ class CubedSphereCommunicator(Communicator):
         # needs to change the quantity dimensions since we remove a "tile" dimension,
         # unlike for tile scatter/gather which retains the same dimensions
         recv_quantity = Quantity(
-            metadata.np.zeros(shape, dtype=metadata.dtype),
+            metadata.np.zeros(shape, dtype=metadata.dtype),  # type: ignore
             dims=metadata.dims[1:],
             units=metadata.units,
             gt4py_backend=metadata.gt4py_backend,

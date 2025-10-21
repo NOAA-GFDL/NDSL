@@ -3,7 +3,7 @@ import numpy as np
 from ndsl.optional_imports import cupy
 
 
-def to_numpy(array, dtype=None) -> np.ndarray:
+def to_numpy(array, dtype=None) -> np.ndarray:  # type: ignore[no-untyped-def]
     """
     Input array can be a numpy array or a cupy array. Returns numpy array.
     """

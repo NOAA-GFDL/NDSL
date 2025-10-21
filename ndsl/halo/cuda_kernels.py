@@ -2,7 +2,7 @@
 from ndsl.optional_imports import cupy as cp
 
 
-def pack_scalar_code(float_dtype: str):
+def pack_scalar_code(float_dtype: str) -> str:
     """Pack into o_destinationBuffer data from i_sourceArray.
 
     The indexation into i_sourceArray is stored in i_indexes.
@@ -33,7 +33,7 @@ def pack_scalar_code(float_dtype: str):
     )
 
 
-def unpack_scalar_code(float_dtype: str):
+def unpack_scalar_code(float_dtype: str) -> str:
     """Unpack into o_destinationArray data from i_sourceBuffer.
 
     The indexation into o_destinationArray is stored in i_indexes.

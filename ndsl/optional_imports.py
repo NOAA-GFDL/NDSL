@@ -1,11 +1,14 @@
+from typing import Any
+
+
 class RaiseWhenAccessed:
-    def __init__(self, err):
+    def __init__(self, err: ModuleNotFoundError) -> None:
         self._err = err
 
-    def __getattr__(self, _):
+    def __getattr__(self, _: Any) -> None:
         raise self._err
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: dict) -> None:
         raise self._err
 
 

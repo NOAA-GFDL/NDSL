@@ -1,0 +1,35 @@
+name: "NDSL documentation"
+
+# Documentation gets automatically deployed upon merge to develop
+on:
+  push:
+    branches:
+      - develop
+
+# Security: Restrict permissions of this workflow to whats needed.
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install mkdocs-material mkdocstrings[python]
+
+      - name: Deploy docs to GitHub Pages
+        run: mkdocs gh-deploy --force

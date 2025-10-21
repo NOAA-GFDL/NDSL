@@ -2,15 +2,15 @@ import cProfile
 
 
 class Profiler:
-    def __init__(self):
+    def __init__(self) -> None:
         self._enabled = True
         self.profiler = cProfile.Profile()
         self.profiler.disable()
 
-    def enable(self):
+    def enable(self) -> None:
         self.profiler.enable()
 
-    def dump_stats(self, filename: str):
+    def dump_stats(self, filename: str) -> None:
         self.profiler.disable()
         self._enabled = False
         self.profiler.dump_stats(filename)
@@ -27,14 +27,14 @@ class NullProfiler:
     Meant to be used in place of an optional profiler.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.profiler = None
         self._enabled = False
 
-    def enable(self):
+    def enable(self) -> None:
         pass
 
-    def dump_stats(self, filename: str):
+    def dump_stats(self, filename: str) -> None:
         pass
 
     @property
