@@ -1,16 +1,18 @@
+from typing import Any
+
 import pytest
 
 from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
 from ndsl.boilerplate import (
-    get_factories_single_tile_orchestrated,
     get_factories_single_tile,
+    get_factories_single_tile_orchestrated,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
-def the_copy_stencil(from_: FloatField, to: FloatField):
+def the_copy_stencil(from_: FloatField, to: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         to = from_
 
@@ -25,10 +27,10 @@ class Code(NDSLRuntime):
         )
         self.local = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
 
-    def test_check(self):
+    def test_check(self) -> None:
         assert self.local.__descriptor__().transient
 
-    def __call__(self, A, B):
+    def __call__(self, A, B) -> None:  # type: ignore[no-untyped-def]
         self.copy(A, self.local)
         self.copy(self.local, B)
 
@@ -44,11 +46,11 @@ class Code_NoCall(NDSLRuntime):
         super().__init__(dace_config=stencil_factory.config.dace_config)
         pass
 
-    def run(self, A, B):
+    def run(self, A: Any, B: Any) -> None:
         pass
 
 
-def test_runtime_make_local():
+def test_runtime_make_local() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         5, 5, 3, 0, backend="numpy"
     )
@@ -69,7 +71,7 @@ def test_runtime_make_local():
     assert not B_.__descriptor__().transient
 
 
-def test_runtime_has_orchestracted_call():
+def test_runtime_has_orchestracted_call() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 3, 0, backend="dace:cpu_kfirst"
     )
@@ -85,7 +87,7 @@ def test_runtime_has_orchestracted_call():
     assert (A_.field[:] == B_.field[:]).all()
 
 
-def test_runtime_does_not_orchestrate_when_call_is_not_present():
+def test_runtime_does_not_orchestrate_when_call_is_not_present() -> None:
     stencil_factory, _ = get_factories_single_tile_orchestrated(
         5, 5, 3, 0, backend="dace:cpu_kfirst"
     )
@@ -97,7 +99,7 @@ def test_runtime_does_not_orchestrate_when_call_is_not_present():
     assert type(code).__name__ == "Code_NoCall"
 
 
-def test_runtime_fail_when_not_super_init():
+def test_runtime_fail_when_not_super_init() -> None:
     with pytest.raises(
         RuntimeError, match="inherit from NDSLRuntime but didn't call super()"
     ):
