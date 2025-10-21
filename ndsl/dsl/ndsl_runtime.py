@@ -21,6 +21,8 @@ class NDSLRuntime:
 
     def __init__(self, dace_config: DaceConfig) -> None:
         self._dace_config = dace_config
+        # Use this flag to detect that the init wasn't done properly
+        self._base_class_was_properly_super_init = True
 
     def __init_subclass__(cls: type[NDSLRuntime], **kwargs: dict[str, Any]) -> None:
         # WARNING: no code outside the `init_decorator` this is cls
@@ -44,6 +46,11 @@ class NDSLRuntime:
         cls.__init__ = init_decorator(cls.__init__)  # type: ignore[method-assign]
 
     def __post_init__(self) -> None:
+        if not hasattr(self, "_base_class_was_properly_super_init"):
+            raise RuntimeError(
+                f"Class {type(self).__name__} inherit from NDSLRuntime but didn't call super().__init__."
+            )
+
         # Check quantity allocation of NDSLRuntime supervised code
         if _TOP_LEVEL == self:
 
@@ -60,10 +67,12 @@ class NDSLRuntime:
             check_for_quantity(self)
 
         # Orchestrate __call__ by default
-        orchestrate(
-            obj=self,
-            config=self._dace_config,
-        )
+        if hasattr(self, "__call__"):
+            orchestrate(
+                obj=self,
+                config=self._dace_config,
+            )
+            print(type(self))
 
     def __getattribute__(self, name: str) -> Any:
         attr = super().__getattribute__(name)
@@ -84,7 +93,7 @@ class NDSLRuntime:
             ):
                 # We expect the original class to have been monkey-patched
                 # See `dace.dsl.orchestration.orchestrate`
-                unpatched_name = self.__name__[: -len("_patched")]
+                unpatched_name = type(self).__name__[: -len("_patched")]
                 raise RuntimeError(
                     f"Forbidden Local access: {name} called outside of {unpatched_name}."
                 )
