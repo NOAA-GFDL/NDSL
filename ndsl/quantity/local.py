@@ -1,7 +1,9 @@
-from ndsl.quantity import Quantity
-import numpy as np
-from ndsl.optional_imports import cupy
 from typing import Sequence
+
+import numpy as np
+
+from ndsl.optional_imports import cupy
+from ndsl.quantity import Quantity
 
 
 class Local(Quantity):

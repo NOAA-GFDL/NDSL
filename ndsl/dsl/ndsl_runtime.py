@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from ndsl.quantity import Quantity, Local
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.dsl.dace import orchestrate, DaceConfig
-from ndsl.dsl.typing import Float
-import warnings
 import inspect
+import warnings
 from typing import Any, Callable
+
+from ndsl.dsl.dace import DaceConfig, orchestrate
+from ndsl.dsl.typing import Float
+from ndsl.initialization.allocator import QuantityFactory
+from ndsl.quantity import Local, Quantity
+
 
 _TOP_LEVEL: object | None = None
 
