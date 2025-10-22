@@ -77,13 +77,18 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity - values are random.
 
         Equivalent to `numpy.empty`"""
         return self._allocate(
-            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.empty,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
 
     def zeros(
@@ -91,13 +96,18 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 0.
 
         Equivalent to `numpy.zeros`"""
         return self._allocate(
-            self._numpy.zeros, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.zeros,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
 
     def ones(
@@ -105,13 +115,18 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 1.
 
         Equivalent to `numpy.ones`"""
         return self._allocate(
-            self._numpy.ones, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.ones,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
 
     def full(
@@ -120,13 +135,18 @@ class QuantityFactory:
         units: str,
         value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value.
 
         Equivalent to `numpy.full`"""
         quantity = self._allocate(
-            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.empty,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
         quantity.data[:] = value
         return quantity
@@ -136,6 +156,7 @@ class QuantityFactory:
         data: np.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
@@ -158,6 +179,7 @@ class QuantityFactory:
         data: np.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
