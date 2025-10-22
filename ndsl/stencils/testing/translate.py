@@ -1,5 +1,5 @@
 import logging
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.savepoint import DataLoader
+
 
 if TYPE_CHECKING:
     if cp is None:
