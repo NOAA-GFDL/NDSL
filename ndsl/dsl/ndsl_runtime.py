@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import inspect
 import warnings
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from ndsl.dsl.dace import DaceConfig, orchestrate
 from ndsl.dsl.typing import Float
@@ -17,7 +18,7 @@ class NDSLRuntime:
     """Base class to tool runtime code, allows use of Locals, orchestration and
     debug tools.
 
-    The __call__ function will automatically orchestrated."""
+    The __call__ function will automatically be orchestrated."""
 
     def __init__(self, dace_config: DaceConfig) -> None:
         self._dace_config = dace_config
@@ -78,7 +79,7 @@ class NDSLRuntime:
         attr = super().__getattribute__(name)
         # We look at the direct caller frame for our own `self`
         # in the locals.
-        # Any other case are forbidden.
+        # All other cases are forbidden.
         if isinstance(attr, Local):
             frame = inspect.currentframe()
             if frame is None:
