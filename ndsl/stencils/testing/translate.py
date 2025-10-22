@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -10,6 +10,9 @@ from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.savepoint import DataLoader
 
+if TYPE_CHECKING:
+    if cp is None:
+        import numpy as cp
 
 logger = logging.getLogger(__name__)
 
