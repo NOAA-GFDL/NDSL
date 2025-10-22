@@ -5,7 +5,6 @@ import numpy as np
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
@@ -135,7 +134,7 @@ class TranslateFortranData2Py:
         names_4d: list[str] | None = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> Field:
+    ) -> np.ndarray | cp.ndarray:
         """Copy input data into a gt4py.storage with given shape.
 
         `array` is copied. Takes care of the device upload if necessary.
@@ -201,7 +200,10 @@ class TranslateFortranData2Py:
         return istart, jstart, kstart
 
     def make_storage_data_input_vars(
-        self, inputs, storage_vars=None, dict_4d=True
+        self,
+        inputs,
+        storage_vars=None,
+        dict_4d=True,
     ) -> None:
         """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionary to update inputs to
         their configured shape.
@@ -292,7 +294,18 @@ class TranslateFortranData2Py:
                     )
                 out[serialname] = var4d
             else:
-                slice_tuple = self.grid.slice_dict(ds, len(data_result.shape))
+                # Get slice for data dimensions (after original 3D)
+                if len(data_result.shape) > 3:
+                    data_dims_slice = tuple(
+                        [slice(0, ddim_end) for ddim_end in data_result.shape[3:]]
+                    )
+                else:
+                    data_dims_slice = ()
+                # Slice combine the expected cartesian and data_dims
+                cartesian_slice = self.grid.slice_dict(
+                    ds, min(len(data_result.shape), 3)
+                )
+                slice_tuple = cartesian_slice + data_dims_slice
                 out[serialname] = np.squeeze(data_result[slice_tuple])
             if "kaxis" in info:
                 out[serialname] = np.moveaxis(out[serialname], 2, info["kaxis"])
