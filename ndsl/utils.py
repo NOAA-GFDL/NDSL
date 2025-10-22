@@ -1,6 +1,7 @@
+from collections.abc import Iterable, Sequence
 from enum import EnumMeta
 from pathlib import Path
-from typing import Iterable, Sequence, Tuple, TypeVar, Union
+from typing import TypeVar
 
 import f90nml
 import numpy as np
@@ -31,7 +32,7 @@ class MetaEnumStr(EnumMeta):
 
 def list_by_dims(
     dims: Sequence[str], horizontal_list: Sequence[T], non_horizontal_value: T
-) -> Tuple[T, ...]:
+) -> tuple[T, ...]:
     """Take in a list of dimensions, a (y, x) set of values, and a value for any
     non-horizontal dimensions. Return a list of length len(dims) with the value for
     each dimension.
@@ -55,7 +56,7 @@ def is_c_contiguous(array: np.ndarray) -> bool:
     return array.flags["C_CONTIGUOUS"]
 
 
-def ensure_contiguous(maybe_array: Union[np.ndarray, None]) -> None:
+def ensure_contiguous(maybe_array: np.ndarray | None) -> None:
     if maybe_array is not None and not is_contiguous(maybe_array):
         raise BufferError("dlpack: buffer is not contiguous")
 

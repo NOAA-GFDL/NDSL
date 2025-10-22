@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import numpy as np
 from gt4py import storage as gt_storage
@@ -117,7 +118,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        value: Any,  # no type hint because it would be a TypeVar = Type[dtype] and mypy says no
+        value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -209,6 +210,7 @@ class QuantityFactory:
             extent=extent,
             gt4py_backend=self._backend(),
             allow_mismatch_float_precision=allow_mismatch_float_precision,
+            number_of_halo_points=self.sizer.n_halo,
         )
 
     def get_quantity_halo_spec(

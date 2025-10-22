@@ -1,5 +1,4 @@
 import copy
-from typing import List
 
 import numpy as np
 
@@ -30,7 +29,7 @@ def assert_same_temporaries(dict1: dict, dict2: dict) -> None:
         raise AssertionError(f"{len(diffs)} differing temporaries found: {diffs}")
 
 
-def _assert_same_temporaries(dict1: dict, dict2: dict) -> List[str]:
+def _assert_same_temporaries(dict1: dict, dict2: dict) -> list[str]:
     differences = []
     for attr in dict1:
         attr1 = dict1[attr]

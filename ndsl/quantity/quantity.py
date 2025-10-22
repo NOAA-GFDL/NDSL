@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Iterable, Optional, Sequence, Tuple, Union, cast
+from collections.abc import Iterable, Sequence
+from typing import Any, cast
 
 import dace
 import matplotlib.pyplot as plt
@@ -31,26 +32,33 @@ class Quantity:
         data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
-        origin: Optional[Sequence[int]] = None,
-        extent: Optional[Sequence[int]] = None,
-        gt4py_backend: Union[str, None] = None,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
+        gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
+        number_of_halo_points: int = 0,
     ):
-        """
-        Initialize a Quantity.
+        """Initialize a Quantity.
 
         Args:
-            data: ndarray-like object containing the underlying data
-            dims: dimension names for each axis
-            units: units of the quantity
-            origin: first point in data within the computational domain
-            extent: number of points along each axis within the computational domain
-            gt4py_backend: backend to use for gt4py storages, if not given this will
-                be derived from a Storage if given as the data argument, otherwise the
-                storage attribute is disabled and will raise an exception. Will raise
-                a TypeError if this is given with a gt4py storage type as data
-        """
+            data (_type_): ndarray-like object containing the underlying data
+            dims (Sequence[str]): dimension names for each axis
+            units (str): units of the quantity
+            origin (Sequence[int] | None, optional): first point in data within the
+            computational domain. Defaults to None.
+            extent (Sequence[int] | None, optional): number of points along each axis
+                within the computational domain. Defaults to None.
+            gt4py_backend (str | None, optional): backend to use for gt4py storages,
+                if not given this will be derived from a Storage
+                if given as the data argument. Defaults to None.
+            allow_mismatch_float_precision (bool, optional): allow for precision that is
+                not the simulation-wide default configuration. Defaults to False.
+            number_of_halo_points (int, optional): Number of halo points used. Defaults to 0.
 
+        Raises:
+            ValueError: Data-type mismatch between configuration and input-data
+            TypeError: Typing of the data that does not fit
+        """
         if (
             not allow_mismatch_float_precision
             and is_float(data.dtype)
@@ -107,8 +115,6 @@ class Quantity:
                 )
             )
         else:
-            if data is None:
-                raise TypeError("requires 'data' to be passed")
             # We have no info about the gt4py_backend, so just assign it.
             self._data = data
 
@@ -116,6 +122,7 @@ class Quantity:
         self._metadata = QuantityMetadata(
             origin=_ensure_int_tuple(origin, "origin"),
             extent=_ensure_int_tuple(extent, "extent"),
+            n_halo=number_of_halo_points,
             dims=tuple(dims),
             units=units,
             data_type=type(self._data),
@@ -134,6 +141,7 @@ class Quantity:
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
+        number_of_halo_points: int = 0,
     ) -> Quantity:
         """
         Initialize a Quantity from an xarray.DataArray.
@@ -150,10 +158,11 @@ class Quantity:
             raise ValueError("need units attribute to create Quantity from DataArray")
         return cls(
             data_array.values,
-            cast(Tuple[str], data_array.dims),
+            cast(tuple[str], data_array.dims),
             data_array.attrs["units"],
             origin=origin,
             extent=extent,
+            number_of_halo_points=number_of_halo_points,
             gt4py_backend=gt4py_backend,
         )
 
@@ -171,6 +180,13 @@ class Quantity:
                 )
 
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
+        # This is a preliminary check to see if this is ever triggered.
+        # If not, we can remove it down the line and change the call signature.
+        if n_halo != self._metadata.n_halo:
+            warnings.warn(
+                "Found inconsistency with number of halo points in Quantity:"
+                + f"{n_halo} vs {self._metadata.n_halo}"
+            )
         return QuantityHaloSpec(
             n_halo,
             self.data.strides,
@@ -190,7 +206,7 @@ class Quantity:
             f"    extent={self.extent}\n)"
         )
 
-    def sel(self, **kwargs: Union[slice, int]) -> np.ndarray:
+    def sel(self, **kwargs: slice | int) -> np.ndarray:
         """Convenience method to perform indexing on `view` using dimension names
         without knowing dimension order.
 
@@ -203,7 +219,7 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):  # type: ignore
+    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: tuple):  # type: ignore
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
         storage = gt_storage.from_array(
             data,
@@ -224,7 +240,7 @@ class Quantity:
         return self.metadata.units
 
     @property
-    def gt4py_backend(self) -> Union[str, None]:
+    def gt4py_backend(self) -> str | None:
         return self.metadata.gt4py_backend
 
     @property
@@ -282,12 +298,12 @@ class Quantity:
         )
 
     @property
-    def origin(self) -> Tuple[int, ...]:
+    def origin(self) -> tuple[int, ...]:
         """The start of the computational domain"""
         return self.metadata.origin
 
     @property
-    def extent(self) -> Tuple[int, ...]:
+    def extent(self) -> tuple[int, ...]:
         """The shape of the computational domain"""
         return self.metadata.extent
 
@@ -328,7 +344,7 @@ class Quantity:
 
     def transpose(
         self,
-        target_dims: Sequence[Union[str, Iterable[str]]],
+        target_dims: Sequence[str | Iterable[str]],
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Change the dimension order of this Quantity.

@@ -1,5 +1,6 @@
 import copy
-from typing import Any, Mapping, TypeVar, cast
+from collections.abc import Mapping
+from typing import Any, TypeVar, cast
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 

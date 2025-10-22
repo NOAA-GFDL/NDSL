@@ -1,6 +1,6 @@
 import warnings
+from collections.abc import Mapping
 from timeit import default_timer as time
-from typing import Mapping
 
 from ndsl.optional_imports import cupy as cp
 from ndsl.utils import GPU_AVAILABLE

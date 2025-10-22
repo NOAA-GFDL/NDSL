@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Mapping, Optional, Self, Sequence, Union, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, Self, cast
 
 import numpy as np
 
@@ -68,7 +69,7 @@ class Communicator(abc.ABC):
         comm: CommABC,
         layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> Self:
         pass
 
@@ -160,8 +161,8 @@ class Communicator(abc.ABC):
 
     def scatter(
         self,
-        send_quantity: Optional[Quantity] = None,
-        recv_quantity: Optional[Quantity] = None,
+        send_quantity: Quantity | None = None,
+        recv_quantity: Quantity | None = None,
     ) -> Quantity:
         """Transfer subtile regions of a full-tile quantity
         from the tile root rank to all subtiles.
@@ -439,8 +440,8 @@ class Communicator(abc.ABC):
 
     def vector_halo_update(
         self,
-        x_quantity: Union[Quantity, list[Quantity]],
-        y_quantity: Union[Quantity, list[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> None:
         """Perform a halo update of a horizontal vector quantity or quantities.
@@ -468,8 +469,8 @@ class Communicator(abc.ABC):
 
     def start_vector_halo_update(
         self,
-        x_quantity: Union[Quantity, list[Quantity]],
-        y_quantity: Union[Quantity, list[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> HaloUpdater:
         """Start an asynchronous halo update of a horizontal vector quantity.
@@ -672,7 +673,7 @@ class TileCommunicator(Communicator):
         comm: CommABC,
         layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> TileCommunicator:
         partitioner = TilePartitioner(layout=layout)
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
@@ -682,7 +683,7 @@ class TileCommunicator(Communicator):
         return self
 
     def start_halo_update(
-        self, quantity: Union[Quantity, list[Quantity]], n_points: int
+        self, quantity: Quantity | list[Quantity], n_points: int
     ) -> HaloUpdater:
         """Start an asynchronous halo update on a quantity.
 
@@ -704,8 +705,8 @@ class TileCommunicator(Communicator):
 
     def start_vector_halo_update(
         self,
-        x_quantity: Union[Quantity, list[Quantity]],
-        y_quantity: Union[Quantity, list[Quantity]],
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
         n_points: int,
     ) -> HaloUpdater:
         """Start an asynchronous halo update of a horizontal vector quantity.
@@ -771,7 +772,7 @@ class CubedSphereCommunicator(Communicator):
         comm: CommABC,
         partitioner: CubedSpherePartitioner,
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ):
         """Initialize a CubedSphereCommunicator.
 
@@ -792,7 +793,7 @@ class CubedSphereCommunicator(Communicator):
                 f"comm object with only {comm.Get_size()} ranks, are we running "
                 "with mpi and the correct number of ranks?"
             )
-        self._tile_communicator: Optional[TileCommunicator] = None
+        self._tile_communicator: TileCommunicator | None = None
         self._force_cpu = force_cpu
         super(CubedSphereCommunicator, self).__init__(
             comm, partitioner, force_cpu, timer
@@ -805,7 +806,7 @@ class CubedSphereCommunicator(Communicator):
         comm: CommABC,
         layout: tuple[int, int],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
+        timer: Timer | None = None,
     ) -> CubedSphereCommunicator:
         partitioner = CubedSpherePartitioner(tile=TilePartitioner(layout=layout))
         return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)

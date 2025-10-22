@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Callable
 from pathlib import Path
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Self, TypeAlias
+from typing import TYPE_CHECKING, Any, Self, TypeAlias
 
 import dacite
 import xarray as xr
