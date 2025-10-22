@@ -224,7 +224,7 @@ class QuantityFactory:
             )
         except TypeError:
             data = allocator(shape, dtype=dtype)
-        quantity = Quantity(
+        return Quantity(
             data,
             dims=dims,
             units=units,
@@ -233,7 +233,6 @@ class QuantityFactory:
             gt4py_backend=self._backend(),
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
-        return quantity
 
     def get_quantity_halo_spec(
         self,
