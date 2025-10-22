@@ -12,6 +12,10 @@ from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
+if cp is None:
+    import numpy as cp
+
+
 # If True, automatically transfers memory between CPU and GPU (see gt4py.storage)
 managed_memory = True
 
