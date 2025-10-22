@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 
@@ -11,9 +11,8 @@ from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.savepoint import DataLoader
 
 
-if TYPE_CHECKING:
-    if cp is None:
-        import numpy as cp
+if cp is None:
+    import numpy as cp
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +36,10 @@ def as_numpy(
     def _convert(value: Quantity | np.ndarray) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
-        elif cp is not None and isinstance(value, cp.ndarray):
-            return cp.asnumpy(value)
         elif isinstance(value, np.ndarray):
             return value
+        elif cp is not None and isinstance(value, cp.ndarray):
+            return cp.asnumpy(value)
         else:
             raise TypeError(f"Unrecognized value type: {type(value)}")
 
