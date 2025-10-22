@@ -60,11 +60,7 @@ class State:
 
                     initial_quantities[_field.name] = quantity_factory_allocator(
                         _field.metadata["dims"],
-                        (
-                            _field.metadata["units"]
-                            if "units" in _field.metadata.keys()
-                            else "unspecified"
-                        ),
+                        _field.metadata["units"],
                         dtype=_field.metadata["dtype"],
                         allow_mismatch_float_precision=True,
                     )
