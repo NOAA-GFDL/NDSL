@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import inspect
 import warnings
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from ndsl.dsl.dace import DaceConfig, orchestrate
 from ndsl.dsl.typing import Float
