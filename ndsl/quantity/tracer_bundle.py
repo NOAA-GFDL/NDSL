@@ -14,29 +14,29 @@ from ndsl.quantity.tracer_bundle_type import TracerBundleTypeRegistry
 
 @oprepo.replaces_method("ndsl.quantity.tracer_bundle.TracerBundle", "size")
 def _tracer_bundle_fill_tracer(
-    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
-):
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args: Any, **kwargs: Any
+) -> None:
     raise NotImplementedError("let's just see if we get here")
 
 
 @oprepo.replaces_method("ndsl.quantity.TracerBundle", "size")
 def _tracer_bundle_fill_tracer_2(
-    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
-):
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args: Any, **kwargs: Any
+) -> None:
     raise NotImplementedError("let's just see if we get here 2")
 
 
 @oprepo.replaces_method("tracers", "size")
 def _tracer_bundle_fill_tracer_3(
-    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
-):
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args: Any, **kwargs: Any
+) -> None:
     raise NotImplementedError("let's just see if we get here 3")
 
 
 @oprepo.replaces("fill_tracer_by_name")
 def _fill_tracer_by_name(
-    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args, **kwargs
-):
+    pv: ProgramVisitor, sdfg: SDFG, state: SDFGState, *args: Any, **kwargs: Any
+) -> None:
     bundle = args[0]
     tracer_name = args[1]
     fill_value = args[2]
@@ -59,7 +59,7 @@ class Region(Enum):
 class Tracer(Quantity):
     """A Tracer is a specialized Quantity, grouped together in a TracerBundle."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
     def fill(self, value: Any, *, restrict_to: Region | None = None) -> None:

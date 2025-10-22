@@ -32,7 +32,7 @@ class TracerBundleTypeRegistry:
     _type_registry: dict[str, BundleTypes] = {}
 
     @classmethod
-    def register(cls, name: str, *, size: int, dtype=Float) -> BundleTypes:
+    def register(cls, name: str, *, size: int, dtype: type = Float) -> BundleTypes:
         """Register a name type by name by giving the size of its data dimensions.
 
         The same type cannot be registered twice and will error out.
