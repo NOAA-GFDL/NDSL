@@ -4,21 +4,6 @@ import copy
 import dataclasses
 import inspect
 import numbers
-import warnings
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
@@ -541,7 +526,7 @@ class FrozenStencil(SDFGConvertible):
             constant_args, given_args, parent_closure=parent_closure
         )
 
-    def _validate_quantity_sizes(self, *args, **kwargs):
+    def _validate_quantity_sizes(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Checks that the sizes of quantities are compatible with the domain of the stencil.
 
         Raises:
