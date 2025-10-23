@@ -118,8 +118,8 @@ class FieldBundle:
             extra_dims: dict of [name, size] of the data dimensions to add.
         """
         new_factory = copy.copy(quantity_factory)
-        new_factory.set_extra_dim_lengths(
-            **{
+        new_factory.add_data_dimensions(
+            {
                 **extra_dims,
             }
         )

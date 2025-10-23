@@ -629,7 +629,7 @@ class GridIndexing:
             ny=domain[1],
             nz=domain[2],
             n_halo=self.n_halo,
-            extra_dim_lengths={},
+            data_dimensions={},
         )
 
     @classmethod

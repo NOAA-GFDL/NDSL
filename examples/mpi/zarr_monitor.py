@@ -19,7 +19,7 @@ OUTPUT_PATH = "output/zarr_monitor.zarr"
 
 
 def get_example_state(time):
-    sizer = SubtileGridSizer(nx=48, ny=48, nz=70, n_halo=3, extra_dim_lengths={})
+    sizer = SubtileGridSizer(nx=48, ny=48, nz=70, n_halo=3, data_dimensions={})
     allocator = QuantityFactory(sizer, np)
     air_temperature = allocator.zeros([X_DIM, Y_DIM, Z_DIM], units="degK")
     air_temperature.view[:] = np.random.randn(*air_temperature.extent)

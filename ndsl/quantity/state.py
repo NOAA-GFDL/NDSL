@@ -84,8 +84,8 @@ class State:
             self._factory = factory
 
         def __enter__(self) -> None:
-            self._original_dims = self._factory.sizer.extra_dim_lengths
-            self._factory.sizer.extra_dim_lengths = self._ddims
+            self._original_dims = self._factory.sizer.data_dimensions
+            self._factory.sizer.data_dimensions = self._ddims
 
         def __exit__(
             self,
@@ -93,7 +93,7 @@ class State:
             value: BaseException | None,
             traceback: TracebackType | None,
         ) -> None:
-            self._factory.sizer.extra_dim_lengths = self._original_dims
+            self._factory.sizer.data_dimensions = self._original_dims
 
     @classmethod
     def empty(
