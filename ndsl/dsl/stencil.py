@@ -555,19 +555,20 @@ class FrozenStencil(SDFGConvertible):
         for name, argument in all_args_as_kwargs.items():
             if isinstance(argument, Quantity):
                 for axis, quantity_size in zip(argument.dims, argument.extent):
+                    full_size = quantity_size
+                    if axis in (X_DIMS + Y_DIMS):
+                        full_size += 2 * argument.metadata.n_halo
                     if (
-                        axis[0] in domain_sizes.keys()
-                        and quantity_size < domain_sizes[axis[0]]
+                        axis in (X_DIMS + Y_DIMS + Z_DIMS)
+                        and full_size < domain_sizes[axis[0]]
                     ):
-                        raise ValueError(
+                        ndsl_log.warning(
                             f"Quantity `{name}` is too small for the targeted "
-                            f"domain in axis {axis[0]}: {quantity_size} < {domain_sizes[axis[0]]}."
+                            f"domain in axis {axis}: {full_size} < {domain_sizes[axis[0]]}."
                         )
             elif not isinstance(argument, numbers.Real):
-                warnings.warn(
-                    "Found an array-type argument that is not a Quantity. Some domain-size checks omitted. ",
-                    category=UserWarning,
-                    stacklevel=2,
+                ndsl_log.warning(
+                    f"Found an array-type argument {name} that is not a Quantity. Some domain-size checks are omitted."
                 )
 
 
