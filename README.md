@@ -3,15 +3,6 @@
 
 # NOAA/NASA Domain Specific Language middleware
 
-:warning: :dragon: This is the equivalent of a "release" branch for the NASA Team's Milestone 2 work. In particular, we include the following experimental features:
-
-- Access to the iteration variable in K, working title `THIS_K`
-- "schedule tree roundtrip work": fixes in the gt4py/dace bridge and in dace's stree/sdfg conversions to validate PyFV3 translate tests (with the AI2 data)
-
-Your standard readme continues below.
-
----
-
 NDSL is a middleware for climate and weather modelling developed jointly by NOAA and NASA. The middleware brings together [GT4Py](https://github.com/GridTools/gt4py/) (the `cartesian` flavor), ETH CSCS's stencil DSL, and [DaCe](https://github.com/spcl/dace/), ETH SPCL's data flow framework, both developed for high-performance and portability. On top of those pillars, NDSL deploys a series of optimized APIs for common operations (Halo exchange, domain decomposition, MPI, ...), a set of bespoke optimizations for the models targeted by the middleware and tools to port existing models.
 
 ## Batteries-included for FV-based models
@@ -57,7 +48,7 @@ To run the GPU backends, you'll need:
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+
 - Python package:
-  - `cupy` (latest with proper driver support [see install notes](https://docs.cupy.dev/en/stable/install.html))
+    - `cupy` (latest with proper driver support [see install notes](https://docs.cupy.dev/en/stable/install.html))
 
 A simple way to install MPI is using pre-built wheels, e.g.
 
