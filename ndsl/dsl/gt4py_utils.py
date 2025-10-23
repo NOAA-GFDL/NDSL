@@ -3,11 +3,12 @@ from functools import wraps
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from gt4py import storage as gt_storage
 from gt4py.cartesian import backend as gt_backend
 
 from ndsl.constants import N_HALO_DEFAULT
-from ndsl.dsl.typing import DTypes, Field, Float
+from ndsl.dsl.typing import DTypes, Float
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
@@ -80,7 +81,7 @@ def _translate_origin(origin: Sequence[int], mask: tuple[bool, ...]) -> Sequence
 
 
 def make_storage_data(
-    data: Field,
+    data: npt.NDArray,
     shape: tuple[int, ...] | None = None,
     origin: tuple[int, ...] = origin,
     *,
@@ -92,7 +93,7 @@ def make_storage_data(
     axis: int = 2,
     max_dim: int = 3,
     read_only: bool = True,
-) -> Field:
+) -> npt.NDArray:
     """Create a new gt4py storage from the given data.
 
     Args:
@@ -197,7 +198,7 @@ def make_storage_data(
 
 
 def _make_storage_data_1d(
-    data: Field,
+    data: npt.NDArray,
     shape: tuple[int, ...],
     start: tuple[int, ...] = (0, 0, 0),
     dummy: tuple[int, ...] | None = None,
@@ -206,7 +207,7 @@ def _make_storage_data_1d(
     *,
     dtype: DTypes = Float,
     backend: str,
-) -> Field:
+) -> npt.NDArray:
     # axis refers to a repeated axis, dummy refers to a singleton axis
     axis = min(axis, len(shape) - 1)
     buffer = zeros(shape[axis], dtype=dtype, backend=backend)
@@ -234,7 +235,7 @@ def _make_storage_data_1d(
 
 
 def _make_storage_data_2d(
-    data: Field,
+    data: npt.NDArray,
     shape: tuple[int, ...],
     start: tuple[int, ...] = (0, 0, 0),
     dummy: tuple[int, ...] | None = None,
@@ -243,7 +244,7 @@ def _make_storage_data_2d(
     *,
     dtype: DTypes = Float,
     backend: str,
-) -> Field:
+) -> npt.NDArray:
     # axis refers to which axis should be repeated (when making a full 3d data),
     # dummy refers to a singleton axis
     do_reshape = dummy or axis != 2
@@ -271,13 +272,13 @@ def _make_storage_data_2d(
 
 
 def _make_storage_data_3d(
-    data: Field,
+    data: npt.NDArray,
     shape: tuple[int, ...],
     start: tuple[int, ...] = (0, 0, 0),
     *,
     dtype: DTypes = Float,
     backend: str,
-) -> Field:
+) -> npt.NDArray:
     istart, jstart, kstart = start
     isize, jsize, ksize = data.shape
     buffer = zeros(shape, dtype=dtype, backend=backend)
@@ -290,13 +291,13 @@ def _make_storage_data_3d(
 
 
 def _make_storage_data_Nd(
-    data: Field,
+    data: npt.NDArray,
     shape: tuple[int, ...],
     start: tuple[int, ...] | None = None,
     *,
     dtype: DTypes = Float,
     backend: str,
-) -> Field:
+) -> npt.NDArray:
     if start is None:
         start = tuple([0] * data.ndim)
     buffer = zeros(shape, dtype=dtype, backend=backend)
@@ -312,7 +313,7 @@ def make_storage_from_shape(
     backend: str,
     dtype: DTypes = Float,
     mask: tuple[bool, ...] | None = None,
-) -> Field:
+) -> npt.NDArray:
     """Create a new gt4py storage of a given shape filled with zeros.
 
     Args:
@@ -349,7 +350,7 @@ def make_storage_from_shape(
 
 
 def make_storage_dict(
-    data: Field,
+    data: npt.NDArray,
     shape: tuple[int, ...] | None = None,
     origin: tuple[int, ...] = origin,
     start: tuple[int, ...] = (0, 0, 0),
@@ -359,11 +360,11 @@ def make_storage_dict(
     *,
     backend: str,
     dtype: DTypes = Float,
-) -> dict[str, "Field"]:
+) -> dict[str, npt.NDArray]:
     assert names is not None, "for 4d variable storages, specify a list of names"
     if shape is None:
         shape = data.shape
-    data_dict: dict[str, Field] = dict()
+    data_dict: dict[str, npt.NDArray] = dict()
     for i in range(data.shape[3]):
         data_dict[names[i]] = make_storage_data(
             squeeze(data[:, :, :, i]),
