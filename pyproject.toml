@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools >= 77.0.3"]
+requires = ["setuptools >= 77.0.3", "setuptools-scm>=8"]
 
 [project]
 authors = [{name = "NOAA/NASA"}]
@@ -13,13 +13,12 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11"
 ]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
-version = "2025.05.00"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
@@ -115,3 +114,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["ndsl", "ndsl.*"]
+
+[tool.setuptools_scm]
+version_scheme = "release-branch-semver"
+local_scheme = "dirty-tag"
