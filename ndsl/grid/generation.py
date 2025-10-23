@@ -557,7 +557,7 @@ class MetricTerms:
             extent=self.grid.extent[:2],
             units=self.grid.units,
             gt4py_backend=self.grid.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @property
@@ -569,7 +569,7 @@ class MetricTerms:
             extent=self.grid.extent[:2],
             units=self.grid.units,
             gt4py_backend=self.grid.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @property
@@ -581,7 +581,7 @@ class MetricTerms:
             extent=self.agrid.extent[:2],
             units=self.agrid.units,
             gt4py_backend=self.agrid.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @property
@@ -593,7 +593,7 @@ class MetricTerms:
             extent=self.agrid.extent[:2],
             units=self.agrid.units,
             gt4py_backend=self.agrid.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @property
@@ -1557,7 +1557,7 @@ class MetricTerms:
             extent=self.area.extent,
             units="m^-2",
             gt4py_backend=self.area.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1572,7 +1572,7 @@ class MetricTerms:
             extent=self.area_c.extent,
             units="m^-2",
             gt4py_backend=self.area_c.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1588,7 +1588,7 @@ class MetricTerms:
             extent=self.dx.extent,
             units="m^-1",
             gt4py_backend=self.dx.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1604,7 +1604,7 @@ class MetricTerms:
             extent=self.dy.extent,
             units="m^-1",
             gt4py_backend=self.dy.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1620,7 +1620,7 @@ class MetricTerms:
             extent=self.dxa.extent,
             units="m^-1",
             gt4py_backend=self.dxa.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1636,7 +1636,7 @@ class MetricTerms:
             extent=self.dya.extent,
             units="m^-1",
             gt4py_backend=self.dya.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1652,7 +1652,7 @@ class MetricTerms:
             extent=self.dxc.extent,
             units="m^-1",
             gt4py_backend=self.dxc.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     @functools.cached_property
@@ -1668,7 +1668,7 @@ class MetricTerms:
             extent=self.dyc.extent,
             units="m^-1",
             gt4py_backend=self.dyc.gt4py_backend,
-            number_of_halo_points=3,
+            number_of_halo_points=N_HALO_DEFAULT,
         )
 
     def _init_cartesian(self):
