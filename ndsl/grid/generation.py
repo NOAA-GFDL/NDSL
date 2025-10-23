@@ -299,9 +299,9 @@ class MetricTerms:
                 self._ak,
                 self._bk,
             ) = self._set_hybrid_pressure_coefficients(
-                eta_file,
+                eta_file,  # type: ignore
                 ak,
-                bk,  # type: ignore
+                bk,
             )
         else:
             self._ks = 0

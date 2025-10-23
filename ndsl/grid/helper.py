@@ -825,7 +825,7 @@ def split_quantity_along_last_dim(quantity: Quantity) -> list[Quantity]:
                 origin=quantity.origin[:-1],
                 extent=quantity.extent[:-1],
                 gt4py_backend=quantity.gt4py_backend,
-                number_of_halo_points=quantity.metadata,
+                number_of_halo_points=quantity.metadata.n_halo,
             )
         )
     return return_list
