@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
+from collections.abc import Callable, Generator, Iterable
 
 import numpy as np
 from numpy.lib.index_tricks import IndexExpression
@@ -16,8 +16,8 @@ from ndsl.utils import (
 )
 
 
-BufferKey = Tuple[Callable, Iterable[int], type]
-BUFFER_CACHE: Dict[BufferKey, List["Buffer"]] = {}
+BufferKey = tuple[Callable, Iterable[int], type]
+BUFFER_CACHE: dict[BufferKey, list["Buffer"]] = {}
 
 
 class Buffer:
@@ -63,7 +63,7 @@ class Buffer:
             return cls(key, array)
 
     @staticmethod
-    def push_to_cache(buffer: Buffer):
+    def push_to_cache(buffer: Buffer) -> None:
         """Push the buffer back into the cache.
 
         Args:
@@ -71,7 +71,7 @@ class Buffer:
         """
         BUFFER_CACHE[buffer._key].append(buffer)
 
-    def finalize_memory_transfer(self):
+    def finalize_memory_transfer(self) -> None:
         """Finalize any memory transfer"""
         device_synchronize()
 
@@ -80,7 +80,7 @@ class Buffer:
         destination_array: np.ndarray,
         buffer_slice: IndexExpression = np.index_exp[:],
         buffer_reshape: IndexExpression = None,
-    ):
+    ) -> None:
         """Assign internal array to destination_array.
 
         Args:
@@ -96,7 +96,7 @@ class Buffer:
 
     def assign_from(
         self, source_array: np.ndarray, buffer_slice: IndexExpression = np.index_exp[:]
-    ):
+    ) -> None:
         """Assign source_array to internal array.
 
         Args:
@@ -131,7 +131,7 @@ def array_buffer(
 def send_buffer(
     allocator: Callable,
     array: np.ndarray,
-    timer: Optional[Timer] = None,
+    timer: Timer | None = None,
 ) -> np.ndarray:
     """A context manager ensuring that `array` is contiguous in a context where it is
     being sent as data, copying into a recycled buffer array if necessary.
@@ -165,7 +165,7 @@ def send_buffer(
 def recv_buffer(
     allocator: Callable,
     array: np.ndarray,
-    timer: Optional[Timer] = None,
+    timer: Timer | None = None,
 ) -> np.ndarray:
     """A context manager ensuring that array is contiguous in a context where it is
     being used to receive data, using a recycled buffer array and then copying the

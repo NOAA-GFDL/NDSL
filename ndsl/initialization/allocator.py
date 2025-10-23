@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import numpy as np
 from gt4py import storage as gt_storage
@@ -22,18 +23,18 @@ class StorageNumpy:
         """
         self.backend = backend
 
-    def empty(self, *args, **kwargs) -> np.ndarray:
+    def empty(self, *args: Any, **kwargs: Any) -> np.ndarray:
         return gt_storage.empty(*args, backend=self.backend, **kwargs)
 
-    def ones(self, *args, **kwargs) -> np.ndarray:
+    def ones(self, *args: Any, **kwargs: Any) -> np.ndarray:
         return gt_storage.ones(*args, backend=self.backend, **kwargs)
 
-    def zeros(self, *args, **kwargs) -> np.ndarray:
+    def zeros(self, *args: Any, **kwargs: Any) -> np.ndarray:
         return gt_storage.zeros(*args, backend=self.backend, **kwargs)
 
 
 class QuantityFactory:
-    def __init__(
+    def __init__(  # type: ignore
         self, sizer: GridSizer, numpy, *, silence_deprecation_warning: bool = False
     ) -> None:
         if not silence_deprecation_warning:
@@ -47,7 +48,7 @@ class QuantityFactory:
         self.sizer: GridSizer = sizer
         self._numpy = numpy
 
-    def set_extra_dim_lengths(self, **kwargs) -> None:
+    def set_extra_dim_lengths(self, **kwargs: Any) -> None:
         """
         Set the length of extra (non-x/y/z) dimensions.
         """
@@ -76,13 +77,18 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity - values are random.
 
         Equivalent to `numpy.empty`"""
         return self._allocate(
-            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.empty,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
 
     def zeros(
@@ -90,13 +96,18 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 0.
 
         Equivalent to `numpy.zeros`"""
         return self._allocate(
-            self._numpy.zeros, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.zeros,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
 
     def ones(
@@ -104,28 +115,38 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value 1.
 
         Equivalent to `numpy.ones`"""
         return self._allocate(
-            self._numpy.ones, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.ones,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
 
     def full(
         self,
         dims: Sequence[str],
         units: str,
-        value,  # no type hint because it would be a TypeVar = Type[dtype] and mypy says no
+        value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
         dtype: type = Float,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with the value.
 
         Equivalent to `numpy.full`"""
         quantity = self._allocate(
-            self._numpy.empty, dims, units, dtype, allow_mismatch_float_precision
+            self._numpy.empty,
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision,
         )
         quantity.data[:] = value
         return quantity
@@ -135,6 +156,7 @@ class QuantityFactory:
         data: np.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
@@ -157,6 +179,7 @@ class QuantityFactory:
         data: np.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """

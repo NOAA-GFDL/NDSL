@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
-from typing import List, Tuple, Union
+from typing import TypeVar
 
 import cftime
 import xarray as xr
@@ -14,22 +16,24 @@ from ndsl.utils import list_by_dims
 
 __all__ = ["ZarrMonitor"]
 
+T = TypeVar("T")
+
 
 class DummyComm:
-    def Get_rank(self):
+    def Get_rank(self) -> int:
         return 0
 
-    def Get_size(self):
+    def Get_size(self) -> int:
         return 1
 
-    def bcast(self, value, root=0):
+    def bcast(self, value: T, root: int = 0) -> T:
         assert root == 0, (
             "DummyComm should only be used on a single core, "
             "so root should only ever be 0"
         )
         return value
 
-    def barrier(self):
+    def barrier(self) -> None:
         return
 
 
@@ -40,11 +44,11 @@ class ZarrMonitor:
 
     def __init__(
         self,
-        store: Union[str, "zarr.storage.MutableMapping"],
+        store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
         mode: str = "w",
-        mpi_comm=DummyComm(),
-    ):
+        mpi_comm: DummyComm = DummyComm(),
+    ) -> None:
         """Create a ZarrMonitor.
 
         Args:
@@ -61,7 +65,7 @@ class ZarrMonitor:
         self._group = mpi_comm.bcast(group)
         self._comm = mpi_comm
         self._writers = None
-        self._constants: List[str] = []
+        self._constants: list[str] = []
         self.partitioner = partitioner
 
     def _init_writers(self, state):
@@ -127,10 +131,10 @@ class ZarrMonitor:
                 name=name,
                 partitioner=self.partitioner,
             )
-            constant_writer.append(quantity)  # type: ignore[index]
+            constant_writer.append(quantity)
             self._constants.append(name)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
 
 
@@ -182,7 +186,7 @@ class _ZarrVariableWriter:
             fill_value=None,
         )
 
-    def sync_array(self):
+    def sync_array(self) -> None:
         self.array = self.comm.bcast(self.array, root=0)
 
     def _match_dim_order(self, quantity):
@@ -263,10 +267,10 @@ class _ZarrVariableWriter:
 
 
 def array_chunks(
-    layout: Tuple[int, int],
-    tile_array_shape: Tuple[int, ...],
-    array_dims: Tuple[str, ...],
-):
+    layout: tuple[int, int],
+    tile_array_shape: tuple[int, ...],
+    array_dims: tuple[str, ...],
+) -> tuple:
     layout_by_dims = list_by_dims(array_dims, layout, 1)
     chunks_list = []
     for extent, dim, n_ranks in zip(tile_array_shape, array_dims, layout_by_dims):
@@ -379,7 +383,7 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
         self.comm.barrier()
 
 
-def get_calendar(time: Union[datetime, timedelta, cftime.datetime]):
+def get_calendar(time: datetime | timedelta | cftime.datetime) -> str:
     try:
         return time.calendar  # type: ignore
     except AttributeError:

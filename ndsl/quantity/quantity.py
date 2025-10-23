@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import warnings
 from typing import Any, Iterable, Sequence, Tuple, Union, cast
+from collections.abc import Iterable, Sequence
+from typing import Any, cast
 
 import dace
 import matplotlib.pyplot as plt
@@ -28,7 +30,7 @@ class Quantity:
 
     def __init__(
         self,
-        data,
+        data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
         origin: Sequence[int] | None = None,
@@ -90,10 +92,10 @@ class Quantity:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
-            dimensions: Tuple[Union[str, int], ...] = tuple(
+            dimensions: tuple[str | int, ...] = tuple(
                 [
                     (
-                        axis
+                        axis  # type: ignore # mypy can't parse this list construction of hell
                         if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
                         else str(data.shape[index])
                     )
@@ -137,9 +139,9 @@ class Quantity:
     def from_data_array(
         cls,
         data_array: xr.DataArray,
-        origin: Sequence[int] = None,
-        extent: Sequence[int] = None,
-        gt4py_backend: Union[str, None] = None,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
+        gt4py_backend: str | None = None,
         number_of_halo_points: int = 0,
     ) -> Quantity:
         """
@@ -157,7 +159,7 @@ class Quantity:
             raise ValueError("need units attribute to create Quantity from DataArray")
         return cls(
             data_array.values,
-            cast(Tuple[str], data_array.dims),
+            cast(tuple[str], data_array.dims),
             data_array.attrs["units"],
             origin=origin,
             extent=extent,
@@ -165,7 +167,9 @@ class Quantity:
             gt4py_backend=gt4py_backend,
         )
 
-    def to_netcdf(self, path: str, name="var", rank: int = -1, all_data=False) -> None:
+    def to_netcdf(
+        self, path: str, name: str = "var", rank: int = -1, all_data: bool = False
+    ) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
             if all_data:
                 self.data_as_xarray.to_dataset(name=name).to_netcdf(
@@ -196,14 +200,14 @@ class Quantity:
             self.metadata.dtype,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Quantity(\n    data=\n{self.data},\n    dims={self.dims},\n"
             f"    units={self.units},\n    origin={self.origin},\n"
             f"    extent={self.extent}\n)"
         )
 
-    def sel(self, **kwargs: Union[slice, int]) -> np.ndarray:
+    def sel(self, **kwargs: slice | int) -> np.ndarray:
         """Convenience method to perform indexing on `view` using dimension names
         without knowing dimension order.
 
@@ -216,7 +220,7 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: Tuple):
+    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: tuple):  # type: ignore
         """Allocates an ndarray with optimal memory layout, and copies the data over."""
         storage = gt_storage.from_array(
             data,
@@ -237,7 +241,7 @@ class Quantity:
         return self.metadata.units
 
     @property
-    def gt4py_backend(self) -> Union[str, None]:
+    def gt4py_backend(self) -> str | None:
         return self.metadata.gt4py_backend
 
     @property
@@ -245,7 +249,7 @@ class Quantity:
         return dict(**self._attrs, units=self._metadata.units)
 
     @property
-    def dims(self) -> Tuple[str, ...]:
+    def dims(self) -> tuple[str, ...]:
         """Names of each dimension"""
         return self.metadata.dims
 
@@ -275,7 +279,7 @@ class Quantity:
         return self._data
 
     @data.setter
-    def data(self, input_data: np.ndarray | cupy.ndarray):
+    def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
@@ -295,12 +299,12 @@ class Quantity:
         )
 
     @property
-    def origin(self) -> Tuple[int, ...]:
+    def origin(self) -> tuple[int, ...]:
         """The start of the computational domain"""
         return self.metadata.origin
 
     @property
-    def extent(self) -> Tuple[int, ...]:
+    def extent(self) -> tuple[int, ...]:
         """The shape of the computational domain"""
         return self.metadata.extent
 
@@ -319,15 +323,15 @@ class Quantity:
         return self.metadata.np
 
     @property
-    def __array_interface__(self):
+    def __array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__array_interface__
 
     @property
-    def __cuda_array_interface__(self):
+    def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__cuda_array_interface__
 
     @property
-    def shape(self):
+    def shape(self):  # type: ignore[no-untyped-def]
         return self.data.shape
 
     def __descriptor__(self) -> Any:
@@ -341,7 +345,7 @@ class Quantity:
 
     def transpose(
         self,
-        target_dims: Sequence[Union[str, Iterable[str]]],
+        target_dims: Sequence[str | Iterable[str]],
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Change the dimension order of this Quantity.
@@ -397,7 +401,7 @@ class Quantity:
         transposed._attrs = self._attrs
         return transposed
 
-    def plot_k_level(self, k_index=0):
+    def plot_k_level(self, k_index: int = 0) -> None:
         field = self.data
         print(
             "Min and max values:",
@@ -414,11 +418,13 @@ class Quantity:
         plt.show()
 
 
-def _transpose_sequence(sequence, order):
+def _transpose_sequence(sequence, order):  # type: ignore[no-untyped-def]
     return sequence.__class__(sequence[i] for i in order)
 
 
-def _collapse_dims(target_dims, dims):
+def _collapse_dims(
+    target_dims: Sequence[str | Iterable[str]], dims: tuple[str, ...]
+) -> list[str]:
     return_list = []
     for target in target_dims:
         if isinstance(target, str):
@@ -444,7 +450,7 @@ def _collapse_dims(target_dims, dims):
     return return_list
 
 
-def _validate_quantity_property_lengths(shape, dims, origin, extent):
+def _validate_quantity_property_lengths(shape, dims, origin, extent):  # type: ignore[no-untyped-def]
     n_dims = len(shape)
     for var, desc in (
         (dims, "dimension names"),
@@ -457,7 +463,7 @@ def _validate_quantity_property_lengths(shape, dims, origin, extent):
             )
 
 
-def _ensure_int_tuple(arg, arg_name):
+def _ensure_int_tuple(arg: Sequence, arg_name: str) -> tuple:
     return_list = []
     for item in arg:
         try:

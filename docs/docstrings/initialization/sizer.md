@@ -1,3 +1,0 @@
-# sizer
-
-::: initialization.sizer

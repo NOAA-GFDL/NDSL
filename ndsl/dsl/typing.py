@@ -1,4 +1,4 @@
-from typing import Tuple, TypeAlias, Union, cast
+from typing import TypeAlias
 
 import numpy as np
 from gt4py.cartesian import gtscript
@@ -20,7 +20,7 @@ J = gtscript.J  # noqa: E741
 K = gtscript.K  # noqa: E741
 
 # Union of valid data types (from gt4py.cartesian.gtscript)
-DTypes = Union[bool, np.bool_, int, np.int32, np.int64, float, np.float32, np.float64]
+DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.float64
 
 
 def get_precision() -> int:
@@ -36,7 +36,7 @@ NDSL_32BIT_INT_TYPE: TypeAlias = np.int32
 NDSL_64BIT_INT_TYPE: TypeAlias = np.int64
 
 
-def global_set_precision() -> Tuple[TypeAlias, TypeAlias]:
+def global_set_precision() -> tuple[TypeAlias, TypeAlias]:
     """Set the global precision for all references of
     Float and Int in the codebase. Defaults to 64 bit."""
     global Float, Int  # noqa: F824 global ... is unused
@@ -93,10 +93,10 @@ BoolFieldJ = Field[gtscript.J, Bool]
 BoolFieldK = Field[gtscript.K, Bool]
 BoolFieldIJ = Field[gtscript.IJ, Bool]
 
-Index3D = Tuple[int, int, int]
+Index3D = tuple[int, int, int]
 
 
-def set_4d_field_size(n, dtype):
+def set_4d_field_size(n: int, dtype: type):  # type: ignore[no-untyped-def]
     """
     Defines a 4D field with a given size and type
     The extra data dimension is not parallel
@@ -104,13 +104,13 @@ def set_4d_field_size(n, dtype):
     return Field[gtscript.IJK, (dtype, (n,))]
 
 
-def cast_to_index3d(val: Tuple[int, ...]) -> Index3D:
+def cast_to_index3d(val: tuple[int, ...]) -> Index3D:
     if len(val) != 3:
-        raise ValueError(f"expected 3d index, received {val}")
-    return cast(Index3D, val)
+        raise ValueError(f"Expected 3d index, received {val}")
+    return val
 
 
-def is_float(dtype: type):
+def is_float(dtype: type) -> bool:
     """Expected floating point type"""
     return dtype in [
         Float,

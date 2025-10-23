@@ -19,7 +19,7 @@ FMS_TO_CFTIME_TYPE = {
 }
 
 
-def to_xarray_dataset(state) -> xr.Dataset:
+def to_xarray_dataset(state: dict) -> xr.Dataset:
     data_vars = {
         name: value.data_as_xarray for name, value in state.items() if name != "time"
     }
@@ -78,7 +78,7 @@ def read_state(filename: str) -> dict:
     return out_dict
 
 
-def _get_integer_tokens(line, n_tokens):
+def _get_integer_tokens(line: str, n_tokens: int) -> list[int]:
     all_tokens = line.split()
     return [int(token) for token in all_tokens[:n_tokens]]
 

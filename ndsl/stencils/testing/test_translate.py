@@ -1,7 +1,7 @@
 # type: ignore
 import copy
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pytest
@@ -217,8 +217,8 @@ def test_sequential_savepoint(
     case.testobj.extra_data_load(DataLoader(case.grid.rank, case.data_dir))
     # run python version of functionality
     output = case.testobj.compute(input_data)
-    failing_names: List[str] = []
-    passing_names: List[str] = []
+    failing_names: list[str] = []
+    passing_names: list[str] = []
     if hasattr(case.testobj, "override_output_netcdf_name"):
         import xarray as xr
 
@@ -397,7 +397,7 @@ def test_parallel_savepoint(
     out_vars.update(list(case.testobj._base.out_vars.keys()))
     failing_names = []
     passing_names = []
-    ref_data: Dict[str, Any] = {}
+    ref_data: dict[str, Any] = {}
     all_ref_data = dataset_to_dict(case.ds_out)
     results = {}
 
@@ -469,7 +469,7 @@ def test_parallel_savepoint(
 def _report_results(
     savepoint_name: str,
     rank: int,
-    results: Dict[str, BaseMetric],
+    results: dict[str, BaseMetric],
 ) -> None:
     detail_dir = f"{OUTDIR}/details"
     os.makedirs(detail_dir, exist_ok=True)
@@ -490,10 +490,10 @@ def _report_results(
 def _save_datatree(
     testobj,
     # first list over rank, second list over savepoint
-    inputs_list: List[Dict[str, List[np.ndarray]]],
-    output_list: List[Dict[str, List[np.ndarray]]],
-    ref_data: Dict[str, List[np.ndarray]],
-    names: List[str],
+    inputs_list: list[dict[str, list[np.ndarray]]],
+    output_list: list[dict[str, list[np.ndarray]]],
+    ref_data: dict[str, list[np.ndarray]],
+    names: list[str],
 ):
     import xarray as xr
 
@@ -553,11 +553,11 @@ def _save_datatree(
 def save_netcdf(
     testobj,
     # first list over rank, second list over savepoint
-    inputs_list: List[Dict[str, List[np.ndarray]]],
-    output_list: List[Dict[str, List[np.ndarray]]],
-    ref_data: Dict[str, List[np.ndarray]],
-    failing_names: List[str],
-    passing_names: List[str],
+    inputs_list: list[dict[str, list[np.ndarray]]],
+    output_list: list[dict[str, list[np.ndarray]]],
+    ref_data: dict[str, list[np.ndarray]],
+    failing_names: list[str],
+    passing_names: list[str],
     out_filename,
 ):
     import xarray as xr
