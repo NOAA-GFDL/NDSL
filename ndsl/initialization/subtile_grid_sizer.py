@@ -40,7 +40,7 @@ class SubtileGridSizer(GridSizer):
         """
         if extra_dim_lengths is not None:
             warnings.warn(
-                "`extra_dim_lengths` is a deprecated name, please `data_dimensions`.",
+                "`extra_dim_lengths` is a deprecated name, please use `data_dimensions` instead.",
                 DeprecationWarning,
                 2,
             )
