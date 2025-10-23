@@ -65,8 +65,8 @@ class QuantityFactory:
         data_dimension_descriptions: dict[str, int],
     ) -> None:
         """
-        Update the length of extra (non-x/y/z) dimensions, unknown data dimensions
-        will be added, existing updated.
+        Update the length of data (non-x/y/z) dimensions, unknown data dimensions
+        will be added, existing ones updated.
 
         Args:
             data_dimension_descriptions: Dict of name/length pairs
