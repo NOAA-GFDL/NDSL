@@ -70,12 +70,12 @@ def namelist(nx_tile, ny_tile, nz, layout):
 def sizer(request, nx_tile, ny_tile, nz, layout, namelist, extra_dimension_lengths):
     if request.param == "from_tile_params":
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile,
-            ny_tile,
-            nz,
-            N_HALO_DEFAULT,
-            extra_dimension_lengths,
-            layout,
+            nx_tile=nx_tile,
+            ny_tile=ny_tile,
+            nz=nz,
+            n_halo=N_HALO_DEFAULT,
+            layout=layout,
+            data_dimensions=extra_dimension_lengths,
         )
     elif request.param == "from_namelist":
         sizer = SubtileGridSizer.from_namelist(namelist)
