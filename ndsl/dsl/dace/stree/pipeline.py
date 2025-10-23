@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol
 
-import dace.sdfg.analysis.schedule_tree.treenodes as dst
+import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
 from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 
@@ -18,14 +18,16 @@ class StreePipeline(Protocol):
     @abstractmethod
     def run(
         self,
-        stree: dst.ScheduleTreeRoot,
+        stree: stree.ScheduleTreeRoot,
         verbose: bool = False,
-    ) -> dst.ScheduleTreeRoot:
+    ) -> stree.ScheduleTreeRoot:
         raise NotImplementedError("Missing implementation of run")
 
 
 class CPUPipeline(StreePipeline):
-    def __init__(self, passes: list[dst.ScheduleNodeTransformer] | None = None) -> None:
+    def __init__(
+        self, passes: list[stree.ScheduleNodeTransformer] | None = None
+    ) -> None:
         self.passes = (
             passes if passes is not None else [CartesianAxisMerge(AxisIterator._K)]
         )
@@ -38,9 +40,9 @@ class CPUPipeline(StreePipeline):
 
     def run(
         self,
-        stree: dst.ScheduleTreeRoot,
+        stree: stree.ScheduleTreeRoot,
         verbose: bool = False,
-    ) -> dst.ScheduleTreeRoot:
+    ) -> stree.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
                 print(f"[Stree OPT] {p}")
@@ -50,7 +52,9 @@ class CPUPipeline(StreePipeline):
 
 
 class GPUPipeline(StreePipeline):
-    def __init__(self, passes: list[dst.ScheduleNodeTransformer] | None = None) -> None:
+    def __init__(
+        self, passes: list[stree.ScheduleNodeTransformer] | None = None
+    ) -> None:
         self.passes = passes if passes else []
 
     def __repr__(self) -> str:
@@ -61,9 +65,9 @@ class GPUPipeline(StreePipeline):
 
     def run(
         self,
-        stree: dst.ScheduleTreeRoot,
+        stree: stree.ScheduleTreeRoot,
         verbose: bool = False,
-    ) -> dst.ScheduleTreeRoot:
+    ) -> stree.ScheduleTreeRoot:
         for p in self.passes:
             if verbose:
                 print(f"[Stree OPT] {p}")

@@ -1,13 +1,13 @@
-import dace.sdfg.analysis.schedule_tree.treenodes as dst
+import dace.sdfg.analysis.schedule_tree.treenodes as stree
 import dace.subsets as sbs
 
 
-class SpecializeCartesianMaps(dst.ScheduleNodeVisitor):
+class SpecializeCartesianMaps(stree.ScheduleNodeVisitor):
     def __init__(self, mappings: dict[str, int]) -> None:
         super().__init__()
         self._mappings = mappings
 
-    def visit_MapScope(self, node: dst.MapScope) -> None:
+    def visit_MapScope(self, node: stree.MapScope) -> None:
         dims = []
         for p in node.node.map.params:
             if p == "__i":

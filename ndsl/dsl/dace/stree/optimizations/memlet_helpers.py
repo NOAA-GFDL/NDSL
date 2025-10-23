@@ -1,6 +1,6 @@
 from enum import Enum
 
-import dace.sdfg.analysis.schedule_tree.treenodes as dst
+import dace.sdfg.analysis.schedule_tree.treenodes as stree
 from dace.memlet import Memlet
 
 from ndsl import ndsl_log
@@ -19,8 +19,8 @@ class AxisIterator(Enum):
 
 
 def no_data_dependencies_on_cartesian_axis(
-    first: dst.MapScope,
-    second: dst.MapScope,
+    first: stree.MapScope,
+    second: stree.MapScope,
     axis: AxisIterator,
 ) -> bool:
     """Check for read after write. Allow when indexation on the axis
@@ -53,8 +53,8 @@ def no_data_dependencies_on_cartesian_axis(
 
 
 def no_data_dependencies(
-    first: dst.MapScope,
-    second: dst.MapScope,
+    first: stree.MapScope,
+    second: stree.MapScope,
     restrict_check_to_k: bool = False,
 ) -> bool:
     write_collector = MemletCollector(collect_reads=False)
@@ -91,7 +91,7 @@ def no_data_dependencies(
     return True
 
 
-class MemletCollector(dst.ScheduleNodeVisitor):
+class MemletCollector(stree.ScheduleNodeVisitor):
     """Gathers in_memlets and out_memlets of TaskNodes and LibraryCalls."""
 
     in_memlets: list[Memlet]
@@ -106,13 +106,13 @@ class MemletCollector(dst.ScheduleNodeVisitor):
         self.in_memlets = []
         self.out_memlets = []
 
-    def visit_TaskletNode(self, node: dst.TaskletNode) -> None:
+    def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
         if self._collect_reads:
             self.in_memlets.extend([memlet for memlet in node.in_memlets.values()])
         if self._collect_writes:
             self.out_memlets.extend([memlet for memlet in node.out_memlets.values()])
 
-    def visit_LibraryCall(self, node: dst.LibraryCall) -> None:
+    def visit_LibraryCall(self, node: stree.LibraryCall) -> None:
         if self._collect_reads:
             if isinstance(node.in_memlets, set):
                 self.in_memlets.extend(node.in_memlets)
@@ -130,7 +130,7 @@ class MemletCollector(dst.ScheduleNodeVisitor):
                 )
 
 
-def has_dynamic_memlets(first: dst.MapScope, second: dst.MapScope) -> bool:
+def has_dynamic_memlets(first: stree.MapScope, second: stree.MapScope) -> bool:
     first_collector = MemletCollector()
     second_collector = MemletCollector()
     first_collector.visit(first)
