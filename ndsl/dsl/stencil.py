@@ -534,7 +534,13 @@ class FrozenStencil(SDFGConvertible):
         """
         all_args_as_kwargs = dict(zip(self._argument_names, tuple(list(args)))) | kwargs
 
-        domain_sizes = dict(zip(("x", "y", "z"), self.domain))
+        domain_sizes = dict(zip((), self.domain))
+
+        domain_sizes = {
+            axis_name: axis_size
+            for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
+            for axis_name in axis_names
+        }
 
         for name, argument in all_args_as_kwargs.items():
             if isinstance(argument, Quantity):
@@ -544,11 +550,11 @@ class FrozenStencil(SDFGConvertible):
                         full_size += 2 * argument.metadata.n_halo
                     if (
                         axis in (X_DIMS + Y_DIMS + Z_DIMS)
-                        and full_size < domain_sizes[axis[0]]
+                        and full_size < domain_sizes[axis]
                     ):
                         ndsl_log.warning(
                             f"Quantity `{name}` is too small for the targeted "
-                            f"domain in axis {axis}: {full_size} < {domain_sizes[axis[0]]}."
+                            f"domain in axis {axis}: {full_size} < {domain_sizes[axis]}."
                         )
             elif not isinstance(argument, numbers.Real):
                 ndsl_log.warning(
