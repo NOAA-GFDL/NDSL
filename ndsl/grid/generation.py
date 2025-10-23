@@ -501,6 +501,7 @@ class MetricTerms:
             nz=npz,
             n_halo=N_HALO_DEFAULT,
             layout=communicator.partitioner.tile.layout,
+            data_dimensions={},
         )
         quantity_factory = QuantityFactory.from_backend(sizer, backend=backend)
         return cls(
