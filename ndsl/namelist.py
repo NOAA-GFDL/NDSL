@@ -1,4 +1,5 @@
 import dataclasses
+import warnings
 from typing import Any, Self
 
 import f90nml
@@ -616,6 +617,15 @@ class Namelist:
             if key in cls.__dataclass_fields__
         }
         return cls(**namelist_dict)
+
+    def __post_init__(self) -> None:
+        warnings.warn(
+            "Usage of `ndsl.Namelist` is discouraged. The class will be "
+            "removed in the next version together with `NamelistDefaults`, see "
+            "https://github.com/NOAA-GFDL/NDSL/issues/64.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
 
 def namelist_to_flatish_dict(nml_input: Any) -> dict:
