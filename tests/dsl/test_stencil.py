@@ -1,6 +1,4 @@
-from contextlib import nullcontext as does_not_raise
-from typing import Callable
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -82,31 +80,35 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):  # type: ignore
 
 
 @pytest.mark.parametrize(
-    "extent,dimensions,domain,expectation",
+    "extent,dimensions,domain,call_count",
     [
-        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), does_not_raise()),
-        ((20, 20), ["x", "y"], (20, 20, 30), does_not_raise()),
-        ((20, 20), ["x_interface", "y"], (20, 20, 30), does_not_raise()),
-        ((20, 20), ["x", "y_interface"], (20, 20, 30), does_not_raise()),
-        ((20,), ["z"], (20, 20, 10), does_not_raise()),
-        ((20,), ["z_interface"], (20, 20, 10), does_not_raise()),
-        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), pytest.raises(ValueError)),
-        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), pytest.raises(ValueError)),
-        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), pytest.raises(ValueError)),
+        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), 0),
+        ((20, 20), ["x", "y"], (20, 20, 30), 0),
+        ((20, 20), ["x_interface", "y"], (20, 20, 30), 0),
+        ((20, 20), ["x", "y_interface"], (20, 20, 30), 0),
+        ((20,), ["z"], (20, 20, 10), 0),
+        ((20,), ["z_interface"], (20, 20, 10), 0),
+        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), 1),
+        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), 1),
+        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), 1),
     ],
 )
 def test_domain_size_comparison(
     extent: tuple[int],
     dimensions: list[str],
     domain: tuple[int],
-    expectation: Callable,
+    call_count: int,
 ):
     quantity = Quantity(np.zeros(extent), dimensions, "n/a", extent=extent)
     stencil = FrozenStencil(
         copy_stencil,
         origin=(0, 0, 0),
         domain=domain,
-        stencil_config=MagicMock(spec=StencilConfig),
+        stencil_config=MagicMock(spec=StencilConfig()),
     )
-    with expectation:
+    # with expectation:
+    warning_mock = MagicMock()
+    with patch("ndsl.ndsl_log.warning", warning_mock):
         stencil._validate_quantity_sizes(quantity)
+
+    assert warning_mock.call_count == call_count
