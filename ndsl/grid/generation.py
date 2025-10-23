@@ -242,8 +242,8 @@ class MetricTerms:
         self._tile_partitioner = self._comm.tile.partitioner
         self._rank = self._comm.rank
         self.quantity_factory = quantity_factory
-        self.quantity_factory.set_extra_dim_lengths(
-            **{
+        self.quantity_factory.add_data_dimensions(
+            {
                 self.LON_OR_LAT_DIM: 2,
                 self.TILE_DIM: 6,
                 self.CARTESIAN_DIM: 3,
@@ -500,7 +500,7 @@ class MetricTerms:
             ny_tile=npy - 1,
             nz=npz,
             n_halo=N_HALO_DEFAULT,
-            extra_dim_lengths={
+            data_dimensions={
                 cls.LON_OR_LAT_DIM: 2,
                 cls.TILE_DIM: 6,
                 cls.CARTESIAN_DIM: 3,

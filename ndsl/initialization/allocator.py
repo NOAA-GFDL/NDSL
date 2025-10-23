@@ -10,7 +10,6 @@ from gt4py import storage as gt_storage
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
-from ndsl.logging import ndsl_log_on_rank_0
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
@@ -53,11 +52,13 @@ class QuantityFactory:
         """
         Set the length of extra (non-x/y/z) dimensions.
         """
-        ndsl_log_on_rank_0.warning(
+        warnings.warn(
             "`QuantityFactory.set_extra_dim_lengths` is deprecated. "
             "Use `add_data_dimensions` or `update_data_dimensions`.",
+            DeprecationWarning,
+            2,
         )
-        self.sizer.extra_dim_lengths.update(kwargs)
+        self.sizer.data_dimensions.update(kwargs)
 
     def update_data_dimensions(
         self,
@@ -70,7 +71,7 @@ class QuantityFactory:
         Args:
             data_dimension_descriptions: Dict of name/length pairs
         """
-        self.sizer.extra_dim_lengths.update(data_dimension_descriptions)
+        self.sizer.data_dimensions.update(data_dimension_descriptions)
 
     def add_data_dimensions(
         self,
@@ -84,13 +85,13 @@ class QuantityFactory:
             data_dimension_descriptions: Dict of name/length pairs
         """
         for name in data_dimension_descriptions.keys():
-            if name in self.sizer.extra_dim_lengths.keys():
+            if name in self.sizer.data_dimensions.keys():
                 raise ValueError(
                     f"[NDSL] Data dimension {name} already exists! "
                     "Use `update_data_dimensions` if you meant to update the length."
                 )
 
-        self.sizer.extra_dim_lengths.update(data_dimension_descriptions)
+        self.sizer.data_dimensions.update(data_dimension_descriptions)
 
     @classmethod
     def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
