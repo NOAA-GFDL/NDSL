@@ -500,11 +500,6 @@ class MetricTerms:
             ny_tile=npy - 1,
             nz=npz,
             n_halo=N_HALO_DEFAULT,
-            data_dimensions={
-                cls.LON_OR_LAT_DIM: 2,
-                cls.TILE_DIM: 6,
-                cls.CARTESIAN_DIM: 3,
-            },
             layout=communicator.partitioner.tile.layout,
         )
         quantity_factory = QuantityFactory.from_backend(sizer, backend=backend)
