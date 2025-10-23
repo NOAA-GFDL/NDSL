@@ -534,8 +534,6 @@ class FrozenStencil(SDFGConvertible):
         """
         all_args_as_kwargs = dict(zip(self._argument_names, tuple(list(args)))) | kwargs
 
-        domain_sizes = dict(zip((), self.domain))
-
         domain_sizes = {
             axis_name: axis_size
             for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
