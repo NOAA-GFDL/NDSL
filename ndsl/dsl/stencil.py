@@ -529,8 +529,8 @@ class FrozenStencil(SDFGConvertible):
     def _validate_quantity_sizes(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Checks that the sizes of quantities are compatible with the domain of the stencil.
 
-        Raises:
-            ValueError: If the quantity's size is a mismatch to the domain.
+        This function emits a warning in case one of the dimensions does not match.
+
         """
         all_args_as_kwargs = dict(zip(self._argument_names, tuple(list(args)))) | kwargs
 
