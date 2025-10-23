@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Iterable, Sequence, Tuple, Union, cast
 from collections.abc import Iterable, Sequence
 from typing import Any, cast
 
