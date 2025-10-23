@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
@@ -10,9 +11,6 @@ from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.savepoint import DataLoader
 
-
-if cp is None:
-    import numpy as cp
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +135,7 @@ class TranslateFortranData2Py:
         names_4d: list[str] | None = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> np.ndarray | cp.ndarray:
+    ) -> dict[str, npt.NDArray] | npt.NDArray:
         """Copy input data into a gt4py.storage with given shape.
 
         `array` is copied. Takes care of the device upload if necessary.
