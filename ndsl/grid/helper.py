@@ -187,6 +187,7 @@ class VerticalGridData:
                 dims=[Z_INTERFACE_DIM],
                 units="Pa",
                 gt4py_backend=self.ak.gt4py_backend,
+                number_of_halo_points=self.ak.metadata.n_halo,
             )
         return self._p_interface
 
@@ -203,6 +204,7 @@ class VerticalGridData:
                 dims=[Z_DIM],
                 units="Pa",
                 gt4py_backend=self.p_interface.gt4py_backend,
+                number_of_halo_points=self.p_interface.metadata.n_halo,
             )
         return self._p
 
@@ -219,6 +221,7 @@ class VerticalGridData:
                 dims=[Z_DIM],
                 units="Pa",
                 gt4py_backend=self.ak.gt4py_backend,
+                number_of_halo_points=self.ak.metadata.n_halo,
             )
         return self._dp_ref
 
@@ -380,6 +383,7 @@ class GridData:
             origin=lat.origin,
             extent=lat.extent,
             gt4py_backend=lat.gt4py_backend,
+            number_of_halo_points=lat.metadata.n_halo,
         )
 
     @staticmethod
@@ -802,16 +806,16 @@ class DriverGridData:
         )
 
 
-def split_quantity_along_last_dim(quantity):
+def split_quantity_along_last_dim(quantity: Quantity) -> list[Quantity]:
     """Split a quantity along the last dimension into a list of quantities.
 
     Args:
-        quantity: Quantity to split.
+        quantity (Quantity): Quantity to split.
 
     Returns:
-        List of quantities.
+        list[Quantity]: List of quantities.
     """
-    return_list = []
+    return_list: list[Quantity] = []
     for i in range(quantity.data.shape[-1]):
         return_list.append(
             Quantity(
@@ -821,6 +825,7 @@ def split_quantity_along_last_dim(quantity):
                 origin=quantity.origin[:-1],
                 extent=quantity.extent[:-1],
                 gt4py_backend=quantity.gt4py_backend,
+                number_of_halo_points=quantity.metadata,
             )
         )
     return return_list
