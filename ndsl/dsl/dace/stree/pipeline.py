@@ -1,12 +1,11 @@
-from abc import abstractmethod
-from typing import Protocol
+from abc import ABC, abstractmethod
 
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
 from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 
 
-class StreePipeline(Protocol):
+class StreePipeline(ABC):
     @abstractmethod
     def __hash__(self) -> int:
         raise NotImplementedError("Missing implementation of __hash__")
