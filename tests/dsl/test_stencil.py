@@ -142,19 +142,9 @@ def two_dim_temporaries_stencil(q_out: FloatField) -> None:
         )
 
 
-@pytest.mark.parametrize(
-    "extent,dimensions,domain,call_count",
-    [
-        ((2, 2, 5), ["x", "y", "z"], (2, 2, 5), 0),
-    ],
-)
-def test_stencil_2D_temporaries(
-    extent: tuple[int],
-    dimensions: list[str],
-    domain: tuple[int],
-    call_count: int,
-) -> None:
-    quantity = Quantity(np.zeros(extent), dimensions, "n/a", extent=extent)
+def test_stencil_2D_temporaries() -> None:
+    domain = (2, 2, 5)
+    quantity = Quantity(np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain)
     stencil = FrozenStencil(
         two_dim_temporaries_stencil,
         origin=(0, 0, 0),

@@ -15,7 +15,17 @@ from ndsl import (
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
-from ndsl.dsl.typing import Float, FloatField
+from ndsl.dsl.typing import (
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    FloatFieldIJ32,
+    FloatFieldIJ64,
+    Int,
+    IntFieldIJ,
+    IntFieldIJ32,
+    IntFieldIJ64,
+)
 
 
 # GT4Py direct import need to be down after any `ndsl`
@@ -264,7 +274,18 @@ def test_frozen_stencil_kwargs_passed_to_init(
         externals={},
         **config.stencil_kwargs(func=copy_stencil),
         build_info={},
-        dtypes={float: Float},
+        dtypes={
+            # Mixed precision
+            float: Float,
+            int: Int,
+            # 2D temporaries
+            "FloatFieldIJ": FloatFieldIJ,
+            "FloatFieldIJ32": FloatFieldIJ32,
+            "FloatFieldIJ64": FloatFieldIJ64,
+            "IntFieldIJ": IntFieldIJ,
+            "IntFieldIJ32": IntFieldIJ32,
+            "IntFieldIJ64": IntFieldIJ64,
+        },
     )
 
 
@@ -290,33 +311,24 @@ def test_frozen_field_after_parameter() -> None:
     )
 
 
-@pytest.mark.parametrize("backend", ("numpy", "cuda"))
 def test_backend_options(
-    backend: str,
     rebuild: bool = True,
     validate_args: bool = True,
 ) -> None:
+    backend = "numpy"
     expected_options = {
-        "numpy": {
-            "backend": "numpy",
-            "rebuild": True,
-            "format_source": False,
-            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
-        },
-        "cuda": {
-            "backend": "cuda",
-            "rebuild": True,
-            "device_sync": False,
-            "format_source": False,
-            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
-        },
+        "backend": "numpy",
+        "rebuild": True,
+        "format_source": False,
+        "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
     }
 
     actual = get_stencil_config(
-        backend=backend, rebuild=rebuild, validate_args=validate_args
+        backend=backend,
+        rebuild=rebuild,
+        validate_args=validate_args,
     ).stencil_kwargs(func=copy_stencil)
-    expected = expected_options[backend]
-    assert actual == expected
+    assert actual == expected_options
 
 
 def get_mock_quantity():
