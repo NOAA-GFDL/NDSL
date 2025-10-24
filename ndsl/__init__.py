@@ -1,4 +1,5 @@
 from . import dsl  # isort:skip
+from .logging import ndsl_log  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
@@ -22,7 +23,6 @@ from .exceptions import OutOfBoundsError
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
-from .logging import ndsl_log
 from .monitor.netcdf_monitor import NetCDFMonitor
 from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector

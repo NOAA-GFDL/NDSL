@@ -25,6 +25,7 @@ class FieldBundle:
     """
 
     _quantity: Quantity
+    _per_name_view: dict[str, Quantity] = {}
     _indexer: _FieldBundleIndexer = {}
 
     def __init__(
@@ -83,13 +84,19 @@ class FieldBundle:
             return None  # type: ignore
         # ToDo: extend the dims below to work with more than 4 dims
         assert len(self._quantity.data.shape) == 4
-        return Quantity(
-            data=self._quantity.data[:, :, :, self.index(name)],
-            dims=self._quantity.dims[:-1],
-            units=self._quantity.units,
-            origin=self._quantity.origin[:-1],
-            extent=self._quantity.extent[:-1],
-        )
+
+        if name not in self._per_name_view:
+            # Memoize the Quantities returned here to ensue that we only ever
+            # have one `field.a_name`-Quantity floating around. If not, DaCe
+            # orchestration gets (rightly so) confused.
+            self._per_name_view[name] = Quantity(
+                data=self._quantity.data[:, :, :, self.index(name)],
+                dims=self._quantity.dims[:-1],
+                units=self._quantity.units,
+                origin=self._quantity.origin[:-1],
+                extent=self._quantity.extent[:-1],
+            )
+        return self._per_name_view[name]
 
     def index(self, name: str) -> int:
         """Get index from name."""

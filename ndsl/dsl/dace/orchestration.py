@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numbers
 import os
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -32,6 +33,8 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -39,6 +42,13 @@ from ndsl.dsl.dace.utils import (
 )
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+
+
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
+"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
+
+_INTERNAL__SCHEDULE_TREE_PASSES = [CartesianAxisMerge(AxisIterator._K)]
+"""INTERNAL: Default schedule passes for CPU. To be replaced with proper configuration."""
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -124,10 +134,39 @@ def _build_sdfg(
 ) -> None:
     """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
+    device_type = DaceDeviceType.GPU if config.is_gpu_backend() else DaceDeviceType.CPU
 
     if is_compiling:
         with DaCeProgress(config, "Validate original SDFG"):
             sdfg.validate()
+
+        # Fully specialize all known symbols and then propagate these changes in the simplify
+        # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
+        # the schedule tree (optimization) roundtrip.
+        with DaCeProgress(config, "Fully specialize symbols"):
+            for my_sdfg in sdfg.all_sdfgs_recursive():
+                if my_sdfg.parent_nsdfg_node is not None:
+                    repl_dict = {}
+                    for sym, val in my_sdfg.parent_nsdfg_node.symbol_mapping.items():
+                        if isinstance(val, numbers.Number):
+                            repl_dict[sym] = val
+                    my_sdfg.replace_dict(repl_dict)
+
+        with DaCeProgress(config, "Simplify (1)"):
+            _simplify(sdfg)
+
+        if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
+                stree = sdfg.as_schedule_tree()
+
+            with DaCeProgress(config, "Schedule Tree: optimization"):
+                if config.is_gpu_backend():
+                    GPUPipeline().run(stree)
+                else:
+                    CPUPipeline(passes=_INTERNAL__SCHEDULE_TREE_PASSES).run(stree)
+
+            with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
+                sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
         # Make the transients array persistents
         if config.is_gpu_backend():
@@ -135,7 +174,7 @@ def _build_sdfg(
             # The following should happen on the stree level
             _to_gpu(sdfg)
 
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.GPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
             # Upload args to device
             _upload_to_device(list(args) + list(kwargs.values()))
@@ -145,7 +184,7 @@ def _build_sdfg(
             for _sd, _aname, arr in sdfg.arrays_recursive():
                 if arr.shape == (1,):
                     arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.CPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
         # Build non-constants & non-transients from the sdfg_kwargs
         sdfg_kwargs = dace_program._create_sdfg_args(sdfg, args, kwargs)
@@ -157,8 +196,8 @@ def _build_sdfg(
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
 
-        with DaCeProgress(config, "Simplify"):
-            _simplify(sdfg, validate=False, verbose=True)
+        with DaCeProgress(config, "Simplify (2)"):
+            _simplify(sdfg)
 
         # Move all memory that can be into a pool to lower memory pressure.
         # Change Persistent memory (sub-SDFG) into Scope and flag it.
@@ -181,6 +220,9 @@ def _build_sdfg(
                 sdfg_nan_checker(sdfg)
                 negative_delp_checker(sdfg)
                 negative_qtracers_checker(sdfg)
+
+        with DaCeProgress(config, "Validate before compile"):
+            sdfg.validate()
 
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
@@ -495,7 +537,7 @@ def orchestrate(
         raise RuntimeError(
             f"Could not orchestrate, "
             f"{type(obj).__name__}.{method_to_orchestrate} "
-            "does not exists"
+            "does not exist."
         )
 
     if dace_compiletime_args is None:
@@ -535,7 +577,9 @@ def orchestrate(
                 return wrapped(*arg, **kwarg)
 
             def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-                return wrapped.__sdfg__(*args, **kwargs)
+                sdfg = wrapped.__sdfg__(*args, **kwargs)
+                sdfg.validate()
+                return sdfg
 
             def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
                 return wrapped.__sdfg_closure__(reevaluate)
