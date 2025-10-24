@@ -47,5 +47,6 @@ jobs:
   pyFV3_test_data:
     uses: NOAA-GFDL/pyFV3/.github/workflows/create_cache.yml@develop
 
+  # GitHub Actions cache of pySHiELD test data
   pySHiELD_test_data:
     uses: NOAA-GFDL/pySHiELD/.github/workflows/create_cache.yml@develop
