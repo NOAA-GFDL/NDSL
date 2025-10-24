@@ -121,9 +121,11 @@ class NormalizeAxisSymbol(stree.ScheduleNodeVisitor):
     def visit_MapScope(
         self,
         map_scope: stree.MapScope,
-        axis_replacements: dict[str, str] = {},
+        axis_replacements: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> None:
+        if axis_replacements is None:
+            axis_replacements = {}
         for index, param in enumerate(map_scope.node.params):
             sanitized_param = _sanitize_axis(self.axis, param)
             axis_replacements[param] = sanitized_param
@@ -136,13 +138,15 @@ class NormalizeAxisSymbol(stree.ScheduleNodeVisitor):
     def visit_TaskletNode(
         self,
         node: stree.TaskletNode,
-        axis_rpl_dict: dict[str, str] = {},
+        axis_replacements: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> None:
+        if axis_replacements is None:
+            axis_replacements = {}
         for memlets in node.in_memlets.values():
-            memlets.replace(axis_rpl_dict)
+            memlets.replace(axis_replacements)
         for memlets in node.out_memlets.values():
-            memlets.replace(axis_rpl_dict)
+            memlets.replace(axis_replacements)
 
 
 class CartesianAxisMerge(stree.ScheduleNodeTransformer):
