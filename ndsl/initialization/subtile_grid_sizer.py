@@ -110,7 +110,6 @@ class SubtileGridSizer(GridSizer):
             ny_tile=ny_tile,
             nz=nz,
             n_halo=N_HALO_DEFAULT,
-            data_dimensions={},
             layout=layout,
             tile_partitioner=tile_partitioner,
             tile_rank=tile_rank,
