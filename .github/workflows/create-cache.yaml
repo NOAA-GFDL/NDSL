@@ -14,7 +14,7 @@ on:
 
 # Cancel running jobs if there's a newer push
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
