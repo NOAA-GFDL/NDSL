@@ -76,4 +76,4 @@ jobs:
           rm 8.1.3_c12_6ranks_standard.tar.gz
 
   pyshield_test_data:
-    uses: romanc/pySHiELD/.github/workflows/create_cache.yaml@develop
+    uses: romanc/pySHiELD/.github/workflows/create_cache.yml@develop
