@@ -204,7 +204,7 @@ class MaxBandwidthBenchmarkProgram:
         orchestrate(obj=self, config=dace_config)
 
     def __call__(self, A: Any, B: Any, n: int) -> None:
-        for i in dace.nounroll(range(n)):
+        for _i in dace.nounroll(range(n)):
             self.copy_stencil(A, B)
 
 

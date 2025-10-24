@@ -100,7 +100,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None = None,
     ) -> Self:
         """Allocate all quantities. Do not expect 0 on values, values are random.
 
@@ -110,6 +110,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        if data_dimensions is None:
+            data_dimensions = {}
 
         with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
             state = cls._init(quantity_factory.empty)
@@ -120,7 +122,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None = None,
     ) -> Self:
         """Allocate all quantities and fill their value to zeros
 
@@ -130,6 +132,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        if data_dimensions is None:
+            data_dimensions = {}
 
         with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
             state = cls._init(quantity_factory.zeros)
@@ -140,7 +144,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None,
     ) -> Self:
         """Allocate all quantities and fill their value to ones
 
@@ -150,6 +154,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        if data_dimensions is None:
+            data_dimensions = {}
 
         with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
             state = cls._init(quantity_factory.ones)
@@ -161,7 +167,7 @@ class State:
         quantity_factory: QuantityFactory,
         value: Number,
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None = None,
     ) -> Self:
         """Allocate all quantities and fill them with the input value
 
@@ -172,6 +178,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        if data_dimensions is None:
+            data_dimensions = {}
 
         with State._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
             state = cls._init(quantity_factory.empty)
@@ -184,7 +192,7 @@ class State:
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None = None,
     ) -> Self:
         """Allocate all quantities and fill their value based
         on the given memory map. See `update_from_memory`.
@@ -196,6 +204,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        if data_dimensions is None:
+            data_dimensions = {}
 
         state = cls.zeros(quantity_factory, data_dimensions=data_dimensions)
         state.update_copy_memory(memory_map)
@@ -208,7 +218,7 @@ class State:
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None = None,
         check_shape_and_strides: bool = True,
     ) -> Self:
         """Allocate all quantities and move memory based on
@@ -223,6 +233,8 @@ class State:
             check_shape_and_strides: Check for every given buffer that the shape & strides match the
                 previously allocated memory.
         """
+        if data_dimensions is None:
+            data_dimensions = {}
 
         state = cls.zeros(quantity_factory, data_dimensions=data_dimensions)
         state.update_move_memory(
@@ -378,7 +390,7 @@ class State:
             rank_postfix = f"_rank{MPI.COMM_WORLD.Get_rank()}"
         return directory_path / f"{type(self).__name__}{rank_postfix}.nc4"
 
-    def to_netcdf(self, directory_path: Path = Path("./")) -> None:
+    def to_netcdf(self, directory_path: Path | None = None) -> None:
         """
         Save state to NetCDF. Can be reloaded with `update_from_netcdf`.
 
@@ -390,6 +402,8 @@ class State:
         Args:
             directory_path: directory to save the netcdf in
         """
+        if directory_path is None:
+            directory_path = Path("./")
 
         def _save_recursive(state: State) -> dict:
             local_data = {}
@@ -419,7 +433,7 @@ class State:
         for key, value in datatree.items():
             if not isinstance(value, xr.Dataset):
                 top_level[key] = value
-        for key, value in top_level.items():
+        for key, _value in top_level.items():
             datatree.pop(key)
         datatree["/"] = xr.Dataset(data_vars=top_level)
 

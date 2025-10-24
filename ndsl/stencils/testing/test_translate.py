@@ -310,7 +310,7 @@ def state_from_savepoint(serializer, savepoint, name_to_std_name):
     properties = RESTART_PROPERTIES
     origin = gt_utils.origin
     state = {}
-    for name, std_name in name_to_std_name.items():
+    for name, _std_name in name_to_std_name.items():
         array = serializer.read(name, savepoint)
         extent = tuple(np.asarray(array.shape) - 2 * np.asarray(origin))
         state["air_temperature"] = Quantity(

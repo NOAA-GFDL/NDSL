@@ -39,7 +39,7 @@ if __name__ == "__main__":
     time = cftime.DatetimeJulian(2020, 1, 1)
     timestep = timedelta(hours=1)
 
-    for i in range(10):
+    for _i in range(10):
         state = get_example_state(time)
         monitor.store(state)
         time += timestep

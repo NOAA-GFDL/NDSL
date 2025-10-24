@@ -47,7 +47,7 @@ class ZarrMonitor:
         store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
         mode: str = "w",
-        mpi_comm: DummyComm = DummyComm(),
+        mpi_comm: DummyComm | None = None,
     ) -> None:
         """Create a ZarrMonitor.
 
@@ -58,6 +58,9 @@ class ZarrMonitor:
             mpi_comm: mpi4py comm object to use for communications. By default, will
                 use a dummy comm object that works in single-core mode.
         """
+        if mpi_comm is None:
+            mpi_comm = DummyComm()
+
         if mpi_comm.Get_rank() == 0:
             group = zarr.open_group(store, mode=mode)
         else:

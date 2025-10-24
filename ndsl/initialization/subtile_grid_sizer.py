@@ -18,7 +18,7 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         layout: tuple[int, int],
         *,
-        data_dimensions: dict[str, int] = {},
+        data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
         extra_dim_lengths: dict[str, int] | None = None,
@@ -38,6 +38,9 @@ class SubtileGridSizer(GridSizer):
             tile_rank (optional): rank of this subtile.
             extra_dim_lengths: DEPRECATED API - use `data_dimensions`
         """
+        if data_dimensions is None:
+            data_dimensions = {}
+
         if extra_dim_lengths is not None:
             warnings.warn(
                 "`extra_dim_lengths` is a deprecated name, please use `data_dimensions` instead.",

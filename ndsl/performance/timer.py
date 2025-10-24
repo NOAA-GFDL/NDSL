@@ -97,6 +97,7 @@ class Timer:
                 "incomplete times are not included: "
                 f"{list(self._clock_starts.keys())}",
                 RuntimeWarning,
+                stacklevel=2,
             )
         return self._accumulated_time.copy()
 
@@ -109,6 +110,7 @@ class Timer:
                 "incomplete times are not included: "
                 f"{list(self._clock_starts.keys())}",
                 RuntimeWarning,
+                stacklevel=2,
             )
         return self._hit_count.copy()
 

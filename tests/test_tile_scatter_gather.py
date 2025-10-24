@@ -219,7 +219,7 @@ def test_tile_scatter_no_recv_quantity(
             result_list.append(communicator.scatter(send_quantity=tile_quantity))
         else:
             result_list.append(communicator.scatter())
-    for rank, (result, scattered) in enumerate(zip(result_list, scattered_quantities)):
+    for _rank, (result, scattered) in enumerate(zip(result_list, scattered_quantities)):
         assert result.dims == scattered.dims
         assert result.units == scattered.units
         assert result.extent == scattered.extent
@@ -240,7 +240,7 @@ def test_tile_scatter_with_recv_quantity(
         else:
             result = communicator.scatter(recv_quantity=recv)
         assert result is recv
-    for rank, (result, scattered) in enumerate(
+    for _rank, (result, scattered) in enumerate(
         zip(recv_quantities, scattered_quantities)
     ):
         assert result.dims == scattered.dims
@@ -328,7 +328,7 @@ def test_tile_scatter_state_with_recv_state(
             result = communicator.scatter_state(recv_state=state)
         assert result["time"] == time
         assert result["air_temperature"] is recv
-    for rank, (result, scattered) in enumerate(
+    for _rank, (result, scattered) in enumerate(
         zip(recv_quantities, scattered_quantities)
     ):
         assert result.dims == scattered.dims
@@ -354,7 +354,7 @@ def test_tile_scatter_state_with_recv_state_without_time(
             result = communicator.scatter_state(recv_state=state)
         assert result["air_temperature"] is recv
         assert "time" not in result
-    for rank, (result, scattered) in enumerate(
+    for _rank, (result, scattered) in enumerate(
         zip(recv_quantities, scattered_quantities)
     ):
         assert result.dims == scattered.dims

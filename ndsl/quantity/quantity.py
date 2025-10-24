@@ -185,7 +185,9 @@ class Quantity:
         if n_halo != self._metadata.n_halo:
             warnings.warn(
                 "Found inconsistency with number of halo points in Quantity:"
-                + f"{n_halo} vs {self._metadata.n_halo}"
+                + f"{n_halo} vs {self._metadata.n_halo}",
+                UserWarning,
+                stacklevel=2,
             )
         return QuantityHaloSpec(
             n_halo,
@@ -258,6 +260,7 @@ class Quantity:
             "values exists only for backwards-compatibility with "
             "DataArray and will be removed, use .view[:] instead",
             DeprecationWarning,
+            stacklevel=2,
         )
         return_array = np.asarray(self.view[:])
         return_array.flags.writeable = False

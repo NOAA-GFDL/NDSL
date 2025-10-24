@@ -52,7 +52,9 @@ extend-ignore = [
   "W503",  # Linebreak before binary operator
   # Clashes with NDSL/stencil syntax
   "E203",  # Space before ":", e.g. `field[1, :]`
-  "F841"  # Local variable assigned but unused
+  "F841",  # Local variable assigned but unused
+  # other
+  "B019"  # We'd like to keep using functools.lru_cache
 ]
 max-line-length = 88
 

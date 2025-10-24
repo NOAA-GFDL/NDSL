@@ -41,7 +41,7 @@ repos:
       - id: flake8
         name: flake8
         language_version: python3
-        additional_dependencies: [Flake8-pyproject]
+        additional_dependencies: [Flake8-pyproject, flake8-bugbear]
 
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
     rev: v2.15.0

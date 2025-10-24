@@ -372,7 +372,7 @@ class FrozenStencil(SDFGConvertible):
             def nothing_function(*args, **kwargs):  # type: ignore[no-untyped-def]
                 pass
 
-            setattr(self, "__call__", nothing_function)
+            setattr(self, "__call__", nothing_function)  # noqa: B010
 
     def __call__(self, *args: Any, **kwargs: Any) -> None:
         # Verbose stencil execution

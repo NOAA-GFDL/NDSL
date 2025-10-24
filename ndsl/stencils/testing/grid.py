@@ -83,9 +83,12 @@ class Grid:
         rank,
         layout,
         backend,
-        data_fields={},
+        data_fields: dict | None = None,
         local_indices=False,
     ):
+        if data_fields is None:
+            data_fields = {}
+
         self.rank = rank
         self.backend = backend
         self.partitioner = TilePartitioner(layout)
@@ -164,7 +167,7 @@ class Grid:
     def make_quantity(
         self,
         array,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
         units="Unknown",
         origin=None,
         extent=None,
@@ -179,7 +182,7 @@ class Grid:
         self,
         data_dict,
         varname,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
         units="Unknown",
     ):
         data_dict[varname + "_quantity"] = self.quantity_wrap(
@@ -189,7 +192,7 @@ class Grid:
     def quantity_wrap(
         self,
         data,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
         units="unknown",
     ):
         origin = self.sizer.get_origin(dims)
@@ -438,7 +441,7 @@ class Grid:
         shape,
         origin,
         halo_points,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update."""
         return self.quantity_factory.get_quantity_halo_spec(
