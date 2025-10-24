@@ -31,7 +31,7 @@ class FieldBundle:
         self,
         bundle_name: str,
         quantity: Quantity,
-        mapping: _FieldBundleIndexer | None,
+        mapping: _FieldBundleIndexer | None = None,
         register_type: bool = False,
     ):
         """

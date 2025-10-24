@@ -144,7 +144,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None,
+        data_dimensions: dict[str, int] | None = None,
     ) -> Self:
         """Allocate all quantities and fill their value to ones
 
