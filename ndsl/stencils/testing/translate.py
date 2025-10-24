@@ -2,10 +2,10 @@ import logging
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Field, Float, Int  # noqa: F401
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid  # type: ignore
@@ -34,10 +34,10 @@ def as_numpy(
     def _convert(value: Quantity | np.ndarray) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
-        elif cp is not None and isinstance(value, cp.ndarray):
-            return cp.asnumpy(value)
         elif isinstance(value, np.ndarray):
             return value
+        elif cp is not None and isinstance(value, cp.ndarray):
+            return cp.asnumpy(value)
         else:
             raise TypeError(f"Unrecognized value type: {type(value)}")
 
@@ -135,7 +135,7 @@ class TranslateFortranData2Py:
         names_4d: list[str] | None = None,
         read_only: bool = False,
         full_shape: bool = False,
-    ) -> Field:
+    ) -> dict[str, npt.NDArray] | npt.NDArray:
         """Copy input data into a gt4py.storage with given shape.
 
         `array` is copied. Takes care of the device upload if necessary.
@@ -201,7 +201,10 @@ class TranslateFortranData2Py:
         return istart, jstart, kstart
 
     def make_storage_data_input_vars(
-        self, inputs, storage_vars=None, dict_4d=True
+        self,
+        inputs,
+        storage_vars=None,
+        dict_4d=True,
     ) -> None:
         """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionary to update inputs to
         their configured shape.
@@ -292,7 +295,18 @@ class TranslateFortranData2Py:
                     )
                 out[serialname] = var4d
             else:
-                slice_tuple = self.grid.slice_dict(ds, len(data_result.shape))
+                # Get slice for data dimensions (after original 3D)
+                if len(data_result.shape) > 3:
+                    data_dims_slice = tuple(
+                        [slice(0, ddim_end) for ddim_end in data_result.shape[3:]]
+                    )
+                else:
+                    data_dims_slice = ()
+                # Slice combine the expected cartesian and data_dims
+                cartesian_slice = self.grid.slice_dict(
+                    ds, min(len(data_result.shape), 3)
+                )
+                slice_tuple = cartesian_slice + data_dims_slice
                 out[serialname] = np.squeeze(data_result[slice_tuple])
             if "kaxis" in info:
                 out[serialname] = np.moveaxis(out[serialname], 2, info["kaxis"])

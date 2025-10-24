@@ -60,7 +60,6 @@ def _get_factories(
             ny_tile=ny,
             nz=nz,
             n_halo=nhalo,
-            extra_dim_lengths={},
             layout=partitioner.layout,
             tile_partitioner=partitioner,
         )

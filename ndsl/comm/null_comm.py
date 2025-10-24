@@ -23,7 +23,9 @@ class NullComm(Comm[T]):
     'receives' a fill value (default zero) instead of using MPI.
     """
 
-    def __init__(self, rank: int, total_ranks: int, fill_value: T = cast(T, 0)):
+    default_fill_value: T = cast(T, 0)
+
+    def __init__(self, rank: int, total_ranks: int, fill_value: T = default_fill_value):
         """
         Args:
             rank: rank to mock

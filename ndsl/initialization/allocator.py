@@ -52,7 +52,46 @@ class QuantityFactory:
         """
         Set the length of extra (non-x/y/z) dimensions.
         """
-        self.sizer.extra_dim_lengths.update(kwargs)
+        warnings.warn(
+            "`QuantityFactory.set_extra_dim_lengths` is deprecated. "
+            "Use `add_data_dimensions` or `update_data_dimensions`.",
+            DeprecationWarning,
+            2,
+        )
+        self.sizer.data_dimensions.update(kwargs)
+
+    def update_data_dimensions(
+        self,
+        data_dimension_descriptions: dict[str, int],
+    ) -> None:
+        """
+        Update the length of data (non-x/y/z) dimensions, unknown data dimensions
+        will be added, existing ones updated.
+
+        Args:
+            data_dimension_descriptions: Dict of name/length pairs
+        """
+        self.sizer.data_dimensions.update(data_dimension_descriptions)
+
+    def add_data_dimensions(
+        self,
+        data_dimension_descriptions: dict[str, int],
+    ) -> None:
+        """
+        Add new data (non-x/y/z) dimensions via a key-length pair. If the dimension
+        already exists, it will error out.
+
+        Args:
+            data_dimension_descriptions: Dict of name/length pairs
+        """
+        for name in data_dimension_descriptions.keys():
+            if name in self.sizer.data_dimensions.keys():
+                raise ValueError(
+                    f"[NDSL] Data dimension {name} already exists! "
+                    "Use `update_data_dimensions` if you meant to update the length."
+                )
+
+        self.sizer.data_dimensions.update(data_dimension_descriptions)
 
     @classmethod
     def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:

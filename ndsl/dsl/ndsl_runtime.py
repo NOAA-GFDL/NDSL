@@ -60,7 +60,9 @@ class NDSLRuntime:
                     if isinstance(value, Quantity) and not isinstance(value, Local):
                         warnings.warn(
                             f"{type(self).__name__}.{key} is a Quantity instead of a Locals"
-                            " on a NDSLRuntime - our eyebrows are frowned."
+                            " on a NDSLRuntime - our eyebrows are frowned.",
+                            UserWarning,
+                            stacklevel=2,
                         )
                     elif isinstance(value, NDSLRuntime):
                         check_for_quantity(value)
@@ -68,7 +70,7 @@ class NDSLRuntime:
             check_for_quantity(self)
 
         # Orchestrate __call__ by default
-        if hasattr(self, "__call__"):
+        if callable(self):
             orchestrate(
                 obj=self,
                 config=self._dace_config,

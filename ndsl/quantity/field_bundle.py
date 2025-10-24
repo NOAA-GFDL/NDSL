@@ -32,7 +32,7 @@ class FieldBundle:
         self,
         bundle_name: str,
         quantity: Quantity,
-        mapping: _FieldBundleIndexer = {},
+        mapping: _FieldBundleIndexer | None = None,
         register_type: bool = False,
     ):
         """
@@ -46,6 +46,9 @@ class FieldBundle:
             mapping: sparse dict of [name, index] to be able to call tracers by name.
             register_type: boolean to register the type as part of initialization.
         """
+        if mapping is None:
+            mapping = {}
+
         if len(quantity.shape) != 4:
             raise NotImplementedError("FieldBundle implementation restricted to 4D")
 
@@ -125,8 +128,8 @@ class FieldBundle:
             extra_dims: dict of [name, size] of the data dimensions to add.
         """
         new_factory = copy.copy(quantity_factory)
-        new_factory.set_extra_dim_lengths(
-            **{
+        new_factory.add_data_dimensions(
+            {
                 **extra_dims,
             }
         )

@@ -237,7 +237,7 @@ def _rot_3d(axis, p, angle, np, right_hand_grid, degrees=False, convert=False):
         y2 = -s * p1[0] + c * p1[1]
         z2 = p1[2]
     else:
-        assert False, "axis must be in [1,2,3]"
+        raise AssertionError("axis must be in [1,2,3]")
 
     if convert:
         p2 = _cartesian_to_spherical([x2, y2, z2], np, right_hand_grid)

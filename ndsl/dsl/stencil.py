@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import dataclasses
 import inspect
+import numbers
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
@@ -371,12 +372,14 @@ class FrozenStencil(SDFGConvertible):
             def nothing_function(*args, **kwargs):  # type: ignore[no-untyped-def]
                 pass
 
-            setattr(self, "__call__", nothing_function)
+            setattr(self, "__call__", nothing_function)  # noqa: B010
 
     def __call__(self, *args: Any, **kwargs: Any) -> None:
         # Verbose stencil execution
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
+
+        self._validate_quantity_sizes(*args, **kwargs)
 
         # Marshal arguments
         args_list = list(args)
@@ -523,6 +526,39 @@ class FrozenStencil(SDFGConvertible):
             constant_args, given_args, parent_closure=parent_closure
         )
 
+    def _validate_quantity_sizes(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        """Checks that the sizes of quantities are compatible with the domain of the stencil.
+
+        This function emits a warning in case one of the dimensions does not match.
+
+        """
+        all_args_as_kwargs = dict(zip(self._argument_names, tuple(list(args)))) | kwargs
+
+        domain_sizes = {
+            axis_name: axis_size
+            for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
+            for axis_name in axis_names
+        }
+
+        for name, argument in all_args_as_kwargs.items():
+            if isinstance(argument, Quantity):
+                for axis, quantity_size in zip(argument.dims, argument.extent):
+                    full_size = quantity_size
+                    if axis in (X_DIMS + Y_DIMS):
+                        full_size += 2 * argument.metadata.n_halo
+                    if (
+                        axis in (X_DIMS + Y_DIMS + Z_DIMS)
+                        and full_size < domain_sizes[axis]
+                    ):
+                        ndsl_log.warning(
+                            f"Quantity `{name}` is too small for the targeted "
+                            f"domain in axis {axis}: {full_size} < {domain_sizes[axis]}."
+                        )
+            elif not isinstance(argument, numbers.Real):
+                ndsl_log.warning(
+                    f"Found an array-type argument {name} that is not a Quantity. Some domain-size checks are omitted."
+                )
+
 
 def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def]
     for i, arg in enumerate(args):
@@ -593,7 +629,7 @@ class GridIndexing:
             ny=domain[1],
             nz=domain[2],
             n_halo=self.n_halo,
-            extra_dim_lengths={},
+            data_dimensions={},
         )
 
     @classmethod

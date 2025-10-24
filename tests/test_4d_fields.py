@@ -38,8 +38,8 @@ class SampleCalculation:
 
 def test_non_orchestrated_call() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(24, 24, 91, 3)
-    quantity_factory.set_extra_dim_lengths(
-        **{
+    quantity_factory.add_data_dimensions(
+        {
             TRACER_DIM: ntracers,
         }
     )
@@ -63,8 +63,8 @@ def test_orchestrated_call() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         24, 24, 91, 3
     )
-    quantity_factory.set_extra_dim_lengths(
-        **{
+    quantity_factory.add_data_dimensions(
+        {
             TRACER_DIM: ntracers,
         }
     )

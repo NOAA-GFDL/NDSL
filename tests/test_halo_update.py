@@ -299,7 +299,7 @@ def depth_quantity_list(
     """A list of quantities whose value indicates the distance from the computational
     domain boundary."""
     return_list = []
-    for rank in range(total_ranks):
+    for _rank in range(total_ranks):
         data = numpy.empty(shape, dtype=dtype)
         data[:] = numpy.nan
         for n_inside in range(max(n_points, max(extent) // 2), -1, -1):
@@ -336,7 +336,7 @@ def tile_depth_quantity_list(
     """A list of quantities whose value indicates the distance from the computational
     domain boundary for a single tile."""
     return_list = []
-    for rank in range(single_tile_ranks):
+    for _rank in range(single_tile_ranks):
         data = numpy.empty(shape, dtype=dtype)
         data[:] = numpy.nan
         for n_inside in range(max(n_points, max(extent) // 2), -1, -1):
@@ -497,7 +497,7 @@ def zeros_quantity_list(total_ranks, dims, units, origin, extent, shape, numpy, 
     """A list of quantities whose values are 0 in the computational domain and 1
     outside of it."""
     return_list = []
-    for rank in range(total_ranks):
+    for _rank in range(total_ranks):
         data = numpy.ones(shape, dtype=dtype)
         quantity = Quantity(
             data,
@@ -518,7 +518,7 @@ def zeros_quantity_tile_list(
     """A list of quantities whose values are 0 in the computational domain and 1
     outside of it on a single tile."""
     return_list = []
-    for rank in range(single_tile_ranks):
+    for _rank in range(single_tile_ranks):
         data = numpy.ones(shape, dtype=dtype)
         quantity = Quantity(
             data,

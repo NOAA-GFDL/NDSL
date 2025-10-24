@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools >= 77.0.3"]
+requires = ["setuptools >= 80", "setuptools-scm>=8"]
 
 [project]
 authors = [{name = "NOAA/NASA"}]
@@ -13,17 +13,16 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11"
 ]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
-version = "2025.05.00"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
-dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject"]
+dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject", "build"]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 test = ["pytest", "coverage"]
@@ -53,7 +52,9 @@ extend-ignore = [
   "W503",  # Linebreak before binary operator
   # Clashes with NDSL/stencil syntax
   "E203",  # Space before ":", e.g. `field[1, :]`
-  "F841"  # Local variable assigned but unused
+  "F841",  # Local variable assigned but unused
+  # other
+  "B019"  # We'd like to keep using functools.lru_cache
 ]
 max-line-length = 88
 
@@ -115,3 +116,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["ndsl", "ndsl.*"]
+
+[tool.setuptools_scm]
+local_scheme = "dirty-tag"
+version_scheme = "guess-next-dev"

@@ -93,7 +93,7 @@ def _to_gpu(sdfg: SDFG) -> None:
     ]
 
     # Set storage of arrays to GPU, scalarizable arrays will be set on registers
-    for sd, _aname, arr in sdfg.arrays_recursive():
+    for _sd, _aname, arr in sdfg.arrays_recursive():
         if arr.shape == (1,):
             arr.storage = dtypes.StorageType.Register
         else:

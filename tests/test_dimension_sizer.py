@@ -70,12 +70,12 @@ def namelist(nx_tile, ny_tile, nz, layout):
 def sizer(request, nx_tile, ny_tile, nz, layout, namelist, extra_dimension_lengths):
     if request.param == "from_tile_params":
         sizer = SubtileGridSizer.from_tile_params(
-            nx_tile,
-            ny_tile,
-            nz,
-            N_HALO_DEFAULT,
-            extra_dimension_lengths,
-            layout,
+            nx_tile=nx_tile,
+            ny_tile=ny_tile,
+            nz=nz,
+            n_halo=N_HALO_DEFAULT,
+            layout=layout,
+            data_dimensions=extra_dimension_lengths,
         )
     elif request.param == "from_namelist":
         sizer = SubtileGridSizer.from_namelist(namelist)
@@ -220,3 +220,17 @@ def test_allocator_empty(sizer, dim_case, units, dtype):
     assert quantity.origin == dim_case.origin
     assert quantity.extent == dim_case.extent
     assert quantity.data.shape == dim_case.shape
+
+
+def test_allocator_data_dimensions_operations(sizer):
+    quantity_factory = QuantityFactory.from_backend(sizer, "numpy")
+    quantity_factory.add_data_dimensions({"D0": 11})
+    assert "D0" in quantity_factory.sizer.data_dimensions.keys()
+    assert quantity_factory.sizer.data_dimensions["D0"] == 11
+    quantity_factory.update_data_dimensions({"D0": 22})
+    assert quantity_factory.sizer.data_dimensions["D0"] == 22
+    with pytest.raises(
+        ValueError,
+        match="Use `update_data_dimensions` if you meant to update the length.",
+    ):
+        quantity_factory.add_data_dimensions({"D0": 33})
