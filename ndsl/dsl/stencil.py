@@ -24,7 +24,18 @@ from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
-from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
+from ndsl.dsl.typing import (
+    Float,
+    FloatFieldIJ,
+    FloatFieldIJ32,
+    FloatFieldIJ64,
+    Index3D,
+    Int,
+    IntFieldIJ,
+    IntFieldIJ32,
+    IntFieldIJ64,
+    cast_to_index3d,
+)
 from ndsl.initialization import GridSizer, SubtileGridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
@@ -306,6 +317,20 @@ class FrozenStencil(SDFGConvertible):
             len(self._argument_names) > 0
         ), "A stencil with no arguments? You may be double decorating"
 
+        # Overloading `dtypes` to allow parsing of NDSL concepts
+        ndsl_dtypes = {
+            # Mixed precision
+            float: Float,
+            int: Int,
+            # 2D temporaries
+            "FloatFieldIJ": FloatFieldIJ,
+            "FloatFieldIJ32": FloatFieldIJ32,
+            "FloatFieldIJ64": FloatFieldIJ64,
+            "IntFieldIJ": IntFieldIJ,
+            "IntFieldIJ32": IntFieldIJ32,
+            "IntFieldIJ64": IntFieldIJ64,
+        }
+
         # Keep compilation at __init__ if we are not orchestrated.
         # If we orchestrate, move the compilation at call time to make sure
         # disable_codegen do not lead to call to uncompiled stencils, which fails
@@ -314,7 +339,7 @@ class FrozenStencil(SDFGConvertible):
             self.stencil_object = gtscript.lazy_stencil(
                 definition=func,
                 externals=externals,
-                dtypes={float: Float},
+                dtypes=ndsl_dtypes,
                 **stencil_kwargs,
                 build_info=(build_info := {}),  # type: ignore
             )
@@ -338,7 +363,7 @@ class FrozenStencil(SDFGConvertible):
             self.stencil_object = gtscript.stencil(
                 definition=func,
                 externals=externals,
-                dtypes={float: Float},
+                dtypes=ndsl_dtypes,
                 **stencil_kwargs,
                 build_info=(build_info := {}),
             )
