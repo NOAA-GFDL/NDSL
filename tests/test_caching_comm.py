@@ -75,7 +75,7 @@ def perform_serial_halo_updates(
 
 
 def test_Recv_inserts_data():
-    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6, fill_value=0.0))
+    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6))
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.received_buffers) == 0
@@ -85,7 +85,7 @@ def test_Recv_inserts_data():
 
 
 def test_Irecv_inserts_data():
-    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6, fill_value=0.0))
+    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6))
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.received_buffers) == 0
@@ -97,7 +97,7 @@ def test_Irecv_inserts_data():
 
 
 def test_bcast_inserts_data():
-    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6, fill_value=0.0))
+    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6))
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.bcast_objects) == 0
