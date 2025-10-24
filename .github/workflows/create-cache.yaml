@@ -47,8 +47,6 @@ jobs:
           pip install pre-commit
           pre-commit install --install-hooks
 
-    # GitHub Actions cache of the translate test data
-
   # GitHub Actions cache of pyFV3 test data
   pyFV3-data:
     runs-on: ubuntu-latest
@@ -77,28 +75,5 @@ jobs:
           tar -xzvf 8.1.3_c12_6ranks_standard.tar.gz
           rm 8.1.3_c12_6ranks_standard.tar.gz
 
-  # GitHub Actions cache of pySHiELD test data
-  pySHiELD-data:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: pySHiELD/test_data
-          key: ${{ env.TEST_DATA_PATH }}/physics
-          lookup-only: true  # don't actually download the cache
-
-      - name: Download test data (if not already cached)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p pySHiELD/test_data && cd pySHiELD/test_data
-          wget "${{ env.TEST_DATA_URL }}/8.1.3_c12_6ranks_baroclinic.physics.tar.gz"
-          tar -xzvf 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
-          rm 8.1.3_c12_6ranks_baroclinic.physics.tar.gz
+  pyshield_test_data:
+    uses: romanc/pySHiELD/.github/workflows/create_cache.yaml@develop
