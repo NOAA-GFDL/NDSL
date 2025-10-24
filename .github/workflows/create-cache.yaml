@@ -49,7 +49,7 @@ jobs:
 
   # GitHub Actions cache of pyFV3 test data
   pyFV3_test_data:
-    uses: romanc/pyFV3/.github/workflows/create_cache.yml@develop
+    uses: NOAA-GFDL/pyFV3/.github/workflows/create_cache.yml@develop
 
   pySHiELD_test_data:
-    uses: romanc/pySHiELD/.github/workflows/create_cache.yml@develop
+    uses: NOAA-GFDL/pySHiELD/.github/workflows/create_cache.yml@develop

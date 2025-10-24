@@ -1,3 +1,0 @@
-# test file
-
-This file is just here to test the translate test cache usage.
