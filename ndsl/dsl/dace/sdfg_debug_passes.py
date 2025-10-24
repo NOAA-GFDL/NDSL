@@ -13,8 +13,8 @@ from ndsl.logging import ndsl_log
 
 def _filter_all_maps(
     sdfg: dace.SDFG,
-    whitelist: list[str] = [],
-    blacklist: list[str] = [],
+    whitelist: list[str] | None = None,
+    blacklist: list[str] | None = None,
     skip_dynamic_memlet: bool = True,
 ) -> list[
     tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]
@@ -32,6 +32,10 @@ def _filter_all_maps(
         A list of access nodes, with their state & edges organized as
         [state, node, edges]
     """
+    if whitelist is None:
+        whitelist = []
+    if blacklist is None:
+        blacklist = []
 
     checks: list[
         tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]

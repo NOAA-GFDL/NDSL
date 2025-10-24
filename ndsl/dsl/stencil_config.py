@@ -178,10 +178,13 @@ class StencilConfig(Hashable):
         self,
         *,
         compare_to_numpy: bool = False,
-        compilation_config: CompilationConfig = CompilationConfig(),
+        compilation_config: CompilationConfig | None = None,
         verbose: bool = False,
         dace_config: DaceConfig | None = None,
     ):
+        if compilation_config is None:
+            compilation_config = CompilationConfig()
+
         self.compare_to_numpy = compare_to_numpy
         self.compilation_config = compilation_config
         self.verbose = verbose

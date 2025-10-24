@@ -31,7 +31,7 @@ class FieldBundle:
         self,
         bundle_name: str,
         quantity: Quantity,
-        mapping: _FieldBundleIndexer = {},
+        mapping: _FieldBundleIndexer | None = None,
         register_type: bool = False,
     ):
         """
@@ -45,6 +45,9 @@ class FieldBundle:
             mapping: sparse dict of [name, index] to be able to call tracers by name.
             register_type: boolean to register the type as part of initialization.
         """
+        if mapping is None:
+            mapping = {}
+
         if len(quantity.shape) != 4:
             raise NotImplementedError("FieldBundle implementation restricted to 4D")
 

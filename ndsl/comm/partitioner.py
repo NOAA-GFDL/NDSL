@@ -926,7 +926,7 @@ def _subtile_extents_from_tile_metadata(
 
         # steps through all valid sizes to sort them:
         # [start, counting down to 1, counting up from start]
-        for i in range(len(unsorted_valid_sizes) + 1):
+        for _i in range(len(unsorted_valid_sizes) + 1):
             index = start + factor * offset
             if index in unsorted_valid_sizes and index not in valid_sizes:
                 valid_sizes.append(index)
