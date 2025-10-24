@@ -48,32 +48,8 @@ jobs:
           pre-commit install --install-hooks
 
   # GitHub Actions cache of pyFV3 test data
-  pyFV3-data:
-    runs-on: ubuntu-latest
+  pyFV3_test_data:
+    uses: romanc/pyFV3/.github/workflows/create_cache.yml@develop
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: pyFV3/test_data
-          key: ${{ env.TEST_DATA_PATH }}/dycore
-          lookup-only: true  # don't actually download the cache
-
-      - name: Download test_data (if not already cached)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p pyFV3/test_data  && cd pyFV3/test_data
-          wget "${{ env.TEST_DATA_URL }}/8.1.3_c12_6ranks_standard.tar.gz"
-          tar -xzvf 8.1.3_c12_6ranks_standard.tar.gz
-          rm 8.1.3_c12_6ranks_standard.tar.gz
-
-  pyshield_test_data:
+  pySHiELD_test_data:
     uses: romanc/pySHiELD/.github/workflows/create_cache.yml@develop
