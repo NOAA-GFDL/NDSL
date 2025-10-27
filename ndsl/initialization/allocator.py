@@ -47,25 +47,6 @@ class QuantityFactory:
 
         self._allocator = _Allocator(self.backend)
 
-    @classmethod
-    def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
-        """Initialize a QuantityFactory to use a specific GT4Py backend.
-
-        Note: This method is deprecated. Please change your code to use the
-        constructor instead.
-
-        Args:
-            sizer: GridSizer object that determines the array sizes.
-            backend: GT4Py backend name used for performance-optimized allocation.
-        """
-        warnings.warn(
-            "QuantityFactory.from_backend(sizer, backend) is deprecated. Use "
-            "QuantityFactory(sizer, backend=backend) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls(sizer, backend=backend)
-
     def set_extra_dim_lengths(self, **kwargs: Any) -> None:
         """
         Set the length of extra (non-x/y/z) dimensions.
@@ -110,6 +91,25 @@ class QuantityFactory:
                 )
 
         self.sizer.data_dimensions.update(data_dimension_descriptions)
+
+    @classmethod
+    def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
+        """Initialize a QuantityFactory to use a specific GT4Py backend.
+
+        Note: This method is deprecated. Please change your code to use the
+        constructor instead.
+
+        Args:
+            sizer: GridSizer object that determines the array sizes.
+            backend: GT4Py backend name used for performance-optimized allocation.
+        """
+        warnings.warn(
+            "QuantityFactory.from_backend(sizer, backend) is deprecated. Use "
+            "QuantityFactory(sizer, backend=backend) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls(sizer, backend=backend)
 
     def empty(
         self,
