@@ -19,7 +19,6 @@ from .dsl.dace.wrapped_halo_exchange import WrappedHaloUpdater
 from .dsl.ndsl_runtime import NDSLRuntime
 from .dsl.stencil import FrozenStencil, GridIndexing, StencilFactory, TimingCollector
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
-from .exceptions import OutOfBoundsError
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
@@ -62,7 +61,6 @@ __all__ = [
     "CompilationConfig",
     "RunMode",
     "StencilConfig",
-    "OutOfBoundsError",
     "HaloExchangeSpec",
     "HaloUpdater",
     "HaloUpdateRequest",
