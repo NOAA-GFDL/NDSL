@@ -1,7 +1,8 @@
-""" Test of the GPU to GPU communication strategy.
+"""Test of the GPU to GPU communication strategy.
 
 Those test use halo_update but are separated from the entire
 """
+
 import contextlib
 import functools
 
@@ -16,13 +17,8 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.optional_imports import cupy as cp
 from ndsl.performance import Timer
-
-
-try:
-    import cupy as cp
-except ModuleNotFoundError:
-    cp = None
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
@@ -97,7 +93,7 @@ N_ZEROS_CALLS = {}
 
 @contextlib.contextmanager
 def module_count_calls_to_zeros(module):
-    global N_ZEROS_CALLS
+    global N_ZEROS_CALLS  # noqa: F824 global ... is unused
     N_ZEROS_CALLS[module.zeros] = 0
 
     def count_calls(func):
@@ -105,7 +101,7 @@ def module_count_calls_to_zeros(module):
 
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
-            global N_ZEROS_CALLS
+            global N_ZEROS_CALLS  # noqa: F824 global ... is unused
             N_ZEROS_CALLS[func] = N_ZEROS_CALLS[func] + 1
             return func(*args, **kwargs)
 
@@ -140,7 +136,7 @@ def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
             halo_updater.wait()
 
     # We expect no np calls and several cp calls
-    global N_ZEROS_CALLS
+    global N_ZEROS_CALLS  # noqa: F824 global ... is unused
     print(f"Results {N_ZEROS_CALLS}")
     assert N_ZEROS_CALLS[cp.zeros] > 0
     assert N_ZEROS_CALLS[np.zeros] == 0
@@ -170,6 +166,6 @@ def test_halo_update_communicate_though_cpu(backend, cpu_communicators):
             halo_updater.wait()
 
     # We expect several np calls and several cp calls
-    global N_ZEROS_CALLS
+    global N_ZEROS_CALLS  # noqa: F824 global ... is unused
     assert N_ZEROS_CALLS[np.zeros] > 0
     assert N_ZEROS_CALLS[cp.zeros] == 0

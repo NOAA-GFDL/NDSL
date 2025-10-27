@@ -1,7 +1,3 @@
-from typing import Tuple
-
-import numpy as np
-
 from ndsl import (
     CompilationConfig,
     DaceConfig,
@@ -22,11 +18,11 @@ def _get_factories(
     nx: int,
     ny: int,
     nz: int,
-    nhalo,
+    nhalo: int,
     backend: str,
     orchestration: DaCeOrchestration,
     topology: str,
-) -> Tuple[StencilFactory, QuantityFactory]:
+) -> tuple[StencilFactory, QuantityFactory]:
     """Build a Stencil & Quantity factory for a combination of options.
 
     Dev Note: We don't expose this function because we want the boilerplate to remain
@@ -43,7 +39,7 @@ def _get_factories(
 
     compilation_config = CompilationConfig(
         backend=backend,
-        rebuild=True,
+        rebuild=False,
         validate_args=True,
         format_source=False,
         device_sync=False,
@@ -64,7 +60,6 @@ def _get_factories(
             ny_tile=ny,
             nz=nz,
             n_halo=nhalo,
-            extra_dim_lengths={},
             layout=partitioner.layout,
             tile_partitioner=partitioner,
         )
@@ -74,36 +69,40 @@ def _get_factories(
 
     grid_indexing = GridIndexing.from_sizer_and_communicator(sizer, comm)
     stencil_factory = StencilFactory(config=stencil_config, grid_indexing=grid_indexing)
-    quantity_factory = QuantityFactory(sizer, np)
+    quantity_factory = QuantityFactory.from_backend(sizer, backend)
 
     return stencil_factory, quantity_factory
 
 
-def get_factories_single_tile_orchestrated_cpu(
-    nx, ny, nz, nhalo
-) -> Tuple[StencilFactory, QuantityFactory]:
-    """Build a Stencil & Quantity factory for orchestrated CPU, on a single tile toplogy."""
+def get_factories_single_tile_orchestrated(
+    nx: int, ny: int, nz: int, nhalo: int, backend: str = "dace:cpu"
+) -> tuple[StencilFactory, QuantityFactory]:
+    """Build the pair of (StencilFactory, QuantityFactory) for orchestrated code on a single tile topology."""
+
+    if backend is not None and not backend.startswith("dace"):
+        raise ValueError("Only `dace:*` backends can be orchestrated.")
+
     return _get_factories(
         nx=nx,
         ny=ny,
         nz=nz,
         nhalo=nhalo,
-        backend="dace:cpu",
+        backend=backend,
         orchestration=DaCeOrchestration.BuildAndRun,
         topology="tile",
     )
 
 
-def get_factories_single_tile_numpy(
-    nx, ny, nz, nhalo
-) -> Tuple[StencilFactory, QuantityFactory]:
-    """Build a Stencil & Quantity factory for Numpy, on a single tile toplogy."""
+def get_factories_single_tile(
+    nx: int, ny: int, nz: int, nhalo: int, backend: str = "numpy"
+) -> tuple[StencilFactory, QuantityFactory]:
+    """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
     return _get_factories(
         nx=nx,
         ny=ny,
         nz=nz,
         nhalo=nhalo,
-        backend="numpy",
+        backend=backend,
         orchestration=DaCeOrchestration.Python,
         topology="tile",
     )

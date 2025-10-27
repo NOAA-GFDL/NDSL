@@ -1,47 +1,38 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import inspect
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+import numbers
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any, cast
 
 import dace
-import gt4py
 import numpy as np
+from gt4py.cartesian import config as gt_config
+from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
+from gt4py.cartesian.definitions import FieldInfo
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
+from gt4py.cartesian.stencil_object import StencilObject
 
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
 from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import Float, Index3D, cast_to_index3d
-from ndsl.initialization.sizer import GridSizer, SubtileGridSizer
+from ndsl.initialization import GridSizer, SubtileGridSizer
+from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
-from ndsl.testing import comparison
+from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
+from ndsl.testing.comparison import LegacyMetric
 
 
-try:
-    import cupy as cp
-except ImportError:
-    cp = np
-
-
-def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):
+def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id):  # type: ignore[no-untyped-def]
     report_head = f"comparing against numpy for func {function_name}, gt_id {gt_id}:"
     report_segments = []
     for i, (arg, numpy_arg) in enumerate(zip(args, args_copy)):
@@ -67,41 +58,15 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
         print(report_head + report_body)
 
 
-def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label) -> str:
-    metric_err = comparison.compare_arr(arg, numpy_arg)
-    nans_match = np.logical_and(np.isnan(arg), np.isnan(numpy_arg))
-    n_points = np.product(arg.shape)
-    failures_14 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-14,
-        )
+def report_diff(arg: np.ndarray, numpy_arg: np.ndarray, label: str) -> str:
+    metric = LegacyMetric(
+        reference_values=arg,
+        computed_values=numpy_arg,
+        eps=1e-13,
+        ignore_near_zero_errors=False,
+        near_zero=0,
     )
-    failures_10 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-10,
-        )
-    )
-    failures_8 = n_points - np.sum(
-        np.logical_or(
-            nans_match,
-            metric_err < 1e-8,
-        )
-    )
-    greatest_error = np.max(metric_err[~np.isnan(metric_err)])
-    if greatest_error == 0.0 and failures_14 == 0:
-        report = ""
-    else:
-        report = f"\n    {label}: "
-        report += f"max_err={greatest_error}"
-        if failures_14 > 0:
-            report += f" 1e-14 failures: {failures_14}"
-        if failures_10 > 0:
-            report += f" 1e-10 failures: {failures_10}"
-        if failures_8 > 0:
-            report += f" 1e-8 failures: {failures_8}"
-    return report
+    return f"{label}: {metric.__repr__()}"
 
 
 @dataclasses.dataclass
@@ -112,17 +77,17 @@ class TimingCollector:
         exec_info: contains info about the execution of each stencil.
     """
 
-    build_info: Dict[str, dict] = dataclasses.field(default_factory=dict)
-    exec_info: Dict[str, Any] = dataclasses.field(
+    build_info: dict[str, dict] = dataclasses.field(default_factory=dict)
+    exec_info: dict[str, Any] = dataclasses.field(
         default_factory=lambda: {"__aggregate_data": True}
     )
 
-    def build_report(self, key: str = "build_time", **kwargs) -> str:
+    def build_report(self, key: str = "build_time", **kwargs: Any) -> str:
         return type(self)._show_report(
             self.build_info, self.build_info.keys(), key, **kwargs
         )
 
-    def exec_report(self, key: str = "total_run_time", **kwargs) -> str:
+    def exec_report(self, key: str = "total_run_time", **kwargs: Any) -> str:
         # NOTE: Uses the build_info keys to distinguish stencils
         return type(self)._show_report(
             self.exec_info, self.build_info.keys(), key, **kwargs
@@ -130,7 +95,7 @@ class TimingCollector:
 
     @staticmethod
     def _show_report(
-        infos: Dict[str, Any],
+        infos: dict[str, Any],
         keys: Iterable[str],
         secondary_key: str,
         *,
@@ -151,7 +116,7 @@ class TimingCollector:
 
         format = f".{digits}e"
 
-        outputs: List[str] = [f"Total: {sum(d[1] for d in data):{format}}"]
+        outputs: list[str] = [f"Total: {sum(d[1] for d in data):{format}}"]
         for name, val in sorted_data:
             if len(name) > name_width:
                 width = int(name_width / 2) - 3
@@ -176,13 +141,13 @@ class CompareToNumpyStencil:
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Optional[Tuple[str, ...]] = None,
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         self._actual = FrozenStencil(
             func=func,
@@ -199,7 +164,6 @@ class CompareToNumpyStencil:
             rebuild=stencil_config.compilation_config.rebuild,
             validate_args=stencil_config.compilation_config.validate_args,
             format_source=True,
-            device_sync=None,
             run_mode=RunMode.BuildAndRun,
             use_minimal_caching=False,
         )
@@ -221,8 +185,8 @@ class CompareToNumpyStencil:
 
     def __call__(
         self,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         args_copy = copy.deepcopy(args)
         kwargs_copy = copy.deepcopy(kwargs)
@@ -238,12 +202,12 @@ class CompareToNumpyStencil:
         )
 
 
-def _stencil_object_name(stencil_object) -> str:
+def _stencil_object_name(stencil_object: StencilObject) -> str:
     """Returns a unique name for each gt4py stencil object, including the hash."""
     return type(stencil_object).__name__
 
 
-def get_pair_rank(rank: int, size: int):
+def get_pair_rank(rank: int, size: int) -> int:
     dycore_ranks = size // 2
     if rank < dycore_ranks:
         return rank + dycore_ranks
@@ -251,7 +215,7 @@ def get_pair_rank(rank: int, size: int):
         return rank - dycore_ranks
 
 
-def compare_ranks(comm: Comm, data) -> Mapping[str, int]:
+def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
     rank = comm.Get_rank()
     size = comm.Get_size()
     pair_rank = get_pair_rank(rank, size)
@@ -282,13 +246,13 @@ class FrozenStencil(SDFGConvertible):
     def __init__(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
         stencil_config: StencilConfig,
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Tuple[str, ...] = (),
-        timing_collector: Optional[TimingCollector] = None,
-        comm: Optional[Comm] = None,
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+        timing_collector: TimingCollector | None = None,
+        comm: Comm | None = None,
     ):
         """
         Args:
@@ -304,7 +268,6 @@ class FrozenStencil(SDFGConvertible):
         """
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
-        origin = cast(Union[Index3D, Mapping[str, Tuple[int, ...]]], origin)
         self.origin = origin
         self.domain: Index3D = cast_to_index3d(domain)
         self.stencil_config: StencilConfig = stencil_config
@@ -319,19 +282,23 @@ class FrozenStencil(SDFGConvertible):
             externals = {}
         self.externals = externals
         self._func_name = func.__name__
+        self._func_qualname = func.__qualname__
         stencil_kwargs = self.stencil_config.stencil_kwargs(
             skip_passes=skip_passes, func=func
         )
-        self.stencil_object = None
+        self.stencil_object: StencilObject
 
         self._argument_names = tuple(inspect.getfullargspec(func).args)
 
+        # NOTE: this is also down in `dace/build.py` for orchestration
+        # This is still needed for non-orchestrated used of DaCe.
+        # A better build system would take care of BOTH of those at the same time
         if "dace" in self.stencil_config.compilation_config.backend:
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
-                    gt_root=gt4py.cartesian.config.cache_settings["root_path"],
-                    gt_cache=gt4py.cartesian.config.cache_settings["dir_name"],
+                    gt_root=gt_config.cache_settings["root_path"],
+                    gt_cache=gt_config.cache_settings["dir_name"],
                 ),
             )
 
@@ -360,6 +327,14 @@ class FrozenStencil(SDFGConvertible):
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
 
+            # Field Bundle might have dropped a placeholder type that we now
+            # have to resolve to the proper type.
+            for name, types in func.__annotations__.items():
+                if isinstance(types, MarkupFieldBundleType):
+                    func.__annotations__[name] = FieldBundleType.T(
+                        types.name, do_markup=False
+                    )
+
             self.stencil_object = gtscript.stencil(
                 definition=func,
                 externals=externals,
@@ -375,36 +350,44 @@ class FrozenStencil(SDFGConvertible):
             ):
                 unblock_waiting_tiles(MPI.COMM_WORLD)
 
-        self._timing_collector.build_info[
-            _stencil_object_name(self.stencil_object)
-        ] = build_info
+        self._timing_collector.build_info[_stencil_object_name(self.stencil_object)] = (
+            build_info
+        )
         field_info = self.stencil_object.field_info
 
-        self._field_origins: Dict[
-            str, Tuple[int, ...]
-        ] = FrozenStencil._compute_field_origins(field_info, self.origin)
-        """mapping from field names to field origins"""
+        self._field_origins: dict[str, tuple[int, ...]] = (
+            FrozenStencil._compute_field_origins(field_info, self.origin)
+        )
+        """Mapping from field names to field origins"""
 
-        self._stencil_run_kwargs: Dict[str, Any] = {
+        self._stencil_run_kwargs: dict[str, Any] = {
             "_origin_": self._field_origins,
             "_domain_": self.domain,
         }
 
-        self._written_fields: List[str] = FrozenStencil._get_written_fields(field_info)
+        self._written_fields = FrozenStencil._get_written_fields(field_info)
 
         if stencil_config.compilation_config.run_mode == RunMode.Build:
 
-            def nothing_function(*args, **kwargs):
+            def nothing_function(*args, **kwargs):  # type: ignore[no-untyped-def]
                 pass
 
-            setattr(self, "__call__", nothing_function)
+            setattr(self, "__call__", nothing_function)  # noqa: B010
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
+        # Verbose stencil execution
+        if self.stencil_config.verbose:
+            ndsl_log.debug(f"Running {self._func_name}")
+
+        self._validate_quantity_sizes(*args, **kwargs)
+
+        # Marshal arguments
         args_list = list(args)
         _convert_quantities_to_storage(args_list, kwargs)
         args = tuple(args_list)
-
         args_as_kwargs = dict(zip(self._argument_names, args))
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -412,6 +395,14 @@ class FrozenStencil(SDFGConvertible):
                     f"rank {self.comm.Get_rank()} has differences {differences} "
                     f"before calling {self._func_name}"
                 )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+
+        # Execute stencil
         if self.stencil_config.compilation_config.validate_args:
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
@@ -432,6 +423,15 @@ class FrozenStencil(SDFGConvertible):
                 **self._stencil_run_kwargs,
                 exec_info=self._timing_collector.exec_info,
             )
+
+        # Debugger actions if turned on
+        if ndsl_debugger:
+            all_args = args_as_kwargs | kwargs
+            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
+            ndsl_debugger.increment_call_count(self._func_qualname)
+
+        # Ranks comparison tool
         if self.comm is not None:
             differences = compare_ranks(self.comm, {**args_as_kwargs, **kwargs})
             if len(differences) > 0:
@@ -442,8 +442,10 @@ class FrozenStencil(SDFGConvertible):
 
     @classmethod
     def _compute_field_origins(
-        cls, field_info_mapping, origin: Union[Index3D, Mapping[str, Tuple[int, ...]]]
-    ) -> Dict[str, Tuple[int, ...]]:
+        cls,
+        field_info_mapping: dict[str, gt_definitions.FieldInfo],
+        origin: Index3D | Mapping[str, tuple[int, ...]],
+    ) -> dict[str, tuple[int, ...]]:
         """
         Computes the origin for each field in the stencil call.
 
@@ -456,8 +458,8 @@ class FrozenStencil(SDFGConvertible):
             origin_mapping: a mapping from field names to origins
         """
         if isinstance(origin, tuple):
-            field_origins: Dict[str, Tuple[int, ...]] = {"_all_": origin}
-            origin_tuple: Tuple[int, ...] = origin
+            field_origins: dict[str, tuple[int, ...]] = {"_all_": origin}
+            origin_tuple: tuple[int, ...] = origin
         else:
             field_origins = {**origin}
             origin_tuple = origin["_all_"]
@@ -470,6 +472,9 @@ class FrozenStencil(SDFGConvertible):
                     for ax in field_info.axes:
                         origin_index = {"I": 0, "J": 1, "K": 2}[ax]
                         field_origin_list.append(origin_tuple[origin_index])
+                    for i, _data_dim in enumerate(field_info.data_dims):
+                        if field_info.mask[len(field_info.domain_mask) + i]:
+                            field_origin_list.append(0)
                     field_origin = tuple(field_origin_list)
                 else:
                     field_origin = origin_tuple
@@ -477,7 +482,7 @@ class FrozenStencil(SDFGConvertible):
         return field_origins
 
     @classmethod
-    def _get_written_fields(cls, field_info) -> List[str]:
+    def _get_written_fields(cls, field_info: dict[str, FieldInfo]) -> list[str]:
         """Returns the list of fields that are written.
 
         Args:
@@ -487,10 +492,7 @@ class FrozenStencil(SDFGConvertible):
             field_name
             for field_name in field_info
             if field_info[field_name]
-            and bool(
-                field_info[field_name].access
-                & gt4py.cartesian.definitions.AccessKind.WRITE  # type: ignore
-            )
+            and bool(field_info[field_name].access & gt_definitions.AccessKind.WRITE)
         ]
         return write_fields
 
@@ -500,7 +502,7 @@ class FrozenStencil(SDFGConvertible):
         skip_steps = [step_map[pass_name] for pass_name in skip_passes]
         return DefaultPipeline(skip=skip_steps)
 
-    def __sdfg__(self, *args, **kwargs):
+    def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Implemented SDFG generation"""
         args_as_kwargs = dict(zip(self._argument_names, args))
         return self.stencil_object.__sdfg__(
@@ -510,22 +512,55 @@ class FrozenStencil(SDFGConvertible):
             **kwargs,
         )
 
-    def __sdfg_signature__(self):
+    def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
         """Implemented SDFG signature lookup"""
         return self.stencil_object.__sdfg_signature__()
 
-    def __sdfg_closure__(self, *args, **kwargs):
+    def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         """Implemented SDFG closure build"""
         return self.stencil_object.__sdfg_closure__(*args, **kwargs)
 
-    def closure_resolver(self, constant_args, given_args, parent_closure=None):
+    def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
         """Implemented SDFG closure resolver build"""
         return self.stencil_object.closure_resolver(
             constant_args, given_args, parent_closure=parent_closure
         )
 
+    def _validate_quantity_sizes(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        """Checks that the sizes of quantities are compatible with the domain of the stencil.
 
-def _convert_quantities_to_storage(args, kwargs):
+        This function emits a warning in case one of the dimensions does not match.
+
+        """
+        all_args_as_kwargs = dict(zip(self._argument_names, tuple(list(args)))) | kwargs
+
+        domain_sizes = {
+            axis_name: axis_size
+            for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
+            for axis_name in axis_names
+        }
+
+        for name, argument in all_args_as_kwargs.items():
+            if isinstance(argument, Quantity):
+                for axis, quantity_size in zip(argument.dims, argument.extent):
+                    full_size = quantity_size
+                    if axis in (X_DIMS + Y_DIMS):
+                        full_size += 2 * argument.metadata.n_halo
+                    if (
+                        axis in (X_DIMS + Y_DIMS + Z_DIMS)
+                        and full_size < domain_sizes[axis]
+                    ):
+                        ndsl_log.warning(
+                            f"Quantity `{name}` is too small for the targeted "
+                            f"domain in axis {axis}: {full_size} < {domain_sizes[axis]}."
+                        )
+            elif not isinstance(argument, numbers.Real):
+                ndsl_log.warning(
+                    f"Found an array-type argument {name} that is not a Quantity. Some domain-size checks are omitted."
+                )
+
+
+def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def]
     for i, arg in enumerate(args):
         try:
             # Check that 'dims' is an attribute of arg. If so,
@@ -583,28 +618,28 @@ class GridIndexing:
         self.east_edge = east_edge
 
     @property
-    def domain(self):
+    def domain(self) -> Index3D:
         return self._domain
 
     @domain.setter
-    def domain(self, domain):
+    def domain(self, domain: Index3D) -> None:
         self._domain = domain
         self._sizer = SubtileGridSizer(
             nx=domain[0],
             ny=domain[1],
             nz=domain[2],
             n_halo=self.n_halo,
-            extra_dim_lengths={},
+            data_dimensions={},
         )
 
     @classmethod
     def from_sizer_and_communicator(
         cls, sizer: GridSizer, comm: Communicator
-    ) -> "GridIndexing":
+    ) -> GridIndexing:
         # TODO: if this class is refactored to split off the *_edge booleans,
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
-            Tuple[int, int, int],
+            tuple[int, int, int],
             sizer.get_extent([X_DIM, Y_DIM, Z_DIM]),
         )
         south_edge = comm.tile.partitioner.on_tile_bottom(comm.rank)
@@ -621,7 +656,7 @@ class GridIndexing:
         )
 
     @property
-    def max_shape(self):
+    def max_shape(self) -> Index3D:
         """
         Maximum required storage shape, corresponding to the shape of a cell-corner
         variable with maximum halo points.
@@ -634,74 +669,74 @@ class GridIndexing:
         return self.domain_full(add=(1, 1, 1 + self.origin[2]))
 
     @property
-    def isc(self):
-        """start of the compute domain along the x-axis"""
+    def isc(self) -> int:
+        """Start of the compute domain along the x-axis"""
         return self.origin[0]
 
     @property
-    def iec(self):
-        """last index of the compute domain along the x-axis"""
+    def iec(self) -> int:
+        """Last index of the compute domain along the x-axis"""
         return self.origin[0] + self.domain[0] - 1
 
     @property
-    def jsc(self):
-        """start of the compute domain along the y-axis"""
+    def jsc(self) -> int:
+        """Start of the compute domain along the y-axis"""
         return self.origin[1]
 
     @property
-    def jec(self):
-        """last index of the compute domain along the y-axis"""
+    def jec(self) -> int:
+        """Last index of the compute domain along the y-axis"""
         return self.origin[1] + self.domain[1] - 1
 
     @property
-    def isd(self):
-        """start of the full domain including halos along the x-axis"""
+    def isd(self) -> int:
+        """Start of the full domain including halos along the x-axis"""
         return self.origin[0] - self.n_halo
 
     @property
-    def ied(self):
-        """index of the last data point along the x-axis"""
+    def ied(self) -> int:
+        """Index of the last data point along the x-axis"""
         return self.isd + self.domain[0] + 2 * self.n_halo - 1
 
     @property
-    def jsd(self):
-        """start of the full domain including halos along the y-axis"""
+    def jsd(self) -> int:
+        """Start of the full domain including halos along the y-axis"""
         return self.origin[1] - self.n_halo
 
     @property
-    def jed(self):
-        """index of the last data point along the y-axis"""
+    def jed(self) -> int:
+        """Index of the last data point along the y-axis"""
         return self.jsd + self.domain[1] + 2 * self.n_halo - 1
 
     @property
-    def nw_corner(self):
+    def nw_corner(self) -> bool:
         return self.north_edge and self.west_edge
 
     @property
-    def sw_corner(self):
+    def sw_corner(self) -> bool:
         return self.south_edge and self.west_edge
 
     @property
-    def ne_corner(self):
+    def ne_corner(self) -> bool:
         return self.north_edge and self.east_edge
 
     @property
-    def se_corner(self):
+    def se_corner(self) -> bool:
         return self.south_edge and self.east_edge
 
-    def origin_full(self, add: Index3D = (0, 0, 0)):
+    def origin_full(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the origin of the full domain including halos, plus an optional offset.
         """
         return (self.isd + add[0], self.jsd + add[1], self.origin[2] + add[2])
 
-    def origin_compute(self, add: Index3D = (0, 0, 0)):
+    def origin_compute(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the origin of the compute domain, plus an optional offset
         """
         return (self.isc + add[0], self.jsc + add[1], self.origin[2] + add[2])
 
-    def domain_full(self, add: Index3D = (0, 0, 0)):
+    def domain_full(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the shape of the full domain including halos, plus an optional offset.
         """
@@ -711,7 +746,7 @@ class GridIndexing:
             self.domain[2] + add[2],
         )
 
-    def domain_compute(self, add: Index3D = (0, 0, 0)):
+    def domain_compute(self, add: Index3D = (0, 0, 0)) -> Index3D:
         """
         Returns the shape of the compute domain, plus an optional offset.
         """
@@ -722,10 +757,8 @@ class GridIndexing:
         )
 
     def axis_offsets(
-        self,
-        origin: Tuple[int, ...],
-        domain: Tuple[int, ...],
-    ) -> Dict[str, Any]:
+        self, origin: tuple[int, ...], domain: tuple[int, ...]
+    ) -> dict[str, Any]:
         if self.west_edge:
             i_start = gtscript.I[0] + self.origin[0] - origin[0]
         else:
@@ -763,11 +796,14 @@ class GridIndexing:
             "local_js": gtscript.J[0] + self.jsc - origin[1],
             "j_end": j_end,
             "local_je": gtscript.J[-1] + self.jec - origin[1] - domain[1] + 1,
+            "k_start": origin[2] if len(origin) > 2 else 0,
+            "k_end": (origin[2] if len(origin) > 2 else 0)
+            + (domain[2] - 1 if len(domain) > 2 else 0),
         }
 
     def get_origin_domain(
         self, dims: Sequence[str], halos: Sequence[int] = tuple()
-    ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """
         Get the origin and domain for a computation that occurs over a certain grid
         configuration (given by dims) and a certain number of halo points.
@@ -787,7 +823,26 @@ class GridIndexing:
             domain[i] += 2 * n
         return tuple(origin), tuple(domain)
 
-    def _origin_from_dims(self, dims: Iterable[str]) -> List[int]:
+    def get_2d_compute_origin_domain(
+        self,
+        klevel: int = 0,
+    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
+        """
+        Get the origin and domain for a computation that occurs on the lowest klevel over a certain grid
+        configuration (given by dims) and a certain number of halo points.
+
+        Args:
+            klevel: the vertical level of the domain, defaults to zero
+
+        Returns:
+            origin: origin of the computation
+            domain: shape of the computation
+        """
+        origin = (self.isc, self.jsc, klevel)
+        domain = (self.iec + 1 - self.isc, self.jec + 1 - self.jsc, 1)
+        return (origin, domain)
+
+    def _origin_from_dims(self, dims: Iterable[str]) -> list[int]:
         return_origin = []
         for dim in dims:
             if dim in X_DIMS:
@@ -800,7 +855,7 @@ class GridIndexing:
 
     def get_shape(
         self, dims: Sequence[str], halos: Sequence[int] = tuple()
-    ) -> Tuple[int, ...]:
+    ) -> tuple[int, ...]:
         """
         Get the storage shape required for an array with the given dimensions
         which is accessed up to a given number of halo points.
@@ -823,7 +878,9 @@ class GridIndexing:
             shape[i] += n
         return tuple(shape)
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "GridIndexing":
+    def restrict_vertical(
+        self, k_start: int = 0, nk: int | None = None
+    ) -> GridIndexing:
         """
         Returns a copy of itself with modified vertical origin and domain.
 
@@ -869,7 +926,7 @@ class StencilFactory:
         self,
         config: StencilConfig,
         grid_indexing: GridIndexing,
-        comm: Optional[Comm] = None,
+        comm: Comm | None = None,
     ):
         """
         Args:
@@ -885,17 +942,17 @@ class StencilFactory:
         self.comm = comm
 
     @property
-    def backend(self):
+    def backend(self) -> str:
         return self.config.compilation_config.backend
 
     def from_origin_domain(
         self,
         func: Callable[..., None],
-        origin: Union[Tuple[int, ...], Mapping[str, Tuple[int, ...]]],
-        domain: Tuple[int, ...],
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Tuple[str, ...] = (),
-    ) -> Union[FrozenStencil, CompareToNumpyStencil]:
+        origin: tuple[int, ...] | Mapping[str, tuple[int, ...]],
+        domain: tuple[int, ...],
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+    ) -> FrozenStencil | CompareToNumpyStencil:
         """
         Args:
             func: stencil definition function
@@ -906,7 +963,7 @@ class StencilFactory:
             skip_passes: compiler passes to skip when building stencil
         """
         if self.config.compare_to_numpy:
-            cls: Type = CompareToNumpyStencil
+            cls: type = CompareToNumpyStencil
         else:
             cls = FrozenStencil
         return cls(
@@ -925,9 +982,9 @@ class StencilFactory:
         func: Callable[..., None],
         compute_dims: Sequence[str],
         compute_halos: Sequence[int] = tuple(),
-        externals: Optional[Mapping[str, Any]] = None,
-        skip_passes: Tuple[str, ...] = (),
-    ) -> Union[FrozenStencil, CompareToNumpyStencil]:
+        externals: Mapping[str, Any] | None = None,
+        skip_passes: tuple[str, ...] = (),
+    ) -> FrozenStencil | CompareToNumpyStencil:
         """
         Initialize a stencil from dimensions and number of halo points.
 
@@ -961,29 +1018,31 @@ class StencilFactory:
             skip_passes=skip_passes,
         )
 
-    def restrict_vertical(self, k_start=0, nk=None) -> "StencilFactory":
+    def restrict_vertical(
+        self, k_start: int = 0, nk: int | None = None
+    ) -> StencilFactory:
         return StencilFactory(
             config=self.config,
             grid_indexing=self.grid_indexing.restrict_vertical(k_start=k_start, nk=nk),
             comm=self.comm,
         )
 
-    def build_report(self, key: str = "build_time", **kwargs) -> str:
+    def build_report(self, key: str = "build_time", **kwargs: Any) -> str:
         """Report all stencils built by this factory."""
         return self.timing_collector.build_report(key, **kwargs)
 
-    def exec_report(self, key: str = "total_run_time", **kwargs) -> str:
+    def exec_report(self, key: str = "total_run_time", **kwargs: Any) -> str:
         """Report all stencils executed that were built by this factory."""
         return self.timing_collector.exec_report(key, **kwargs)
 
 
 def get_stencils_with_varied_bounds(
     func: Callable[..., None],
-    origins: List[Index3D],
-    domains: List[Index3D],
+    origins: list[Index3D],
+    domains: list[Index3D],
     stencil_factory: StencilFactory,
-    externals: Optional[Mapping[str, Any]] = None,
-) -> List[Union[FrozenStencil, CompareToNumpyStencil]]:
+    externals: Mapping[str, Any] | None = None,
+) -> list[FrozenStencil | CompareToNumpyStencil]:
     assert len(origins) == len(domains), (
         "Lists of origins and domains need to have the same length, you provided "
         + str(len(origins))

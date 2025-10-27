@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import dataclasses
 import enum
 import hashlib
-from typing import Any, Callable, Dict, Hashable, Iterable, Optional, Sequence, Tuple
+from collections.abc import Callable, Hashable, Iterable, Sequence
+from typing import Any, Self
 
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
@@ -35,7 +38,7 @@ class CompilationConfig:
         device_sync: bool = False,
         run_mode: RunMode = RunMode.BuildAndRun,
         use_minimal_caching: bool = False,
-        communicator: Optional[Communicator] = None,
+        communicator: Communicator | None = None,
     ) -> None:
         if (not ("gpu" in backend or "cuda" in backend)) and device_sync is True:
             raise RuntimeError("Device sync is true on a CPU based backend")
@@ -117,8 +120,8 @@ class CompilationConfig:
         raise RuntimeError("Illegal partition specified")
 
     def get_decomposition_info_from_comm(
-        self, communicator: Optional[Communicator]
-    ) -> Tuple[int, int, int, bool]:
+        self, communicator: Communicator | None
+    ) -> tuple[int, int, int, bool]:
         if communicator:
             self.check_communicator(communicator)
             rank = communicator.rank
@@ -138,7 +141,7 @@ class CompilationConfig:
             is_compiling = True
         return rank, size, equivalent_compiling_rank, is_compiling
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "backend": self.backend,
             "rebuild": self.rebuild,
@@ -150,7 +153,7 @@ class CompilationConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> Self:
         instance = cls(
             backend=data.get("backend", "numpy"),
             rebuild=data.get("rebuild", False),
@@ -168,30 +171,43 @@ class CompilationConfig:
 class StencilConfig(Hashable):
     compare_to_numpy: bool = False
     compilation_config: CompilationConfig = CompilationConfig()
-    dace_config: Optional[DaceConfig] = None
+    verbose: bool = False
+    dace_config: DaceConfig = dataclasses.field(init=False)
 
-    def __post_init__(self):
+    def __init__(
+        self,
+        *,
+        compare_to_numpy: bool = False,
+        compilation_config: CompilationConfig | None = None,
+        verbose: bool = False,
+        dace_config: DaceConfig | None = None,
+    ):
+        if compilation_config is None:
+            compilation_config = CompilationConfig()
+
+        self.compare_to_numpy = compare_to_numpy
+        self.compilation_config = compilation_config
+        self.verbose = verbose
+        self.dace_config = (
+            dace_config
+            if dace_config is not None
+            else DaceConfig(
+                communicator=None,
+                backend=self.compilation_config.backend,
+                orchestration=DaCeOrchestration.Python,
+            )
+        )
         self.backend_opts = {
             "device_sync": self.compilation_config.device_sync,
             "format_source": self.compilation_config.format_source,
         }
         self._hash = self._compute_hash()
 
-        # We need a DaceConfig to know if orchestration is part of the build system
-        # but we can't hash it very well (for now). The workaround is to make
-        # sure we have a default Python orchestrated config.
-        if self.dace_config is None:
-            self.dace_config = DaceConfig(
-                communicator=None,
-                backend=self.compilation_config.backend,
-                orchestration=DaCeOrchestration.Python,
-            )
-
     @property
-    def backend(self):
+    def backend(self) -> str:
         return self.compilation_config.backend
 
-    def _compute_hash(self):
+    def _compute_hash(self) -> int:
         md5 = hashlib.md5()
         md5.update(self.compilation_config.backend.encode())
         for attr in (
@@ -202,16 +218,16 @@ class StencilConfig(Hashable):
             self.backend_opts["format_source"],
         ):
             md5.update(bytes(attr))
-        attr = self.backend_opts.get("device_sync", None)
+        attr = self.backend_opts.get("device_sync", False)
         if attr:
             md5.update(bytes(attr))
         md5.update(bytes(self.compilation_config.run_mode.value))
         return int(md5.hexdigest(), base=16)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self._hash
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         try:
             return self.__hash__() == other.__hash__()
         except AttributeError:
@@ -219,7 +235,7 @@ class StencilConfig(Hashable):
 
     def stencil_kwargs(
         self, *, func: Callable[..., None], skip_passes: Iterable[str] = ()
-    ):
+    ) -> dict:
         kwargs = {
             "backend": self.compilation_config.backend,
             "rebuild": self.compilation_config.rebuild,
@@ -230,7 +246,7 @@ class StencilConfig(Hashable):
             kwargs.pop("device_sync", None)
         if skip_passes or kwargs.get("skip_passes", ()):
             kwargs["oir_pipeline"] = StencilConfig._get_oir_pipeline(
-                list(kwargs.pop("skip_passes", ())) + list(skip_passes)  # type: ignore
+                list(kwargs.pop("skip_passes", ())) + list(skip_passes)  # type: ignore[call-overload]
             )
         return kwargs
 

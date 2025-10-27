@@ -5,6 +5,7 @@ from typing import List
 import cftime
 import numpy as np
 import pytest
+import xarray as xr
 
 from ndsl import (
     CubedSphereCommunicator,
@@ -14,10 +15,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
-from ndsl.optional_imports import xarray as xr
 
-
-requires_xarray = pytest.mark.skipif(xr is None, reason="xarray is not installed")
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +35,6 @@ logger = logging.getLogger(__name__)
         pytest.param((5, 4, 4), 0, 1, ("z", "y", "x_interface"), id="cell_edge"),
     ],
 )
-@requires_xarray
 def test_monitor_store_multi_rank_state(
     layout, nt, time_chunk_size, tmpdir, shape, ny_rank_add, nx_rank_add, dims, numpy
 ):

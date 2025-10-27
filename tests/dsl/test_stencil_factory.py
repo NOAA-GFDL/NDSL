@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
 from ndsl import (
     CompilationConfig,
@@ -11,9 +10,13 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, horizontal, interval, region
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import CompareToNumpyStencil, get_stencils_with_varied_bounds
-from ndsl.dsl.typing import FloatField
+from ndsl.dsl.typing import Field, FloatField
+
+
+BACKENDS = ["numpy", "dace:cpu"]
 
 
 def copy_stencil(q_in: FloatField, q_out: FloatField):
@@ -36,7 +39,7 @@ def add_1_in_region_stencil(q_in: FloatField, q_out: FloatField):
             q_out = q_in + 1.0
 
 
-def setup_data_vars(backend: str):
+def setup_data_vars(backend: str) -> tuple[Field, Field]:
     shape = (7, 7, 3)
     q = make_storage_from_shape(shape, backend=backend)
     q[:] = 1.0
@@ -68,7 +71,8 @@ def get_stencil_factory(backend: str) -> StencilFactory:
     return StencilFactory(config=config, grid_indexing=indexing)
 
 
-def test_get_stencils_with_varied_bounds(backend: str):
+@pytest.mark.parametrize("backend", BACKENDS)
+def test_get_stencils_with_varied_bounds(backend: str) -> None:
     origins = [(2, 2, 0), (1, 1, 0)]
     domains = [(1, 1, 3), (2, 2, 3)]
     factory = get_stencil_factory(backend)
@@ -87,7 +91,8 @@ def test_get_stencils_with_varied_bounds(backend: str):
     np.testing.assert_array_equal(q.data, q_ref.data)
 
 
-def test_get_stencils_with_varied_bounds_and_regions(backend: str):
+@pytest.mark.parametrize("backend", BACKENDS)
+def test_get_stencils_with_varied_bounds_and_regions(backend: str) -> None:
     factory = get_stencil_factory(backend)
     origins = [(3, 3, 0), (2, 2, 0)]
     domains = [(1, 1, 3), (2, 2, 3)]
@@ -107,9 +112,29 @@ def test_get_stencils_with_varied_bounds_and_regions(backend: str):
     np.testing.assert_array_equal(q_orig.data, q_ref.data)
 
 
+@pytest.mark.parametrize("backend", BACKENDS)
+def test_stencil_vertical_bounds(backend: str) -> None:
+    factory = get_stencil_factory(backend)
+    origins = [(3, 3, 0), (2, 2, 1)]
+    domains = [(1, 1, 3), (2, 2, 4)]
+    stencils = get_stencils_with_varied_bounds(
+        add_1_in_region_stencil,
+        origins,
+        domains,
+        stencil_factory=factory,
+    )
+
+    assert "k_start" in stencils[0].externals and stencils[0].externals["k_start"] == 0
+    assert "k_end" in stencils[0].externals and stencils[0].externals["k_end"] == 2
+    assert "k_start" in stencils[1].externals and stencils[1].externals["k_start"] == 1
+    assert "k_end" in stencils[1].externals and stencils[1].externals["k_end"] == 4
+
+
+@pytest.mark.parametrize("backend", BACKENDS)
 @pytest.mark.parametrize("enabled", [True, False])
-def test_stencil_factory_numpy_comparison_from_dims_halo(enabled: bool):
-    backend = "numpy"
+def test_stencil_factory_numpy_comparison_from_dims_halo(
+    backend: str, enabled: bool
+) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -142,9 +167,11 @@ def test_stencil_factory_numpy_comparison_from_dims_halo(enabled: bool):
         assert isinstance(stencil, FrozenStencil)
 
 
+@pytest.mark.parametrize("backend", BACKENDS)
 @pytest.mark.parametrize("enabled", [True, False])
-def test_stencil_factory_numpy_comparison_from_origin_domain(enabled: bool):
-    backend = "numpy"
+def test_stencil_factory_numpy_comparison_from_origin_domain(
+    backend: str, enabled: bool
+) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -175,8 +202,8 @@ def test_stencil_factory_numpy_comparison_from_origin_domain(enabled: bool):
         assert isinstance(stencil, FrozenStencil)
 
 
-def test_stencil_factory_numpy_comparison_runs_without_exceptions():
-    backend = "numpy"
+@pytest.mark.parametrize("backend", BACKENDS)
+def test_stencil_factory_numpy_comparison_runs_without_exceptions(backend: str) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(

@@ -6,7 +6,7 @@ First, make sure you have followed the instruction in the top level [README](../
 
 The unit and regression tests of pace require data generated from the Fortran reference implementation which has to be downloaded from a Google Cloud Platform storage bucket. Since the bucket is setup as "requester pays", you need a valid GCP account to download the test data.
 
-First, make sure you have configured the authentication with user credientials and configured Docker with the following commands:
+First, make sure you have configured the authentication with user credentials and configured Docker with the following commands:
 
 ```shell
 gcloud auth login
@@ -22,11 +22,11 @@ cd $(git rev-parse --show-toplevel)/physics
 make get_test_data
 ```
 
-If you do not have a GCP account, there is an option to download basic test data from a public FTP server and you can skip the GCP authentication step above. To download test data from the FTP server, use `make USE_FTP=yes get_test_data` instead and this will avoid fetching from a GCP storage bucket. You will need a valid in stallation of the `lftp` command.
+If you do not have a GCP account, there is an option to download basic test data from a public FTP server and you can skip the GCP authentication step above. To download test data from the FTP server, use `make USE_FTP=yes get_test_data` instead and this will avoid fetching from a GCP storage bucket. You will need a valid installation of the `lftp` command.
 
 ## Running the tests (manually)
 
-There are two ways to run the tests, manually by explicitly invoking `pytest` or autmatically using make targets. The former can be used both inside the Docker container as well as for a bare-metal installation and will be described here.
+There are two ways to run the tests, manually by explicitly invoking `pytest` or automatically using make targets. The former can be used both inside the Docker container as well as for a bare-metal installation and will be described here.
 
 First enter the container and navigate to the pace directory:
 
@@ -40,7 +40,7 @@ Note that by entering the container with the `make dev` command, volumes for cod
 
 There are two sets of tests. The "sequential tests" test components which do not require MPI-parallelism. The "parallel tests" can only within an MPI environment.
 
-To run the sequential and parallel tests for the dynmical core (fv3core), you can execute the following commands (these take a bit of time):
+To run the sequential and parallel tests for the dynamical core (fv3core), you can execute the following commands (these take a bit of time):
 
 ```shell
 pytest -v -s --data_path=/pace/fv3core/test_data/8.1.1/c12_6ranks_standard/dycore/ ./fv3core/tests
@@ -79,8 +79,8 @@ DEV=y make physics_savepoint_tests_mpi
 ## Test failure
 
 Test are running for each gridpoint of the domain, unless the Translate class for the test specifically restricts it.
-Upon failure, the test will drop a `netCDF` faile in a `./.translate-errors` directory and named `translate-TestCase(-Rank).nc` containing input, computed output, reference and errors.
+Upon failure, the test will drop a `netCDF` file in a `./.translate-errors` directory and named `translate-TestCase(-Rank).nc` containing input, computed output, reference and errors.
 
 ## Environment variables
 
-- `PACE_TEST_N_THRESHOLD_SAMPLES`: Upon failure the system will try to pertub the output in an attempt to check for numerical instability. This means re-running the test for N samples. Default is `10`, `0` or less turns this feature off.
+- `NDSL_TEST_N_THRESHOLD_SAMPLES`: Upon failure the system will try to perturb the output in an attempt to check for numerical instability. This means re-running the test for N samples. Default is `0`, which turns this feature off.

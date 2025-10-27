@@ -1,8 +1,10 @@
-from typing import Optional, Sequence, Tuple
+import warnings
+from collections.abc import Sequence
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
+from ndsl import StencilFactory
 from ndsl.constants import (
     X_DIM,
     X_INTERFACE_DIM,
@@ -10,7 +12,7 @@ from ndsl.constants import (
     Y_INTERFACE_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
+from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
 
@@ -22,6 +24,13 @@ class CopyCorners:
 
     def __init__(self, direction: str, stencil_factory: StencilFactory) -> None:
         """The grid for this stencil"""
+        warnings.warn(
+            "Usage of the GT4Py implementation of CopyCorners is discouraged and will"
+            "be removed in the next release. Use `CopyCornersX` or `CopyCornersY` in PyFV3"
+            "for a more future-proof implementation of the same code.",
+            DeprecationWarning,
+            2,
+        )
         grid_indexing = stencil_factory.grid_indexing
 
         n_halo = grid_indexing.n_halo
@@ -54,7 +63,7 @@ class CopyCorners:
     def __call__(self, field: FloatField):
         """
         Fills cell quantity field using corners from itself and multipliers
-        in the dirction specified initialization of the instance of this class.
+        in the direction specified initialization of the instance of this class.
         """
         self._copy_corners(field, field)
 
@@ -116,8 +125,8 @@ class CopyCornersXY:
 
 
 def kslice_from_inputs(
-    kstart: int, nk: Optional[int], grid_indexer: GridIndexing
-) -> Tuple[slice, int]:
+    kstart: int, nk: int | None, grid_indexer: GridIndexing
+) -> tuple[slice, int]:
     # This expects ints, but it casts in case something was implicitly converted
     # to a float before this call.
     if nk is None:

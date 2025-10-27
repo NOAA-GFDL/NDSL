@@ -1,0 +1,155 @@
+site_name: NDSL Documentation
+
+theme:
+  name: material
+  features:
+    - search.suggest
+    - search.highlight
+    - search.share
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - User documentation: user/index.md
+  - Porting:
+      - General Concepts: porting/index.md
+      - Testing Infrastructure: porting/translate/index.md
+  - Under the hood:
+      - Technical Documentation: dev/index.md
+      - DaCe: dev/dace.md
+      - GT4Py: dev/gt4py.md
+  - NDSL Docstrings:
+      - General Info: docstrings/index.md
+      - Top:
+          - "boilerplate": docstrings/top/boilerplate.md
+          - "buffer": docstrings/top/buffer.md
+          - "constants": docstrings/top/constants.md
+          - "exceptions": docstrings/top/exceptions.md
+          - "filesystem": docstrings/top/filesystem.md
+          - "io": docstrings/top/io.md
+          - "logging": docstrings/top/logging.md
+          - "namelist": docstrings/top/namelist.md
+          - "optional_imports": docstrings/top/optional_imports.md
+          - "types": docstrings/top/types.md
+          - "typing": docstrings/top/typing.md
+          - "units": docstrings/top/units.md
+          - "utils": docstrings/top/utils.md
+      - checkpointer:
+          - "base": docstrings/checkpointer/base.md
+          - "null": docstrings/checkpointer/null.md
+          - "snapshots": docstrings/checkpointer/snapshots.md
+          - "thresholds": docstrings/checkpointer/thresholds.md
+          - "validation": docstrings/checkpointer/validation.md
+      - comm:
+          - "_boundary_utils": docstrings/comm/_boundary_utils.md
+          - "boundary": docstrings/comm/boundary.md
+          - "caching_comm": docstrings/comm/caching_comm.md
+          - "comm_abc": docstrings/comm/comm_abc.md
+          - "communicator": docstrings/comm/communicator.md
+          - "decomposition": docstrings/comm/decomposition.md
+          - "local_comm": docstrings/comm/local_comm.md
+          - "mpi": docstrings/comm/mpi.md
+          - "null_comm": docstrings/comm/null_comm.md
+          - "partitioner": docstrings/comm/partitioner.md
+      - debug:
+          - "config": docstrings/debug/config.md
+          - "debugger": docstrings/debug/debugger.md
+          - "tooling": docstrings/debug/tooling.md
+      - dsl:
+          - "gt4py_utils": docstrings/dsl/gt4py_utils.md
+          - "stencil": docstrings/dsl/stencil.md
+          - "stencil_config": docstrings/dsl/stencil_config.md
+          - "typing": docstrings/dsl/typing.md
+      - grid:
+          - "eta": docstrings/grid/eta.md
+          - "generation": docstrings/grid/generation.md
+          - "geometry": docstrings/grid/geometry.md
+          - "global_setup": docstrings/grid/global_setup.md
+          - "gnomonic": docstrings/grid/gnomonic.md
+          - "helper": docstrings/grid/helper.md
+          - "mirror": docstrings/grid/mirror.md
+          - "stretch_transformation": docstrings/grid/stretch_transformation.md
+      - halo:
+          - "cuda_kernels": docstrings/halo/cuda_kernels.md
+          - "data_transformer": docstrings/halo/data_transformer.md
+          - "rotate": docstrings/halo/rotate.md
+          - "updater": docstrings/halo/updater.md
+      - initialization:
+          - "allocator": docstrings/initialization/allocator.md
+          - "grid_sizer": docstrings/initialization/grid_sizer.md
+          - "subtile_grid_sizer": docstrings/initialization/subtile_grid_sizer.md
+      - monitor:
+          - "convert": docstrings/monitor/convert.md
+          - "netcdf_monitor": docstrings/monitor/netcdf_monitor.md
+          - "protocol": docstrings/monitor/protocol.md
+          - "zarr_monitor": docstrings/monitor/zarr_monitor.md
+      - performance:
+          - "collector": docstrings/performance/collector.md
+          - "config": docstrings/performance/config.md
+          - "profiler": docstrings/performance/profiler.md
+          - "report": docstrings/performance/report.md
+          - "timer": docstrings/performance/timer.md
+          - "tools": docstrings/performance/tools.md
+      - quantity:
+          - "bounds": docstrings/quantity/bounds.md
+          - "field_bundle": docstrings/quantity/field_bundle.md
+          - "metadata": docstrings/quantity/metadata.md
+          - "quantity": docstrings/quantity/quantity.md
+          - "state": docstrings/quantity/state.md
+      - restart:
+          - "_legacy_restart": docstrings/restart/_legacy_restart.md
+          - "_properties": docstrings/restart/_properties.md
+      - stencils:
+          - "basic_operations": docstrings/stencils/basic_operations.md
+          - "c2l_ord": docstrings/stencils/c2l_ord.md
+          - "corners": docstrings/stencils/corners.md
+          - "tridiag": docstrings/stencils/tridiag.md
+      - testing:
+          - "comparison": docstrings/testing/comparison.md
+          - "dummy_comm": docstrings/testing/dummy_comm.md
+          - "perturbation": docstrings/testing/perturbation.md
+      - viz:
+          - "cube_sphere": docstrings/viz/cube_sphere.md
+
+markdown_extensions:
+  # simple glossary file
+  - abbr
+  # support for colored notes / warnings / tips / examples
+  - admonition
+  # support for "definition lists" (<dl>)
+  - def_list
+  # support for footnotes
+  - footnotes
+  # support for emojis
+  - pymdownx.emoji
+  # support for syntax highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      auto_append:
+        # hover tooltips for abbreviations (simple glossary)
+        - docs/includes/glossary.md
+  - pymdownx.superfences:
+      custom_fences:
+      # support for mermaid graphs
+        - name: mermaid
+          class: mermaid
+          format: python/name:pymdownx.superfences.fence_code_format
+  # image inclusion
+
+plugins:
+  # add search box to the header, configuration in theme
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [./ndsl]  # Adjust this path to where your Python modules are
+          options:
+            show_source: false
+
+watch:
+  # reload when the glossary file is updated
+  - docs/includes

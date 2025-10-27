@@ -1,22 +1,17 @@
 import collections
 import contextlib
 import os.path
-from typing import MutableMapping, Tuple
+from collections.abc import MutableMapping
 
 import numpy as np
+import xarray as xr
 
-from ndsl.checkpointer.base import Checkpointer
-from ndsl.checkpointer.thresholds import (
-    ArrayLike,
-    SavepointName,
-    SavepointThresholds,
-    cast_to_ndarray,
-)
-from ndsl.optional_imports import xarray as xr
+from ndsl.checkpointer.base import ArrayLike, Checkpointer, SavepointName
+from ndsl.checkpointer.thresholds import SavepointThresholds, cast_to_ndarray
 
 
 def _clip_pace_array_to_target(
-    array: np.ndarray, target_shape: Tuple[int, ...]
+    array: np.ndarray, target_shape: tuple[int, ...]
 ) -> np.ndarray:
     """
     Clip an array from pace to align it to a target shape from target serialized data.
@@ -36,7 +31,9 @@ def _clip_pace_array_to_target(
     return _remove_symmetric_halos(array, target_shape)
 
 
-def _remove_buffer_if_needed(array: np.ndarray, target_shape: Tuple[int, ...]):
+def _remove_buffer_if_needed(
+    array: np.ndarray, target_shape: tuple[int, ...]
+) -> np.ndarray:
     selection = []
     # both arrays are assumed to have the same staggering and an even number of
     # halo points for each dimension, so any odd difference in points must be
@@ -51,7 +48,9 @@ def _remove_buffer_if_needed(array: np.ndarray, target_shape: Tuple[int, ...]):
     return array[tuple(selection)]
 
 
-def _remove_symmetric_halos(array: np.ndarray, target_shape: Tuple[int, ...]):
+def _remove_symmetric_halos(
+    array: np.ndarray, target_shape: tuple[int, ...]
+) -> np.ndarray:
     selection = []
     for array_len, target_len in zip(array.shape, target_shape):
         n_halo_clip = (array_len - target_len) // 2
@@ -86,7 +85,7 @@ class ValidationCheckpointer(Checkpointer):
         self._n_calls: MutableMapping[SavepointName, int] = collections.defaultdict(int)
 
     @contextlib.contextmanager
-    def trial(self):
+    def trial(self):  # type: ignore[no-untyped-def]
         """
         Context manager for a trial.
 
@@ -109,8 +108,6 @@ class ValidationCheckpointer(Checkpointer):
         Raises:
             AssertionError: if the thresholds on any variable are not met
         """
-        if xr is None:
-            raise ModuleNotFoundError("xarray is not installed")
         nc_file = os.path.join(self._savepoint_data_path, savepoint_name + ".nc")
         ds = xr.open_dataset(nc_file)
 

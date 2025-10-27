@@ -1,0 +1,16 @@
+name: "SHiELD Translate tests"
+
+# Run these these whenever ...
+on:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+  push:
+    branches:
+      - main # ... when merging into the main branch
+
+jobs:
+  shield_translate_tests:
+    uses: NOAA-GFDL/pySHiELD/.github/workflows/translate.yaml@develop
+    with:
+      component_trigger: true
+      component_name: NDSL

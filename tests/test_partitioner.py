@@ -27,7 +27,7 @@ for ranks_per_tile in (1, 4):
     total_ranks = 6 * ranks_per_tile
     rank = 0
     for tile in range(6):
-        for subtile in range(ranks_per_tile):
+        for _subtile in range(ranks_per_tile):
             rank_list.append(rank)
             total_rank_list.append(total_ranks)
             tile_index_list.append(tile)
@@ -63,7 +63,7 @@ subtile_index_list = []
 
 for layout in ((1, 1), (1, 2), (2, 2), (2, 3)):
     rank = 0
-    for tile in range(6):
+    for _tile in range(6):
         for y_subtile in range(layout[0]):
             for x_subtile in range(layout[1]):
                 rank_list.append(rank)

@@ -1,8 +1,9 @@
 import numpy as np
-from gt4py.cartesian.gtscript import PARALLEL, computation, interval
+import pytest
 
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
@@ -35,12 +36,16 @@ def test_boilerplate_import_numpy():
 
     Dev Note: the import inside the function are part of the test.
     """
-    from ndsl.boilerplate import get_factories_single_tile_numpy
+    from ndsl.boilerplate import get_factories_single_tile
 
     # Boilerplate
-    stencil_factory, quantity_factory = get_factories_single_tile_numpy(
+    stencil_factory, quantity_factory = get_factories_single_tile(
         nx=5, ny=5, nz=2, nhalo=1
     )
+
+    # Ensure backend is propagated to StencilFactory and QuantityFactory
+    assert stencil_factory.backend == "numpy"
+    assert quantity_factory._backend() == "numpy"
 
     _copy_ops(stencil_factory, quantity_factory)
 
@@ -50,11 +55,24 @@ def test_boilerplate_import_orchestrated_cpu():
 
     Dev Note: the import inside the function are part of the test.
     """
-    from ndsl.boilerplate import get_factories_single_tile_orchestrated_cpu
+    from ndsl.boilerplate import get_factories_single_tile_orchestrated
 
     # Boilerplate
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated_cpu(
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         nx=5, ny=5, nz=2, nhalo=1
     )
 
+    # Ensure backend is propagated to StencilFactory and QuantityFactory
+    assert stencil_factory.backend == "dace:cpu"
+    assert quantity_factory._backend() == "dace:cpu"
+
     _copy_ops(stencil_factory, quantity_factory)
+
+
+def test_boilerplate_non_dace_based_orchestration_raises():
+    from ndsl.boilerplate import get_factories_single_tile_orchestrated
+
+    with pytest.raises(ValueError, match="Only .* backends can be orchestrated."):
+        get_factories_single_tile_orchestrated(
+            nx=5, ny=5, nz=2, nhalo=1, backend="numpy"
+        )

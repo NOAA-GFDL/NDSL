@@ -1,16 +1,8 @@
 import numpy as np
 import pytest
 
-import ndsl.quantity as qty
 from ndsl import Quantity
-
-
-try:
-    import xarray as xr
-except ModuleNotFoundError:
-    xr = None
-
-requires_xarray = pytest.mark.skipif(xr is None, reason="xarray is not installed")
+from ndsl.quantity.bounds import _shift_slice
 
 
 @pytest.fixture(params=["empty", "one", "five"])
@@ -168,7 +160,7 @@ def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
         pytest.skip("cannot edit an empty domain")
     quantity.data[:] = 0.0
     quantity.view[:] = 1
-    assert quantity.np.sum(quantity.data) == extent_1d ** n_dims
+    assert quantity.np.sum(quantity.data) == extent_1d**n_dims
     if n_dims > 1:
         quantity.np.testing.assert_array_equal(quantity.data[:n_halo, :], 0.0)
         quantity.np.testing.assert_array_equal(
@@ -229,7 +221,7 @@ def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
     ],
 )
 def test_shift_slice(slice_in, shift, extent, slice_out):
-    result = qty.shift_slice(slice_in, shift, extent)
+    result = _shift_slice(slice_in, shift, extent)
     assert result == slice_out
 
 
@@ -260,13 +252,40 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
         ),
     ],
 )
-@requires_xarray
 def test_to_data_array(quantity):
-    assert quantity.data_array.attrs == quantity.attrs
-    assert quantity.data_array.dims == quantity.dims
-    assert quantity.data_array.shape == quantity.extent
-    np.testing.assert_array_equal(quantity.data_array.values, quantity.view[:])
+    assert quantity.field_as_xarray.attrs == quantity.attrs
+    assert quantity.field_as_xarray.dims == quantity.dims
+    assert quantity.field_as_xarray.shape == quantity.extent
+    np.testing.assert_array_equal(quantity.field_as_xarray.values, quantity.view[:])
     if quantity.extent == quantity.data.shape:
         assert (
-            quantity.data_array.data.ctypes.data == quantity.data.ctypes.data
+            quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data
         ), "data memory address is not equal"
+
+
+def test_data_setter():
+    quantity = Quantity(np.ones((5,)), dims=["dim1"], units="")
+
+    # After allocation - field and data are the same (origin is 0)
+    assert quantity.data.shape == quantity.field.shape
+
+    # Allows swap: new array is bigger than Q.shape
+    new_array = np.ones((10,))
+    new_array[:] = 2
+    quantity.data = new_array
+
+    # After swap - field and data points to the same memory
+    # BUT field still respects the original origin/extent
+    assert (quantity.data[:] == 2).all()
+    assert (quantity.field[:] == 2).all()
+    assert quantity.data.shape != quantity.field.shape
+    assert quantity.field.shape == (5,)
+
+    # Expected fail: new array is too small
+    new_array = np.ones((2,))
+    with pytest.raises(ValueError, match="Quantity.data buffer swap failed.*"):
+        quantity.data = new_array
+
+    # Expected fail: new array is not even an array
+    with pytest.raises(TypeError, match="Quantity.data buffer swap failed.*"):
+        quantity.data = "meh"

@@ -1,13 +1,15 @@
 import collections
 
 import numpy as np
+import xarray as xr
 
-from ndsl.checkpointer.base import Checkpointer
+from ndsl.checkpointer.base import ArrayLike, Checkpointer, SavepointName, VariableName
 from ndsl.optional_imports import cupy as cp
-from ndsl.optional_imports import xarray as xr
 
 
-def make_dims(savepoint_dim, label, data_list):
+def make_dims(
+    savepoint_dim: str, label: str, data_list: list[np.ndarray]
+) -> tuple[list[str], np.ndarray]:
     """
     Helper which defines dimension names for an xarray variable.
 
@@ -22,16 +24,25 @@ def make_dims(savepoint_dim, label, data_list):
 
 
 class _Snapshots:
-    def __init__(self):
-        self._savepoints = collections.defaultdict(list)
-        self._arrays = collections.defaultdict(list)
+    def __init__(self) -> None:
+        self._savepoints: dict[VariableName, list[SavepointName]] = (
+            collections.defaultdict(list)
+        )
+        self._arrays: dict[VariableName, list[np.ndarray]] = collections.defaultdict(
+            list
+        )
 
-    def store(self, savepoint_name: str, variable_name: str, python_data):
+    def store(
+        self,
+        savepoint_name: SavepointName,
+        variable_name: VariableName,
+        python_data: np.ndarray,
+    ) -> None:
         self._savepoints[variable_name].append(savepoint_name)
         self._arrays[variable_name].append(python_data)
 
     @property
-    def dataset(self) -> "xr.Dataset":
+    def dataset(self) -> xr.Dataset:
         data_vars = {}
         for variable_name, savepoint_list in self._savepoints.items():
             savepoint_dim = f"sp_{variable_name}"
@@ -39,12 +50,7 @@ class _Snapshots:
             data_vars[f"{variable_name}"] = make_dims(
                 savepoint_dim, variable_name, self._arrays[variable_name]
             )
-        if xr is None:
-            raise ModuleNotFoundError(
-                "xarray must be installed to use Snapshots.dataset"
-            )
-        else:
-            return xr.Dataset(data_vars=data_vars)
+        return xr.Dataset(data_vars=data_vars)
 
 
 class SnapshotCheckpointer(Checkpointer):
@@ -53,22 +59,18 @@ class SnapshotCheckpointer(Checkpointer):
     of variables between checkpointer calls.
     """
 
-    def __init__(self, rank: int):
-        if xr is None:
-            raise ModuleNotFoundError(
-                "xarray must be installed to use SnapshotCheckpointer"
-            )
+    def __init__(self, rank: int) -> None:
         self._rank = rank
         self._snapshots = _Snapshots()
 
-    def __call__(self, savepoint_name, **kwargs):
+    def __call__(self, savepoint_name: SavepointName, **kwargs: ArrayLike) -> None:
         for name, value in kwargs.items():
             array_data = np.copy(value.data)
             self._snapshots.store(savepoint_name, name, array_data)
 
     @property
-    def dataset(self) -> "xr.Dataset":
+    def dataset(self) -> xr.Dataset:
         return self._snapshots.dataset
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         self.dataset.to_netcdf(f"comparison_rank{self._rank}.nc")

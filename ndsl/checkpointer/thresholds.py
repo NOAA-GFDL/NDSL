@@ -1,23 +1,14 @@
+from __future__ import annotations
+
 import collections
 import contextlib
 import dataclasses
-from typing import Dict, List, Mapping, Union
+from collections.abc import Mapping
 
 import numpy as np
 
-from ndsl.checkpointer.base import Checkpointer
+from ndsl.checkpointer.base import ArrayLike, Checkpointer, SavepointName, VariableName
 from ndsl.quantity import Quantity
-
-
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
-
-
-SavepointName = str
-VariableName = str
-ArrayLike = Union[Quantity, np.ndarray]
 
 
 class InsufficientTrialsError(Exception):
@@ -29,7 +20,7 @@ class Threshold:
     relative: float
     absolute: float
 
-    def merge(self, other: "Threshold") -> "Threshold":
+    def merge(self, other: Threshold) -> Threshold:
         """
         Provide a threshold which is always satisfied
         if both input thresholds are satisfied.
@@ -44,7 +35,7 @@ class Threshold:
 
 @dataclasses.dataclass
 class SavepointThresholds:
-    savepoints: Dict[SavepointName, List[Dict[VariableName, Threshold]]]
+    savepoints: dict[SavepointName, list[dict[VariableName, Threshold]]]
 
 
 def cast_to_ndarray(array: ArrayLike) -> np.ndarray:
@@ -74,19 +65,19 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
         # we keep dictionaries (over savepoint name) of lists (over call count)
         # of dictionaries (over variable name) of numpy arrays
         self._minimums: Mapping[
-            SavepointName, List[Mapping[VariableName, np.ndarray]]
+            SavepointName, list[Mapping[VariableName, np.ndarray]]
         ] = collections.defaultdict(list)
         self._maximums: Mapping[
-            SavepointName, List[Mapping[VariableName, np.ndarray]]
+            SavepointName, list[Mapping[VariableName, np.ndarray]]
         ] = collections.defaultdict(list)
         self._factor = factor
         self._abs_sums: Mapping[
-            SavepointName, List[Mapping[VariableName, np.ndarray]]
+            SavepointName, list[Mapping[VariableName, np.ndarray]]
         ] = collections.defaultdict(list)
         self._n_trials = 0
         self._n_calls: Mapping[SavepointName, int] = collections.defaultdict(int)
 
-    def __call__(self, savepoint_name, **kwargs):
+    def __call__(self, savepoint_name: SavepointName, **kwargs: ArrayLike) -> None:
         """
         Record values for a savepoint.
 
@@ -104,19 +95,19 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
             )
             self._abs_sums[savepoint_name].append(collections.defaultdict(lambda: 0.0))
         for varname, array in kwargs.items():
-            array: np.ndarray = cast_to_ndarray(array)
-            self._minimums[savepoint_name][i_call][varname] = np.minimum(
+            array = cast_to_ndarray(array)
+            self._minimums[savepoint_name][i_call][varname] = np.minimum(  # type: ignore[index]
                 self._minimums[savepoint_name][i_call][varname], array
             )
-            self._maximums[savepoint_name][i_call][varname] = np.maximum(
+            self._maximums[savepoint_name][i_call][varname] = np.maximum(  # type: ignore[index]
                 self._maximums[savepoint_name][i_call][varname], array
             )
-            self._abs_sums[savepoint_name][i_call][varname] += np.abs(array)
+            self._abs_sums[savepoint_name][i_call][varname] += np.abs(array)  # type: ignore[index]
 
-        self._n_calls[savepoint_name] += 1
+        self._n_calls[savepoint_name] += 1  # type: ignore[index]
 
     @contextlib.contextmanager
-    def trial(self):
+    def trial(self):  # type: ignore[no-untyped-def]
         """
         Context manager for a trial.
 
@@ -132,14 +123,12 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
         self._n_trials += 1
 
     @property
-    def thresholds(
-        self,
-    ) -> SavepointThresholds:
+    def thresholds(self) -> SavepointThresholds:
         if self._n_trials < 2:
             raise InsufficientTrialsError(
                 "at least 2 trials required to generate thresholds"
             )
-        savepoints: Dict[SavepointName, List[Dict[VariableName, Threshold]]] = {}
+        savepoints: dict[SavepointName, list[dict[VariableName, Threshold]]] = {}
         for savepoint_name in self._minimums:
             savepoints[savepoint_name] = []
             for i_call in range(self._n_calls[savepoint_name]):

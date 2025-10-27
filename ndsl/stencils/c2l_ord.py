@@ -1,3 +1,5 @@
+from typing import Any
+
 from gt4py.cartesian.gtscript import (
     __INLINED,
     PARALLEL,
@@ -24,9 +26,9 @@ C2 = -0.125
 
 
 def mock_exchange(
-    quantity,
-    domain_2d,
-):
+    quantity: Any,
+    domain_2d: list[list],
+) -> None:
     isc = domain_2d[0][0]
     iec = domain_2d[0][1]
     isd = domain_2d[1][0]
@@ -68,7 +70,7 @@ def c2l_ord2(
     a22: FloatFieldIJ,
     ua: FloatField,
     va: FloatField,
-):
+) -> None:
     """
     Args:
         u (in):
@@ -110,7 +112,7 @@ def ord4_transform(
     a22: FloatFieldIJ,
     ua: FloatField,
     va: FloatField,
-):
+) -> None:
     """
     Args:
         u (in):
@@ -156,7 +158,7 @@ class CubedToLatLon:
 
     def __init__(
         self,
-        state,  # No type hint on purpose to remove dependency on pyFV3
+        state: Any,  # No type hint on purpose to avoid dependency on pyFV3
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         grid_data: GridData,
@@ -227,7 +229,7 @@ class CubedToLatLon:
             )
 
             # TODO:
-            # To break the depedency to pyFV3 we allow ourselves to not have a type
+            # To break the dependency to pyFV3 we allow ourselves to not have a type
             # hint around state and we check for u and v to make sure we don't
             # have bad input.
             # This entire code should be retired when WrappedHaloUpdater is no longer
@@ -252,7 +254,7 @@ class CubedToLatLon:
         v: FloatField,
         ua: FloatField,
         va: FloatField,
-    ):
+    ) -> None:
         """
         Interpolate D-grid to A-grid winds at latitude-longitude coordinates.
         Args:

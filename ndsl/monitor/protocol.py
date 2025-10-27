@@ -1,4 +1,4 @@
-from typing import Dict, Protocol
+from typing import Protocol
 
 from ndsl.quantity import Quantity
 
@@ -12,8 +12,6 @@ class Monitor(Protocol):
         """Append the model state dictionary to the stored data."""
         ...
 
-    def store_constant(self, state: Dict[str, Quantity]) -> None:
-        ...
+    def store_constant(self, state: dict[str, Quantity]) -> None: ...
 
-    def cleanup(self):
-        ...
+    def cleanup(self) -> None: ...

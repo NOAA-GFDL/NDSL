@@ -1,9 +1,8 @@
 from typing import TextIO
 
 import cftime
+import xarray as xr
 
-import ndsl.filesystem as filesystem
-from ndsl.optional_imports import xarray as xr
 from ndsl.quantity import Quantity
 
 
@@ -20,9 +19,9 @@ FMS_TO_CFTIME_TYPE = {
 }
 
 
-def to_xarray_dataset(state) -> xr.Dataset:
+def to_xarray_dataset(state: dict) -> xr.Dataset:
     data_vars = {
-        name: value.data_array for name, value in state.items() if name != "time"
+        name: value.data_as_xarray for name, value in state.items() if name != "time"
     }
     if "time" in state:
         data_vars["time"] = state["time"]
@@ -39,15 +38,15 @@ def write_state(state: dict, filename: str) -> None:
     if "time" not in state:
         raise ValueError('state must include a value for "time"')
     ds = to_xarray_dataset(state)
-    with filesystem.open(filename, "wb") as f:
+    with open(filename, "wb") as f:
         ds.to_netcdf(f)
 
 
 def _extract_time(value: xr.DataArray) -> cftime.datetime:
-    """Exctract time value from read-in state."""
+    """Extract time value from read-in state."""
     if value.ndim > 0:
         raise ValueError(
-            "State must be representative of a single scalar time. " f"Got {value}."
+            f"State must be representative of a single scalar time. Got {value}."
         )
     time = value.item()
     if not isinstance(time, cftime.datetime):
@@ -68,8 +67,9 @@ def read_state(filename: str) -> dict:
         state: a model state dictionary
     """
     out_dict = {}
-    with filesystem.open(filename, "rb") as f:
-        ds = xr.open_dataset(f, use_cftime=True)
+    with open(filename, "rb") as f:
+        time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+        ds = xr.open_dataset(f, decode_times=time_coder)
         for name, value in ds.data_vars.items():
             if name == "time":
                 out_dict[name] = _extract_time(value)
@@ -78,7 +78,7 @@ def read_state(filename: str) -> dict:
     return out_dict
 
 
-def _get_integer_tokens(line, n_tokens):
+def _get_integer_tokens(line: str, n_tokens: int) -> list[int]:
     all_tokens = line.split()
     return [int(token) for token in all_tokens[:n_tokens]]
 

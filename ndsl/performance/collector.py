@@ -2,7 +2,7 @@ import copy
 import os.path
 import subprocess
 from collections.abc import Mapping
-from typing import List, Protocol
+from typing import Protocol
 
 import numpy as np
 
@@ -25,52 +25,49 @@ class AbstractPerformanceCollector(Protocol):
     total_timer: Timer
     timestep_timer: Timer
 
-    def collect_performance(self):
-        ...
+    def collect_performance(self) -> None: ...
 
     def write_out_performance(
         self,
         backend: str,
         is_orchestrated: bool,
         dt_atmos: float,
-    ):
-        ...
+    ) -> None: ...
 
     def write_out_rank_0(
         self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
-    ):
-        ...
+    ) -> None: ...
 
     @classmethod
-    def start_cuda_profiler(cls):
+    def start_cuda_profiler(cls) -> None:
         if GPU_AVAILABLE:
             cp.cuda.profiler.start()
 
     @classmethod
-    def stop_cuda_profiler(cls):
+    def stop_cuda_profiler(cls) -> None:
         if GPU_AVAILABLE:
             cp.cuda.profiler.stop()
 
     @classmethod
-    def mark_cuda_profiler(cls, message: str):
+    def mark_cuda_profiler(cls, message: str) -> None:
         if GPU_AVAILABLE:
             cp.cuda.nvtx.Mark(message)
 
 
 class PerformanceCollector(AbstractPerformanceCollector):
-    def __init__(self, experiment_name: str, comm: Comm):
-        self.times_per_step: List[Mapping[str, float]] = []
-        self.hits_per_step: List[Mapping[str, int]] = []
+    def __init__(self, experiment_name: str, comm: Comm) -> None:
+        self.times_per_step: list[Mapping[str, float]] = []
+        self.hits_per_step: list[Mapping[str, int]] = []
         self.timestep_timer = Timer()
         self.total_timer = Timer()
         self.experiment_name = experiment_name
         self.comm = comm
 
-    def clear(self):
+    def clear(self) -> None:
         self.times_per_step = []
         self.hits_per_step = []
 
-    def collect_performance(self):
+    def collect_performance(self) -> None:
         """
         Take the accumulated timings and flush them into a new entry
         in times_per_step and hits_per_step.
@@ -81,13 +78,13 @@ class PerformanceCollector(AbstractPerformanceCollector):
 
     def write_out_rank_0(
         self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
-    ):
+    ) -> None:
         if self.comm.Get_rank() == 0:
             git_hash = "None"
             while {} in self.hits_per_step:
                 self.hits_per_step.remove({})
             keys = collect_keys_from_data(self.times_per_step)
-            data: List[float] = []
+            data: list[float] = []
             timing_info = {}
             for timer_name in keys:
                 data.clear()
@@ -120,7 +117,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
         backend: str,
         is_orchestrated: bool,
         dt_atmos: float,
-    ):
+    ) -> None:
         if self.comm.Get_rank() == 0:
             try:
                 driver_path = os.path.dirname(__file__)
@@ -146,7 +143,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
             len(self.hits_per_step) - 1,
             backend,
             is_orchestrated,
-            git_hash,
+            git_hash,  # type: ignore[arg-type]
             self.comm,
             self.hits_per_step,
             self.times_per_step,
@@ -156,11 +153,11 @@ class PerformanceCollector(AbstractPerformanceCollector):
 
 
 class NullPerformanceCollector(AbstractPerformanceCollector):
-    def __init__(self):
+    def __init__(self) -> None:
         self.total_timer = NullTimer()
         self.timestep_timer = NullTimer()
 
-    def collect_performance(self):
+    def collect_performance(self) -> None:
         pass
 
     def write_out_performance(
@@ -168,10 +165,10 @@ class NullPerformanceCollector(AbstractPerformanceCollector):
         backend: str,
         is_orchestrated: bool,
         dt_atmos: float,
-    ):
+    ) -> None:
         pass
 
     def write_out_rank_0(
         self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
-    ):
+    ) -> None:
         pass

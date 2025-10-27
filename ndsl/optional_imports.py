@@ -1,11 +1,14 @@
+from typing import Any
+
+
 class RaiseWhenAccessed:
-    def __init__(self, err):
+    def __init__(self, err: ModuleNotFoundError) -> None:
         self._err = err
 
-    def __getattr__(self, _):
+    def __getattr__(self, _: Any) -> None:
         raise self._err
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: dict) -> None:
         raise self._err
 
 
@@ -13,11 +16,6 @@ try:
     import zarr
 except ModuleNotFoundError as err:
     zarr = RaiseWhenAccessed(err)
-
-try:
-    import xarray
-except ModuleNotFoundError as err:
-    xarray = None
 
 try:
     import cupy
@@ -30,14 +28,3 @@ if cupy is not None:
         cupy.cuda.runtime.deviceSynchronize()
     except cupy.cuda.runtime.CUDARuntimeError:
         cupy = None
-
-
-try:
-    import gt4py
-except ImportError:
-    gt4py = None
-
-try:
-    import dace
-except ImportError:
-    dace = None

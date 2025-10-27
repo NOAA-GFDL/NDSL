@@ -1,20 +1,14 @@
 import numpy as np
-import pytest
+import xarray as xr
 
 from ndsl.checkpointer import SnapshotCheckpointer
-from ndsl.optional_imports import xarray as xr
 
 
-requires_xarray = pytest.mark.skipif(xr is None, reason="xarray is not installed")
-
-
-@requires_xarray
 def test_snapshot_checkpointer_no_data():
     checkpointer = SnapshotCheckpointer(rank=0)
     xr.testing.assert_identical(checkpointer.dataset, xr.Dataset())
 
 
-@requires_xarray
 def test_snapshot_checkpointer_one_snapshot():
     checkpointer = SnapshotCheckpointer(rank=0)
     val1 = np.random.randn(2, 3, 4)
@@ -33,7 +27,6 @@ def test_snapshot_checkpointer_one_snapshot():
     )
 
 
-@requires_xarray
 def test_snapshot_checkpointer_multiple_snapshots():
     checkpointer = SnapshotCheckpointer(rank=0)
     val1 = np.random.randn(2, 2, 3, 4)
