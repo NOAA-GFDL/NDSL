@@ -11,8 +11,16 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
-from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
-from ndsl.dsl.typing import FloatField
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
+from ndsl.dsl.typing import (
+    FloatField,
+    FloatFieldIJ,
+    FloatFieldIJ32,
+    FloatFieldIJ64,
+    IntFieldIJ,
+    IntFieldIJ32,
+    IntFieldIJ64,
+)
 from ndsl.quantity import Quantity
 from tests.dsl import utils
 
@@ -112,3 +120,36 @@ def test_domain_size_comparison(
         stencil._validate_quantity_sizes(quantity)
 
     assert warning_mock.call_count == call_count
+
+
+def two_dim_temporaries_stencil(q_out: FloatField) -> None:
+    with computation(FORWARD), interval(0, 1):
+        tmp_2d_fij: FloatFieldIJ = 1.0
+        tmp_2d_fij32: FloatFieldIJ32 = 2.0
+        tmp_3d_fij64: FloatFieldIJ64 = 3.0
+        tmp_3d_iij: IntFieldIJ = 4
+        tmp_3d_iij32: IntFieldIJ32 = 5
+        tmp_3d_iij64: IntFieldIJ64 = 6
+
+    with computation(PARALLEL), interval(...):
+        q_out = (
+            tmp_2d_fij
+            + tmp_2d_fij32
+            + tmp_3d_fij64
+            + tmp_3d_iij
+            + tmp_3d_iij32
+            + tmp_3d_iij64
+        )
+
+
+def test_stencil_2D_temporaries() -> None:
+    domain = (2, 2, 5)
+    quantity = Quantity(np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain)
+    stencil = FrozenStencil(
+        two_dim_temporaries_stencil,
+        origin=(0, 0, 0),
+        domain=domain,
+        stencil_config=MagicMock(spec=StencilConfig()),
+    )
+    stencil(quantity)
+    assert (quantity.data[1, 1, :] == 21.0).all()

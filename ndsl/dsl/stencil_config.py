@@ -40,7 +40,7 @@ class CompilationConfig:
         use_minimal_caching: bool = False,
         communicator: Communicator | None = None,
     ) -> None:
-        if (not ("gpu" in backend or "cuda" in backend)) and device_sync is True:
+        if "gpu" not in backend and device_sync is True:
             raise RuntimeError("Device sync is true on a CPU based backend")
         # GT4Py backend args
         self.backend = backend
