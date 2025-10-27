@@ -10,7 +10,6 @@ from gt4py import storage as gt_storage
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
-from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
@@ -59,8 +58,11 @@ class QuantityFactory:
             sizer: GridSizer object that determines the array sizes.
             backend: GT4Py backend name used for performance-optimized allocation.
         """
-        ndsl_log.warning(
-            "QuantityFactory.from_backend(sizer, backend) is deprecated. Use QuantityFactory(sizer, backend=backend) instead."
+        warnings.warn(
+            "QuantityFactory.from_backend(sizer, backend) is deprecated. Use "
+            "QuantityFactory(sizer, backend=backend) instead.",
+            DeprecationWarning,
+            stacklevel=2,
         )
         return cls(sizer, backend=backend)
 
@@ -118,7 +120,7 @@ class QuantityFactory:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """Allocate a Quantity and fill it with uninitialized (undefined) values.
-        
+
         Equivalent to `numpy.empty`"""
         return self._allocate(
             self._allocator.empty, dims, units, dtype, allow_mismatch_float_precision
@@ -167,7 +169,7 @@ class QuantityFactory:
 
         Equivalent to `numpy.full`"""
         quantity = self._allocate(
-            self._numpy.empty,
+            self._allocator.empty,
             dims,
             units,
             dtype,

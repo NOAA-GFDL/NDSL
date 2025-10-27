@@ -233,7 +233,7 @@ def test_allocator_empty(sizer, dim_case, units, dtype):
 
 
 def test_allocator_data_dimensions_operations(sizer):
-    quantity_factory = QuantityFactory(sizer, "numpy")
+    quantity_factory = QuantityFactory(sizer, backend="numpy")
     quantity_factory.add_data_dimensions({"D0": 11})
     assert "D0" in quantity_factory.sizer.data_dimensions.keys()
     assert quantity_factory.sizer.data_dimensions["D0"] == 11
