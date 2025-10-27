@@ -17,18 +17,7 @@ if gt4py_config_module in sys.modules:
 
 
 def _get_literal_precision(default: Literal["32", "64"] = "64") -> Literal["32", "64"]:
-    if os.getenv("PACE_FLOAT_PRECISION", ""):
-        ndsl_log.warning(
-            "PACE_FLOAT_PRECISION is deprecated. Use NDSL_LITERAL_PRECISION instead."
-        )
-        if os.getenv("NDSL_LITERAL_PRECISION", ""):
-            ndsl_log.warning(
-                "PACE_FLOAT_PRECISION and NDSL_LOGLEVEL were both specified. NDSL_LITERAL_PRECISION will take precedence."
-            )
-
-    precision = os.getenv(
-        "NDSL_LITERAL_PRECISION", os.getenv("PACE_FLOAT_PRECISION", default)
-    )
+    precision = os.getenv("NDSL_LITERAL_PRECISION", default)
 
     expected: list[Literal["32", "64"]] = ["32", "64"]
     if precision in expected:

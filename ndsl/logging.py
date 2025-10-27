@@ -20,14 +20,7 @@ AVAILABLE_LOG_LEVELS = {
 
 
 def _get_log_level(default: str = "info") -> str:
-    if os.getenv("PACE_LOGLEVEL", ""):
-        logging.warning("PACE_LOGLEVEL is deprecated. Use NDSL_LOGLEVEL instead.")
-        if os.getenv("NDSL_LOGLEVEL", ""):
-            logging.warning(
-                "PACE_LOGLEVEL and NDSL_LOGLEVEL were both specified. NDSL_LOGLEVEL will take precedence."
-            )
-
-    loglevel = os.getenv("NDSL_LOGLEVEL", os.getenv("PACE_LOGLEVEL", default)).lower()
+    loglevel = os.getenv("NDSL_LOGLEVEL", default).lower()
 
     if loglevel in AVAILABLE_LOG_LEVELS.keys():
         return loglevel

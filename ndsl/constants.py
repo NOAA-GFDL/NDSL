@@ -20,14 +20,7 @@ class ConstantVersions(Enum):
 def _get_constant_version(
     default: Literal["GFDL", "UFS", "GEOS"] = "UFS",
 ) -> Literal["GFDL", "UFS", "GEOS"]:
-    if os.getenv("PACE_CONSTANTS", ""):
-        ndsl_log.warning("PACE_CONSTANTS is deprecated. Use NDSL_CONSTANTS instead.")
-        if os.getenv("NDSL_CONSTANTS", ""):
-            ndsl_log.warning(
-                "PACE_CONSTANTS and NDSL_CONSTANTS were both specified. NDSL_CONSTANTS will take precedence."
-            )
-
-    constants_as_str = os.getenv("NDSL_CONSTANTS", os.getenv("PACE_CONSTANTS", default))
+    constants_as_str = os.getenv("NDSL_CONSTANTS", default)
     expected: list[Literal["GFDL", "UFS", "GEOS"]] = ["GFDL", "UFS", "GEOS"]
 
     if constants_as_str not in expected:
