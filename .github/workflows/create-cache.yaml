@@ -14,7 +14,7 @@ on:
 
 # Cancel running jobs if there's a newer push
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -42,3 +42,11 @@ jobs:
         run: |
           pip install pre-commit
           pre-commit install --install-hooks
+
+  # GitHub Actions cache of pyFV3 test data
+  pyFV3_test_data:
+    uses: NOAA-GFDL/pyFV3/.github/workflows/create_cache.yml@develop
+
+  # GitHub Actions cache of pySHiELD test data
+  pySHiELD_test_data:
+    uses: NOAA-GFDL/pySHiELD/.github/workflows/create_cache.yml@develop

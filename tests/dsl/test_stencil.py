@@ -13,6 +13,7 @@ from ndsl import (
 )
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
 from ndsl.dsl.typing import (
+    BoolFieldIJ,
     FloatField,
     FloatFieldIJ,
     FloatFieldIJ32,
@@ -130,16 +131,18 @@ def two_dim_temporaries_stencil(q_out: FloatField) -> None:
         tmp_3d_iij: IntFieldIJ = 4
         tmp_3d_iij32: IntFieldIJ32 = 5
         tmp_3d_iij64: IntFieldIJ64 = 6
+        mask: BoolFieldIJ = q_out >= 0
 
     with computation(PARALLEL), interval(...):
-        q_out = (
-            tmp_2d_fij
-            + tmp_2d_fij32
-            + tmp_3d_fij64
-            + tmp_3d_iij
-            + tmp_3d_iij32
-            + tmp_3d_iij64
-        )
+        if mask:
+            q_out = (
+                tmp_2d_fij
+                + tmp_2d_fij32
+                + tmp_3d_fij64
+                + tmp_3d_iij
+                + tmp_3d_iij32
+                + tmp_3d_iij64
+            )
 
 
 def test_stencil_2D_temporaries() -> None:
