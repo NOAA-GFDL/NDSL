@@ -7,6 +7,7 @@ import cftime
 import xarray as xr
 
 import ndsl.constants as constants
+from ndsl.comm import Comm
 from ndsl.comm.partitioner import Partitioner, subtile_slice
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
@@ -47,7 +48,7 @@ class ZarrMonitor:
         store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
         mode: str = "w",
-        mpi_comm: DummyComm | None = None,
+        mpi_comm: Comm | DummyComm | None = None,
     ) -> None:
         """Create a ZarrMonitor.
 
