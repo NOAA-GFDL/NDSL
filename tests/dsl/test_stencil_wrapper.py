@@ -16,6 +16,7 @@ from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
 from ndsl.dsl.typing import (
+    BoolFieldIJ,
     Float,
     FloatField,
     FloatFieldIJ,
@@ -285,6 +286,7 @@ def test_frozen_stencil_kwargs_passed_to_init(
             "IntFieldIJ": IntFieldIJ,
             "IntFieldIJ32": IntFieldIJ32,
             "IntFieldIJ64": IntFieldIJ64,
+            "BoolFieldIJ": BoolFieldIJ,
         },
     )
 
