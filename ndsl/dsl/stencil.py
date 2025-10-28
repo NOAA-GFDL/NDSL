@@ -25,6 +25,7 @@ from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import (
+    BoolFieldIJ,
     Float,
     FloatFieldIJ,
     FloatFieldIJ32,
@@ -329,6 +330,7 @@ class FrozenStencil(SDFGConvertible):
             "IntFieldIJ": IntFieldIJ,
             "IntFieldIJ32": IntFieldIJ32,
             "IntFieldIJ64": IntFieldIJ64,
+            "BoolFieldIJ": BoolFieldIJ,
         }
 
         # Keep compilation at __init__ if we are not orchestrated.
