@@ -6,6 +6,7 @@ import hashlib
 from collections.abc import Callable, Hashable, Iterable, Sequence
 from typing import Any, Self
 
+from gt4py.cartesian.backend import from_name as check_backend_existence
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
 from ndsl.comm.communicator import Communicator
@@ -13,7 +14,6 @@ from ndsl.comm.decomposition import determine_rank_is_compiling, set_distributed
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.gt4py_utils import is_gpu_backend
-from gt4py.cartesian.backend import from_name as check_backend_existence
 
 
 class RunMode(enum.Enum):
