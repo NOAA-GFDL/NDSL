@@ -1,8 +1,10 @@
-from typing import Optional, Sequence, Tuple
+import warnings
+from collections.abc import Sequence
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
+from ndsl import StencilFactory
 from ndsl.constants import (
     X_DIM,
     X_INTERFACE_DIM,
@@ -10,7 +12,7 @@ from ndsl.constants import (
     Y_INTERFACE_DIM,
     Z_INTERFACE_DIM,
 )
-from ndsl.dsl.stencil import GridIndexing, StencilFactory
+from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
 
@@ -22,6 +24,13 @@ class CopyCorners:
 
     def __init__(self, direction: str, stencil_factory: StencilFactory) -> None:
         """The grid for this stencil"""
+        warnings.warn(
+            "Usage of the GT4Py implementation of CopyCorners is discouraged and will"
+            "be removed in the next release. Use `CopyCornersX` or `CopyCornersY` in PyFV3"
+            "for a more future-proof implementation of the same code.",
+            DeprecationWarning,
+            2,
+        )
         grid_indexing = stencil_factory.grid_indexing
 
         n_halo = grid_indexing.n_halo
@@ -116,8 +125,8 @@ class CopyCornersXY:
 
 
 def kslice_from_inputs(
-    kstart: int, nk: Optional[int], grid_indexer: GridIndexing
-) -> Tuple[slice, int]:
+    kstart: int, nk: int | None, grid_indexer: GridIndexing
+) -> tuple[slice, int]:
     # This expects ints, but it casts in case something was implicitly converted
     # to a float before this call.
     if nk is None:
@@ -1001,9 +1010,6 @@ def fill_corners_dgrid_defn(
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
-        # this line of code is used to fix the missing symbol crash due to the node visitor depth limitation
-        acoef = mysign
-        x_out = x_out
         # sw corner
         with horizontal(region[i_start - 1, j_start - 1]):
             x_out = mysign * y_in[0, 1, 0]

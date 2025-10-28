@@ -25,13 +25,14 @@ class FieldBundle:
     """
 
     _quantity: Quantity
+    _per_name_view: dict[str, Quantity] = {}
     _indexer: _FieldBundleIndexer = {}
 
     def __init__(
         self,
         bundle_name: str,
         quantity: Quantity,
-        mapping: _FieldBundleIndexer = {},
+        mapping: _FieldBundleIndexer | None = None,
         register_type: bool = False,
     ):
         """
@@ -45,6 +46,9 @@ class FieldBundle:
             mapping: sparse dict of [name, index] to be able to call tracers by name.
             register_type: boolean to register the type as part of initialization.
         """
+        if mapping is None:
+            mapping = {}
+
         if len(quantity.shape) != 4:
             raise NotImplementedError("FieldBundle implementation restricted to 4D")
 
@@ -56,7 +60,7 @@ class FieldBundle:
             assert len(quantity.shape) == 4
             FieldBundleType.register(bundle_name, quantity.shape[3:])
 
-    def map(self, index: _DataDimensionIndex, name: str):
+    def map(self, index: _DataDimensionIndex, name: str) -> None:
         """Map a single `index` to ` name`"""
         self._indexer[name] = index
 
@@ -80,25 +84,31 @@ class FieldBundle:
             return None  # type: ignore
         # ToDo: extend the dims below to work with more than 4 dims
         assert len(self._quantity.data.shape) == 4
-        return Quantity(
-            data=self._quantity.data[:, :, :, self.index(name)],
-            dims=self._quantity.dims[:-1],
-            units=self._quantity.units,
-            origin=self._quantity.origin[:-1],
-            extent=self._quantity.extent[:-1],
-        )
+
+        if name not in self._per_name_view:
+            # Memoize the Quantities returned here to ensue that we only ever
+            # have one `field.a_name`-Quantity floating around. If not, DaCe
+            # orchestration gets (rightly so) confused.
+            self._per_name_view[name] = Quantity(
+                data=self._quantity.data[:, :, :, self.index(name)],
+                dims=self._quantity.dims[:-1],
+                units=self._quantity.units,
+                origin=self._quantity.origin[:-1],
+                extent=self._quantity.extent[:-1],
+            )
+        return self._per_name_view[name]
 
     def index(self, name: str) -> int:
         """Get index from name."""
         return self._indexer[name]
 
     @property
-    def __array_interface__(self):
+    def __array_interface__(self):  # type: ignore[no-untyped-def]
         """Memory interface for CPU."""
         return self._quantity.__array_interface__
 
     @property
-    def __cuda_array_interface__(self):
+    def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
         """Memory interface for GPU memory as defined by cupy."""
         return self._quantity.__cuda_array_interface__
 
@@ -118,8 +128,8 @@ class FieldBundle:
             extra_dims: dict of [name, size] of the data dimensions to add.
         """
         new_factory = copy.copy(quantity_factory)
-        new_factory.set_extra_dim_lengths(
-            **{
+        new_factory.add_data_dimensions(
+            {
                 **extra_dims,
             }
         )
@@ -141,17 +151,17 @@ class FieldBundleType:
     """Field Bundle Types to help with static sizing of Data Dimensions.
 
     Methods:
-        register: Register a type by sizing it's data dimensions
+        register: Register a type by sizing its data dimensions
         T: access any registered types for type hinting.
     """
 
     _field_type_registrar: dict[str, gtscript._FieldDescriptor] = {}
 
     @classmethod
-    def register(
+    def register(  # type: ignore
         cls, name: str, data_dims: tuple[int], dtype=Float
     ) -> gtscript._FieldDescriptor:
-        """Register a name type by name by giving the size of it's data dimensions.
+        """Register a name type by name by giving the size of its data dimensions.
 
         The same type cannot be registered twice and will error out.
 

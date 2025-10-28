@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 import ndsl.constants as constants
 from ndsl.buffer import Buffer
+from ndsl.comm import Comm
 from ndsl.comm.boundary import Boundary
 from ndsl.halo.data_transformer import HaloDataTransformer, HaloExchangeSpec
 from ndsl.halo.rotate import rotate_scalar_data
@@ -17,10 +21,10 @@ from ndsl.utils import device_synchronize
 if TYPE_CHECKING:
     from ndsl.comm.communicator import Communicator
 
-_HaloSendTuple = Tuple[AsyncRequest, Buffer]
-_HaloRecvTuple = Tuple[AsyncRequest, Buffer, np.ndarray]
-_HaloRequestSendList = List[_HaloSendTuple]
-_HaloRequestRecvList = List[_HaloRecvTuple]
+_HaloSendTuple = tuple[AsyncRequest, Buffer]
+_HaloRecvTuple = tuple[AsyncRequest, Buffer, np.ndarray]
+_HaloRequestSendList = list[_HaloSendTuple]
+_HaloRequestRecvList = list[_HaloRecvTuple]
 
 
 TIMER_HALO_EX_KEY = "halo_exchange_global"
@@ -43,9 +47,9 @@ class HaloUpdater:
 
     def __init__(
         self,
-        comm: "Communicator",
+        comm: Communicator,
         tag: int,
-        transformers: Dict[int, HaloDataTransformer],
+        transformers: dict[int, HaloDataTransformer],
         timer: Timer,
     ):
         """Build the updater.
@@ -61,20 +65,20 @@ class HaloUpdater:
         self._tag = tag
         self._transformers = transformers
         self._timer = timer
-        self._recv_requests: List[AsyncRequest] = []
-        self._send_requests: List[AsyncRequest] = []
-        self._inflight_x_quantities: Optional[Tuple[Quantity, ...]] = None
-        self._inflight_y_quantities: Optional[Tuple[Quantity, ...]] = None
+        self._recv_requests: list[AsyncRequest] = []
+        self._send_requests: list[AsyncRequest] = []
+        self._inflight_x_quantities: tuple[Quantity, ...] | None = None
+        self._inflight_y_quantities: tuple[Quantity, ...] | None = None
         self._finalize_on_wait = False
 
-    def force_finalize_on_wait(self):
+    def force_finalize_on_wait(self) -> None:
         """HaloDataTransformer are finalized after a wait call
 
         This is a temporary fix. See DSL-816 which will remove self._finalize_on_wait.
         """
         self._finalize_on_wait = True
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Clean up all buffers on garbage collection"""
         if (
             self._inflight_x_quantities is not None
@@ -90,13 +94,13 @@ class HaloUpdater:
     @classmethod
     def from_scalar_specifications(
         cls,
-        comm: "Communicator",
+        comm: Communicator,
         numpy_like_module: NumpyModule,
         specifications: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
-        optional_timer: Optional[Timer] = None,
-    ) -> "HaloUpdater":
+        optional_timer: Timer | None = None,
+    ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and
         queue the slices to exchange.
@@ -131,7 +135,7 @@ class HaloUpdater:
 
         # Create the data transformers to support pack/unpack
         # One transformer per target rank
-        transformers: Dict[int, HaloDataTransformer] = {}
+        transformers: dict[int, HaloDataTransformer] = {}
         for rank, exchange_specs in exchange_specs_dict.items():
             transformers[rank] = HaloDataTransformer.get(
                 numpy_like_module, exchange_specs
@@ -142,14 +146,14 @@ class HaloUpdater:
     @classmethod
     def from_vector_specifications(
         cls,
-        comm: "Communicator",
+        comm: Communicator,
         numpy_like_module: NumpyModule,
         specifications_x: Iterable[QuantityHaloSpec],
         specifications_y: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
-        optional_timer: Optional[Timer] = None,
-    ) -> "HaloUpdater":
+        optional_timer: Timer | None = None,
+    ) -> HaloUpdater:
         """
         Create/retrieve as many packed buffer as needed and queue
         the slices to exchange.
@@ -207,18 +211,18 @@ class HaloUpdater:
 
     def update(
         self,
-        quantities_x: List[Quantity],
-        quantities_y: Optional[List[Quantity]] = None,
-    ):
+        quantities_x: list[Quantity],
+        quantities_y: list[Quantity] | None = None,
+    ) -> None:
         """Exchange the data and blocks until finished."""
         self.start(quantities_x, quantities_y)
         self.wait()
 
     def start(
         self,
-        quantities_x: List[Quantity],
-        quantities_y: Optional[List[Quantity]] = None,
-    ):
+        quantities_x: list[Quantity],
+        quantities_y: list[Quantity] | None = None,
+    ) -> None:
         """Start data exchange."""
         self._comm._device_synchronize()
 
@@ -269,7 +273,7 @@ class HaloUpdater:
 
         self._timer.stop(TIMER_HALO_EX_KEY)
 
-    def wait(self):
+    def wait(self) -> None:
         """Finalize data exchange."""
         if __debug__ and self._inflight_x_quantities is None:
             raise RuntimeError('Halo update "wait" call before "start"')
@@ -288,7 +292,7 @@ class HaloUpdater:
         with self._timer.clock("unpack"):
             for buffer in self._transformers.values():
                 buffer.async_unpack(
-                    self._inflight_x_quantities, self._inflight_y_quantities
+                    self._inflight_x_quantities, self._inflight_y_quantities  # type: ignore[arg-type]
                 )
             if self._finalize_on_wait:
                 for transformer in self._transformers.values():
@@ -310,8 +314,8 @@ class HaloUpdateRequest:
         self,
         send_data: _HaloRequestSendList,
         recv_data: _HaloRequestRecvList,
-        timer: Optional[Timer] = None,
-    ):
+        timer: Timer | None = None,
+    ) -> None:
         """Build a halo request.
         Args:
             send_data: a tuple of the MPI request and the buffer sent
@@ -323,7 +327,7 @@ class HaloUpdateRequest:
         self._recv_data = recv_data
         self._timer: Timer = timer if timer is not None else NullTimer()
 
-    def wait(self):
+    def wait(self) -> None:
         """Wait & unpack data into destination buffers
         Clean up by inserting back all buffers back in cache
         for potential reuse
@@ -341,7 +345,7 @@ class HaloUpdateRequest:
                 Buffer.push_to_cache(transfer_buffer)
 
 
-def on_c_grid(x_quantity, y_quantity):
+def on_c_grid(x_quantity: Quantity, y_quantity: Quantity) -> bool:
     if (
         constants.X_DIM not in x_quantity.dims
         or constants.Y_INTERFACE_DIM not in x_quantity.dims
@@ -359,11 +363,11 @@ def on_c_grid(x_quantity, y_quantity):
 class VectorInterfaceHaloUpdater:
     def __init__(
         self,
-        comm,
+        comm: Comm,
         boundaries: Mapping[int, Boundary],
         force_cpu: bool = False,
-        timer: Optional[Timer] = None,
-    ):
+        timer: Timer | None = None,
+    ) -> None:
         """Initialize a CubedSphereCommunicator.
 
         Args:
@@ -416,12 +420,12 @@ class VectorInterfaceHaloUpdater:
         return HaloUpdateRequest(send_requests, recv_requests, self.timer)
 
     def _Isend_vector_shared_boundary(
-        self, x_quantity, y_quantity, tag=0
+        self, x_quantity: Quantity, y_quantity: Quantity, tag: int = 0
     ) -> _HaloRequestSendList:
         south_boundary = self.boundaries[constants.SOUTH]
         west_boundary = self.boundaries[constants.WEST]
         south_data = x_quantity.view.southwest.sel(
-            **{
+            **{  # type: ignore[arg-type]
                 constants.Y_INTERFACE_DIM: 0,
                 constants.X_DIM: slice(
                     0, x_quantity.extent[x_quantity.dims.index(constants.X_DIM)]
@@ -437,7 +441,7 @@ class VectorInterfaceHaloUpdater:
         if south_boundary.n_clockwise_rotations in (3, 2):
             south_data = -south_data
         west_data = y_quantity.view.southwest.sel(
-            **{
+            **{  # type: ignore[arg-type]
                 constants.X_INTERFACE_DIM: 0,
                 constants.Y_DIM: slice(
                     0, y_quantity.extent[y_quantity.dims.index(constants.Y_DIM)]
@@ -478,12 +482,12 @@ class VectorInterfaceHaloUpdater:
         return module
 
     def _Irecv_vector_shared_boundary(
-        self, x_quantity, y_quantity, tag=0
+        self, x_quantity: Quantity, y_quantity: Quantity, tag: int = 0
     ) -> _HaloRequestRecvList:
         north_rank = self.boundaries[constants.NORTH].to_rank
         east_rank = self.boundaries[constants.EAST].to_rank
         north_data = x_quantity.view.northwest.sel(
-            **{
+            **{  # type: ignore[arg-type]
                 constants.Y_INTERFACE_DIM: -1,
                 constants.X_DIM: slice(
                     0, x_quantity.extent[x_quantity.dims.index(constants.X_DIM)]
@@ -491,7 +495,7 @@ class VectorInterfaceHaloUpdater:
             }
         )
         east_data = y_quantity.view.southeast.sel(
-            **{
+            **{  # type: ignore[arg-type]
                 constants.X_INTERFACE_DIM: -1,
                 constants.Y_DIM: slice(
                     0, y_quantity.extent[y_quantity.dims.index(constants.Y_DIM)]
@@ -514,7 +518,7 @@ class VectorInterfaceHaloUpdater:
         ]
         return recv_requests
 
-    def _Isend(self, numpy_module, in_array, **kwargs) -> _HaloSendTuple:
+    def _Isend(self, numpy_module, in_array, **kwargs) -> _HaloSendTuple:  # type: ignore[no-untyped-def]
         # copy the resulting view in a contiguous array for transfer
         with self.timer.clock("pack"):
             buffer = Buffer.pop_from_cache(
@@ -526,7 +530,7 @@ class VectorInterfaceHaloUpdater:
             request = self.comm.Isend(buffer.array, **kwargs)
         return (request, buffer)
 
-    def _Irecv(self, numpy_module, out_array, **kwargs) -> _HaloRecvTuple:
+    def _Irecv(self, numpy_module, out_array, **kwargs) -> _HaloRecvTuple:  # type: ignore[no-untyped-def]
         # Prepare a contiguous buffer to receive data
         with self.timer.clock("Irecv"):
             buffer = Buffer.pop_from_cache(

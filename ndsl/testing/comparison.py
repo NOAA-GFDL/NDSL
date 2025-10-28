@@ -1,4 +1,5 @@
-from typing import Any, List, Optional, Union
+from abc import ABC, abstractmethod
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -20,7 +21,7 @@ def _fixed_width_float_2e(value: np.floating[Any]) -> str:
         return f"{value:.2e}"
 
 
-class BaseMetric:
+class BaseMetric(ABC):
     def __init__(
         self,
         reference_values: np.ndarray,
@@ -30,17 +31,17 @@ class BaseMetric:
         self.computed = np.atleast_1d(computed_values)
         self.check = False
 
-    def __str__(self) -> str:
-        ...
+    @abstractmethod
+    def __str__(self) -> str: ...
 
-    def __repr__(self) -> str:
-        ...
+    @abstractmethod
+    def __repr__(self) -> str: ...
 
-    def report(self, file_path: Optional[str] = None) -> List[str]:
-        ...
+    @abstractmethod
+    def report(self, file_path: str | None = None) -> list[str]: ...
 
-    def one_line_report(self) -> str:
-        ...
+    @abstractmethod
+    def one_line_report(self) -> str: ...
 
 
 class LegacyMetric(BaseMetric):
@@ -56,7 +57,7 @@ class LegacyMetric(BaseMetric):
         reference_values: np.ndarray,
         computed_values: np.ndarray,
         eps: float,
-        ignore_near_zero_errors: Union[dict, bool],
+        ignore_near_zero_errors: bool | dict,
         near_zero: float,
     ):
         super().__init__(reference_values, computed_values)
@@ -70,21 +71,23 @@ class LegacyMetric(BaseMetric):
 
     def _compute_errors(
         self,
-        ignore_near_zero_errors,
-        near_zero,
+        ignore_near_zero_errors: bool | dict,
+        near_zero: float,
     ) -> npt.NDArray[np.bool_]:
         if self.references.dtype in (np.float64, np.int64, np.float32, np.int32):
-            denom = self.references
-            denom[self.references == 0] = self.computed[self.references == 0]
+            # Rule number 1: Never touch the reference data!
+            denom = self.references.copy()
+            # Avoid division by 0. If reference is 0, we expect the computed value to be 0 too.
+            # (abs(computed - reference) / 1.0) is a good value for the error in this case.
+            denom[self.references == 0] = 1.0
             self._calculated_metric = np.asarray(
                 np.abs((self.computed - self.references) / denom)
             )
-            self._calculated_metric[denom == 0] = 0.0
         elif self.references.dtype in (np.bool_, bool):
             self._calculated_metric = np.logical_xor(self.computed, self.references)
         else:
             raise TypeError(
-                f"received data with unexpected dtype {self.references.dtype}"
+                f"Received data with unexpected dtype `{self.references.dtype}`."
             )
         success = np.logical_or(
             np.logical_and(np.isnan(self.computed), np.isnan(self.references)),
@@ -116,7 +119,7 @@ class LegacyMetric(BaseMetric):
         else:
             return "❌ Numerical failures"
 
-    def report(self, file_path: Optional[str] = None) -> List[str]:
+    def report(self, file_path: str | None = None) -> list[str]:
         report = []
         report.append(self.one_line_report())
         if not self.check:
@@ -189,17 +192,17 @@ class LegacyMetric(BaseMetric):
 
 
 class _Metric:
-    def __init__(self, value):
-        self._value: float = value
-        self.is_default = True
+    def __init__(self, value: float) -> None:
+        self._value = value
+        self.is_default: bool = True
 
     @property
     def value(self) -> float:
         return self._value
 
     @value.setter
-    def value(self, _value: float):
-        self._value = _value
+    def value(self, value: float) -> None:
+        self._value = value
         self.is_default = False
 
 
@@ -227,8 +230,7 @@ class MultiModalFloatMetric(BaseMetric):
         relative_fraction_override: float = -1,
         ulp_override: float = -1,
         sort_report: str = "ulp",
-        **kwargs,
-    ):
+    ) -> None:
         super().__init__(reference_values, computed_values)
         self.absolute_distance = np.empty_like(self.references)
         self.absolute_distance_metric = np.empty_like(self.references, dtype=np.bool_)
@@ -320,7 +322,7 @@ class MultiModalFloatMetric(BaseMetric):
             all_indices = len(self.references.flatten())
             return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
-    def report(self, file_path: Optional[str] = None) -> List[str]:
+    def report(self, file_path: str | None = None) -> list[str]:
         report = []
         report.append(self.one_line_report())
         failed_indices = np.logical_not(self.success).nonzero()

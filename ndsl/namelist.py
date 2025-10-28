@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Tuple
+import warnings
+from typing import Any, Self
 
 import f90nml
 
@@ -234,7 +235,7 @@ class NamelistDefaults:
     """flag for turning on shallow water conditions in dyn core"""
 
     @classmethod
-    def as_dict(cls):
+    def as_dict(cls) -> dict:
         return {
             name: default
             for name, default in cls.__dict__.items()
@@ -264,17 +265,17 @@ class Namelist:
     """
     dycore_only: bool = DEFAULT_BOOL
     # fdiag: float
-    # knob_ugwp_azdir: Tuple[int, int, int, int]
+    # knob_ugwp_azdir: tuple[int, int, int, int]
     # knob_ugwp_doaxyz: int
     # knob_ugwp_doheat: int
     # knob_ugwp_dokdis: int
-    # knob_ugwp_effac: Tuple[int, int, int, int]
+    # knob_ugwp_effac: tuple[int, int, int, int]
     # knob_ugwp_ndx4lh: int
     # knob_ugwp_solver: int
-    # knob_ugwp_source: Tuple[int, int, int, int]
-    # knob_ugwp_stoch: Tuple[int, int, int, int]
+    # knob_ugwp_source: tuple[int, int, int, int]
+    # knob_ugwp_stoch: tuple[int, int, int, int]
     # knob_ugwp_version: int
-    # knob_ugwp_wvspec: Tuple[int, int, int, int]
+    # knob_ugwp_wvspec: tuple[int, int, int, int]
     # launch_level: int
     # reiflag: int
     # reimax: float
@@ -344,7 +345,7 @@ class Namelist:
     kord_tm: int = DEFAULT_INT
     kord_tr: int = DEFAULT_INT
     kord_wz: int = DEFAULT_INT
-    layout: Tuple[int, int] = (1, 1)
+    layout: tuple[int, int] = (1, 1)
     # make_nh: bool
     # mountain: bool
     n_split: int = DEFAULT_INT
@@ -608,17 +609,26 @@ class Namelist:
     """Flag to replace cosz with daily mean value in physics"""
 
     @classmethod
-    def from_f90nml(cls, namelist: f90nml.Namelist):
+    def from_f90nml(cls, namelist: f90nml.Namelist) -> Self:
         namelist_dict = namelist_to_flatish_dict(namelist.items())
         namelist_dict = {
             key: value
             for key, value in namelist_dict.items()
-            if key in cls.__dataclass_fields__  # type: ignore
+            if key in cls.__dataclass_fields__
         }
         return cls(**namelist_dict)
 
+    def __post_init__(self) -> None:
+        warnings.warn(
+            "Usage of `ndsl.Namelist` is discouraged. The class will be "
+            "removed in the next version together with `NamelistDefaults`, see "
+            "https://github.com/NOAA-GFDL/NDSL/issues/64.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
-def namelist_to_flatish_dict(nml_input):
+
+def namelist_to_flatish_dict(nml_input: Any) -> dict:
     nml = dict(nml_input)
     for name, value in nml.items():
         if isinstance(value, f90nml.Namelist):

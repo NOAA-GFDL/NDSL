@@ -1,5 +1,3 @@
-from typing import Optional
-
 import click
 
 from ndsl.dsl.dace.utils import (
@@ -47,12 +45,12 @@ ACTION_SDFG_KERNEL_THEORETICAL_TIMING = "sdfg_kernel_theoretical_timing"
 )
 def command_line(
     action: str,
-    sdfg_path: Optional[str],
-    report_detail: Optional[bool],
-    hardware_bw_in_gb_s: Optional[float],
-    output_format: Optional[str],
-    backend: Optional[str],
-):
+    sdfg_path: str,
+    report_detail: bool,
+    hardware_bw_in_gb_s: float | None,
+    output_format: str | None,
+    backend: str,
+) -> None:
     """
     Run tooling.
     """
@@ -62,10 +60,10 @@ def command_line(
         print(
             kernel_theoretical_timing_from_path(
                 sdfg_path,
+                backend=backend,
                 hardware_bw_in_GB_s=(
                     None if hardware_bw_in_gb_s == 0 else hardware_bw_in_gb_s
                 ),
-                backend=backend,
                 output_format=output_format,
             )
         )

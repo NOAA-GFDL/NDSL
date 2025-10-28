@@ -1,7 +1,8 @@
 import argparse
+import copy
 import os
 import shutil
-from typing import Any, Dict, Optional
+from typing import Any
 
 import f90nml
 import numpy as np
@@ -57,20 +58,19 @@ def get_all_savepoint_names(serializer):
     return savepoint_names
 
 
-def get_serializer(data_path: str, rank: int, data_name: Optional[str] = None):
-    if data_name:
-        name = data_name
-    else:
-        name = f"Generator_rank{rank}"
-    return serialbox.Serializer(serialbox.OpenModeKind.Read, data_path, name)  # type: ignore
+def get_serializer(
+    data_path: str, rank: int, data_name: str | None = None
+) -> serialbox.Serializer:
+    name = data_name if data_name else f"Generator_rank{rank}"
+    return serialbox.Serializer(serialbox.OpenModeKind.Read, data_path, name)
 
 
 def main(
     data_path: str,
     output_path: str,
     merge_blocks: bool,
-    data_name: Optional[str] = None,
-):
+    data_name: str | None = None,
+) -> None:
     os.makedirs(output_path, exist_ok=True)
     namelist_filename_in = os.path.join(data_path, "input.nml")
 
@@ -81,7 +81,7 @@ def main(
     if namelist_filename_out != namelist_filename_in:
         shutil.copyfile(os.path.join(data_path, "input.nml"), namelist_filename_out)
     namelist = f90nml.read(namelist_filename_out)
-    fv_core_nml: Dict[str, Any] = namelist["fv_core_nml"]  # type: ignore
+    fv_core_nml: dict[str, Any] = namelist["fv_core_nml"]
     if fv_core_nml["grid_type"] <= 3:
         total_ranks = 6 * fv_core_nml["layout"][0] * fv_core_nml["layout"][1]
     else:
@@ -94,7 +94,7 @@ def main(
 
     savepoint_names = get_all_savepoint_names(serializer_0)
     for savepoint_name in sorted(list(savepoint_names)):
-        rank_list = []
+        rank_list: list[dict[str, Any]] = []
         names_list = list(
             serializer_0.fields_at_savepoint(
                 serializer_0.get_savepoint(savepoint_name)[0]
@@ -106,8 +106,17 @@ def main(
             serializer = get_serializer(data_path, rank, data_name)
             serializer_list.append(serializer)
             savepoints = serializer.get_savepoint(savepoint_name)
-            rank_data: Dict[str, Any] = {}
+            rank_names_list = list(serializer.fields_at_savepoint(savepoints[0]))
+            rank_data: dict[str, Any] = {}
             for name in set(names_list):
+                if name not in rank_names_list:
+                    data = copy.deepcopy(rank_list[rank - 1][name][0])
+                    data[:] = np.nan
+                    rank_data[name] = [data]
+                    print(
+                        f"Skipping {name} for rank {rank} - no data, will fill with NaN"
+                    )
+                    continue
                 rank_data[name] = []
                 for savepoint in savepoints:
                     rank_data[name].append(

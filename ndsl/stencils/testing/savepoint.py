@@ -1,6 +1,6 @@
 import dataclasses
-import os
-from typing import Dict, Protocol, Union
+from pathlib import Path
+from typing import Any, Protocol
 
 import numpy as np
 import xarray as xr
@@ -8,13 +8,13 @@ import xarray as xr
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 
 
-def dataset_to_dict(ds: xr.Dataset) -> Dict[str, Union[np.ndarray, float, int]]:
+def dataset_to_dict(ds: xr.Dataset) -> dict[str, np.ndarray | float | int]:
     return {
         name: _process_if_scalar(array.values) for name, array in ds.data_vars.items()
     }
 
 
-def _process_if_scalar(value: np.ndarray) -> Union[np.ndarray, float, int]:
+def _process_if_scalar(value: np.ndarray) -> np.ndarray | float | int:
     if len(value.shape) == 0:
         return value.max()  # trick to make sure we get the right type back
     else:
@@ -22,7 +22,7 @@ def _process_if_scalar(value: np.ndarray) -> Union[np.ndarray, float, int]:
 
 
 class DataLoader:
-    def __init__(self, rank: int, data_path: str):
+    def __init__(self, rank: int, data_path: Path) -> None:
         self._data_path = data_path
         self._rank = rank
 
@@ -31,23 +31,20 @@ class DataLoader:
         name: str,
         postfix: str = "",
         i_call: int = 0,
-    ) -> Dict[str, Union[np.ndarray, float, int]]:
+    ) -> dict[str, np.ndarray | float | int]:
         return dataset_to_dict(
-            xr.open_dataset(os.path.join(self._data_path, f"{name}{postfix}.nc"))
+            xr.open_dataset(self._data_path / f"{name}{postfix}.nc")
             .isel(rank=self._rank)
             .isel(savepoint=i_call)
         )
 
 
 class Translate(Protocol):
-    def collect_input_data(self, ds: xr.Dataset) -> dict:
-        ...
+    def collect_input_data(self, ds: xr.Dataset) -> dict: ...
 
-    def compute(self, data: dict):
-        ...
+    def compute(self, data: dict) -> Any: ...
 
-    def extra_data_load(self, data_loader: DataLoader):
-        ...
+    def extra_data_load(self, data_loader: DataLoader) -> None: ...
 
 
 @dataclasses.dataclass
@@ -57,29 +54,29 @@ class SavepointCase:
     """
 
     savepoint_name: str
-    data_dir: str
+    data_dir: Path
     i_call: int
     testobj: Translate
     grid: Grid
     sort_report: str
     no_report: bool
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.savepoint_name}-rank={self.grid.rank}-call={self.i_call}"
 
     @property
     def exists(self) -> bool:
         return (
-            xr.open_dataset(
-                os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc")
-            ).sizes["rank"]
+            xr.open_dataset(self.data_dir / f"{self.savepoint_name}-In.nc").sizes[
+                "rank"
+            ]
             > self.grid.rank
         )
 
     @property
     def ds_in(self) -> xr.Dataset:
         return (
-            xr.open_dataset(os.path.join(self.data_dir, f"{self.savepoint_name}-In.nc"))
+            xr.open_dataset(self.data_dir / f"{self.savepoint_name}-In.nc")
             .isel(rank=self.grid.rank)
             .isel(savepoint=self.i_call)
         )
@@ -87,9 +84,7 @@ class SavepointCase:
     @property
     def ds_out(self) -> xr.Dataset:
         return (
-            xr.open_dataset(
-                os.path.join(self.data_dir, f"{self.savepoint_name}-Out.nc")
-            )
+            xr.open_dataset(self.data_dir / f"{self.savepoint_name}-Out.nc")
             .isel(rank=self.grid.rank)
             .isel(savepoint=self.i_call)
         )

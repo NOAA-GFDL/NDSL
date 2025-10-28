@@ -112,7 +112,7 @@ where fields other than `var1` and `var2` will use `global_value`.
 Stencil_name:
  - backend: <backend>
    multimodal:
-    absolute_eps: <value>
+    absolute_epsilon: <value>
     relative_fraction: <value>
     ulp_threshold: <value>
 ```

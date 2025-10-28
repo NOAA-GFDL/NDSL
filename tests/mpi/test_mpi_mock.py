@@ -293,9 +293,7 @@ def dummy_results(worker_function, dummy_list, numpy):
     return result_list
 
 
-@pytest.mark.skipif(
-    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
-)
+@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_worker(comm, dummy_results, mpi_results, numpy):
     comm.barrier()  # synchronize the test "dots" across ranks
     if comm.Get_rank() == 0:
@@ -304,7 +302,7 @@ def test_worker(comm, dummy_results, mpi_results, numpy):
             if isinstance(mpi, numpy.ndarray):
                 numpy.testing.assert_array_equal(np.asarray(dummy), np.asarray(mpi))
             elif isinstance(mpi, Exception):
-                assert type(dummy) == type(mpi)
+                assert type(dummy) is type(mpi)
                 assert dummy.args == mpi.args
             else:
                 assert dummy == mpi

@@ -19,7 +19,7 @@ OUTPUT_PATH = "output/zarr_monitor.zarr"
 
 
 def get_example_state(time):
-    sizer = SubtileGridSizer(nx=48, ny=48, nz=70, n_halo=3, extra_dim_lengths={})
+    sizer = SubtileGridSizer(nx=48, ny=48, nz=70, n_halo=3, data_dimensions={})
     allocator = QuantityFactory(sizer, np)
     air_temperature = allocator.zeros([X_DIM, Y_DIM, Z_DIM], units="degK")
     air_temperature.view[:] = np.random.randn(*air_temperature.extent)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     time = cftime.DatetimeJulian(2020, 1, 1)
     timestep = timedelta(hours=1)
 
-    for i in range(10):
+    for _i in range(10):
         state = get_example_state(time)
         monitor.store(state)
         time += timestep

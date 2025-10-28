@@ -1,19 +1,18 @@
+from __future__ import annotations
+
 import dataclasses
+import os
 import pathlib
 
 import xarray as xr
 
+import ndsl.constants as constants
+from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
 
 # TODO: if we can remove translate tests in favor of checkpointer tests,
 # we can remove this "disallowed" import (ndsl.util does not depend on ndsl.dsl)
-try:
-    from ndsl.dsl.gt4py_utils import is_gpu_backend, split_cartesian_into_storages
-except ImportError:
-    split_cartesian_into_storages = None
-import ndsl.constants as constants
-from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
+from ndsl.dsl.gt4py_utils import is_gpu_backend, split_cartesian_into_storages
 from ndsl.dsl.typing import Float
-from ndsl.filesystem import get_fs
 from ndsl.grid.generation import MetricTerms
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Quantity
@@ -86,7 +85,7 @@ class HorizontalGridData:
     edge_n: Quantity
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "HorizontalGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> HorizontalGridData:
         return cls(
             lon=metric_terms.lon,
             lat=metric_terms.lat,
@@ -128,15 +127,15 @@ class VerticalGridData:
     """
     Terms defining the vertical grid.
 
-    Eulerian vertical grid is defined by p = ak + bk * p_ref
+    Eulerian vertical grid is defined by p = ak + bk * p_ref.
     """
 
     # TODO: make these non-optional, make FloatFieldK a true type and use it
     ak: Quantity
     bk: Quantity
     """
-    reference pressure (Pa) used to define pressure at vertical interfaces,
-    where p = ak + bk * p_ref
+    Reference pressure (Pa) used to define pressure at vertical interfaces,
+    where p = ak + bk * p_ref.
     """
 
     def __post_init__(self):
@@ -145,7 +144,7 @@ class VerticalGridData:
         self._p_interface = None
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "VerticalGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> VerticalGridData:
         return cls(
             ak=metric_terms.ak,
             bk=metric_terms.bk,
@@ -153,14 +152,13 @@ class VerticalGridData:
 
     @classmethod
     def from_restart(cls, restart_path: str, quantity_factory: QuantityFactory):
-        fs = get_fs(restart_path)
-        restart_files = fs.ls(restart_path)
+        restart_files = os.listdir(restart_path)
         data_file = restart_files[
             [fname.endswith("fv_core.res.nc") for fname in restart_files].index(True)
         ]
 
         ak_bk_data_file = pathlib.Path(restart_path) / data_file
-        if not fs.isfile(ak_bk_data_file):
+        if not ak_bk_data_file.is_file():
             raise ValueError(
                 """vertical_grid_from_restart is true,
                 but no fv_core.res.nc in restart data file."""
@@ -168,7 +166,7 @@ class VerticalGridData:
 
         ak = quantity_factory.zeros([Z_INTERFACE_DIM], units="Pa")
         bk = quantity_factory.zeros([Z_INTERFACE_DIM], units="")
-        with fs.open(ak_bk_data_file, "rb") as f:
+        with open(ak_bk_data_file, "rb") as f:
             ds = xr.open_dataset(f).isel(Time=0).drop_vars("Time")
             ak.view[:] = ds["ak"].values
             bk.view[:] = ds["bk"].values
@@ -177,9 +175,7 @@ class VerticalGridData:
 
     @property
     def p_ref(self) -> float:
-        """
-        reference pressure (Pa)
-        """
+        """Reference pressure (Pa)"""
         return 1e5
 
     @property
@@ -191,6 +187,7 @@ class VerticalGridData:
                 dims=[Z_INTERFACE_DIM],
                 units="Pa",
                 gt4py_backend=self.ak.gt4py_backend,
+                number_of_halo_points=self.ak.metadata.n_halo,
             )
         return self._p_interface
 
@@ -207,6 +204,7 @@ class VerticalGridData:
                 dims=[Z_DIM],
                 units="Pa",
                 gt4py_backend=self.p_interface.gt4py_backend,
+                number_of_halo_points=self.p_interface.metadata.n_halo,
             )
         return self._p
 
@@ -223,17 +221,16 @@ class VerticalGridData:
                 dims=[Z_DIM],
                 units="Pa",
                 gt4py_backend=self.ak.gt4py_backend,
+                number_of_halo_points=self.ak.metadata.n_halo,
             )
         return self._dp_ref
 
     @property
     def ptop(self) -> Float:
-        """
-        top of atmosphere pressure (Pa)
-        """
+        """Top of atmosphere pressure (Pa)"""
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
-        if is_gpu_backend(self.ak.gt4py_backend):
+        if self.ak.gt4py_backend is not None and is_gpu_backend(self.ak.gt4py_backend):
             return Float(self.ak.view[0].get())
         else:
             return Float(self.ak.view[0])
@@ -258,9 +255,7 @@ class ContravariantGridData:
     rsin2: Quantity
 
     @classmethod
-    def new_from_metric_terms(
-        cls, metric_terms: MetricTerms
-    ) -> "ContravariantGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> ContravariantGridData:
         return cls(
             cosa=metric_terms.cosa,
             cosa_u=metric_terms.cosa_u,
@@ -303,7 +298,7 @@ class AngleGridData:
     cos_sg9: Quantity
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "AngleGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> AngleGridData:
         return cls(
             sin_sg1=metric_terms.sin_sg1,
             sin_sg2=metric_terms.sin_sg2,
@@ -342,14 +337,14 @@ class GridData:
         self._vertical_data = vertical_data
         self._contravariant_data = contravariant_data
         self._angle_data = angle_data
-        if fc is not None:
-            self._fC = GridData._fC_from_data(fc, horizontal_data.lat)
-        else:
-            self._fC = None
-        if fc_agrid is not None:
-            self._fC_agrid = GridData._fC_from_data(fc_agrid, horizontal_data.lat)
-        else:
-            self._fC_agrid = None
+        self._fC = (
+            None if fc is None else GridData._fC_from_data(fc, horizontal_data.lat)
+        )
+        self._fC_agrid = (
+            None
+            if fc_agrid is None
+            else GridData._fC_from_data(fc_agrid, horizontal_data.lat)
+        )
 
     @classmethod
     def new_from_metric_terms(cls, metric_terms: MetricTerms):
@@ -388,6 +383,7 @@ class GridData:
             origin=lat.origin,
             extent=lat.extent,
             gt4py_backend=lat.gt4py_backend,
+            number_of_halo_points=lat.metadata.n_halo,
         )
 
     @staticmethod
@@ -752,7 +748,7 @@ class DriverGridData:
     grid_type: int
 
     @classmethod
-    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> "DriverGridData":
+    def new_from_metric_terms(cls, metric_terms: MetricTerms) -> DriverGridData:
         return cls.new_from_grid_variables(
             vlon=metric_terms.vlon,
             vlat=metric_terms.vlon,
@@ -777,7 +773,7 @@ class DriverGridData:
         es1: Quantity,
         ew2: Quantity,
         grid_type: int = 0,
-    ) -> "DriverGridData":
+    ) -> DriverGridData:
         try:
             vlon1, vlon2, vlon3 = split_quantity_along_last_dim(vlon)
             vlat1, vlat2, vlat3 = split_quantity_along_last_dim(vlat)
@@ -810,16 +806,16 @@ class DriverGridData:
         )
 
 
-def split_quantity_along_last_dim(quantity):
+def split_quantity_along_last_dim(quantity: Quantity) -> list[Quantity]:
     """Split a quantity along the last dimension into a list of quantities.
 
     Args:
-        quantity: Quantity to split.
+        quantity (Quantity): Quantity to split.
 
     Returns:
-        List of quantities.
+        list[Quantity]: List of quantities.
     """
-    return_list = []
+    return_list: list[Quantity] = []
     for i in range(quantity.data.shape[-1]):
         return_list.append(
             Quantity(
@@ -829,6 +825,7 @@ def split_quantity_along_last_dim(quantity):
                 origin=quantity.origin[:-1],
                 extent=quantity.extent[:-1],
                 gt4py_backend=quantity.gt4py_backend,
+                number_of_halo_points=quantity.metadata.n_halo,
             )
         )
     return return_list

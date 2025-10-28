@@ -58,15 +58,15 @@ def plot_cube(
     grid_metadata: GridMetadata = WRAPPER_GRID_METADATA,
     plotting_function: str = "pcolormesh",
     ax: plt.axes = None,
-    row: str = None,
-    col: str = None,
-    col_wrap: int = None,
-    projection: ccrs.Projection = None,
+    row: str | None = None,
+    col: str | None = None,
+    col_wrap: int | None = None,
+    projection: ccrs.Projection | None = None,
     colorbar: bool = True,
     cmap_percentiles_lim: bool = True,
-    cbar_label: str = None,
+    cbar_label: str | None = None,
     coastlines: bool = True,
-    coastlines_kwargs: dict = None,
+    coastlines_kwargs: dict | None = None,
     **kwargs,
 ):
     """Plots an xr.DataArray containing tiled cubed sphere gridded data
@@ -93,12 +93,12 @@ def plot_cube(
         ax:
             Axes onto which the map should be plotted; must be created with
             a cartopy projection argument. If not supplied, axes are generated
-            with a projection. If ax is suppled, faceting is disabled.
+            with a projection. If ax is supplied, faceting is disabled.
         row:
-            Name of diemnsion to be faceted along subplot rows. Must not be a
+            Name of dimension to be faceted along subplot rows. Must not be a
             tile, lat, or lon dimension.  Defaults to no row facets.
         col:
-            Name of diemnsion to be faceted along subplot columns. Must not be
+            Name of dimension to be faceted along subplot columns. Must not be
             a tile, lat, or lon dimension. Defaults to no column facets.
         col_wrap:
             If only one of `col`, `row` is specified, number of columns to plot
@@ -124,7 +124,7 @@ def plot_cube(
         figure (plt.Figure):
             matplotlib figure object onto which axes grid is created
         axes (np.ndarray):
-            Array of `plt.axes` objects assocated with map subplots if faceting;
+            Array of `plt.axes` objects associated with map subplots if faceting;
             otherwise array containing single axes object.
         handles (list):
             List or nested list of matplotlib object handles associated with
@@ -134,7 +134,7 @@ def plot_cube(
             arg is True, else None.
         facet_grid (xarray.plot.facetgrid):
             xarray plotting facetgrid for multi-axes case. In single-axes case,
-            retunrs None.
+            returns None.
 
     Example:
         # plot diag winds at two times
@@ -205,7 +205,7 @@ def plot_cube(
             fig, ax = plt.subplots(1, 1, subplot_kw={"projection": projection})
         else:
             fig = ax.figure
-        handle = _plot_func_short(array, ax=ax)
+        handle = _plot_func_short(array, ax=ax)  # type: ignore
         axes = np.array(ax)
         handles = [handle]
         facet_grid = None

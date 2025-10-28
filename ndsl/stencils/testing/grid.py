@@ -1,5 +1,4 @@
 # type: ignore
-from typing import Dict, Tuple
 
 import numpy as np
 
@@ -19,8 +18,7 @@ from ndsl.grid.helper import (
     VerticalGridData,
 )
 from ndsl.halo.data_transformer import QuantityHaloSpec
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.initialization.sizer import SubtileGridSizer
+from ndsl.initialization import QuantityFactory, SubtileGridSizer
 from ndsl.quantity import Quantity
 
 
@@ -85,9 +83,12 @@ class Grid:
         rank,
         layout,
         backend,
-        data_fields={},
+        data_fields: dict | None = None,
         local_indices=False,
     ):
+        if data_fields is None:
+            data_fields = {}
+
         self.rank = rank
         self.backend = backend
         self.partitioner = TilePartitioner(layout)
@@ -145,7 +146,7 @@ class Grid:
                 ny_tile=self.npy - 1,
                 nz=self.npz,
                 n_halo=self.halo,
-                extra_dim_lengths={
+                data_dimensions={
                     MetricTerms.LON_OR_LAT_DIM: 2,
                     MetricTerms.TILE_DIM: 6,
                     MetricTerms.CARTESIAN_DIM: 3,
@@ -166,7 +167,7 @@ class Grid:
     def make_quantity(
         self,
         array,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
         units="Unknown",
         origin=None,
         extent=None,
@@ -181,7 +182,7 @@ class Grid:
         self,
         data_dict,
         varname,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
         units="Unknown",
     ):
         data_dict[varname + "_quantity"] = self.quantity_wrap(
@@ -191,7 +192,7 @@ class Grid:
     def quantity_wrap(
         self,
         data,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
         units="unknown",
     ):
         origin = self.sizer.get_origin(dims)
@@ -381,11 +382,11 @@ class Grid:
         }
         return {**self.default_domain_dict(), **horizontal_dict}
 
-    def domain_shape_full(self, *, add: Tuple[int, int, int] = (0, 0, 0)):
+    def domain_shape_full(self, *, add: tuple[int, int, int] = (0, 0, 0)):
         """Domain shape for the full array including halo points."""
         return (self.nid + add[0], self.njd + add[1], self.npz + add[2])
 
-    def domain_shape_compute(self, *, add: Tuple[int, int, int] = (0, 0, 0)):
+    def domain_shape_compute(self, *, add: tuple[int, int, int] = (0, 0, 0)):
         """Compute domain shape excluding halo points."""
         return (self.nic + add[0], self.njc + add[1], self.npz + add[2])
 
@@ -414,11 +415,11 @@ class Grid:
     def vvar_edge_halo(self, var):
         return self.copy_right_edge(var, self.ie + 1, self.je + 2)
 
-    def compute_origin(self, add: Tuple[int, int, int] = (0, 0, 0)):
+    def compute_origin(self, add: tuple[int, int, int] = (0, 0, 0)):
         """Start of the compute domain (e.g. (halo, halo, 0))"""
         return (self.is_ + add[0], self.js + add[1], add[2])
 
-    def full_origin(self, add: Tuple[int, int, int] = (0, 0, 0)):
+    def full_origin(self, add: tuple[int, int, int] = (0, 0, 0)):
         """Start of the full array including halo points (e.g. (0, 0, 0))"""
         return (self.isd + add[0], self.jsd + add[1], add[2])
 
@@ -440,7 +441,7 @@ class Grid:
         shape,
         origin,
         halo_points,
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=(X_DIM, Y_DIM, Z_DIM),
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update."""
         return self.quantity_factory.get_quantity_halo_spec(
@@ -449,7 +450,7 @@ class Grid:
         )
 
     @property
-    def grid_indexing(self) -> "GridIndexing":
+    def grid_indexing(self) -> GridIndexing:
         return GridIndexing(
             domain=tuple(int(item) for item in self.domain_shape_compute()),
             n_halo=self.halo,
@@ -460,7 +461,7 @@ class Grid:
         )
 
     @property
-    def damping_coefficients(self) -> "DampingCoefficients":
+    def damping_coefficients(self) -> DampingCoefficients:
         if self._damping_coefficients is not None:
             return self._damping_coefficients
         self._damping_coefficients = DampingCoefficients(
@@ -473,18 +474,18 @@ class Grid:
         )
         return self._damping_coefficients
 
-    def set_damping_coefficients(self, damping_coefficients: "DampingCoefficients"):
+    def set_damping_coefficients(self, damping_coefficients: DampingCoefficients):
         self._damping_coefficients = damping_coefficients
 
     @property
-    def grid_data(self) -> "GridData":
+    def grid_data(self) -> GridData:
         if self._grid_data is not None:
             return self._grid_data
 
         # The translate code pads ndarray axes with zeros in certain cases,
         # in particular the vertical axis. Since we're deprecating those tests,
         # we simply "fix" those arrays here.
-        clipped_data: Dict[str, Quantity] = {}
+        clipped_data: dict[str, Quantity] = {}
         for name in (
             "ee1",
             "ee2",
@@ -835,7 +836,7 @@ class Grid:
             )
         return self._driver_grid_data
 
-    def set_grid_data(self, grid_data: "GridData"):
+    def set_grid_data(self, grid_data: GridData):
         self._grid_data = grid_data
 
     def make_grid_data(self, npx, npy, npz, communicator, backend):

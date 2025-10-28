@@ -1,32 +1,11 @@
-import dataclasses
-from typing import Dict, Iterable, Sequence, Tuple
+import warnings
+from collections.abc import Iterable
+from typing import Self
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
 from ndsl.constants import N_HALO_DEFAULT
-
-
-@dataclasses.dataclass
-class GridSizer:
-    nx: int
-    """length of the x compute dimension for produced arrays"""
-    ny: int
-    """length of the y compute dimension for produced arrays"""
-    nz: int
-    """length of the z compute dimension for produced arrays"""
-    n_halo: int
-    """number of horizontal halo points for produced arrays"""
-    extra_dim_lengths: Dict[str, int]
-    """lengths of any non-x/y/z dimensions, such as land or radiation dimensions"""
-
-    def get_origin(self, dims: Sequence[str]) -> Tuple[int, ...]:
-        raise NotImplementedError()
-
-    def get_extent(self, dims: Sequence[str]) -> Tuple[int, ...]:
-        raise NotImplementedError()
-
-    def get_shape(self, dims: Sequence[str]) -> Tuple[int, ...]:
-        raise NotImplementedError()
+from ndsl.initialization.grid_sizer import GridSizer
 
 
 class SubtileGridSizer(GridSizer):
@@ -37,11 +16,13 @@ class SubtileGridSizer(GridSizer):
         ny_tile: int,
         nz: int,
         n_halo: int,
-        extra_dim_lengths: Dict[str, int],
-        layout: Tuple[int, int],
-        tile_partitioner: TilePartitioner = None,
+        layout: tuple[int, int],
+        *,
+        data_dimensions: dict[str, int] | None = None,
+        tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
-    ):
+        extra_dim_lengths: dict[str, int] | None = None,
+    ) -> Self:
         """Create a SubtileGridSizer from parameters about the full tile.
 
         Args:
@@ -49,13 +30,24 @@ class SubtileGridSizer(GridSizer):
             ny_tile: number of y cell centers on the tile
             nz: number of vertical levels
             n_halo: number of halo points
-            extra_dim_lengths: lengths of any non-x/y/z dimensions,
+            data_dimensions: lengths of any non-x/y/z dimensions,
                 such as land or radiation dimensions
             layout: (y, x) number of ranks along tile edges
             tile_partitioner (optional): partitioner object for the tile. By default, a
                 TilePartitioner is created with the given layout
             tile_rank (optional): rank of this subtile.
+            extra_dim_lengths: DEPRECATED API - use `data_dimensions`
         """
+        if data_dimensions is None:
+            data_dimensions = {}
+
+        if extra_dim_lengths is not None:
+            warnings.warn(
+                "`extra_dim_lengths` is a deprecated name, please use `data_dimensions` instead.",
+                DeprecationWarning,
+                2,
+            )
+            data_dimensions = extra_dim_lengths
         if tile_partitioner is None:
             tile_partitioner = TilePartitioner(layout)
         y_slice, x_slice = tile_partitioner.subtile_slice(
@@ -77,15 +69,15 @@ class SubtileGridSizer(GridSizer):
                 "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
             )
 
-        return cls(nx, ny, nz, n_halo, extra_dim_lengths)
+        return cls(nx, ny, nz, n_halo, data_dimensions)
 
     @classmethod
     def from_namelist(
         cls,
         namelist: dict,
-        tile_partitioner: TilePartitioner = None,
+        tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
-    ):
+    ) -> Self:
         """Create a SubtileGridSizer from a Fortran namelist.
 
         Args:
@@ -114,19 +106,18 @@ class SubtileGridSizer(GridSizer):
                 "expected to find nx_tile or fv_core_nml"
             )
         return cls.from_tile_params(
-            nx_tile,
-            ny_tile,
-            nz,
-            N_HALO_DEFAULT,
-            {},
-            layout,
-            tile_partitioner,
-            tile_rank,
+            nx_tile=nx_tile,
+            ny_tile=ny_tile,
+            nz=nz,
+            n_halo=N_HALO_DEFAULT,
+            layout=layout,
+            tile_partitioner=tile_partitioner,
+            tile_rank=tile_rank,
         )
 
     @property
-    def dim_extents(self) -> Dict[str, int]:
-        return_dict = self.extra_dim_lengths.copy()
+    def dim_extents(self) -> dict[str, int]:
+        return_dict = self.data_dimensions.copy()
         return_dict.update(
             {
                 constants.X_DIM: self.nx,
@@ -139,18 +130,18 @@ class SubtileGridSizer(GridSizer):
         )
         return return_dict
 
-    def get_origin(self, dims: Iterable[str]) -> Tuple[int, ...]:
+    def get_origin(self, dims: Iterable[str]) -> tuple[int, ...]:
         return_list = [
             self.n_halo if dim in constants.HORIZONTAL_DIMS else 0 for dim in dims
         ]
         return tuple(return_list)
 
-    def get_extent(self, dims: Iterable[str]) -> Tuple[int, ...]:
+    def get_extent(self, dims: Iterable[str]) -> tuple[int, ...]:
         extents = self.dim_extents
         return tuple(extents[dim] for dim in dims)
 
-    def get_shape(self, dims: Iterable[str]) -> Tuple[int, ...]:
-        shape_dict = self.extra_dim_lengths.copy()
+    def get_shape(self, dims: Iterable[str]) -> tuple[int, ...]:
+        shape_dict = self.data_dimensions.copy()
         # must pad non-interface variables to have the same shape as interface variables
         shape_dict.update(
             {

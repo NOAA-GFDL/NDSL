@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -44,7 +44,7 @@ class BoundaryArrayView:
             self._dims, self._origin, self._extent, self._boundary_type, index
         )
 
-    def sel(self, **kwargs: Union[slice, int]) -> np.ndarray:
+    def sel(self, **kwargs: slice | int) -> np.ndarray:
         """Convenience method to perform indexing using dimension names
         without knowing dimension order.
 
@@ -80,9 +80,9 @@ class BoundedArrayView:
     array, while view.interior[-1:1, -1:1, :] would also include one halo point.
     """
 
-    def __init__(
+    def __init__(  # type: ignore
         self, array, dims: Sequence[str], origin: Sequence[int], extent: Sequence[int]
-    ):
+    ) -> None:
         self._data = array
         self._dims = tuple(dims)
         self._origin = tuple(origin)
@@ -104,12 +104,12 @@ class BoundedArrayView:
         )
 
     @property
-    def origin(self) -> Tuple[int, ...]:
+    def origin(self) -> tuple[int, ...]:
         """the start of the computational domain"""
         return self._origin
 
     @property
-    def extent(self) -> Tuple[int, ...]:
+    def extent(self) -> tuple[int, ...]:
         """the shape of the computational domain"""
         return self._extent
 

@@ -1,6 +1,7 @@
 import unittest.mock
 
 from ndsl import CubedSpherePartitioner, DaceConfig, DaCeOrchestration, TilePartitioner
+from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.dace.dace_config import _determine_compiling_ranks
 from ndsl.dsl.dace.orchestration import orchestrate, orchestrate_function
 
@@ -11,8 +12,8 @@ which determines whether we use dace to run wrapped functions.
 """
 
 
-def test_orchestrate_function_calls_dace():
-    def foo():
+def test_orchestrate_function_calls_dace() -> None:
+    def foo() -> None:
         pass
 
     dace_config = DaceConfig(
@@ -29,8 +30,8 @@ def test_orchestrate_function_calls_dace():
     assert mock_call_sdfg.call_args.args[0].f == foo
 
 
-def test_orchestrate_function_does_not_call_dace():
-    def foo():
+def test_orchestrate_function_does_not_call_dace() -> None:
+    def foo() -> None:
         pass
 
     dace_config = DaceConfig(
@@ -46,7 +47,7 @@ def test_orchestrate_function_does_not_call_dace():
     assert not mock_call_sdfg.called
 
 
-def test_orchestrate_calls_dace():
+def test_orchestrate_calls_dace() -> None:
     dace_config = DaceConfig(
         communicator=None,
         backend="gtc:dace",
@@ -54,10 +55,10 @@ def test_orchestrate_calls_dace():
     )
 
     class A:
-        def __init__(self):
+        def __init__(self) -> None:
             orchestrate(obj=self, config=dace_config, method_to_orchestrate="foo")
 
-        def foo(self):
+        def foo(self) -> None:
             pass
 
     with unittest.mock.patch(
@@ -68,7 +69,7 @@ def test_orchestrate_calls_dace():
     assert mock_call_sdfg.called
 
 
-def test_orchestrate_does_not_call_dace():
+def test_orchestrate_does_not_call_dace() -> None:
     dace_config = DaceConfig(
         communicator=None,
         backend="gtc:dace",
@@ -76,10 +77,10 @@ def test_orchestrate_does_not_call_dace():
     )
 
     class A:
-        def __init__(self):
+        def __init__(self) -> None:
             orchestrate(obj=self, config=dace_config, method_to_orchestrate="foo")
 
-        def foo(self):
+        def foo(self) -> None:
             pass
 
     with unittest.mock.patch(
@@ -90,14 +91,14 @@ def test_orchestrate_does_not_call_dace():
     assert not mock_call_sdfg.called
 
 
-def test_orchestrate_distributed_build():
+def test_orchestrate_distributed_build() -> None:
     dummy_dace_config = DaceConfig(
         communicator=None,
         backend="gtc:dace",
         orchestration=DaCeOrchestration.BuildAndRun,
     )
 
-    def _does_compile(rank, partitioner) -> bool:
+    def _does_compile(rank: int, partitioner: Partitioner) -> bool:
         dummy_dace_config.layout = partitioner.layout
         dummy_dace_config.rank_size = partitioner.layout[0] * partitioner.layout[1] * 6
         dummy_dace_config.my_rank = rank

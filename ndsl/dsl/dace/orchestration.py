@@ -1,9 +1,16 @@
-import os
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from __future__ import annotations
 
-import dace
-import gt4py.storage
+import numbers
+import os
+from collections.abc import Callable, Sequence
+from typing import Any
+
+from dace import SDFG, CompiledSDFG
 from dace import compiletime as DaceCompiletime
+from dace import dtypes
+from dace import method as dace_method
+from dace import nodes
+from dace import program as dace_program
 from dace.dtypes import DeviceType as DaceDeviceType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
@@ -11,21 +18,23 @@ from dace.frontend.python.parser import DaceProgram
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.helpers import get_parent_map
 from dace.transformation.passes.simplify import SimplifyPass
+from gt4py import storage
 
+import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
     DaceConfig,
     DaCeOrchestration,
-    FrozenCompiledSDFG,
 )
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
-from ndsl.dsl.dace.sdfg_opt_passes import splittable_region_expansion
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -35,12 +44,19 @@ from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
+"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
+
+_INTERNAL__SCHEDULE_TREE_PASSES = [CartesianAxisMerge(AxisIterator._K)]
+"""INTERNAL: Default schedule passes for CPU. To be replaced with proper configuration."""
+
+
 def dace_inhibitor(func: Callable) -> Callable:
     """Triggers callback generation wrapping `func` while doing DaCe parsing."""
     return func
 
 
-def _upload_to_device(host_data: List[Any]) -> None:
+def _upload_to_device(host_data: list) -> None:
     """Make sure any ndarrays gets uploaded to the device
 
     This will raise an assertion if cupy is not installed.
@@ -52,17 +68,17 @@ def _upload_to_device(host_data: List[Any]) -> None:
 
 
 def _download_results_from_dace(
-    config: DaceConfig, dace_result: Optional[List[Any]], args: List[Any]
-):
+    config: DaceConfig, dace_result: list | None
+) -> list | None:
     """Move all data from DaCe memory space to GT4Py"""
     if dace_result is None:
         return None
 
     backend = config.get_backend()
-    return [gt4py.storage.from_array(result, backend=backend) for result in dace_result]
+    return [storage.from_array(result, backend=backend) for result in dace_result]
 
 
-def _to_gpu(sdfg: dace.SDFG):
+def _to_gpu(sdfg: SDFG) -> None:
     """Flag memory in SDFG to GPU.
     Force deactivate OpenMP sections for sanity."""
 
@@ -70,22 +86,22 @@ def _to_gpu(sdfg: dace.SDFG):
     allmaps = [
         (me, state)
         for me, state in sdfg.all_nodes_recursive()
-        if isinstance(me, dace.nodes.MapEntry)
+        if isinstance(me, nodes.MapEntry)
     ]
     topmaps = [
         (me, state) for me, state in allmaps if get_parent_map(state, me) is None
     ]
 
     # Set storage of arrays to GPU, scalarizable arrays will be set on registers
-    for sd, _aname, arr in sdfg.arrays_recursive():
+    for _sd, _aname, arr in sdfg.arrays_recursive():
         if arr.shape == (1,):
-            arr.storage = dace.StorageType.Register
+            arr.storage = dtypes.StorageType.Register
         else:
-            arr.storage = dace.StorageType.GPU_Global
+            arr.storage = dtypes.StorageType.GPU_Global
 
     # All maps will be schedule on GPU
     for mapentry, _state in topmaps:
-        mapentry.schedule = dace.ScheduleType.GPU_Device
+        mapentry.schedule = dtypes.ScheduleType.GPU_Device
 
     # Deactivate OpenMP sections
     for sd in sdfg.all_sdfgs_recursive():
@@ -93,41 +109,82 @@ def _to_gpu(sdfg: dace.SDFG):
 
 
 def _simplify(
-    sdfg: dace.SDFG,
+    sdfg: SDFG,
     *,
     validate: bool = True,
     validate_all: bool = False,
     verbose: bool = False,
-):
+) -> None:
     """Override of sdfg.simplify to skip failing transformation
     per https://github.com/spcl/dace/issues/1328
     """
-    return SimplifyPass(
+    SimplifyPass(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
+        # We disable ScalarToSymbolPromotion because it might push symbols onto edges
+        # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
+        # calls or (complicated) field accesses.
+        skip=["ScalarToSymbolPromotion"],
     ).apply_pass(sdfg, {})
 
 
 def _build_sdfg(
-    dace_program: DaceProgram, sdfg: dace.SDFG, config: DaceConfig, args, kwargs
-):
-    """Build the .so out of the SDFG on the top tile ranks only"""
+    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
+) -> None:
+    """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
+    device_type = DaceDeviceType.GPU if config.is_gpu_backend() else DaceDeviceType.CPU
 
     if is_compiling:
+        with DaCeProgress(config, "Validate original SDFG"):
+            sdfg.validate()
+
+        # Fully specialize all known symbols and then propagate these changes in the simplify
+        # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
+        # the schedule tree (optimization) roundtrip.
+        with DaCeProgress(config, "Fully specialize symbols"):
+            for my_sdfg in sdfg.all_sdfgs_recursive():
+                if my_sdfg.parent_nsdfg_node is not None:
+                    repl_dict = {}
+                    for sym, val in my_sdfg.parent_nsdfg_node.symbol_mapping.items():
+                        if isinstance(val, numbers.Number):
+                            repl_dict[sym] = val
+                    my_sdfg.replace_dict(repl_dict)
+
+        with DaCeProgress(config, "Simplify (1)"):
+            _simplify(sdfg)
+
+        if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
+                stree = sdfg.as_schedule_tree()
+
+            with DaCeProgress(config, "Schedule Tree: optimization"):
+                if config.is_gpu_backend():
+                    GPUPipeline().run(stree)
+                else:
+                    CPUPipeline(passes=_INTERNAL__SCHEDULE_TREE_PASSES).run(stree)
+
+            with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
+                sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+
         # Make the transients array persistents
         if config.is_gpu_backend():
+            # TODO
+            # The following should happen on the stree level
             _to_gpu(sdfg)
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.GPU)
+
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
             # Upload args to device
             _upload_to_device(list(args) + list(kwargs.values()))
         else:
+            # TODO
+            # The following should happen on the stree level
             for _sd, _aname, arr in sdfg.arrays_recursive():
                 if arr.shape == (1,):
                     arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=sdfg, device=DaceDeviceType.CPU)
+            make_transients_persistent(sdfg=sdfg, device=device_type)
 
         # Build non-constants & non-transients from the sdfg_kwargs
         sdfg_kwargs = dace_program._create_sdfg_args(sdfg, args, kwargs)
@@ -139,29 +196,18 @@ def _build_sdfg(
             if k in sdfg_kwargs and tup[1].transient:
                 del sdfg_kwargs[k]
 
-        with DaCeProgress(config, "Simplify (1/2)"):
-            _simplify(sdfg, validate=False, verbose=True)
-
-        # Perform pre-expansion fine tuning
-        with DaCeProgress(config, "Split regions"):
-            splittable_region_expansion(sdfg, verbose=True)
-
-        # Expand the stencil computation Library Nodes with the right expansion
-        with DaCeProgress(config, "Expand"):
-            sdfg.expand_library_nodes()
-
-        with DaCeProgress(config, "Simplify (2/2)"):
-            _simplify(sdfg, validate=False, verbose=True)
+        with DaCeProgress(config, "Simplify (2)"):
+            _simplify(sdfg)
 
         # Move all memory that can be into a pool to lower memory pressure.
         # Change Persistent memory (sub-SDFG) into Scope and flag it.
         with DaCeProgress(config, "Turn Persistents into pooled Scope"):
             memory_pooled = 0.0
             for _sd, _aname, arr in sdfg.arrays_recursive():
-                if arr.lifetime == dace.AllocationLifetime.Persistent:
+                if arr.lifetime == dtypes.AllocationLifetime.Persistent:
                     arr.pool = True
                     memory_pooled += arr.total_size * arr.dtype.bytes
-                    arr.lifetime = dace.AllocationLifetime.Scope
+                    arr.lifetime = dtypes.AllocationLifetime.Scope
             memory_pooled = float(memory_pooled) / (1024 * 1024)
             ndsl_log.debug(
                 f"{DaCeProgress.default_prefix(config)} Pooled {memory_pooled} mb",
@@ -175,10 +221,15 @@ def _build_sdfg(
                 negative_delp_checker(sdfg)
                 negative_qtracers_checker(sdfg)
 
+        with DaCeProgress(config, "Validate before compile"):
+            sdfg.validate()
+
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
             sdfg.compile()
-        write_build_info(sdfg, config.layout, config.tile_resolution, config._backend)
+        write_build_info(
+            sdfg, config.layout, config.tile_resolution, config.get_backend()
+        )
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):
@@ -191,7 +242,10 @@ def _build_sdfg(
     # On Build: all ranks sync, then exit.
     # On BuildAndRun: all ranks sync, then load the SDFG from
     #                 the expected path (made available by build).
-    # We use a "FrozenCompiledSDFG" to minimize re-entry cost at call time
+    # We use a "CompiledSDFG" which keep the `so` online but _won't_
+    # do the marshalling of the arguments at call time. For this we call
+    # `dace_program._create_sdfg_args`. There's optimization potential for
+    # re-entry cost there.
 
     mode = config.get_orchestrate()
     # DEV NOTE: we explicitly use MPI.COMM_WORLD here because it is
@@ -204,60 +258,83 @@ def _build_sdfg(
     if mode == DaCeOrchestration.BuildAndRun:
         if not is_compiling:
             ndsl_log.info(
-                f"{DaCeProgress.default_prefix(config)} Rank is not compiling."
+                f"{DaCeProgress.default_prefix(config)} Rank is not compiling. "
                 "Waiting for compilation to end on all other ranks..."
             )
         MPI.COMM_WORLD.Barrier()
 
         with DaCeProgress(config, "Loading"):
             sdfg_path = get_sdfg_path(dace_program.name, config, override_run_only=True)
+            if sdfg_path is None:
+                raise ValueError("Couldn't load SDFG post build")
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
             )
-            config.loaded_precompiled_SDFG[dace_program] = FrozenCompiledSDFG(
-                dace_program, compiledSDFG, args, kwargs
-            )
-
-        return _call_sdfg(dace_program, sdfg, config, args, kwargs)
+            config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
 
 
 def _call_sdfg(
-    dace_program: DaceProgram, sdfg: dace.SDFG, config: DaceConfig, args, kwargs
-):
-    """Dispatch the SDFG execution and/or build"""
-    # Pre-compiled SDFG code path does away with any data checks and
-    # cached the marshalling - leading to almost direct C call
-    # DaceProgram performs argument transformation & checks for a cost ~200ms
-    # of overhead
-    if dace_program in config.loaded_precompiled_SDFG:
+    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
+) -> list | None:
+    """Dispatch to either SDFG execution and/or build."""
+
+    with config.performance_collector.timestep_timer.clock(f"{dace_program.name}.Call"):
+        # Check if we need to build first
+        mode = config.get_orchestrate()
+        if (
+            mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
+            and dace_program not in config.loaded_precompiled_SDFG  # already cached
+        ):
+            ndsl_log.info("Building DaCe orchestration")
+            _build_sdfg(dace_program, sdfg, config, args, kwargs)
+
+        if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
+            raise ValueError(f"Unexpected DaceOrchestration mode `{mode}`.")
+
+        if dace_program not in config.loaded_precompiled_SDFG:
+            raise RuntimeError(
+                "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
+                "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
+            )
+
+        # Pre-compiled SDFG code path does away with any data checks and
+        # cached the marshalling - leading to almost direct C call
+        # DaceProgram performs argument transformation & checks for a cost ~200ms
+        # of overhead
         with DaCeProgress(config, "Run"):
             if config.is_gpu_backend():
                 _upload_to_device(list(args) + list(kwargs.values()))
-            res = config.loaded_precompiled_SDFG[dace_program]()
-            res = _download_results_from_dace(
-                config, res, list(args) + list(kwargs.values())
-            )
-        return res
 
-    mode = config.get_orchestrate()
-    if mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]:
-        ndsl_log.info("Building DaCe orchestration")
-        return _build_sdfg(dace_program, sdfg, config, args, kwargs)
+            # NOTE: this will go over declared arguments and closure arguments.
+            # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
+            # function that expects all pointers to have been made C worthy. This is
+            # something we did with "FrozenCompileSDFG" but we undid because it meant that
+            # external changing memory (reallocation...) would quietly fail
+            with config.performance_collector.timestep_timer.clock(
+                f"{dace_program.name}.ArgMarshalling"
+            ):
+                current_sdfg_args = dace_program._create_sdfg_args(
+                    config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
+                )
 
-    if mode == DaCeOrchestration.Run:
-        # We should never hit this, it should be caught by the
-        # loaded_precompiled_SDFG check above
-        raise RuntimeError("Unexpected call - pre-compiled SDFG failed to load")
-    else:
-        raise NotImplementedError(f"Mode '{mode}' unimplemented at call time")
+            with config.performance_collector.timestep_timer.clock(
+                f"{dace_program.name}.Runtime"
+            ):
+                results = config.loaded_precompiled_SDFG[dace_program](
+                    **current_sdfg_args
+                )
+
+    config.performance_collector.collect_performance()
+
+    return _download_results_from_dace(config, results)
 
 
 def _parse_sdfg(
     dace_program: DaceProgram,
     config: DaceConfig,
-    *args,
-    **kwargs,
-) -> Optional[dace.SDFG]:
+    *args: Any,
+    **kwargs: Any,
+) -> SDFG | CompiledSDFG | None:
     """Return an SDFG depending on cache existence.
     Either parses, load a .sdfg or load .so (as a compiled sdfg)
 
@@ -288,6 +365,7 @@ def _parse_sdfg(
                 **kwargs,
                 save=False,
                 simplify=False,
+                validate=False,  # TODO: should we have a "debug flag" to turn this on?
             )
         return sdfg
 
@@ -298,9 +376,7 @@ def _parse_sdfg(
 
     with DaCeProgress(config, "Load precompiled .sdfg (.so)"):
         compiledSDFG, _ = dace_program.load_precompiled_sdfg(sdfg_path, *args, **kwargs)
-        config.loaded_precompiled_SDFG[dace_program] = FrozenCompiledSDFG(
-            dace_program, compiledSDFG, args, kwargs
-        )
+        config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
     return compiledSDFG
 
 
@@ -313,13 +389,13 @@ class _LazyComputepathFunction(SDFGConvertible):
                    that will be compiled but not regenerated.
     """
 
-    def __init__(self, func: Callable, config: DaceConfig):
+    def __init__(self, func: Callable, config: DaceConfig) -> None:
         self.func = func
         self.config = config
-        self.daceprog: DaceProgram = dace.program(self.func)
+        self.daceprog: DaceProgram = dace_program(self.func)
         self._sdfg = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         assert self.config.is_dace_orchestrated()
         sdfg = _parse_sdfg(
             self.daceprog,
@@ -336,23 +412,23 @@ class _LazyComputepathFunction(SDFGConvertible):
         )
 
     @property
-    def global_vars(self):
+    def global_vars(self):  # type: ignore[no-untyped-def]
         return self.daceprog.global_vars
 
     @global_vars.setter
-    def global_vars(self, value):
+    def global_vars(self, value):  # type: ignore[no-untyped-def]
         self.daceprog.global_vars = value
 
-    def __sdfg__(self, *args, **kwargs):
+    def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return _parse_sdfg(self.daceprog, self.config, *args, **kwargs)
 
-    def __sdfg_closure__(self, *args, **kwargs):
+    def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return self.daceprog.__sdfg_closure__(*args, **kwargs)
 
-    def __sdfg_signature__(self):
+    def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
         return self.daceprog.argnames, self.daceprog.constant_args
 
-    def closure_resolver(self, constant_args, given_args, parent_closure=None):
+    def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
         return self.daceprog.closure_resolver(constant_args, given_args, parent_closure)
 
 
@@ -367,24 +443,26 @@ class _LazyComputepathMethod:
 
     # In order to not regenerate SDFG for the same obj.method callable
     # we cache the SDFGEnabledCallable we have already init
-    bound_callables: Dict[Tuple[int, int], "SDFGEnabledCallable"] = dict()
+    bound_callables: dict[tuple[int, int], SDFGEnabledCallable] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
-        def __init__(self, lazy_method: "_LazyComputepathMethod", obj_to_bind):
-            methodwrapper = dace.method(lazy_method.func)
+        def __init__(
+            self, lazy_method: _LazyComputepathMethod, obj_to_bind: object
+        ) -> None:
+            methodwrapper = dace_method(lazy_method.func)
             self.obj_to_bind = obj_to_bind
             self.lazy_method = lazy_method
             self.daceprog: DaceProgram = methodwrapper.__get__(obj_to_bind)
 
         @property
-        def global_vars(self):
+        def global_vars(self):  # type: ignore[no-untyped-def]
             return self.daceprog.global_vars
 
         @global_vars.setter
-        def global_vars(self, value):
+        def global_vars(self, value):  # type: ignore[no-untyped-def]
             self.daceprog.global_vars = value
 
-        def __call__(self, *args, **kwargs):
+        def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             assert self.lazy_method.config.is_dace_orchestrated()
             sdfg = _parse_sdfg(
                 self.daceprog,
@@ -400,16 +478,16 @@ class _LazyComputepathMethod:
                 kwargs,
             )
 
-        def __sdfg__(self, *args, **kwargs):
+        def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             return _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
 
-        def __sdfg_closure__(self, reevaluate=None):
+        def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
             return self.daceprog.__sdfg_closure__(reevaluate)
 
-        def __sdfg_signature__(self):
+        def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
             return self.daceprog.argnames, self.daceprog.constant_args
 
-        def closure_resolver(self, constant_args, given_args, parent_closure=None):
+        def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
             return self.daceprog.closure_resolver(
                 constant_args, given_args, parent_closure
             )
@@ -418,13 +496,13 @@ class _LazyComputepathMethod:
         self.func = func
         self.config = config
 
-    def __get__(self, obj, objtype=None) -> SDFGEnabledCallable:
+    def __get__(self, obj: object, objtype: Any = None) -> SDFGEnabledCallable:
         """Return SDFGEnabledCallable wrapping original obj.method from cache.
         Update cache first if need be"""
         if (id(obj), id(self.func)) not in _LazyComputepathMethod.bound_callables:
-            _LazyComputepathMethod.bound_callables[
-                (id(obj), id(self.func))
-            ] = _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))] = (
+                _LazyComputepathMethod.SDFGEnabledCallable(self, obj)
+            )
 
         return _LazyComputepathMethod.bound_callables[(id(obj), id(self.func))]
 
@@ -432,10 +510,10 @@ class _LazyComputepathMethod:
 def orchestrate(
     *,
     obj: object,
-    config: Optional[DaceConfig],
+    config: DaceConfig,
     method_to_orchestrate: str = "__call__",
-    dace_compiletime_args: Optional[Sequence[str]] = None,
-):
+    dace_compiletime_args: Sequence[str] | None = None,
+) -> None:
     """
     Orchestrate a method of an object with DaCe.
     The method object is patched in place, replacing the original Callable with
@@ -449,83 +527,85 @@ def orchestrate(
         dace_compiletime_args: list of names of arguments to be flagged has
                                dace.compiletime for orchestration to behave
     """
+    if not config.is_dace_orchestrated():
+        return
+
     if config is None:
         raise ValueError("DaCe config cannot be None")
+
+    if not hasattr(obj, method_to_orchestrate):
+        raise RuntimeError(
+            f"Could not orchestrate, "
+            f"{type(obj).__name__}.{method_to_orchestrate} "
+            "does not exist."
+        )
 
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    if config.is_dace_orchestrated():
-        if not hasattr(obj, method_to_orchestrate):
-            raise RuntimeError(
-                f"Could not orchestrate, "
-                f"{type(obj).__name__}.{method_to_orchestrate} "
-                "does not exists"
-            )
+    func = type.__getattribute__(type(obj), method_to_orchestrate)
 
-        func = type.__getattribute__(type(obj), method_to_orchestrate)
+    # Flag argument as dace.constant
+    for argument in dace_compiletime_args:
+        func.__annotations__[argument] = DaceCompiletime
 
-        # Flag argument as dace.constant
-        for argument in dace_compiletime_args:
-            func.__annotations__[argument] = DaceCompiletime
+    # Build DaCe orchestrated wrapper
+    # This is a JIT object, e.g. DaCe compilation will happen on call
+    wrapped = _LazyComputepathMethod(func, config).__get__(obj)
 
-        # Build DaCe orchestrated wrapper
-        # This is a JIT object, e.g. DaCe compilation will happen on call
-        wrapped = _LazyComputepathMethod(func, config).__get__(obj)
+    if method_to_orchestrate == "__call__":
+        # Grab the function from the type of the child class
+        # Dev note: we need to use type for dunder call because:
+        #   a = A()
+        #   a()
+        # resolved to: type(a).__call__(a)
+        # therefore patching the instance call (e.g a.__call__) is not enough.
+        # We could patch the type(self), ergo the class itself
+        # but that would patch _every_ instance of A.
+        # What we can do is patch the instance.__class__ with a local made class
+        # in order to keep each instance with it's own patch.
+        #
+        # Re: type:ignore
+        # Mypy is unhappy about dynamic class name and the devs (per github
+        # issues discussion) is to make a plugin. Too much work -> ignore mypy
 
-        if method_to_orchestrate == "__call__":
-            # Grab the function from the type of the child class
-            # Dev note: we need to use type for dunder call because:
-            #   a = A()
-            #   a()
-            # resolved to: type(a).__call__(a)
-            # therefore patching the instance call (e.g a.__call__) is not enough.
-            # We could patch the type(self), ergo the class itself
-            # but that would patch _every_ instance of A.
-            # What we can do is patch the instance.__class__ with a local made class
-            # in order to keep each instance with it's own patch.
-            #
-            # Re: type:ignore
-            # Mypy is unhappy about dynamic class name and the devs (per github
-            # issues discussion) is to make a plugin. Too much work -> ignore mypy
+        class _(type(obj)):  # type: ignore
+            __qualname__ = f"{type(obj).__qualname__}_patched"
+            __name__ = f"{type(obj).__name__}_patched"
 
-            class _(type(obj)):  # type: ignore
-                __qualname__ = f"{type(obj).__qualname__}_patched"
-                __name__ = f"{type(obj).__name__}_patched"
+            def __call__(self, *arg, **kwarg):  # type: ignore[no-untyped-def]
+                return wrapped(*arg, **kwarg)
 
-                def __call__(self, *arg, **kwarg):
-                    return wrapped(*arg, **kwarg)
+            def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+                sdfg = wrapped.__sdfg__(*args, **kwargs)
+                sdfg.validate()
+                return sdfg
 
-                def __sdfg__(self, *args, **kwargs):
-                    return wrapped.__sdfg__(*args, **kwargs)
+            def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
+                return wrapped.__sdfg_closure__(reevaluate)
 
-                def __sdfg_closure__(self, reevaluate=None):
-                    return wrapped.__sdfg_closure__(reevaluate)
+            def __sdfg_signature__(self):  # type: ignore[no-untyped-def]
+                return wrapped.__sdfg_signature__()
 
-                def __sdfg_signature__(self):
-                    return wrapped.__sdfg_signature__()
+            def closure_resolver(self, constant_args, given_args, parent_closure=None):  # type: ignore[no-untyped-def]
+                return wrapped.closure_resolver(
+                    constant_args, given_args, parent_closure
+                )
 
-                def closure_resolver(
-                    self, constant_args, given_args, parent_closure=None
-                ):
-                    return wrapped.closure_resolver(
-                        constant_args, given_args, parent_closure
-                    )
-
-            # We keep the original class type name to not perturb
-            # the workflows that uses it to build relevant info (path, hash...)
-            previous_cls_name = type(obj).__name__
-            obj.__class__ = _
-            type(obj).__name__ = previous_cls_name
-        else:
-            # For regular attribute - we can just patch as usual
-            setattr(obj, method_to_orchestrate, wrapped)
+        # We keep the original class type name to not perturb
+        # the workflows that uses it to build relevant info (path, hash...)
+        previous_cls_name = type(obj).__name__
+        obj.__class__ = _
+        type(obj).__name__ = previous_cls_name
+    else:
+        # For regular attribute - we can just patch as usual
+        setattr(obj, method_to_orchestrate, wrapped)
 
 
 def orchestrate_function(
-    config: DaceConfig = None,
-    dace_compiletime_args: Optional[Sequence[str]] = None,
-) -> Union[Callable[..., Any], _LazyComputepathFunction]:
+    config: DaceConfig,
+    dace_compiletime_args: Sequence[str] | None = None,
+) -> Callable[..., Any] | _LazyComputepathFunction:
     """
     Decorator orchestrating a method of an object with DaCe.
     If the model configuration doesn't demand orchestration, this won't do anything.
@@ -539,8 +619,8 @@ def orchestrate_function(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    def _decorator(func: Callable[..., Any]):
-        def _wrapper(*args, **kwargs):
+    def _decorator(func: Callable[..., Any]):  # type: ignore[no-untyped-def]
+        def _wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
             for argument in dace_compiletime_args:
                 func.__annotations__[argument] = DaceCompiletime
             return _LazyComputepathFunction(func, config)
