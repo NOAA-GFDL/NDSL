@@ -6,6 +6,7 @@ import hashlib
 from collections.abc import Callable, Hashable, Iterable, Sequence
 from typing import Any, Self
 
+from gt4py.cartesian.backend import from_name as check_backend_existence
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
 from ndsl.comm.communicator import Communicator
@@ -43,6 +44,7 @@ class CompilationConfig:
         if "gpu" not in backend and device_sync is True:
             raise RuntimeError("Device sync is true on a CPU based backend")
         # GT4Py backend args
+        check_backend_existence(backend)
         self.backend = backend
         self.rebuild = rebuild
         self.validate_args = validate_args

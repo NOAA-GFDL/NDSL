@@ -313,24 +313,38 @@ def test_frozen_field_after_parameter() -> None:
     )
 
 
+@pytest.mark.parametrize("backend", ("numpy", "gt:gpu"))
 def test_backend_options(
+    backend: str,
     rebuild: bool = True,
     validate_args: bool = True,
 ) -> None:
-    backend = "numpy"
     expected_options = {
-        "backend": "numpy",
-        "rebuild": True,
-        "format_source": False,
-        "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
+        "numpy": {
+            "backend": "numpy",
+            "rebuild": True,
+            "format_source": False,
+            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
+        },
+        "gt:gpu": {
+            "backend": "gt:gpu",
+            "rebuild": True,
+            "device_sync": False,
+            "format_source": False,
+            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
+        },
     }
 
     actual = get_stencil_config(
-        backend=backend,
-        rebuild=rebuild,
-        validate_args=validate_args,
+        backend=backend, rebuild=rebuild, validate_args=validate_args
     ).stencil_kwargs(func=copy_stencil)
-    assert actual == expected_options
+    expected = expected_options[backend]
+    assert actual == expected
+
+
+def test_illegal_backend_options():
+    with pytest.raises(ValueError):
+        get_stencil_config(backend="illegal")
 
 
 def get_mock_quantity():
