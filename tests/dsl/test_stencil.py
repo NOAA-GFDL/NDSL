@@ -156,3 +156,28 @@ def test_stencil_2D_temporaries() -> None:
     )
     stencil(quantity)
     assert (quantity.data[1, 1, :] == 21.0).all()
+
+
+@pytest.mark.parametrize(
+    "iterations",
+    [2, 1],
+)
+def test_validation_call_count(iterations: tuple[int]):
+    domain = (2, 2, 5)
+    quantity = Quantity(np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain)
+    stencil_config = StencilConfig(
+        compilation_config=CompilationConfig(backend="numpy", rebuild=True)
+    )
+    stencil = FrozenStencil(
+        copy_stencil,
+        origin=(0, 0, 0),
+        domain=domain,
+        stencil_config=stencil_config,
+    )
+    # with expectation:
+    counting_mock = MagicMock()
+    with patch.object(FrozenStencil, "_validate_quantity_sizes", counting_mock):
+        for _i in range(iterations):
+            stencil(quantity, quantity)
+
+    assert counting_mock.call_count == 1
