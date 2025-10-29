@@ -290,6 +290,8 @@ class FrozenStencil(SDFGConvertible):
         else:
             self._timing_collector = timing_collector
 
+        self.arguments_already_checked = False
+
         if externals is None:
             externals = {}
         self.externals = externals
@@ -406,7 +408,12 @@ class FrozenStencil(SDFGConvertible):
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
 
-        self._validate_quantity_sizes(*args, **kwargs)
+        if (
+            not self.arguments_already_checked
+            and self.stencil_config.compilation_config.validate_args
+        ):
+            self._validate_quantity_sizes(*args, **kwargs)
+            self.arguments_already_checked = True
 
         # Marshal arguments
         args_list = list(args)
@@ -430,7 +437,10 @@ class FrozenStencil(SDFGConvertible):
             ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
-        if self.stencil_config.compilation_config.validate_args:
+        if (
+            not self.arguments_already_checked
+            and self.stencil_config.compilation_config.validate_args
+        ):
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
             if __debug__ and "domain" in kwargs:
