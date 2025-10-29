@@ -5,7 +5,7 @@ from .caching_comm import (
     CachingRequestReader,
     CachingRequestWriter,
 )
-from .comm_abc import Comm, Request
+from .comm_abc import Comm, ReductionOperator, Request
 
 
 __all__ = [
@@ -15,5 +15,6 @@ __all__ = [
     "CachingRequestReader",
     "CachingRequestWriter",
     "Comm",
+    "ReductionOperator",
     "Request",
 ]
