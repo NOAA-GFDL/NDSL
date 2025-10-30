@@ -58,7 +58,7 @@ def test_set_hybrid_pressure_coefficients_correct(levels):
         tile_rank=communicator.tile.rank,
     )
 
-    quantity_factory = QuantityFactory.from_backend(sizer=sizer, backend=backend)
+    quantity_factory = QuantityFactory(sizer, backend=backend)
 
     metric_terms = MetricTerms(
         quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file
@@ -106,7 +106,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         tile_rank=communicator.tile.rank,
     )
 
-    quantity_factory = QuantityFactory.from_backend(sizer=sizer, backend=backend)
+    quantity_factory = QuantityFactory(sizer, backend=backend)
 
     with pytest.raises(ValueError, match=f"eta file {eta_file} does not exist"):
         MetricTerms(
@@ -149,7 +149,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
         tile_rank=communicator.tile.rank,
     )
 
-    quantity_factory = QuantityFactory.from_backend(sizer=sizer, backend=backend)
+    quantity_factory = QuantityFactory(sizer, backend=backend)
 
     with pytest.raises(ValueError, match="ETA values are not monotonically increasing"):
         MetricTerms(

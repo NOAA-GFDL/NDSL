@@ -502,7 +502,7 @@ class MetricTerms:
             n_halo=N_HALO_DEFAULT,
             layout=communicator.partitioner.tile.layout,
         )
-        quantity_factory = QuantityFactory.from_backend(sizer, backend=backend)
+        quantity_factory = QuantityFactory(sizer, backend=backend)
         return cls(
             quantity_factory=quantity_factory,
             communicator=communicator,
