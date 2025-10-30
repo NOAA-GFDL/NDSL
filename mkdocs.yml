@@ -24,7 +24,6 @@ nav:
           - "boilerplate": docstrings/top/boilerplate.md
           - "buffer": docstrings/top/buffer.md
           - "constants": docstrings/top/constants.md
-          - "exceptions": docstrings/top/exceptions.md
           - "filesystem": docstrings/top/filesystem.md
           - "io": docstrings/top/io.md
           - "logging": docstrings/top/logging.md
