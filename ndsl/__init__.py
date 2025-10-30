@@ -23,7 +23,6 @@ from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
 from .monitor.netcdf_monitor import NetCDFMonitor
-from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
@@ -70,7 +69,6 @@ __all__ = [
     "SubtileGridSizer",
     "ndsl_log",
     "NetCDFMonitor",
-    "Namelist",
     "NullPerformanceCollector",
     "PerformanceCollector",
     "NullProfiler",

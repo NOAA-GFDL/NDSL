@@ -19,8 +19,6 @@ from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 
-# TODO: Remove NdslNamelist import after Issue#64 is resolved.
-from ndsl.namelist import Namelist as NdslNamelist
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.parallel_translate import ParallelTranslate
 from ndsl.stencils.testing.savepoint import SavepointCase, Translate, dataset_to_dict
@@ -335,12 +333,6 @@ def _savepoint_cases(
             grid_indexing=grid.grid_indexing,
         )
         for test_name in sorted(list(savepoint_names)):
-            # Temporary check (Issue#64): TODO Remove check and conversion from
-            # f90nml.Namelist to ndsl.Namelist after ndsl.Namelist is removed
-            if use_legacy_namelist and not isinstance(namelist, NdslNamelist):
-                assert isinstance(namelist, Namelist)
-                namelist = NdslNamelist.from_f90nml(namelist)
-
             testobj = get_test_class_instance(
                 test_name, grid, namelist, stencil_factory
             )
