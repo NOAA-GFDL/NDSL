@@ -42,7 +42,7 @@ from ndsl.dsl.dace.utils import (
 )
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
-from ndsl.quantity import Local, Quantity, State
+from ndsl.quantity import Quantity, State
 
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
@@ -551,7 +551,7 @@ def orchestrate(
         func.__annotations__[argument] = DaceCompiletime
 
     for arg_name, annotation in func.__annotations__.items():
-        if isinstance(annotation, Quantity | Local) or issubclass(annotation, State):
+        if annotation in [Quantity, State] or issubclass(annotation, State):
             func.__annotations__[arg_name] = DaceCompiletime
 
     # Build DaCe orchestrated wrapper
