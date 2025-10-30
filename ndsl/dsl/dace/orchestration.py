@@ -551,7 +551,9 @@ def orchestrate(
         func.__annotations__[argument] = DaceCompiletime
 
     for arg_name, annotation in func.__annotations__.items():
-        if annotation in [Quantity, State] or issubclass(annotation, State):
+        if annotation in [Quantity, State] or (
+            isinstance(annotation, type) and issubclass(annotation, State)
+        ):
             func.__annotations__[arg_name] = DaceCompiletime
 
     # Build DaCe orchestrated wrapper
