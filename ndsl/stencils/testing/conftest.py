@@ -19,8 +19,6 @@ from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl.dace.dace_config import DaceConfig
 
-# TODO: Remove NdslNamelist import after Issue#64 is resolved.
-from ndsl.namelist import Namelist as NdslNamelist
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.parallel_translate import ParallelTranslate
 from ndsl.stencils.testing.savepoint import SavepointCase, Translate, dataset_to_dict
@@ -82,7 +80,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--no_legacy_namelist",
         action="store_true",
         default=False,
-        help="Removes support for `ndsl.Namelist` in translate tests (which we are trying to get rid off, see NDSL issue #64). Defaults to False.",
+        help="Temporary flag introduced as part of  NDSL issue #64. No functionality. Soon to be removed.",
     )
     parser.addoption(
         "--grid",
@@ -268,9 +266,6 @@ def sequential_savepoint_cases(
     sort_report = metafunc.config.getoption("sort_report")
     no_report = metafunc.config.getoption("no_report")
 
-    # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
-    use_legacy_namelist = not metafunc.config.getoption("no_legacy_namelist")
-
     return _savepoint_cases(
         savepoint_names,
         ranks,
@@ -283,7 +278,6 @@ def sequential_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        use_legacy_namelist=use_legacy_namelist,  # Issue#64: tmp flag
     )
 
 
@@ -299,7 +293,6 @@ def _savepoint_cases(
     topology_mode: str,
     sort_report: str,
     no_report: bool,
-    use_legacy_namelist: bool,  # Issue#64: tmp flag
 ) -> list[SavepointCase]:
     grid_params = grid_params_from_f90nml(namelist)
     return_list = []
@@ -335,12 +328,6 @@ def _savepoint_cases(
             grid_indexing=grid.grid_indexing,
         )
         for test_name in sorted(list(savepoint_names)):
-            # Temporary check (Issue#64): TODO Remove check and conversion from
-            # f90nml.Namelist to ndsl.Namelist after ndsl.Namelist is removed
-            if use_legacy_namelist and not isinstance(namelist, NdslNamelist):
-                assert isinstance(namelist, Namelist)
-                namelist = NdslNamelist.from_f90nml(namelist)
-
             testobj = get_test_class_instance(
                 test_name, grid, namelist, stencil_factory
             )
@@ -402,9 +389,6 @@ def parallel_savepoint_cases(
     grid_mode = metafunc.config.getoption("grid")
     savepoint_to_replay = get_savepoint_restriction(metafunc)
 
-    # Temporary flag (Issue#64): TODO Remove once ndsl.Namelist is gone.
-    use_legacy_namelist = not metafunc.config.getoption("no_legacy_namelist")
-
     return _savepoint_cases(
         savepoint_names,
         [mpi_rank],
@@ -417,7 +401,6 @@ def parallel_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
-        use_legacy_namelist=use_legacy_namelist,  # Issue#64: tmp flag
     )
 
 
