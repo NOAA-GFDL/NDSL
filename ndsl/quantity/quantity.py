@@ -255,18 +255,6 @@ class Quantity:
         return self.metadata.dims
 
     @property
-    def values(self) -> np.ndarray:
-        warnings.warn(
-            "values exists only for backwards-compatibility with "
-            "DataArray and will be removed, use .view[:] instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return_array = np.asarray(self.view[:])
-        return_array.flags.writeable = False
-        return return_array
-
-    @property
     def view(self) -> BoundedArrayView:
         """A view into the computational domain of the underlying data"""
         return self._compute_domain_view
