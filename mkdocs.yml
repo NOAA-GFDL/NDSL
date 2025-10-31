@@ -31,7 +31,6 @@ nav:
           - "optional_imports": docstrings/top/optional_imports.md
           - "types": docstrings/top/types.md
           - "typing": docstrings/top/typing.md
-          - "units": docstrings/top/units.md
           - "utils": docstrings/top/utils.md
       - checkpointer:
           - "base": docstrings/checkpointer/base.md
