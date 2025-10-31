@@ -80,11 +80,15 @@ class LegacyMetric(BaseMetric):
             # Avoid division by 0. If reference is 0, we expect the computed value to be 0 too.
             # (abs(computed - reference) / 1.0) is a good value for the error in this case.
             denom[self.references == 0] = 1.0
-            self._calculated_metric = np.asarray(np.abs((self.computed - self.references) / denom))
+            self._calculated_metric = np.asarray(
+                np.abs((self.computed - self.references) / denom)
+            )
         elif self.references.dtype in (np.bool_, bool):
             self._calculated_metric = np.logical_xor(self.computed, self.references)
         else:
-            raise TypeError(f"Received data with unexpected dtype `{self.references.dtype}`.")
+            raise TypeError(
+                f"Received data with unexpected dtype `{self.references.dtype}`."
+            )
         success = np.logical_or(
             np.logical_and(np.isnan(self.computed), np.isnan(self.references)),
             self._calculated_metric < self.eps,
@@ -256,15 +260,23 @@ class MultiModalFloatMetric(BaseMetric):
         self,
     ) -> npt.NDArray[np.bool_]:
         if self.references.dtype in (np.float64, np.int64, np.float32, np.int32):
-            max_values = np.maximum(np.absolute(self.computed), np.absolute(self.references))
+            max_values = np.maximum(
+                np.absolute(self.computed), np.absolute(self.references)
+            )
             # Absolute distance
             self.absolute_distance = np.absolute(self.computed - self.references)
-            self.absolute_distance_metric = self.absolute_distance < self.absolute_eps.value
+            self.absolute_distance_metric = (
+                self.absolute_distance < self.absolute_eps.value
+            )
             # Relative distance (in pct)
             self.relative_distance = np.divide(self.absolute_distance, max_values)
-            self.relative_distance_metric = self.absolute_distance < self.relative_fraction.value * max_values
+            self.relative_distance_metric = (
+                self.absolute_distance < self.relative_fraction.value * max_values
+            )
             # ULP distance
-            self.ulp_distance = np.divide(self.absolute_distance, np.spacing(max_values))
+            self.ulp_distance = np.divide(
+                self.absolute_distance, np.spacing(max_values)
+            )
             self.ulp_distance_metric = self.ulp_distance <= self.ulp_threshold.value
 
             # Combine all distances into success or failure
@@ -273,8 +285,12 @@ class MultiModalFloatMetric(BaseMetric):
             # - absolute distance pass OR
             # - relative distance pass OR
             # - ulp distance pass
-            naninf_success = np.logical_and(np.isnan(self.computed), np.isnan(self.references))
-            metric_success = np.logical_or(self.relative_distance_metric, self.absolute_distance_metric)
+            naninf_success = np.logical_and(
+                np.isnan(self.computed), np.isnan(self.references)
+            )
+            metric_success = np.logical_or(
+                self.relative_distance_metric, self.absolute_distance_metric
+            )
             metric_success = np.logical_or(metric_success, self.ulp_distance_metric)
             success = np.logical_or(naninf_success, metric_success)
             return success
@@ -282,7 +298,9 @@ class MultiModalFloatMetric(BaseMetric):
             success = np.logical_xor(self.computed, self.references)
             return success
         else:
-            raise TypeError(f"received data with unexpected dtype {self.references.dtype}")
+            raise TypeError(
+                f"received data with unexpected dtype {self.references.dtype}"
+            )
 
     def _has_override(self) -> bool:
         return (
@@ -292,13 +310,9 @@ class MultiModalFloatMetric(BaseMetric):
         )
 
     def one_line_report(self) -> str:
-        metric_thresholds = (
-            f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
-        )
+        metric_thresholds = f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
         metric_thresholds += f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
-        metric_thresholds += (
-            f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})"
-        )
+        metric_thresholds += f"{'🔶 ' if not self.ulp_threshold.is_default else ''}ULP E(<{self.ulp_threshold.value})"
         if self.check and self._has_override():
             return f"🔶 No numerical differences with threshold override - metric: {metric_thresholds}"
         elif self.check:
@@ -306,9 +320,7 @@ class MultiModalFloatMetric(BaseMetric):
         else:
             failed_indices = len(np.logical_not(self.success).nonzero()[0])
             all_indices = len(self.references.flatten())
-            return (
-                f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
-            )
+            return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
     def report(self, file_path: str | None = None) -> list[str]:
         report = []
@@ -335,13 +347,17 @@ class MultiModalFloatMetric(BaseMetric):
         elif self.sort_report == "index":
             indices_flatten = list(range(self.ulp_distance.size - 1, -1, -1))
         else:
-            RuntimeError(f"[Translate test] Unknown {self.sort_report} report sorting option.")
+            RuntimeError(
+                f"[Translate test] Unknown {self.sort_report} report sorting option."
+            )
         for iFlat in indices_flatten[::-1]:
             fi = np.unravel_index(iFlat, shape=self.ulp_distance.shape)
             if np.isnan(self.computed[fi]) and np.isnan(self.references[fi]):
                 continue
             ulp_dist = (
-                self.ulp_distance[fi] if np.isnan(self.ulp_distance[fi]) else int(self.ulp_distance[fi])
+                self.ulp_distance[fi]
+                if np.isnan(self.ulp_distance[fi])
+                else int(self.ulp_distance[fi])
             )
             index_as_string = "("
             for i in fi:
