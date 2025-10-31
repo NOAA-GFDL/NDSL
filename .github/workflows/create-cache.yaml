@@ -14,7 +14,7 @@ on:
 
 # Cancel running jobs if there's a newer push
 concurrency:
-  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  group: ndsl-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -45,8 +45,8 @@ jobs:
 
   # GitHub Actions cache of pyFV3 test data
   pyFV3_test_data:
-    uses: NOAA-GFDL/pyFV3/.github/workflows/create_cache.yml@develop
+    uses: NOAA-GFDL/pyFV3/.github/workflows/create_cache.yaml@develop
 
   # GitHub Actions cache of pySHiELD test data
   pySHiELD_test_data:
-    uses: NOAA-GFDL/pySHiELD/.github/workflows/create_cache.yml@develop
+    uses: NOAA-GFDL/pySHiELD/.github/workflows/create_cache.yaml@develop
