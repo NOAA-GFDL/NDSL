@@ -42,6 +42,7 @@ from ndsl.dsl.dace.utils import (
 )
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+from ndsl.quantity import Quantity, State
 
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
@@ -543,11 +544,17 @@ def orchestrate(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    func = type.__getattribute__(type(obj), method_to_orchestrate)
+    func: Callable = type.__getattribute__(type(obj), method_to_orchestrate)
 
     # Flag argument as dace.constant
     for argument in dace_compiletime_args:
         func.__annotations__[argument] = DaceCompiletime
+
+    for arg_name, annotation in func.__annotations__.items():
+        if annotation in [Quantity, State] or (
+            isinstance(annotation, type) and issubclass(annotation, State)
+        ):
+            func.__annotations__[arg_name] = DaceCompiletime
 
     # Build DaCe orchestrated wrapper
     # This is a JIT object, e.g. DaCe compilation will happen on call
