@@ -292,6 +292,7 @@ class MultiModalFloatMetric(BaseMetric):
                 self.relative_distance_metric, self.absolute_distance_metric
             )
             metric_success = np.logical_or(metric_success, self.ulp_distance_metric)
+            metric_success = self.ulp_distance_metric
             success = np.logical_or(naninf_success, metric_success)
             return success
         elif self.references.dtype in (np.bool_, bool):

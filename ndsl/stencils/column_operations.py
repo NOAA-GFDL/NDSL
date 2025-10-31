@@ -1,8 +1,11 @@
+import typing
+
 from ndsl.dsl.gt4py import function
 
 
+@typing.no_type_check
 @function
-def column_max(field, start_index, end_index):  # type: ignore
+def column_max(field, start_index, end_index):
     """
     Find the maximum value for a full or slice of a column.
 
@@ -25,8 +28,9 @@ def column_max(field, start_index, end_index):  # type: ignore
     return field.at(K=max_index), max_index
 
 
+@typing.no_type_check
 @function
-def column_min(field, start_index, end_index):  # type: ignore
+def column_min(field, start_index, end_index):
     """
     Find the minimum value for a full or slice of a column.
 
