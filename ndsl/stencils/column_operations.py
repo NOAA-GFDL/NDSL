@@ -2,7 +2,7 @@ from ndsl.dsl.gt4py import function
 
 
 @function
-def column_max(field, start_index, end_index):
+def column_max(field, start_index, end_index):  # type: ignore
     """
     Find the maximum value for a full or slice of a column.
 
@@ -20,13 +20,13 @@ def column_max(field, start_index, end_index):
         old = field.at(K=max_index)
         if new > old:
             max_index = level
-            level += 1
+        level += 1
 
     return field.at(K=max_index), max_index
 
 
 @function
-def column_min(field, start_index, end_index):
+def column_min(field, start_index, end_index):  # type: ignore
     """
     Find the minimum value for a full or slice of a column.
 
@@ -42,8 +42,8 @@ def column_min(field, start_index, end_index):
     while level <= end_index:
         new = field.at(K=level)
         old = field.at(K=min_index)
-        if new > old:
+        if new < old:
             min_index = level
-            level += 1
+        level += 1
 
     return field.at(K=min_index), min_index
