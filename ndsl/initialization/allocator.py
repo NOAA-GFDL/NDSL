@@ -47,18 +47,6 @@ class QuantityFactory:
 
         self._allocator = _Allocator(self.backend)
 
-    def set_extra_dim_lengths(self, **kwargs: Any) -> None:
-        """
-        Set the length of extra (non-x/y/z) dimensions.
-        """
-        warnings.warn(
-            "`QuantityFactory.set_extra_dim_lengths` is deprecated. "
-            "Use `add_data_dimensions` or `update_data_dimensions`.",
-            DeprecationWarning,
-            2,
-        )
-        self.sizer.data_dimensions.update(kwargs)
-
     def update_data_dimensions(
         self,
         data_dimension_descriptions: dict[str, int],
