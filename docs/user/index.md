@@ -12,13 +12,13 @@ NDSL tries to have sensible defaults. In cases you want tweak something, here ar
 
 ### Literal precision (float/int)
 
-Unspecified integer and floating point literals (e.g. `42` and `3.1415`) default to 64-bit precision. This can be changed with the environment variable `PACE_FLOAT_PRECISION`.
+Unspecified integer and floating point literals (e.g. `42` and `3.1415`) default to 64-bit precision. This can be changed with the environment variable `NDSL_LITERAL_PRECISION`.
 
 For mixed precision code, you can specify the "hard coded" precision with type hints and casts, e.g.
 
 ```python
 with computation(PARALLEL), interval(...):
-    # Either 32-bit or 64-bit depending on `PACE_FLOAT_PRECISION`
+    # Either 32-bit or 64-bit depending on `NDSL_LITERAL_PRECISION`
     my_int = 42
     my_float = 3.1415
 
