@@ -1,15 +1,7 @@
 import numpy as np
 
-from ndsl import (
-    CompilationConfig,
-    DaceConfig,
-    DaCeOrchestration,
-    GridIndexing,
-    Quantity,
-    RunMode,
-    StencilConfig,
-    StencilFactory,
-)
+from ndsl import StencilFactory
+from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
@@ -22,36 +14,9 @@ nz = 10
 nhalo = 0
 backend = "dace:cpu"
 
-dace_config = DaceConfig(
-    communicator=None, backend=backend, orchestration=DaCeOrchestration.Python
+stencil_factory, quantity_factory = get_factories_single_tile(
+    nx, ny, nz, nhalo, backend
 )
-
-compilation_config = CompilationConfig(
-    backend=backend,
-    rebuild=True,
-    validate_args=True,
-    format_source=False,
-    device_sync=False,
-    run_mode=RunMode.BuildAndRun,
-    use_minimal_caching=False,
-)
-
-stencil_config = StencilConfig(
-    compare_to_numpy=False,
-    compilation_config=compilation_config,
-    dace_config=dace_config,
-)
-
-grid_indexing = GridIndexing(
-    domain=(nx, ny, nz),
-    n_halo=nhalo,
-    south_edge=True,
-    north_edge=True,
-    west_edge=True,
-    east_edge=True,
-)
-
-stencil_factory = StencilFactory(config=stencil_config, grid_indexing=grid_indexing)
 
 
 class ColumnOperations:
@@ -96,11 +61,7 @@ class ColumnOperations:
 
 
 def test_column_operations():
-    data = Quantity(
-        data=np.zeros([nx, ny, nz]),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="n/a",
-    )
+    data = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "n/a")
     data.field[:] = [
         47.3821,
         2.9157,
@@ -114,26 +75,10 @@ def test_column_operations():
         7.3504,
     ]
 
-    max_value = Quantity(
-        data=np.zeros([nx, ny]),
-        dims=[X_DIM, Y_DIM],
-        units="n/a",
-    )
-    max_index = Quantity(
-        data=np.zeros([nx, ny]),
-        dims=[X_DIM, Y_DIM],
-        units="n/a",
-    )
-    min_value = Quantity(
-        data=np.zeros([nx, ny]),
-        dims=[X_DIM, Y_DIM],
-        units="n/a",
-    )
-    min_index = Quantity(
-        data=np.zeros([nx, ny]),
-        dims=[X_DIM, Y_DIM],
-        units="n/a",
-    )
+    max_value = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
+    max_index = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
+    min_value = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
+    min_index = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
 
     code = ColumnOperations(stencil_factory)
     print("initalized the class")
