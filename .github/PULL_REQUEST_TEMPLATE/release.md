@@ -1,4 +1,4 @@
-# Release NDSL version `2025.XX.00`
+# Release NDSL version `YYYY.MM.00`
 
 ## Pre-release checklist
 

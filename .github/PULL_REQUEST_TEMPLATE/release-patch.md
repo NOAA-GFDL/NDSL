@@ -1,6 +1,6 @@
-# Release NDSL version `2025.XX.YY`
+# Release NDSL version `YYYY.MM.PP`
 
-This PR patches release `2025.XX.YY` because
+This PR patches release `YYYY.MM.PP` because
 
 1. reason
 2. reason
@@ -17,8 +17,8 @@ Things to do before the patch release. Helps to keep the fallout from this relea
 
 What to do to actually release:
 
-- [x] create this PR to merge changes from `your-hotfix-branch` into `main`
-  - merge as "Merge commit"
+- [x] create this PR to merge changes from `my-patches` into `main`
+  - use "squash merge"
 - [ ] once merged, create a GitHub release and tag the new version
   - version format is `[year].[month].[patch]`. Increase the patch version, e.g. `2025.10.01` if this is patching the `2025.10.00` release.
   - let GitHub auto-generate release notes from the last tagged version
