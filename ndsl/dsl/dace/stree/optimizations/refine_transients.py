@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
 import dace.data
-from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
-    AxisIterator,
-)
+import dace.sdfg.analysis.schedule_tree.treenodes as stree
+
 from ndsl import ndsl_log
+from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
 
 
 def _zero_index_of_tuple(tuple_: tuple[int, ...], index: int) -> tuple[int, ...]:
