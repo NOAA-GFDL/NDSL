@@ -146,6 +146,9 @@ plugins:
           paths: [./ndsl]  # Adjust this path to where your Python modules are
           options:
             show_source: false
+  - exclude:
+      glob:
+        - internal/*
 
 watch:
   # reload when the glossary file is updated
