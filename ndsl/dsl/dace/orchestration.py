@@ -51,7 +51,7 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, State
 
 
-_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = True
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
 
 
