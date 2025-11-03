@@ -221,7 +221,7 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
                 return 0  # Tasklet is a callback
 
         next_index = list_index(nodes, the_tasklet)
-        if next_index == len(nodes):
+        if next_index == len(nodes) - 1:
             return 0  # Last node - done
 
         next_node = nodes[next_index + 1]
@@ -323,7 +323,10 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         nodes: list[stree.ScheduleTreeNode],
     ) -> int:
         if _last_node(nodes, the_map):
-            return 0
+            merged = 0
+            for child in the_map.children:
+                merged += self._merge_node(child, the_map.children)
+            return merged
 
         next_node = _get_next_node(nodes, the_map)
 
