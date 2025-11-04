@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Iterable
 from typing import Self
 
@@ -21,7 +20,6 @@ class SubtileGridSizer(GridSizer):
         data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
-        extra_dim_lengths: dict[str, int] | None = None,
     ) -> Self:
         """Create a SubtileGridSizer from parameters about the full tile.
 
@@ -36,18 +34,10 @@ class SubtileGridSizer(GridSizer):
             tile_partitioner (optional): partitioner object for the tile. By default, a
                 TilePartitioner is created with the given layout
             tile_rank (optional): rank of this subtile.
-            extra_dim_lengths: DEPRECATED API - use `data_dimensions`
         """
         if data_dimensions is None:
             data_dimensions = {}
 
-        if extra_dim_lengths is not None:
-            warnings.warn(
-                "`extra_dim_lengths` is a deprecated name, please use `data_dimensions` instead.",
-                DeprecationWarning,
-                2,
-            )
-            data_dimensions = extra_dim_lengths
         if tile_partitioner is None:
             tile_partitioner = TilePartitioner(layout)
         y_slice, x_slice = tile_partitioner.subtile_slice(
