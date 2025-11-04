@@ -21,6 +21,7 @@ class _TimeChunkedVariable:
         self._dims = initial.dims
         self._units = initial.units
         self._i_time = 1
+        self._backend = initial.metadata.gt4py_backend
 
     def append(self, quantity: Quantity) -> None:
         # Allow mismatch precision here since this is I/O
@@ -37,6 +38,7 @@ class _TimeChunkedVariable:
             dims=("time",) + tuple(self._dims),
             units=self._units,
             allow_mismatch_float_precision=True,
+            gt4py_backend=self._backend,
         )
 
 

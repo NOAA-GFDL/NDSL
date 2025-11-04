@@ -993,7 +993,9 @@ def test_subtile_extent_with_tile_dimensions(
     cubedsphere_expected,
 ):
     data_array = np.zeros((tile_extent))
-    quantity = Quantity(data_array, array_dims, "dimensionless", [0, 0, 0, 0])
+    quantity = Quantity(
+        data_array, array_dims, "dimensionless", [0, 0, 0, 0], gt4py_backend="debug"
+    )
 
     tile_partitioner = TilePartitioner(layout, edge_interior_ratio)
     cubedsphere_partitioner = CubedSpherePartitioner(tile_partitioner)

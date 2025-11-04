@@ -277,6 +277,7 @@ def depth_quantity(
         units=units,
         origin=origin,
         extent=extent,
+        gt4py_backend="debug",
     )
     return quantity
 
@@ -325,6 +326,7 @@ def zeros_quantity(dims, units, origin, extent, shape, numpy, dtype):
         units=units,
         origin=origin,
         extent=extent,
+        gt4py_backend="debug",
     )
     quantity.view[:] = 0.0
     return quantity

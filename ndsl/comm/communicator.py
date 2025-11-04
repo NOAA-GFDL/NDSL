@@ -326,6 +326,7 @@ class Communicator(abc.ABC):
                     dims=quantity.dims,
                     units=quantity.units,
                     allow_mismatch_float_precision=True,
+                    gt4py_backend=quantity.metadata.gt4py_backend,
                 )
                 if recv_state is not None and name in recv_state:
                     tile_quantity = self.gather(

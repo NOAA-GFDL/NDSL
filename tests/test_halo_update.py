@@ -324,6 +324,7 @@ def depth_quantity_list(
             units=units,
             origin=origin,
             extent=extent,
+            gt4py_backend="debug",
         )
         return_list.append(quantity)
     return return_list
@@ -361,6 +362,7 @@ def tile_depth_quantity_list(
             units=units,
             origin=origin,
             extent=extent,
+            gt4py_backend="debug",
         )
         return_list.append(quantity)
     return return_list
@@ -505,6 +507,7 @@ def zeros_quantity_list(total_ranks, dims, units, origin, extent, shape, numpy, 
             units=units,
             origin=origin,
             extent=extent,
+            gt4py_backend="debug",
         )
         quantity.view[:] = 0.0
         return_list.append(quantity)
@@ -526,6 +529,7 @@ def zeros_quantity_tile_list(
             units=units,
             origin=origin,
             extent=extent,
+            gt4py_backend="debug",
         )
         quantity.view[:] = 0.0
         return_list.append(quantity)

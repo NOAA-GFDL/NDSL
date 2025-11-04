@@ -126,6 +126,7 @@ def rank_quantity_list(total_ranks, numpy, dtype):
             units="m",
             origin=(1, 1),
             extent=(1, 1),
+            gt4py_backend="debug",
         )
         quantity_list.append(quantity)
     return quantity_list

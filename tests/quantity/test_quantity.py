@@ -61,7 +61,14 @@ def data(n_halo, extent_1d, n_dims, numpy, dtype):
 
 @pytest.fixture
 def quantity(data, origin, extent, dims, units):
-    return Quantity(data, origin=origin, extent=extent, dims=dims, units=units)
+    return Quantity(
+        data,
+        origin=origin,
+        extent=extent,
+        dims=dims,
+        units=units,
+        gt4py_backend="debug",
+    )
 
 
 def test_smaller_data_raises(data, origin, extent, dims, units):
@@ -73,23 +80,49 @@ def test_smaller_data_raises(data, origin, extent, dims, units):
         else:
             with pytest.raises(ValueError):
                 Quantity(
-                    small_data, origin=origin, extent=extent, dims=dims, units=units
+                    small_data,
+                    origin=origin,
+                    extent=extent,
+                    dims=dims,
+                    units=units,
+                    gt4py_backend="debug",
                 )
 
 
 def test_smaller_dims_raises(data, origin, extent, dims, units):
     with pytest.raises(ValueError):
-        Quantity(data, origin=origin, extent=extent, dims=dims[:-1], units=units)
+        Quantity(
+            data,
+            origin=origin,
+            extent=extent,
+            dims=dims[:-1],
+            units=units,
+            gt4py_backend="debug",
+        )
 
 
 def test_smaller_origin_raises(data, origin, extent, dims, units):
     with pytest.raises(ValueError):
-        Quantity(data, origin=origin[:-1], extent=extent, dims=dims, units=units)
+        Quantity(
+            data,
+            origin=origin[:-1],
+            extent=extent,
+            dims=dims,
+            units=units,
+            gt4py_backend="debug",
+        )
 
 
 def test_smaller_extent_raises(data, origin, extent, dims, units):
     with pytest.raises(ValueError):
-        Quantity(data, origin=origin, extent=extent[:-1], dims=dims, units=units)
+        Quantity(
+            data,
+            origin=origin,
+            extent=extent[:-1],
+            dims=dims,
+            units=units,
+            gt4py_backend="debug",
+        )
 
 
 def test_data_change_affects_quantity(data, quantity, numpy):
@@ -228,20 +261,15 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
 @pytest.mark.parametrize(
     "quantity",
     [
+        Quantity(np.array(5), dims=[], units="", gt4py_backend="debug"),
         Quantity(
-            np.array(5),
-            dims=[],
-            units="",
-        ),
-        Quantity(
-            np.array([1, 2, 3]),
-            dims=["dimension"],
-            units="degK",
+            np.array([1, 2, 3]), dims=["dimension"], units="degK", gt4py_backend="debug"
         ),
         Quantity(
             np.random.randn(3, 2, 4),
             dims=["dim1", "dim_2", "dimension_3"],
             units="m",
+            gt4py_backend="debug",
         ),
         Quantity(
             np.random.randn(8, 6, 6),
@@ -249,6 +277,7 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
             units="km",
             origin=(2, 2, 2),
             extent=(4, 2, 2),
+            gt4py_backend="debug",
         ),
     ],
 )
@@ -264,7 +293,7 @@ def test_to_data_array(quantity):
 
 
 def test_data_setter():
-    quantity = Quantity(np.ones((5,)), dims=["dim1"], units="")
+    quantity = Quantity(np.ones((5,)), dims=["dim1"], units="", gt4py_backend="debug")
 
     # After allocation - field and data are the same (origin is 0)
     assert quantity.data.shape == quantity.field.shape

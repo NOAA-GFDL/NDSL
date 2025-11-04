@@ -30,6 +30,7 @@ def test_halo_update_integration():
             units="",
             origin=origin,
             extent=extent,
+            gt4py_backend="debug",
         )
         for _ in range(n_ranks)
     ]

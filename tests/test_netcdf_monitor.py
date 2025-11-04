@@ -74,6 +74,7 @@ def test_monitor_store_multi_rank_state(
                 numpy.ones([nz, ny_rank, nx_rank]),
                 dims=dims,
                 units=units,
+                gt4py_backend="debug",
             ),
         }
         monitor_list[rank].store_constant(state)
@@ -87,6 +88,7 @@ def test_monitor_store_multi_rank_state(
                     numpy.ones([nz, ny_rank, nx_rank]),
                     dims=dims,
                     units=units,
+                    gt4py_backend="debug",
                 ),
             }
             monitor_list[rank].store(state)
@@ -100,6 +102,7 @@ def test_monitor_store_multi_rank_state(
                 numpy.ones([nz, ny_rank, nx_rank]),
                 dims=dims,
                 units=units,
+                gt4py_backend="debug",
             ),
         }
         monitor_list[rank].store_constant(state)

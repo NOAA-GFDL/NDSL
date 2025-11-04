@@ -36,6 +36,7 @@ def test_boundary_data_1_by_1_array_1_halo():
         units="m",
         origin=(1, 1),
         extent=(1, 1),
+        gt4py_backend="debug",
     )
     for side in (
         WEST,
@@ -71,6 +72,7 @@ def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy):
         units="m",
         origin=(1, 1, 1),
         extent=(1, 1, 1),
+        gt4py_backend="debug",
     )
     for side in (
         WEST,
@@ -109,6 +111,7 @@ def test_boundary_data_2_by_2_array_2_halo():
         units="m",
         origin=(2, 2),
         extent=(2, 2),
+        gt4py_backend="debug",
     )
     for side in (
         WEST,

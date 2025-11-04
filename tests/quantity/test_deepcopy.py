@@ -14,6 +14,7 @@ def test_deepcopy_copy_is_editable_by_view():
         extent=(nx, ny, nz),
         dims=["x", "y", "z"],
         units="",
+        gt4py_backend="debug",
     )
     quantity_copy = copy.deepcopy(quantity)
     # assertion below is only valid if we're overwriting the entire data through view
@@ -31,6 +32,7 @@ def test_deepcopy_copy_is_editable_by_data():
         extent=(nx, ny, nz),
         dims=["x", "y", "z"],
         units="",
+        gt4py_backend="debug",
     )
     quantity_copy = copy.deepcopy(quantity)
     quantity_copy.data[:] = 1.0
@@ -46,6 +48,7 @@ def test_deepcopy_of_dataclass_is_editable_by_data():
         extent=(nx, ny, nz),
         dims=["x", "y", "z"],
         units="",
+        gt4py_backend="debug",
     )
     quantity_copy = copy.deepcopy(quantity)
     quantity_copy.data[:] = 1.0

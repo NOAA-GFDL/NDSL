@@ -45,7 +45,7 @@ class Quantity:
             dims (Sequence[str]): dimension names for each axis
             units (str): units of the quantity
             origin (Sequence[int] | None, optional): first point in data within the
-            computational domain. Defaults to None.
+                computational domain. Defaults to None.
             extent (Sequence[int] | None, optional): number of points along each axis
                 within the computational domain. Defaults to None.
             gt4py_backend (str | None, optional): backend to use for gt4py storages,
@@ -59,6 +59,13 @@ class Quantity:
             ValueError: Data-type mismatch between configuration and input-data
             TypeError: Typing of the data that does not fit
         """
+        if gt4py_backend is None:
+            warnings.warn(
+                "gt4py_backend will be mandatory in future releases.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if (
             not allow_mismatch_float_precision
             and is_float(data.dtype)
@@ -84,8 +91,10 @@ class Quantity:
 
         if not isinstance(data, (np.ndarray, cupy.ndarray)):
             raise TypeError(
-                f"Only supports numpy.ndarray and cupy.ndarray, got {type(data)}"
+                f"Only supports numpy.ndarray and cupy.ndarray, got {type(data)}."
             )
+
+        _validate_quantity_property_lengths(data.shape, dims, origin, extent)
 
         if gt4py_backend is not None:
             gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
@@ -104,21 +113,25 @@ class Quantity:
                 ]
             )
 
-            self._data = (
-                data
-                if is_optimal_layout(data, dimensions)
-                else self._initialize_data(
+            # Assign data. Makes a copy if the layout isn't optimal for the given backend.
+            if is_optimal_layout(data, dimensions):
+                self._data = data
+            else:
+                warnings.warn(
+                    f"Copying data to optimal layout for given backend {gt4py_backend}.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self._data = self._initialize_data(
                     data,
                     origin=origin,
                     gt4py_backend=gt4py_backend,
                     dimensions=dimensions,
                 )
-            )
         else:
             # We have no info about the gt4py_backend, so just assign it.
             self._data = data
 
-        _validate_quantity_property_lengths(data.shape, dims, origin, extent)
         self._metadata = QuantityMetadata(
             origin=_ensure_int_tuple(origin, "origin"),
             extent=_ensure_int_tuple(extent, "extent"),
@@ -156,6 +169,14 @@ class Quantity:
         """
         if "units" not in data_array.attrs:
             raise ValueError("need units attribute to create Quantity from DataArray")
+
+        if gt4py_backend is None:
+            warnings.warn(
+                "gt4py_backend will be mandatory in future releases.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         return cls(
             data_array.values,
             cast(tuple[str], data_array.dims),
