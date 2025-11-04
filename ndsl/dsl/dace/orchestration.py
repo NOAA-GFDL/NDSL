@@ -170,7 +170,6 @@ def _build_sdfg(
                 if config.is_gpu_backend():
                     GPUPipeline().run(stree)
                 else:
-                    # passes = [MapExpand()]
                     passes = []
 
                     if config.get_backend() == "dace:cpu_kfirst":
