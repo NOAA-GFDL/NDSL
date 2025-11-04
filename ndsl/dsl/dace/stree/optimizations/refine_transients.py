@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import TracebackType
+
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
@@ -24,14 +26,47 @@ def _reduce_axis_size_to_1(
         if axis_iterator.value[0] in map_entry.params[0]:
             access_in_map_count += 1
 
-    # If this transient is used in exactly one single-Axis map
-    # therefore this dimension can be removed
     if access_in_map_count != 1:
         return False
 
+    # If this transient is used in exactly one single-Axis map
+    # therefore this dimension can be removed. BUT we are not truly
+    # removing out, we are reducing it to 1 to not have to deal
+    # with different slicing
     data.shape = _zero_index_of_tuple(data.shape, axis_iterator.value[1])
     data.set_strides_from_layout(*ijk_order)
     return True
+
+
+class _CartesianMapNesting:
+    def __init__(
+        self,
+        cartesian_current_map_nesting: list[stree.nodes.MapEntry | None],
+        node: stree.MapScope,
+    ) -> None:
+        self._cartesian_current_map_nesting = cartesian_current_map_nesting
+        self._node = node
+
+    def __enter__(self) -> None:
+        if AxisIterator._I.value[0] in self._node.node.params[0]:
+            self._cartesian_current_map_nesting[0] = self._node.node
+        elif AxisIterator._J.value[0] in self._node.node.params[0]:
+            self._cartesian_current_map_nesting[1] = self._node.node
+        elif AxisIterator._K.value[0] in self._node.node.params[0]:
+            self._cartesian_current_map_nesting[2] = self._node.node
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        if AxisIterator._I.value[0] in self._node.node.params[0]:
+            self._cartesian_current_map_nesting[0] = None
+        elif AxisIterator._J.value[0] in self._node.node.params[0]:
+            self._cartesian_current_map_nesting[1] = None
+        elif AxisIterator._K.value[0] in self._node.node.params[0]:
+            self._cartesian_current_map_nesting[2] = None
 
 
 class CollectTransientAccessInCartesianMaps(stree.ScheduleNodeVisitor):
@@ -53,31 +88,14 @@ class CollectTransientAccessInCartesianMaps(stree.ScheduleNodeVisitor):
             ndsl_log.debug(
                 "Can't apply CartesianRefineTransients, require unidimensional Maps"
             )
+            return
 
-        if AxisIterator._I.value[0] in node.node.params[0]:
-            self._cartesian_current_map_nesting[0] = node.node
-        elif AxisIterator._J.value[0] in node.node.params[0]:
-            self._cartesian_current_map_nesting[1] = node.node
-        elif AxisIterator._K.value[0] in node.node.params[0]:
-            self._cartesian_current_map_nesting[2] = node.node
-
-        for child in node.children:
-            return self.visit(child)
-
-        if AxisIterator._I.value[0] in node.node.params[0]:
-            self._cartesian_current_map_nesting[0] = None
-        elif AxisIterator._J.value[0] in node.node.params[0]:
-            self._cartesian_current_map_nesting[1] = None
-        elif AxisIterator._K.value[0] in node.node.params[0]:
-            self._cartesian_current_map_nesting[2] = None
+        with _CartesianMapNesting(self._cartesian_current_map_nesting, node):
+            for child in node.children:
+                return self.visit(child)
 
     def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
-        for memlet in node.input_memlets():
-            if self.containers[memlet.data].transient:
-                for map_entry in self._cartesian_current_map_nesting:
-                    if map_entry is not None:
-                        self.transient_map_access[memlet.data].add(map_entry)
-        for memlet in node.output_memlets():
+        for memlet in [*node.input_memlets(), *node.output_memlets()]:
             if self.containers[memlet.data].transient:
                 for map_entry in self._cartesian_current_map_nesting:
                     if map_entry is not None:
@@ -119,7 +137,8 @@ class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
 
 
 class CartesianRefineTransients(stree.ScheduleNodeTransformer):
-    """ """
+    """Refine (reduce dimensionality) of transients based on their true use in
+    the cartesian dimensions."""
 
     def __init__(self, ijk_order: tuple[int, int, int]) -> None:
         self.ijk_order = ijk_order
@@ -134,16 +153,17 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         # Remove Axis
         refined_transient = 0
         for name, data in node.containers.items():
-            if data.transient:
-                refined = False
-                for axis in AxisIterator:
-                    refined |= _reduce_axis_size_to_1(
-                        axis,
-                        collect_map.transient_map_access[name],
-                        data,
-                        self.ijk_order,
-                    )
-                refined_transient += 1 if refined else 0
+            if not data.transient:
+                continue
+            refined = False
+            for axis in AxisIterator:
+                refined |= _reduce_axis_size_to_1(
+                    axis,
+                    collect_map.transient_map_access[name],
+                    data,
+                    self.ijk_order,
+                )
+            refined_transient += 1 if refined else 0
 
         RebuildMemletsFromContainers().visit(node)
 
