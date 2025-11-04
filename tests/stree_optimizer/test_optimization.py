@@ -1,10 +1,29 @@
+from types import TracebackType
+
 import dace
 
+import ndsl.dsl.dace.orchestration as orch
 from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
+
+
+class StreeOptimization:
+    def __init__(self) -> None:
+        pass
+
+    def __enter__(self) -> None:
+        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False
 
 
 def stencil_A(in_field: FloatField, out_field: FloatField) -> None:
@@ -44,25 +63,24 @@ def test_stree_merge_maps() -> None:
     in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
     out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
 
-    # Temporarily flip the internal switch
-    import ndsl.dsl.dace.orchestration as orch
+    with StreeOptimization():
+        code(in_qty, out_qty)
 
-    orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
+        assert (
+            len(stencil_factory.config.dace_config.loaded_precompiled_SDFG.values())
+            == 1
+        )
+        sdfg = list(
+            stencil_factory.config.dace_config.loaded_precompiled_SDFG.values()
+        )[0]
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, dace.nodes.MapEntry)
+        ]
 
-    code(in_qty, out_qty)
-
-    assert len(stencil_factory.config.dace_config.loaded_precompiled_SDFG.values()) == 1
-    sdfg = list(stencil_factory.config.dace_config.loaded_precompiled_SDFG.values())[0]
-    all_maps = [
-        (me, state)
-        for me, state in sdfg.sdfg.all_nodes_recursive()
-        if isinstance(me, dace.nodes.MapEntry)
-    ]
-
-    assert len(all_maps) == 3
-    assert (out_qty.field[:] == 4).all()
-
-    orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False
+        assert len(all_maps) == 3
+        assert (out_qty.field[:] == 4).all()
 
 
 class LocalRefineableCode(NDSLRuntime):
@@ -91,18 +109,17 @@ def test_stree_roundtrip_transient_is_refined() -> None:
     in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
     out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
 
-    # Temporarily flip the internal switch
-    import ndsl.dsl.dace.orchestration as orch
+    with StreeOptimization():
+        code(in_qty, out_qty)
 
-    orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
+        assert (
+            len(stencil_factory.config.dace_config.loaded_precompiled_SDFG.values())
+            == 1
+        )
+        sdfg = list(
+            stencil_factory.config.dace_config.loaded_precompiled_SDFG.values()
+        )[0]
 
-    code(in_qty, out_qty)
-
-    assert len(stencil_factory.config.dace_config.loaded_precompiled_SDFG.values()) == 1
-    sdfg = list(stencil_factory.config.dace_config.loaded_precompiled_SDFG.values())[0]
-
-    for array in sdfg.sdfg.arrays.values():
-        if array.transient:
-            assert array.shape == (1, 1, 1)
-
-    orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False
+        for array in sdfg.sdfg.arrays.values():
+            if array.transient:
+                assert array.shape == (1, 1, 1)
