@@ -240,7 +240,6 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
             other = comm.sendrecv(array, pair_rank)
             arr_diffs = np.sum(np.logical_and(~np.isnan(array), array != other))
             if arr_diffs > 0:
-                print(name, rank, pair_rank, array, other)
                 differences[name] = arr_diffs
     return differences
 

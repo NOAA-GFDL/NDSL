@@ -81,7 +81,6 @@ def test_column_operations():
     min_index = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
 
     code = ColumnOperations(stencil_factory)
-    print("initalized the class")
     code(data, max_value, max_index, min_value, min_index)
 
     assert max_value.field[:] == np.max(data.field[:], axis=2)

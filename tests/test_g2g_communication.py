@@ -137,7 +137,6 @@ def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
 
     # We expect no np calls and several cp calls
     global N_ZEROS_CALLS  # noqa: F824 global ... is unused
-    print(f"Results {N_ZEROS_CALLS}")
     assert N_ZEROS_CALLS[cp.zeros] > 0
     assert N_ZEROS_CALLS[np.zeros] == 0
 
