@@ -11,7 +11,6 @@ from dace import dtypes
 from dace import method as dace_method
 from dace import nodes
 from dace import program as dace_program
-from dace.dtypes import AllocationLifetime
 from dace.dtypes import DeviceType as DaceDeviceType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
