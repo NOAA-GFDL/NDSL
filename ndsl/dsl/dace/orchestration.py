@@ -178,7 +178,7 @@ def _build_sdfg(
                                 CartesianAxisMerge(AxisIterator._I),
                                 CartesianAxisMerge(AxisIterator._J),
                                 CartesianAxisMerge(AxisIterator._K),
-                                CartesianRefineTransients((2, 1, 0)),
+                                CartesianRefineTransients(config.get_backend()),
                             ]
                         )
                     else:
@@ -187,7 +187,7 @@ def _build_sdfg(
                                 CartesianAxisMerge(AxisIterator._K),
                                 CartesianAxisMerge(AxisIterator._I),
                                 CartesianAxisMerge(AxisIterator._J),
-                                CartesianRefineTransients((1, 0, 2)),
+                                CartesianRefineTransients(config.get_backend()),
                             ]
                         )
                     CPUPipeline(passes=passes).run(stree)
