@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from types import TracebackType
 
 import dace.data
@@ -7,7 +8,6 @@ import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
-import warnings
 
 
 def _change_index_of_tuple(
