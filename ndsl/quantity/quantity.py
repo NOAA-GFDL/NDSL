@@ -393,11 +393,6 @@ class Quantity:
 
     def plot_k_level(self, k_index: int = 0) -> None:
         field = self.data
-        print(
-            "Min and max values:",
-            field[:, :, k_index].min(),
-            field[:, :, k_index].max(),
-        )
         plt.xlabel("I")
         plt.ylabel("J")
 

@@ -35,7 +35,6 @@ def quantity_data_input(initial_data, numpy, backend):
         array[:] = initial_data
     else:
         array = initial_data
-    print(type(array))
     return array
 
 

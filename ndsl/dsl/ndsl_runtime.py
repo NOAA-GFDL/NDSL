@@ -75,7 +75,6 @@ class NDSLRuntime:
                 obj=self,
                 config=self._dace_config,
             )
-            print(type(self))
 
     def __getattribute__(self, name: str) -> Any:
         attr = super().__getattribute__(name)
