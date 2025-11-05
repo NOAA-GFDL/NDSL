@@ -193,10 +193,6 @@ def _build_sdfg(
                     CPUPipeline(passes=passes).run(stree)
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
-                for _, data in stree.get_root().containers.items():
-                    if data.transient:
-                        data.lifetime = AllocationLifetime.State
-
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
 
         # Make the transients array persistents
