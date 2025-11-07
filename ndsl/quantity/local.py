@@ -1,4 +1,6 @@
-from typing import Any, Sequence
+import warnings
+from collections.abc import Sequence
+from typing import Any
 
 import dace
 import numpy as np
@@ -25,15 +27,25 @@ class Local(Quantity):
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
+        backend: str | None = None,
     ):
+        if gt4py_backend is not None:
+            warnings.warn(
+                "gt4py_backend is deprecated. Use `backend` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if backend is None:
+                backend = gt4py_backend
+
         super().__init__(
             data,
             dims,
             units,
             origin=origin,
             extent=extent,
-            gt4py_backend=gt4py_backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
+            backend=backend,
         )
 
     def __descriptor__(self) -> Any:

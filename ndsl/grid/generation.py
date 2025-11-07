@@ -551,7 +551,7 @@ class MetricTerms:
             origin=self.grid.origin[:2],
             extent=self.grid.extent[:2],
             units=self.grid.units,
-            gt4py_backend=self.grid.gt4py_backend,
+            backend=self.grid.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -563,7 +563,7 @@ class MetricTerms:
             origin=self.grid.origin[:2],
             extent=self.grid.extent[:2],
             units=self.grid.units,
-            gt4py_backend=self.grid.gt4py_backend,
+            backend=self.grid.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -575,7 +575,7 @@ class MetricTerms:
             origin=self.agrid.origin[:2],
             extent=self.agrid.extent[:2],
             units=self.agrid.units,
-            gt4py_backend=self.agrid.gt4py_backend,
+            backend=self.agrid.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -587,7 +587,7 @@ class MetricTerms:
             origin=self.agrid.origin[:2],
             extent=self.agrid.extent[:2],
             units=self.agrid.units,
-            gt4py_backend=self.agrid.gt4py_backend,
+            backend=self.agrid.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1551,7 +1551,7 @@ class MetricTerms:
             origin=self.area.origin,
             extent=self.area.extent,
             units="m^-2",
-            gt4py_backend=self.area.gt4py_backend,
+            backend=self.area.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1566,7 +1566,7 @@ class MetricTerms:
             origin=self.area_c.origin,
             extent=self.area_c.extent,
             units="m^-2",
-            gt4py_backend=self.area_c.gt4py_backend,
+            backend=self.area_c.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1582,7 +1582,7 @@ class MetricTerms:
             origin=self.dx.origin,
             extent=self.dx.extent,
             units="m^-1",
-            gt4py_backend=self.dx.gt4py_backend,
+            backend=self.dx.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1598,7 +1598,7 @@ class MetricTerms:
             origin=self.dy.origin,
             extent=self.dy.extent,
             units="m^-1",
-            gt4py_backend=self.dy.gt4py_backend,
+            backend=self.dy.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1614,7 +1614,7 @@ class MetricTerms:
             origin=self.dxa.origin,
             extent=self.dxa.extent,
             units="m^-1",
-            gt4py_backend=self.dxa.gt4py_backend,
+            backend=self.dxa.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1630,7 +1630,7 @@ class MetricTerms:
             origin=self.dya.origin,
             extent=self.dya.extent,
             units="m^-1",
-            gt4py_backend=self.dya.gt4py_backend,
+            backend=self.dya.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1646,7 +1646,7 @@ class MetricTerms:
             origin=self.dxc.origin,
             extent=self.dxc.extent,
             units="m^-1",
-            gt4py_backend=self.dxc.gt4py_backend,
+            backend=self.dxc.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 
@@ -1662,7 +1662,7 @@ class MetricTerms:
             origin=self.dyc.origin,
             extent=self.dyc.extent,
             units="m^-1",
-            gt4py_backend=self.dyc.gt4py_backend,
+            backend=self.dyc.backend,
             number_of_halo_points=N_HALO_DEFAULT,
         )
 

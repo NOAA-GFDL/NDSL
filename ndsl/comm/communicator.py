@@ -108,7 +108,7 @@ class Communicator(abc.ABC):
             units=input_metadata.units,
             origin=input_metadata.origin,
             extent=input_metadata.extent,
-            gt4py_backend=input_metadata.gt4py_backend,
+            backend=input_metadata.backend,
             allow_mismatch_float_precision=False,
         )
         return all_reduce_quantity
@@ -228,7 +228,7 @@ class Communicator(abc.ABC):
             units=send_metadata.units,
             origin=tuple([0 for dim in send_metadata.dims]),
             extent=global_extent,
-            gt4py_backend=send_metadata.gt4py_backend,
+            backend=send_metadata.backend,
             allow_mismatch_float_precision=True,
         )
         return recv_quantity
@@ -241,7 +241,7 @@ class Communicator(abc.ABC):
             send_metadata.np.zeros(shape, dtype=send_metadata.dtype),  # type: ignore
             dims=send_metadata.dims,
             units=send_metadata.units,
-            gt4py_backend=send_metadata.gt4py_backend,
+            backend=send_metadata.backend,
             allow_mismatch_float_precision=True,
         )
         return recv_quantity
@@ -841,7 +841,7 @@ class CubedSphereCommunicator(Communicator):
             units=metadata.units,
             origin=(0,) + tuple([0 for dim in metadata.dims]),
             extent=global_extent,
-            gt4py_backend=metadata.gt4py_backend,
+            backend=metadata.backend,
             allow_mismatch_float_precision=True,
         )
         return recv_quantity
@@ -861,7 +861,7 @@ class CubedSphereCommunicator(Communicator):
             metadata.np.zeros(shape, dtype=metadata.dtype),  # type: ignore
             dims=metadata.dims[1:],
             units=metadata.units,
-            gt4py_backend=metadata.gt4py_backend,
+            backend=metadata.backend,
             allow_mismatch_float_precision=True,
         )
         return recv_quantity

@@ -123,6 +123,6 @@ class NDSLRuntime:
             units=quantity.units,
             origin=quantity.origin,
             extent=quantity.extent,
-            gt4py_backend=quantity.gt4py_backend,
+            backend=quantity.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )

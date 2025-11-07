@@ -165,7 +165,13 @@ def param_product(*param_lists):
 )
 @pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_transpose(
-    quantity, target_dims, final_data, final_dims, final_origin, final_extent, numpy
+    quantity: Quantity,
+    target_dims,
+    final_data,
+    final_dims,
+    final_origin,
+    final_extent,
+    numpy,
 ):
     result = quantity.transpose(target_dims)
     numpy.testing.assert_array_equal(result.data, final_data)
@@ -173,7 +179,7 @@ def test_transpose(
     assert result.origin == final_origin
     assert result.extent == final_extent
     assert result.units == quantity.units
-    assert result.gt4py_backend == quantity.gt4py_backend
+    assert result.backend == quantity.backend
 
 
 @pytest.mark.parametrize(
