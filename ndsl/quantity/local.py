@@ -20,6 +20,7 @@ class Local(Quantity):
         data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
@@ -29,12 +30,11 @@ class Local(Quantity):
             data,
             dims,
             units,
-            origin,
-            extent,
-            gt4py_backend,
-            allow_mismatch_float_precision,
+            origin=origin,
+            extent=extent,
+            gt4py_backend=gt4py_backend,
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
-        self._transient = True
 
     def __descriptor__(self) -> Any:
         """Locals uses `Quantity.__descriptor__` and flag itself as transient."""

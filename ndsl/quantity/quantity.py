@@ -32,6 +32,7 @@ class Quantity:
         data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
