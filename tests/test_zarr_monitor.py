@@ -162,7 +162,7 @@ def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
 @requires_zarr
 def validate_xarray_can_open(dirname):
     # just checking there are no crashes, validate_group checks data
-    xr.open_zarr(dirname)
+    xr.open_zarr(dirname, consolidated=False)
 
 
 @requires_zarr
@@ -249,7 +249,7 @@ def test_monitor_file_store_multi_rank_state(
             ZarrMonitor(
                 store,
                 partitioner,
-                "w",
+                mode="w",
                 mpi_comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
@@ -347,14 +347,17 @@ def _assert_no_nulls(dataset: xr.Dataset):
 @requires_zarr
 def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale):
     store = {}
+    buffer = {}
 
     # initialize store
-    monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=MPIComm())
+    monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     zero_quantity = Quantity(numpy.zeros([10, 10]), dims=("y", "x"), units="m")
     monitor.store({"var": zero_quantity})
 
     # open w/o dask using chunks=None
-    dataset = xr.open_zarr(store, chunks=None, mask_and_scale=mask_and_scale)
+    dataset = xr.open_zarr(
+        store, chunks=None, mask_and_scale=mask_and_scale, consolidated=False
+    )
     _assert_no_nulls(dataset.sel(tile=0))
 
 
@@ -364,14 +367,15 @@ def test_values_preserved(cube_partitioner, numpy):
     units = "m"
 
     store = {}
+    buffer = {}
 
     # initialize store
-    monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=MPIComm())
+    monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     quantity = Quantity(numpy.random.uniform(size=(10, 10)), dims=dims, units=units)
     monitor.store({"var": quantity})
 
     # open w/o dask using chunks=None
-    dataset = xr.open_zarr(store, chunks=None)
+    dataset = xr.open_zarr(store, chunks=None, consolidated=False)
     numpy.testing.assert_array_almost_equal(
         dataset["var"][0, 0, :, :].values, quantity.data
     )
@@ -506,6 +510,6 @@ def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_ra
     diag_2 = copy.deepcopy(diag)
     diag_2._attrs.update({"some_non_units_attrs": 9.0})
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
-    diag_3 = Quantity(data=diag.values, dims=diag.dims, units="not_m")
+    diag_3 = Quantity(data=diag.view[:], dims=diag.dims, units="not_m")
     with pytest.raises(ValueError):
         zarr_monitor_single_rank.store({"time": time_3, "a": diag_3})
