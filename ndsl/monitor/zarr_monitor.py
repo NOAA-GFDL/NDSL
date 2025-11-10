@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from datetime import datetime, timedelta
 from typing import TypeVar
 
@@ -90,6 +91,7 @@ class ZarrMonitor:
         self,
         store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
+        *,
         mode: str = "w",
         mpi_comm: Comm | None = None,
     ) -> None:
@@ -103,6 +105,11 @@ class ZarrMonitor:
                 use a dummy comm object that works in single-core mode.
         """
         if mpi_comm is None:
+            warnings.warn(
+                "`mpi_comm` will be a required argument starting with the next version of NDSL.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             mpi_comm = DummyComm()
 
         if mpi_comm.Get_rank() == 0:
