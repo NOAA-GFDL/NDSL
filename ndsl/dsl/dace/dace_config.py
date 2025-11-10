@@ -102,6 +102,9 @@ def _determine_compiling_ranks(
         15 -> 8
     """
 
+    if config._single_code_path:
+        return config.my_rank == 0
+
     # Tile 0 compiles
     if partitioner.tile_index(config.my_rank) != 0:
         return False
@@ -147,6 +150,7 @@ class DaceConfig:
         tile_nz: int = 0,
         orchestration: DaCeOrchestration | None = None,
         time: bool = False,
+        single_code_path: bool = False,
     ):
         """Specialize the DaCe configuration for NDSL use.
 
@@ -163,8 +167,11 @@ class DaceConfig:
             orchestration: orchestration mode from DaCeOrchestration
             time: trigger performance collection, available to user with
                 `performance_collector`
+            single_codepath: code is expected to be the same on every rank (case
+                of column-physics) and therefore can be compiled once
         """
 
+        self._single_code_path = single_code_path
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
@@ -331,7 +338,11 @@ class DaceConfig:
         if communicator:
             self.my_rank = communicator.rank
             self.rank_size = communicator.comm.Get_size()
-            self.code_path = identify_code_path(self.my_rank, communicator.partitioner)
+            self.code_path = identify_code_path(
+                self.my_rank,
+                communicator.partitioner,
+                self._single_code_path,
+            )
             self.layout = communicator.partitioner.layout
             self.do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
