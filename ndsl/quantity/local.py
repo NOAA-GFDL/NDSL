@@ -23,11 +23,11 @@ class Local(Quantity):
         dims: Sequence[str],
         units: str,
         *,
+        backend: str | None = None,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
-        backend: str | None = None,
     ):
         if gt4py_backend is not None:
             warnings.warn(
@@ -37,6 +37,13 @@ class Local(Quantity):
             )
             if backend is None:
                 backend = gt4py_backend
+
+        if backend is None:
+            warnings.warn(
+                "`backend` will be a required argument starting with the next version of NDSL.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         super().__init__(
             data,

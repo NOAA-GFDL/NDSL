@@ -33,12 +33,12 @@ class Quantity:
         dims: Sequence[str],
         units: str,
         *,
+        backend: str | None = None,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
         number_of_halo_points: int = 0,
-        backend: str | None = None,
     ):
         """Initialize a Quantity.
 
@@ -46,6 +46,8 @@ class Quantity:
             data: ndarray-like object containing the underlying data
             dims: dimension names for each axis
             units: units of the quantity
+            backend: GT4Py backend name. We ensure that the data is allocated in a
+                performance optimal way for that backend and copy if necessary.
             origin: first point in data within the
                 computational domain. Defaults to None.
             extent: number of points along each axis
@@ -54,8 +56,6 @@ class Quantity:
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
-            backend: GT4Py backend name. If given, we check that the data is
-                allocated in a performance optimal way for that backend.
 
         Raises:
             ValueError: Data-type mismatch between configuration and input-data
@@ -69,6 +69,13 @@ class Quantity:
             )
             if backend is None:
                 backend = gt4py_backend
+
+        if backend is None:
+            warnings.warn(
+                "`backend` will be a required argument starting with the next version of NDSL.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if (
             not allow_mismatch_float_precision
@@ -179,8 +186,9 @@ class Quantity:
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
-            backend: GT4Py backend name. If given, we check that the data is
-                allocated in a performance optimal way for that backend.
+            backend: GT4Py backend name. If given, we allocate data in a performance
+                optimal way for this backend. Overrides any potentially saved `backend`
+                in `data.attrs["backend"]`.
         """
         if "units" not in data_array.attrs:
             raise ValueError("need units attribute to create Quantity from DataArray")
@@ -201,7 +209,7 @@ class Quantity:
             origin=origin,
             extent=extent,
             number_of_halo_points=number_of_halo_points,
-            backend=backend,
+            backend=_resolve_backend(data_array, backend),
         )
 
     def to_netcdf(
@@ -283,7 +291,7 @@ class Quantity:
 
     @property
     def attrs(self) -> dict:
-        return dict(**self._attrs, units=self._metadata.units)
+        return dict(**self._attrs, units=self.units, backend=self.backend)
 
     @property
     def dims(self) -> tuple[str, ...]:
@@ -495,3 +503,16 @@ def _ensure_int_tuple(arg: Sequence, arg_name: str) -> tuple:
                 f"unexpected type {type(item)}"
             )
     return tuple(return_list)
+
+
+def _resolve_backend(data: xr.DataArray, backend: str | None) -> str:
+    if backend is not None:
+        # Forced backend name takes precedence
+        return backend
+
+    # If backend name was serialized with data, take this one
+    if "backend" in data.attrs:
+        return data.attrs["backend"]
+
+    # else, fall back to assume python-based layout.
+    return "debug"

@@ -53,7 +53,9 @@ def data(n_halo, extent_1d, n_dims, numpy, dtype):
 
 @pytest.fixture
 def quantity(data, origin, extent, dims, units):
-    return Quantity(data, origin=origin, extent=extent, dims=dims, units=units)
+    return Quantity(
+        data, origin=origin, extent=extent, dims=dims, units=units, backend="debug"
+    )
 
 
 def test_numpy(quantity, backend):
