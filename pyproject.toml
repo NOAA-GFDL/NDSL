@@ -26,6 +26,7 @@ dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyprojec
 docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-exclude"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 test = ["pytest", "coverage"]
+zarr = ["zarr<3"]
 
 [project.scripts]
 ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
