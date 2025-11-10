@@ -186,7 +186,7 @@ class VerticalGridData:
                 p_interface_data,
                 dims=[Z_INTERFACE_DIM],
                 units="Pa",
-                gt4py_backend=self.ak.gt4py_backend,
+                backend=self.ak.backend,
                 number_of_halo_points=self.ak.metadata.n_halo,
             )
         return self._p_interface
@@ -203,7 +203,7 @@ class VerticalGridData:
                 p_data,
                 dims=[Z_DIM],
                 units="Pa",
-                gt4py_backend=self.p_interface.gt4py_backend,
+                backend=self.p_interface.backend,
                 number_of_halo_points=self.p_interface.metadata.n_halo,
             )
         return self._p
@@ -220,7 +220,7 @@ class VerticalGridData:
                 dp_ref_data,
                 dims=[Z_DIM],
                 units="Pa",
-                gt4py_backend=self.ak.gt4py_backend,
+                backend=self.ak.backend,
                 number_of_halo_points=self.ak.metadata.n_halo,
             )
         return self._dp_ref
@@ -230,7 +230,7 @@ class VerticalGridData:
         """Top of atmosphere pressure (Pa)"""
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
-        if self.ak.gt4py_backend is not None and is_gpu_backend(self.ak.gt4py_backend):
+        if self.ak.backend is not None and is_gpu_backend(self.ak.backend):
             return Float(self.ak.view[0].get())
         else:
             return Float(self.ak.view[0])
@@ -382,7 +382,7 @@ class GridData:
             dims=lat.dims,
             origin=lat.origin,
             extent=lat.extent,
-            gt4py_backend=lat.gt4py_backend,
+            backend=lat.backend,
             number_of_halo_points=lat.metadata.n_halo,
         )
 
@@ -824,7 +824,7 @@ def split_quantity_along_last_dim(quantity: Quantity) -> list[Quantity]:
                 units=quantity.units,
                 origin=quantity.origin[:-1],
                 extent=quantity.extent[:-1],
-                gt4py_backend=quantity.gt4py_backend,
+                backend=quantity.backend,
                 number_of_halo_points=quantity.metadata.n_halo,
             )
         )

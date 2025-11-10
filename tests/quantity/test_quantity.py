@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import xarray as xr
 
 from ndsl import Quantity
 from ndsl.quantity.bounds import _shift_slice
@@ -289,3 +290,69 @@ def test_data_setter():
     # Expected fail: new array is not even an array
     with pytest.raises(TypeError, match="Quantity.data buffer swap failed.*"):
         quantity.data = "meh"
+
+
+def test_constructor_with_gt4py_backend_is_deprecated() -> None:
+    nx = 5
+    shape = (nx,)
+    backend = "debug"
+    with pytest.deprecated_call(match="gt4py_backend is deprecated"):
+        quantity = Quantity(
+            data=np.empty(shape),
+            origin=(0,),
+            extent=(nx,),
+            dims=("dim_X",),
+            units="n/a",
+            gt4py_backend=backend,
+        )
+
+    # make sure we assign backend
+    assert quantity.backend == backend
+
+    # make sure we are backwards compatible (on the QuantityMetadata)
+    with pytest.deprecated_call(match="gt4py_backend is deprecated"):
+        assert quantity.gt4py_backend == backend
+
+
+def test_from_data_array_with_gt4py_backend_is_deprecated() -> None:
+    nx = 5
+    shape = (nx,)
+    backend = "debug"
+    with pytest.deprecated_call(match="gt4py_backend is deprecated"):
+        np_data = np.empty(shape)
+        data_array = xr.DataArray(data=np_data, attrs={"units": "n/a"})
+        quantity = Quantity.from_data_array(
+            data_array,
+            origin=(0,),
+            extent=(nx,),
+            number_of_halo_points=0,
+            gt4py_backend=backend,
+        )
+
+    # make sure we assign backend
+    assert quantity.backend == backend
+
+    # make sure we don't assign gt4py_backend anymore (on the QuantityMetadata)
+    with pytest.deprecated_call(match="gt4py_backend is deprecated"):
+        assert quantity.gt4py_backend == backend
+
+
+def test_assign_basic_data_is_deprecated() -> None:
+    nx = 5
+    backend = "debug"
+    with pytest.deprecated_call(
+        match="Usage of basic data in Quantities is deprecated"
+    ):
+        quantity = Quantity(
+            data=[0, 1, 2, 3, 4],
+            origin=(0,),
+            extent=(nx,),
+            dims=("dim_X",),
+            units="n/a",
+            backend=backend,
+            allow_mismatch_float_precision=True,
+        )
+
+    # make sure we can still use it (for now)
+    for i in range(5):
+        assert quantity.data[i] == i

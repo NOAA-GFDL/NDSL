@@ -58,7 +58,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["K"],
             units="Some 1D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         base_array = np.array([i for i in range(5 * 5)], dtype=Float)
@@ -68,7 +68,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J"],
             units="Some 2D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         base_array = np.array([i for i in range(5 * 5 * 5)], dtype=Float)
@@ -78,7 +78,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J", "K"],
             units="Some 3D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         global_sum_q = communicator.all_reduce(testQuantity_1D, ReductionOperator.SUM)
@@ -98,7 +98,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["K"],
             units="New 1D unit",
-            gt4py_backend=backend,
+            backend=backend,
             origin=(8,),
             extent=(7,),
         )
@@ -110,7 +110,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J"],
             units="Some 2D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         base_array = np.array([i for i in range(5 * 5 * 5)], dtype=Float)
@@ -120,7 +120,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J", "K"],
             units="Some 3D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
         communicator.all_reduce(
             testQuantity_1D, ReductionOperator.SUM, testQuantity_1D_out

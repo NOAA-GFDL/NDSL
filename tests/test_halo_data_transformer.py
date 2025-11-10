@@ -175,7 +175,7 @@ def quantity(dims, units, origin, extent, shape, dtype, gt4py_backend):
         units=units,
         origin=origin,
         extent=extent,
-        gt4py_backend=gt4py_backend,
+        backend=gt4py_backend,
     )
 
 

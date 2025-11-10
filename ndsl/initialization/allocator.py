@@ -228,7 +228,7 @@ class QuantityFactory:
             units=units,
             origin=origin,
             extent=extent,
-            gt4py_backend=self.backend,
+            backend=self.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
             number_of_halo_points=self.sizer.n_halo,
         )
