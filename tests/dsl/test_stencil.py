@@ -108,7 +108,9 @@ def test_domain_size_comparison(
     domain: tuple[int],
     call_count: int,
 ):
-    quantity = Quantity(np.zeros(extent), dimensions, "n/a", extent=extent)
+    quantity = Quantity(
+        np.zeros(extent), dimensions, "n/a", extent=extent, backend="debug"
+    )
     stencil = FrozenStencil(
         copy_stencil,
         origin=(0, 0, 0),
@@ -147,7 +149,9 @@ def two_dim_temporaries_stencil(q_out: FloatField) -> None:
 
 def test_stencil_2D_temporaries() -> None:
     domain = (2, 2, 5)
-    quantity = Quantity(np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain)
+    quantity = Quantity(
+        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend="debug"
+    )
     stencil = FrozenStencil(
         two_dim_temporaries_stencil,
         origin=(0, 0, 0),
@@ -164,7 +168,9 @@ def test_stencil_2D_temporaries() -> None:
 )
 def test_validation_call_count(iterations: tuple[int]):
     domain = (2, 2, 5)
-    quantity = Quantity(np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain)
+    quantity = Quantity(
+        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend="debug"
+    )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(backend="numpy", rebuild=True)
     )

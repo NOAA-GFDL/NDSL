@@ -86,6 +86,7 @@ def quantity(quantity_data_input, initial_dims, initial_origin, initial_extent):
         units="unit_string",
         origin=initial_origin,
         extent=initial_extent,
+        backend="debug",
     )
 
 
@@ -218,7 +219,9 @@ def test_transpose_invalid_cases(
 
 
 def test_transpose_retains_attrs(numpy):
-    quantity = Quantity(numpy.random.randn(3, 4), dims=["x", "y"], units="unit_string")
+    quantity = Quantity(
+        numpy.random.randn(3, 4), dims=["x", "y"], units="unit_string", backend="debug"
+    )
     quantity._attrs = {"long_name": "500 mb height"}
     transposed = quantity.transpose(["y", "x"])
     assert transposed.attrs == quantity.attrs
