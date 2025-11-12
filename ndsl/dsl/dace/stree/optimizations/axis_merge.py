@@ -171,7 +171,7 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         self.eager = eager
 
     def __str__(self) -> str:
-        return f"CartesianAxisMerge({self.axis.name})"
+        return f"CartesianAxisMerge_{self.axis.name}"
 
     def _merge_node(
         self,
@@ -231,7 +231,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         merged = self._merge_node(next_node, nodes)
 
         # Attempt to push the tasklet in the next map
-        ndsl_log.debug("  Push tasklet down into next map")
         next_node = nodes[next_index + 1]
         if isinstance(next_node, stree.MapScope):
             next_node.children.insert(0, the_tasklet)
@@ -292,7 +291,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
                     return merged
 
         # We are good to go - swap it all
-        ndsl_log.debug(f"  Push IF {the_if.condition.as_string} down")
         inner_if_map = the_if.children[0]
 
         # Swap IF & maps
@@ -357,10 +355,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             ]
         )
 
-        ndsl_log.debug(
-            f"  Merge {self.axis.name} map: {first_range} ⋃ {second_range} -> {merged_range}"
-        )
-
         # push IfScope down if children are just maps
         axis_as_str = the_map.node.params[0]
         first_map = InsertOvercomputationGuard(
@@ -422,10 +416,11 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         # NormalizeAxisSymbol(self.axis).visit(node)
 
         overall_merged = 0
+        passes_apply = 0
         i = 0
         while True:
             i += 1
-            ndsl_log.debug(f"🔥 Merge attempt #{i}")
+            # ndsl_log.debug(f"🔥 Merge attempt #{i}")
             previous_children = copy.deepcopy(node.children)
             try:
                 merged = self._merge(node)
@@ -438,10 +433,11 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             # If we didn't merge, we revert the children
             # to the previous state
             if merged == 0:
-                ndsl_log.debug("🥹 No merges, revert!")
+                # ndsl_log.debug("🥹 No merges, revert!")
                 node.children = previous_children
                 break
+            passes_apply += 1
 
         ndsl_log.debug(
-            f"🚀 Cartesian Axis Merge ({self.axis.name}): {overall_merged} map merged"
+            f"🚀 Cartesian Axis Merge ({self.axis.name}): {overall_merged} map merged in {passes_apply} passes"
         )

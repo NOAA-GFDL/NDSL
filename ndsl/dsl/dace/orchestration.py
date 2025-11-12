@@ -39,6 +39,7 @@ from ndsl.dsl.dace.stree.optimizations import (
     AxisIterator,
     CartesianAxisMerge,
     CartesianRefineTransients,
+    CleanUpScheduleTree,
 )
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
@@ -174,6 +175,7 @@ def _build_sdfg(
                     if config.get_backend() == "dace:cpu_kfirst":
                         passes.extend(
                             [
+                                CleanUpScheduleTree(),
                                 CartesianAxisMerge(AxisIterator._I),
                                 CartesianAxisMerge(AxisIterator._J),
                                 CartesianAxisMerge(AxisIterator._K),
@@ -183,6 +185,7 @@ def _build_sdfg(
                     else:
                         passes.extend(
                             [
+                                CleanUpScheduleTree(),
                                 CartesianAxisMerge(AxisIterator._K),
                                 CartesianAxisMerge(AxisIterator._I),
                                 CartesianAxisMerge(AxisIterator._J),
