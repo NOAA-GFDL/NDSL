@@ -27,7 +27,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from tests.mpi.mpi_comm import MPI
+from tests.mpi import MPI
 
 
 @pytest.fixture

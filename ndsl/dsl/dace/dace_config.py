@@ -8,8 +8,8 @@ import dace.config
 from dace.frontend.python.parser import DaceProgram
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
+from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
-from ndsl.comm.null_comm import NullComm
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
@@ -180,7 +180,7 @@ class DaceConfig:
             PerformanceCollector(
                 "InternalOrchestrationTimer",
                 comm=(
-                    communicator.comm if communicator is not None else NullComm(0, 6, 0)
+                    LocalComm(0, 6, {}) if communicator is None else communicator.comm
                 ),
             )
             if time

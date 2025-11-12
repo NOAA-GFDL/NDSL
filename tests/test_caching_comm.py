@@ -8,7 +8,6 @@ from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
     LocalComm,
-    NullComm,
     Quantity,
     TilePartitioner,
 )
@@ -75,29 +74,38 @@ def perform_serial_halo_updates(
 
 
 def test_Recv_inserts_data():
-    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6))
+    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.received_buffers) == 0
-    comm.Recv(recvbuf, source=0)
-    assert len(comm._data.received_buffers) == 1
-    assert comm._data.received_buffers[0].shape == shape
+
+    if comm.Get_rank() == 0:
+        comm.bcast(np.random.randn(*shape))
+    else:
+        comm.Recv(recvbuf, source=0)
+        assert len(comm._data.received_buffers) == 1
+        assert comm._data.received_buffers[0].shape == shape
 
 
 def test_Irecv_inserts_data():
-    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6))
+    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.received_buffers) == 0
-    req = comm.Irecv(recvbuf, source=0)
-    assert len(comm._data.received_buffers) == 0
-    req.wait()
-    assert len(comm._data.received_buffers) == 1
-    assert comm._data.received_buffers[0].shape == shape
+
+    if comm.Get_rank() == 0:
+        comm.Isend(np.random.randn(*shape), dest=2)
+
+    if comm.Get_rank() == 2:
+        req = comm.Irecv(recvbuf, source=0)
+        assert len(comm._data.received_buffers) == 0
+        req.wait()
+        assert len(comm._data.received_buffers) == 1
+        assert comm._data.received_buffers[0].shape == shape
 
 
 def test_bcast_inserts_data():
-    comm = CachingCommWriter(comm=NullComm(rank=0, total_ranks=6))
+    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.bcast_objects) == 0
