@@ -1,27 +1,22 @@
 import numpy as np
+import pytest
 
-from ndsl import StencilFactory
+from ndsl import QuantityFactory, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
+from ndsl.stencils import CopyCornersXY
 from ndsl.stencils.column_operations import column_max, column_min
 
 
-nx = 1
-ny = 1
-nz = 10
-nhalo = 0
-backend = "dace:cpu"
-
-stencil_factory, quantity_factory = get_factories_single_tile(
-    nx, ny, nz, nhalo, backend
-)
+@pytest.fixture
+def boilerplate() -> tuple[StencilFactory, QuantityFactory]:
+    return get_factories_single_tile(nx=1, ny=1, nz=10, nhalo=0, backend="dace:cpu")
 
 
 class ColumnOperations:
     def __init__(self, stencil_factory: StencilFactory):
-        grid_indexing = stencil_factory.grid_indexing
 
         def column_max_stencil(
             data: FloatField, max_value: FloatFieldIJ, max_index: FloatFieldIJ
@@ -60,7 +55,8 @@ class ColumnOperations:
         self._column_min_stencil(data, min_value, min_index)
 
 
-def test_column_operations():
+def test_column_operations(boilerplate):
+    stencil_factory, quantity_factory = boilerplate
     data = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "n/a")
     data.field[:] = [
         47.3821,
@@ -87,3 +83,10 @@ def test_column_operations():
     assert max_index.field[:] == np.argmax(data.field[:], axis=2)
     assert min_value.field[:] == np.min(data.field[:, :, 5:], axis=2)
     assert min_index.field[:] == 5 + np.argmin(data.field[:, :, 5:], axis=2)
+
+
+def test_CopyCornersXY_deprecation(boilerplate) -> None:
+    stencil_factory, _ = boilerplate
+
+    with pytest.deprecated_call(match="Usage of CopyCornersXY is deprecated"):
+        CopyCornersXY(stencil_factory, [X_DIM, Y_DIM, Z_DIM], None)
