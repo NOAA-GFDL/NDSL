@@ -3,7 +3,7 @@ from ndsl import (
     DaceConfig,
     DaCeOrchestration,
     GridIndexing,
-    NullComm,
+    MPIComm,
     QuantityFactory,
     RunMode,
     StencilConfig,
@@ -54,6 +54,13 @@ def _get_factories(
     )
 
     if topology == "tile":
+        mpi_comm = MPIComm()
+        if mpi_comm.Get_size() != 1:
+            raise ValueError(
+                "Single tile topology requested with an MPI communicator of size "
+                f"{mpi_comm.Get_size()} > 1. Re-configure MPI to run on only one rank."
+            )
+
         partitioner = TilePartitioner((1, 1))
         sizer = SubtileGridSizer.from_tile_params(
             nx_tile=nx,
@@ -63,7 +70,7 @@ def _get_factories(
             layout=partitioner.layout,
             tile_partitioner=partitioner,
         )
-        comm = TileCommunicator(comm=NullComm(0, 1, 42), partitioner=partitioner)
+        comm = TileCommunicator(comm=mpi_comm, partitioner=partitioner)
     else:
         raise NotImplementedError(f"Topology {topology} is not implemented.")
 
