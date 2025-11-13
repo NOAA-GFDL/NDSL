@@ -1,3 +1,4 @@
+import warnings
 from collections.abc import Sequence
 
 from gt4py.cartesian import gtscript
@@ -28,6 +29,13 @@ class CopyCornersXY:
             y_field: 3D gt4py storage to use for y-differenceable field
                 (x-differenceable field uses same memory as base field)
         """
+        warnings.warn(
+            "Usage of CopyCornersXY is deprecated and will be removed in the next release. "
+            "Use `CopyCornersX` and `CopyCornersY` in PyFV3 for a more future-proof "
+            "implementation of the corner code.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         grid_indexing = stencil_factory.grid_indexing
         origin, domain = grid_indexing.get_origin_domain(
             dims=dims, halos=(grid_indexing.n_halo, grid_indexing.n_halo)
