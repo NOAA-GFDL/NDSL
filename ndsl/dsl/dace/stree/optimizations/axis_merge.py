@@ -19,6 +19,9 @@ from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
     swap_node_position_in_tree,
 )
 
+# Buggy passes that should work
+PUSH_IFSCOPE_DOWNWARD = False
+
 
 def _is_axis_map(node: stree.MapScope, axis: AxisIterator) -> bool:
     """Returns true if node is a map over the given axis."""
@@ -187,7 +190,7 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
 
         if isinstance(node, stree.MapScope):
             return self._map_overcompute_merge(node, nodes)
-        elif isinstance(node, stree.IfScope):
+        elif PUSH_IFSCOPE_DOWNWARD and isinstance(node, stree.IfScope):
             return self._push_ifelse_down(node, nodes)
         elif isinstance(node, stree.TaskletNode):
             return self._push_tasklet_down(node, nodes)
@@ -320,7 +323,10 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         the_map: stree.MapScope,
         nodes: list[stree.ScheduleTreeNode],
     ) -> int:
-        if _last_node(nodes, the_map):
+        # End of nodes OR
+        # Not the right axis
+        # --> recurse
+        if _last_node(nodes, the_map) or not _is_axis_map(the_map, self.axis):
             merged = 0
             for child in the_map.children:
                 merged += self._merge_node(child, the_map.children)
@@ -328,13 +334,9 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
 
         next_node = _get_next_node(nodes, the_map)
 
-        # If the next node is not a MapScope - recurse
+        # Next node is not a MapScope - no merge
         if not isinstance(next_node, stree.MapScope):
-            merged = self._merge_node(next_node, nodes)
-            new_next_node = _get_next_node(nodes, the_map)
-            if new_next_node == next_node:
-                return merged
-            return merged + self._merge_node(the_map, nodes)
+            return 0
 
         # Attempt to merge consecutive maps
         if not _can_merge_axis_maps(the_map, next_node, self.axis):
