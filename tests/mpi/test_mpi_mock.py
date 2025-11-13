@@ -4,7 +4,7 @@ import pytest
 from ndsl import LocalComm
 from ndsl.buffer import recv_buffer
 from ndsl.comm.local_comm import ConcurrencyError
-from tests.mpi.mpi_comm import MPI
+from tests.mpi import MPI
 
 
 worker_function_list = []

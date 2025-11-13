@@ -10,7 +10,7 @@ from ndsl import (
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.mpi import MPIComm
 from ndsl.dsl.typing import Float
-from tests.mpi.mpi_comm import MPI
+from tests.mpi import MPI
 
 
 @pytest.fixture

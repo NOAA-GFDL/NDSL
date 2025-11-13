@@ -1,4 +1,5 @@
 import copy
+import warnings
 from collections.abc import Mapping
 from typing import Any, TypeVar, cast
 
@@ -33,6 +34,12 @@ class NullComm(Comm[T]):
             fill_value: fill halos with this value when performing
                 halo updates.
         """
+        warnings.warn(
+            "NullComm is deprecated and will be removed with the next version of NDSL. "
+            "Use MPIComm or LocalComm instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.rank = rank
         self.total_ranks = total_ranks
         self._fill_value = fill_value

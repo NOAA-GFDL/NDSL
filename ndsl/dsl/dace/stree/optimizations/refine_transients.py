@@ -169,7 +169,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         - Using the dataflow above, we can reduce the dimensions to the correct lowest
         size needed on the axis (e.g. transient[K] and transient[K+1], requires a 2-element
         buffer)
-        - Current action when detecting a valide candidate is to reduce the size of the dimension
+        - Current action when detecting a valid candidate is to reduce the size of the dimension
         to 1, rather than removing it. This will effectively, if generic compilers do their job, reduce
         the cache access significantly. This also has been implemented to _not_ deal with offset/slicing
         downstream impact of removing an axis. Nevertheless the xis should be removed if it's not
@@ -185,7 +185,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
 
     def __init__(self, backend: str) -> None:
         warnings.warn(
-            "CartesianRefineTransients is a WIP. It's usage is *severaly* limited"
+            "CartesianRefineTransients is a WIP. It's usage is *severely* limited "
             "and will most likely lead to bad numerics. Check the docs, check utest.",
             UserWarning,
             stacklevel=2,
