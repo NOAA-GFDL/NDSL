@@ -76,12 +76,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="How many indices of failures to print from worst to best. Default to 1.",
     )
     parser.addoption(
-        "--no_legacy_namelist",
-        action="store_true",
-        default=False,
-        help="Temporary flag introduced as part of  NDSL issue #64. No functionality. Soon to be removed.",
-    )
-    parser.addoption(
         "--grid",
         action="store",
         default="file",
