@@ -417,6 +417,11 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         # in the tasklet...
         # NormalizeAxisSymbol(self.axis).visit(node)
 
+        # TODO: we are meging single axis, we could prefix those runs by moving
+        #       if scope down inside the map if it has the proper axis, preparing
+        #       for a better merging scope. If we can't nerge, we can revert this
+        #       orep step
+
         overall_merged = 0
         passes_apply = 0
         i = 0
