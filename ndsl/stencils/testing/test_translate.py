@@ -258,9 +258,11 @@ def test_sequential_savepoint(
             output_data = gt_utils.asarray(output[varname])
             if multimodal_metric:
                 metric = MultiModalFloatMetric(
-                    input_values=original_input_data[varname]
-                    if varname in original_input_data.keys()
-                    else None,
+                    input_values=(
+                        original_input_data[varname]
+                        if varname in original_input_data.keys()
+                        else None
+                    ),
                     reference_values=ref_data,
                     computed_values=output_data,
                     absolute_eps_override=case.testobj.mmr_absolute_eps,
@@ -418,9 +420,11 @@ def test_parallel_savepoint(
             output_data = gt_utils.asarray(output[varname])
             if multimodal_metric:
                 metric = MultiModalFloatMetric(
-                    input_values=original_input_data[varname]
-                    if varname in original_input_data.keys()
-                    else None,
+                    input_values=(
+                        original_input_data[varname]
+                        if varname in original_input_data.keys()
+                        else None
+                    ),
                     reference_values=ref_data[varname][0],
                     computed_values=output_data,
                     absolute_eps_override=case.testobj.mmr_absolute_eps,
