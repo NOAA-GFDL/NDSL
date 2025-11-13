@@ -1,6 +1,6 @@
 from .axis_merge import AxisIterator, CartesianAxisMerge
-from .refine_transients import CartesianRefineTransients
 from .clean_tree import CleanUpScheduleTree
+from .refine_transients import CartesianRefineTransients
 
 
 __all__ = [

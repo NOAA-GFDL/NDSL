@@ -14,7 +14,7 @@ class CleanUpScheduleTree(stree.ScheduleNodeTransformer):
     def __str__(self) -> str:
         return "CleanUpScheduleTree"
 
-    def _remove_from_my_childs(self, node: stree.ScheduleTreeScope):
+    def _remove_from_my_childs(self, node: stree.ScheduleTreeScope) -> None:
         to_remove = [
             child
             for child in node.children
@@ -24,28 +24,28 @@ class CleanUpScheduleTree(stree.ScheduleNodeTransformer):
             self.cleaned_state_boundaries += 1
             node.children.remove(to_remove_child)
 
-    def visit_WhileScope(self, node: stree.WhileScope):
+    def visit_WhileScope(self, node: stree.WhileScope) -> stree.WhileScope:
         self._remove_from_my_childs(node)
         for child in node.children:
             self.visit(child)
 
         return node
 
-    def visit_ForScope(self, node: stree.ForScope):
+    def visit_ForScope(self, node: stree.ForScope) -> stree.ForScope:
         self._remove_from_my_childs(node)
         for child in node.children:
             self.visit(child)
 
         return node
 
-    def visit_MapScope(self, node: stree.MapScope):
+    def visit_MapScope(self, node: stree.MapScope) -> stree.MapScope:
         self._remove_from_my_childs(node)
         for child in node.children:
             self.visit(child)
 
         return node
 
-    def visit_IfScope(self, node: stree.MapScope):
+    def visit_IfScope(self, node: stree.IfScope) -> stree.IfScope:
         self._remove_from_my_childs(node)
         for child in node.children:
             self.visit(child)

@@ -150,7 +150,6 @@ def test_stree_merge_maps() -> None:
             if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
         ]
         assert len(all_loop_guard_state) == 1
-        print(sdfg)
 
 
 class LocalRefineableCode(NDSLRuntime):

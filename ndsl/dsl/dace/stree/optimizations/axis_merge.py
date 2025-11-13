@@ -19,6 +19,7 @@ from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
     swap_node_position_in_tree,
 )
 
+
 # Buggy passes that should work
 PUSH_IFSCOPE_DOWNWARD = False
 
