@@ -6,7 +6,7 @@ import pytest
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
+    LocalComm,
     Quantity,
     TilePartitioner,
 )
@@ -100,7 +100,7 @@ def communicator_list(layout):
     for rank in range(total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                DummyComm(rank, total_ranks, shared_buffer),
+                LocalComm(rank, total_ranks, shared_buffer),
                 CubedSpherePartitioner(TilePartitioner(layout)),
                 timer=Timer(),
             )

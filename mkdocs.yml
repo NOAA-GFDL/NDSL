@@ -103,7 +103,6 @@ nav:
           - "tridiag": docstrings/stencils/tridiag.md
       - testing:
           - "comparison": docstrings/testing/comparison.md
-          - "dummy_comm": docstrings/testing/dummy_comm.md
           - "perturbation": docstrings/testing/perturbation.md
       - viz:
           - "cube_sphere": docstrings/viz/cube_sphere.md

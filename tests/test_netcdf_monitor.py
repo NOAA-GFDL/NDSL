@@ -10,7 +10,7 @@ import xarray as xr
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
+    LocalComm,
     NetCDFMonitor,
     Quantity,
     TilePartitioner,
@@ -54,7 +54,7 @@ def test_monitor_store_multi_rank_state(
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
             partitioner=partitioner,
-            comm=DummyComm(
+            comm=LocalComm(
                 rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
             ),
         )
