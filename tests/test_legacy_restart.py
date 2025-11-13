@@ -10,7 +10,7 @@ import ndsl.io as io
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
+    LocalComm,
     Quantity,
     TilePartitioner,
 )
@@ -38,7 +38,7 @@ def get_c12_restart_state_list(layout, only_names, tracer_properties):
     communicator_list = []
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
-            DummyComm(rank, total_ranks, shared_buffer),
+            LocalComm(rank, total_ranks, shared_buffer),
             CubedSpherePartitioner(TilePartitioner(layout)),
         )
         communicator_list.append(communicator)
@@ -148,7 +148,7 @@ def test_open_c12_restart_empty_to_state_without_crashing(layout):
     communicator_list = []
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
-            DummyComm(rank, total_ranks, shared_buffer),
+            LocalComm(rank, total_ranks, shared_buffer),
             CubedSpherePartitioner(TilePartitioner(layout)),
         )
         communicator_list.append(communicator)
@@ -190,7 +190,7 @@ def test_open_c12_restart_to_allocated_state_without_crashing(layout):
     communicator_list = []
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
-            DummyComm(rank, total_ranks, shared_buffer),
+            LocalComm(rank, total_ranks, shared_buffer),
             CubedSpherePartitioner(TilePartitioner(layout)),
         )
         communicator_list.append(communicator)

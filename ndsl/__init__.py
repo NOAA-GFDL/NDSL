@@ -28,7 +28,6 @@ from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
 from .quantity import Local, Quantity, State
 from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
-from .testing.dummy_comm import DummyComm
 from .types import Allocator
 from .utils import MetaEnumStr
 
@@ -79,7 +78,6 @@ __all__ = [
     "Quantity",
     "FieldBundle",
     "FieldBundleType",
-    "DummyComm",
     "Allocator",
     "MetaEnumStr",
     "State",

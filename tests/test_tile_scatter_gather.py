@@ -3,7 +3,7 @@ import datetime
 
 import pytest
 
-from ndsl import DummyComm, Quantity, TileCommunicator, TilePartitioner
+from ndsl import LocalComm, Quantity, TileCommunicator, TilePartitioner
 from ndsl.constants import (
     HORIZONTAL_DIMS,
     X_DIM,
@@ -84,7 +84,7 @@ def communicator_list(layout):
     for rank in range(total_ranks):
         return_list.append(
             TileCommunicator(
-                DummyComm(rank, total_ranks, shared_buffer),
+                LocalComm(rank, total_ranks, shared_buffer),
                 TilePartitioner(layout),
             )
         )

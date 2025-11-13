@@ -12,7 +12,7 @@ import pytest
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
+    LocalComm,
     Quantity,
     TilePartitioner,
 )
@@ -56,7 +56,7 @@ def cpu_communicators(cube_partitioner):
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 force_cpu=True,
@@ -74,7 +74,7 @@ def gpu_communicators(cube_partitioner):
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=cube_partitioner,

@@ -1,6 +1,6 @@
 import pytest
 
-from ndsl import DummyComm, Quantity, TileCommunicator, TilePartitioner
+from ndsl import LocalComm, Quantity, TileCommunicator, TilePartitioner
 from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM
 
 
@@ -20,7 +20,7 @@ def get_tile_communicator_list(partitioner):
     for rank in range(total_ranks):
         tile_communicator_list.append(
             TileCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=partitioner,

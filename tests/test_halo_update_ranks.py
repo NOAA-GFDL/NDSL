@@ -3,7 +3,7 @@ import pytest
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
+    LocalComm,
     Quantity,
     TilePartitioner,
 )
@@ -103,7 +103,7 @@ def communicator_list(cube_partitioner, total_ranks):
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=cube_partitioner,
