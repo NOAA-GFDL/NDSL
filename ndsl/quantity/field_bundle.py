@@ -95,6 +95,7 @@ class FieldBundle:
                 units=self._quantity.units,
                 origin=self._quantity.origin[:-1],
                 extent=self._quantity.extent[:-1],
+                backend=self._quantity.backend,
             )
         return self._per_name_view[name]
 
