@@ -224,6 +224,7 @@ class MultiModalFloatMetric(BaseMetric):
 
     def __init__(
         self,
+        input_values: np.ndarray | None,
         reference_values: np.ndarray,
         computed_values: np.ndarray,
         absolute_eps_override: float = -1,
@@ -255,6 +256,13 @@ class MultiModalFloatMetric(BaseMetric):
         self.success = self._compute_all_metrics()
         self.check = np.all(self.success)
         self.sort_report = sort_report
+
+        if input_values is not None:
+            self.number_changing_values = (
+                (input_values != reference_values).flatten().shape[0]
+            )
+        else:
+            self.number_changing_values = None
 
     def _compute_all_metrics(
         self,
@@ -329,9 +337,19 @@ class MultiModalFloatMetric(BaseMetric):
         # List all errors to terminal and file
         bad_indices_count = len(failed_indices[0])
         full_count = len(self.references.flatten())
-        failures_pct = round(100.0 * (bad_indices_count / full_count), 2)
+        failures_of_all_grid_points_pct = round(
+            100.0 * (bad_indices_count / full_count), 2
+        )
+        if self.number_changing_values is not None:
+            failures_of_changing_gridpoint_pct = round(
+                100.0 * (bad_indices_count / self.number_changing_values), 2
+            )
+            report_local_failures = f"Failures (changing grid points) ({bad_indices_count}/{self.number_changing_values}) ({failures_of_changing_gridpoint_pct}%)\n"
+        else:
+            report_local_failures = ""
         report = [
-            f"All failures ({bad_indices_count}/{full_count}) ({failures_pct}%),\n",
+            f"{report_local_failures}"
+            f"Failures (all grid points) ({bad_indices_count}/{full_count}) ({failures_of_all_grid_points_pct}%)\n",
             f"Index   Computed   Reference   "
             f"{'🔶 ' if not self.absolute_eps.is_default else ''}Absolute E(<{self.absolute_eps.value:.2e})  "
             f"{'🔶 ' if not self.relative_fraction.is_default else ''}Relative E(<{self.relative_fraction.value * 100:.2e}%)   "
