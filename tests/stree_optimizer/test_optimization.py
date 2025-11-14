@@ -11,8 +11,8 @@ from ndsl.dsl.typing import FloatField
 
 
 def _get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
-    """Get the Precompiled SDFG from and flush it out from the cache in order
-    for the function to be reused."""
+    """Get the Precompiled SDFG from the dace config dict where they are cached post
+    compilation and flush the cache in order for next build to re-use the function."""
     sdfg_repo = stencil_factory.config.dace_config.loaded_precompiled_SDFG
 
     if len(sdfg_repo.values()) != 1:
@@ -55,39 +55,43 @@ def copy_stencil_with_forward_K(in_field: FloatField, out_field: FloatField) -> 
         out_field = in_field + 3
 
 
-def copy_stencil_with_if(in_field: FloatField, out_field: FloatField) -> None:
-    with computation(PARALLEL), interval(...):
-        if K > 3:
-            out_field = in_field + 4
-
-
-def copy_stencil_with_temp_and_offset_in_K(
+def copy_stencil_with_different_intervals(
     in_field: FloatField,
     out_field: FloatField,
 ) -> None:
-    with computation(PARALLEL), interval(...):
-        temporary_field = in_field + 5
-
-    with computation(PARALLEL), interval(0, -1):
-        out_field = temporary_field[K - 1] + 6
+    with computation(PARALLEL), interval(1, None):
+        out_field = in_field + 5
 
 
-class TriviallyMergeableCode:
-    def __init__(self, stencil_factory: StencilFactory) -> None:
-        orchestrate(obj=self, config=stencil_factory.config.dace_config)
-        self.stencil = stencil_factory.from_dims_halo(
-            func=copy_stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
-        )
+def copy_stencil_with_buffer_read_offset_in_K(
+    in_field: FloatField, out_field: FloatField, buffer: FloatField
+) -> None:
+    with computation(PARALLEL), interval(1, None):
+        buffer = in_field + 6
 
-    def __call__(self, in_field: FloatField, out_field: FloatField) -> None:
-        self.stencil(in_field, out_field)
-        self.stencil(in_field, out_field)
+    with computation(PARALLEL), interval(1, None):
+        out_field = buffer[K - 1] + 7
 
 
-class NonTrivialMergingCode:
-    def __init__(self, stencil_factory: StencilFactory) -> None:
-        orchestrate(obj=self, config=stencil_factory.config.dace_config)
+class OrchestratedCode:
+    def __init__(
+        self,
+        stencil_factory: StencilFactory,
+        quantity_factory: QuantityFactory,
+    ) -> None:
+        orchestratable_methods = [
+            "trivial_merge",
+            "missing_merge_of_forscope_and_map",
+            "overcompute_merge",
+            "block_merge_when_depandencies_is_found",
+        ]
+        for method in orchestratable_methods:
+            orchestrate(
+                obj=self,
+                config=stencil_factory.config.dace_config,
+                method_to_orchestrate=method,
+            )
+
         self.copy_stencil = stencil_factory.from_dims_halo(
             func=copy_stencil,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
@@ -96,20 +100,51 @@ class NonTrivialMergingCode:
             func=copy_stencil_with_forward_K,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.copy_stencil_with_if = stencil_factory.from_dims_halo(
-            func=copy_stencil_with_if,
+        self.copy_stencil_with_buffer_read_offset_in_K = stencil_factory.from_dims_halo(
+            func=copy_stencil_with_buffer_read_offset_in_K,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.copy_stencil_with_temp_and_offset_in_K = stencil_factory.from_dims_halo(
-            func=copy_stencil_with_temp_and_offset_in_K,
+        self.copy_stencil_with_different_intervals = stencil_factory.from_dims_halo(
+            func=copy_stencil_with_different_intervals,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
-    def __call__(self, in_field: FloatField, out_field: FloatField) -> None:
+        self._buffer = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], units="")
+
+    def trivial_merge(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
         self.copy_stencil(in_field, out_field)
-        self.copy_stencil_with_if(in_field, out_field)
+        self.copy_stencil(in_field, out_field)
+
+    def missing_merge_of_forscope_and_map(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.copy_stencil(in_field, out_field)
         self.copy_stencil_with_forward_K(in_field, out_field)
-        # self.copy_stencil_with_temp_and_offset_in_K(in_field, out_field)
+        self.copy_stencil(in_field, out_field)
+
+    def block_merge_when_depandencies_is_found(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.copy_stencil(in_field, out_field)
+        self.copy_stencil_with_buffer_read_offset_in_K(
+            in_field, out_field, self._buffer
+        )
+
+    def overcompute_merge(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.copy_stencil(in_field, out_field)
+        self.copy_stencil_with_different_intervals(in_field, out_field)
 
 
 def test_stree_merge_maps() -> None:
@@ -118,25 +153,41 @@ def test_stree_merge_maps() -> None:
         domain[0], domain[1], domain[2], 0, backend="dace:cpu_kfirst"
     )
 
-    trivial_code = TriviallyMergeableCode(stencil_factory)
+    code = OrchestratedCode(stencil_factory, quantity_factory)
     in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
     out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
 
-    # with StreeOptimization():
-    #     trivial_code(in_qty, out_qty)
-    #     precompiled_sdfg = _get_SDFG_and_purge(stencil_factory)
-    #     all_maps = [
-    #         (me, state)
-    #         for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
-    #         if isinstance(me, dace.nodes.MapEntry)
-    #     ]
-
-    #     assert len(all_maps) == 3
-    #     assert (out_qty.field[:] == 1).all()
-
-    complex_code = NonTrivialMergingCode(stencil_factory)
     with StreeOptimization():
-        complex_code(in_qty, out_qty)
+        # Trivial merge
+        code.trivial_merge(in_qty, out_qty)
+        precompiled_sdfg = _get_SDFG_and_purge(stencil_factory)
+        all_maps = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, dace.nodes.MapEntry)
+        ]
+
+        assert len(all_maps) == 3
+        assert (out_qty.field[:] == 2).all()
+
+        # Merge IJ - but do not merge K map & for (missing feature)
+        code.missing_merge_of_forscope_and_map(in_qty, out_qty)
+        sdfg = _get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, dace.nodes.MapEntry)
+        ]
+        assert len(all_maps) == 4  # 2 IJ + 2 Ks
+        all_loop_guard_state = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        ]
+        assert len(all_loop_guard_state) == 1  # 1 For loop
+
+        # Overcompute merge in K - we merge and introduce an If guard
+        code.overcompute_merge(in_qty, out_qty)
         sdfg = _get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
@@ -144,12 +195,16 @@ def test_stree_merge_maps() -> None:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 3
-        all_loop_guard_state = [
+
+        # Forbid merging when data dependancy is detected
+        code.block_merge_when_depandencies_is_found(in_qty, out_qty)
+        sdfg = _get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+            if isinstance(me, dace.nodes.MapEntry)
         ]
-        assert len(all_loop_guard_state) == 1
+        assert len(all_maps) == 4  # 2 IJ + 2 Ks (un-merged)
 
 
 class LocalRefineableCode(NDSLRuntime):
