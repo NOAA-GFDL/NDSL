@@ -115,7 +115,8 @@ class CollectTransientAccessInCartesianMaps(stree.ScheduleNodeVisitor):
 
     def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
         for memlet in [*node.input_memlets(), *node.output_memlets()]:
-            if self.containers[memlet.data].transient:
+            data = self.containers[memlet.data]
+            if data.transient and isinstance(data, dace.data.Array):
                 for map_entry in self._cartesian_current_map_nesting:
                     if map_entry is not None:
                         self.transient_map_access[memlet.data].add(map_entry)
@@ -123,7 +124,7 @@ class CollectTransientAccessInCartesianMaps(stree.ScheduleNodeVisitor):
     def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
         self.containers = node.containers
         for name, data in self.containers.items():
-            if data.transient:
+            if data.transient and isinstance(data, dace.data.Array):
                 self.transient_map_access[name] = set()
 
         for child in node.children:
@@ -163,6 +164,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
     It can do:
         - Looking at usage of a transient in a cartesian axis (e.g. loop over a
         cartesian axis) it will reduce that axis to 1 if it exists in _only one_.
+
     It should but cannot do/will bug if:
         - Dataflow analysis on the axis to prevent reducing an axis to one where
         the transient is used with offset, leading to faulty numerics
@@ -211,7 +213,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         # Remove Axis
         refined_transient = 0
         for name, data in node.containers.items():
-            if not data.transient:
+            if not (data.transient and isinstance(data, dace.data.Array)):
                 continue
             refined = _reduce_cartesian_axes_size_to_1(
                 collect_map.transient_map_access[name],

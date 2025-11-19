@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
 from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
+from ndsl.logging import ndsl_log_on_rank_0
 
 
 class StreePipeline(ABC):
@@ -42,10 +43,14 @@ class CPUPipeline(StreePipeline):
         stree: stree.ScheduleTreeRoot,
         verbose: bool = False,
     ) -> stree.ScheduleTreeRoot:
-        for p in self.passes:
+        for i, p in enumerate(self.passes):
             if verbose:
-                print(f"[Stree OPT] {p}")
+                path = f"pass{i}_{p}.txt"
+                ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
             p.visit(stree)
+            if verbose:
+                with open(path, "w") as f:
+                    f.write(stree.as_string())
 
         return stree
 
