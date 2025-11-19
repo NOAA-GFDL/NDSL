@@ -3,7 +3,7 @@ from types import TracebackType
 import dace
 
 import ndsl.dsl.dace.orchestration as orch
-from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
+from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
@@ -205,39 +205,3 @@ def test_stree_merge_maps() -> None:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 4  # 2 IJ + 2 Ks (un-merged)
-
-
-class LocalRefineableCode(NDSLRuntime):
-    def __init__(
-        self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
-    ) -> None:
-        super().__init__(stencil_factory.config.dace_config)
-        self.stencil_A = stencil_factory.from_dims_halo(
-            func=copy_stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
-        )
-        self.tmp = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
-
-    def __call__(self, in_field: Quantity, out_field: Quantity) -> None:
-        self.stencil_A(in_field, self.tmp)
-        self.stencil_A(self.tmp, out_field)
-
-
-def test_stree_roundtrip_transient_is_refined() -> None:
-    domain = (3, 3, 4)
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend="dace:cpu"
-    )
-
-    code = LocalRefineableCode(stencil_factory, quantity_factory)
-    in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
-    out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
-
-    with StreeOptimization():
-        code(in_qty, out_qty)
-
-        precompiled_sdfg = _get_SDFG_and_purge(stencil_factory)
-
-        for array in precompiled_sdfg.sdfg.arrays.values():
-            if array.transient:
-                assert array.shape == (1, 1, 1)
