@@ -51,7 +51,21 @@ def _reduce_cartesian_axes_size_to_1(
             axis.as_cartesian_index(),
             value=1,
         )
-        transient_data.set_strides_from_layout(*ijk_order)
+
+        # Assume 3D cartesian!
+        if len(transient_data.shape) < 3:
+            warnings.warn(f"Potential non-3D array: {transient_data}, skipping.")
+            return refined
+        elif len(transient_data.shape) == 3:
+            layout = ijk_order
+        else:
+            data_dim_count = len(transient_data.shape) - 3
+            layout = [dim + data_dim_count for dim in ijk_order] + [
+                i - 1 for i in range(data_dim_count, 0, -1)
+            ]
+
+        transient_data.set_strides_from_layout(*layout)
+        transient_data.lifetime = dace.dtypes.AllocationLifetime.State
         refined = True
 
     return refined
@@ -138,17 +152,24 @@ class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
         return "RefineTransientAxis"
 
     def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
-        for name, memlet in node.in_memlets.items():
-            if self.containers[memlet.data].transient:
-                node.in_memlets[name] = memlet.from_array(
-                    memlet.data, self.containers[memlet.data]
-                )
-
-        for name, memlet in node.out_memlets.items():
-            if self.containers[memlet.data].transient:
-                node.out_memlets[name] = memlet.from_array(
-                    memlet.data, self.containers[memlet.data]
-                )
+        for memlet in [*node.out_memlets.values(), *node.out_memlets.values()]:
+            array = self.containers[memlet.data]
+            if array.transient and array:
+                replace_cartesian_access = {}
+                if len(array.shape) >= 1 and array.shape[0] == 1:
+                    replace_cartesian_access[AxisIterator._I.as_str()] = 0
+                if len(array.shape) >= 2 and array.shape[1] == 1:
+                    replace_cartesian_access[AxisIterator._J.as_str()] = 0
+                if len(array.shape) >= 3 and array.shape[2] == 1:
+                    # Workaround because the iterator can be `__k_0` instead of `__k`
+                    axis = None
+                    for axis_symbol in memlet.free_symbols:
+                        if axis_symbol.startswith(AxisIterator._K.as_str()):
+                            axis = axis_symbol
+                            break
+                    if axis:
+                        replace_cartesian_access[axis] = 0
+                memlet.replace(replace_cartesian_access)
 
     def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
         self.containers = node.containers
@@ -176,6 +197,8 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         the cache access significantly. This also has been implemented to _not_ deal with offset/slicing
         downstream impact of removing an axis. Nevertheless the xis should be removed if it's not
         used.
+        - It only knows how to deal with 3D cartesian and 3D cartesian + data dimensions. Anything else will
+        fail `_reduce_cartesian_axes_size_to_1` calculation
 
     More tests:
         - Test for dataflow with offset
