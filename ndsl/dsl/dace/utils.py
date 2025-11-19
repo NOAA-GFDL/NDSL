@@ -32,7 +32,7 @@ class DaCeProgress:
 
     def __exit__(self, _type, _val, _traceback) -> None:  # type: ignore
         elapsed = time.time() - self.start
-        ndsl_log.debug(f"{self.prefix} {self.label}...{elapsed}s.")
+        ndsl_log.debug(f"{self.prefix} {self.label}...{elapsed:.2f}s.")
 
 
 def _is_ref(sd: dace.sdfg.SDFG, aname: str) -> bool:
