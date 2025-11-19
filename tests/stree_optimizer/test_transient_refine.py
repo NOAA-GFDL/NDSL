@@ -6,8 +6,8 @@ import ndsl.dsl.dace.orchestration as orch
 from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval, K, J, Field, IJK
-from ndsl.dsl.typing import FloatField, Float
+from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
+from ndsl.dsl.typing import Float, FloatField
 
 
 def _get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:

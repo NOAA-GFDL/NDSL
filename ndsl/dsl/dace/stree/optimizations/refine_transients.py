@@ -54,10 +54,14 @@ def _reduce_cartesian_axes_size_to_1(
 
         # Assume 3D cartesian!
         if len(transient_data.shape) < 3:
-            warnings.warn(f"Potential non-3D array: {transient_data}, skipping.")
+            warnings.warn(
+                f"Potential non-3D array: {transient_data}, skipping.",
+                UserWarning,
+                stacklevel=2,
+            )
             return refined
         elif len(transient_data.shape) == 3:
-            layout = ijk_order
+            layout = [*ijk_order]
         else:
             data_dim_count = len(transient_data.shape) - 3
             layout = [dim + data_dim_count for dim in ijk_order] + [
