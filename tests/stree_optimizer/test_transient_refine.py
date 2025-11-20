@@ -22,9 +22,9 @@ def stencil_with_K_offset(in_field: FloatField, out_field: FloatField) -> None:
         out_field = in_field[K + 1] + 2
 
 
-def stencil_with_J_offset(in_field: FloatField, out_field: FloatField) -> None:
+def stencil_with_JK_offset(in_field: FloatField, out_field: FloatField) -> None:
     with computation(PARALLEL), interval(...):
-        out_field = in_field[J + 1] + 3
+        out_field = in_field[J + 1, K + 1] + 3
 
 
 def stencil_with_ddim(in_field: DDIM_TYPE, out_field: DDIM_TYPE) -> None:
@@ -52,16 +52,16 @@ class TransientRefineableCode(NDSLRuntime):
                 config=stencil_factory.config.dace_config,
                 method_to_orchestrate=method,
             )
-        self.copy = stencil_factory.from_dims_halo(
+        self.stencil = stencil_factory.from_dims_halo(
             func=stencil,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.with_K_offset = stencil_factory.from_dims_halo(
+        self.stencil_with_K_offset = stencil_factory.from_dims_halo(
             func=stencil_with_K_offset,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.with_J_offset = stencil_factory.from_dims_halo(
-            func=stencil_with_J_offset,
+        self.stencil_with_JK_offset = stencil_factory.from_dims_halo(
+            func=stencil_with_JK_offset,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
         self.stencil_with_ddim = stencil_factory.from_dims_halo(
@@ -74,16 +74,16 @@ class TransientRefineableCode(NDSLRuntime):
         )
 
     def refine_to_scalar(self, in_field: Quantity, out_field: Quantity) -> None:
-        self.copy(in_field, self.tmp)
-        self.copy(self.tmp, out_field)
+        self.stencil(in_field, self.tmp)
+        self.stencil(self.tmp, out_field)
 
     def refine_to_K_buffer(self, in_field: Quantity, out_field: Quantity) -> None:
-        self.copy(in_field, self.tmp)
-        self.with_K_offset(self.tmp, out_field)
+        self.stencil(in_field, self.tmp)
+        self.stencil_with_K_offset(self.tmp, out_field)
 
     def refine_to_JK_buffer(self, in_field: Quantity, out_field: Quantity) -> None:
-        self.copy(in_field, self.tmp)
-        self.with_J_offset(self.tmp, out_field)
+        self.stencil(in_field, self.tmp)
+        self.stencil_with_JK_offset(self.tmp, out_field)
 
     def do_not_refine_datadims(self, in_field: Quantity, out_field: Quantity) -> None:
         self.stencil_with_ddim(in_field, self.tmp_ddim)
