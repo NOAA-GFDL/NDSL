@@ -60,7 +60,7 @@ def _reduce_cartesian_axes_size_to_1(
                 stacklevel=2,
             )
             return refined
-        elif len(transient_data.shape) == 3:
+        if len(transient_data.shape) == 3:
             layout = [*ijk_order]
         else:
             data_dim_count = len(transient_data.shape) - 3
@@ -156,9 +156,9 @@ class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
         return "RefineTransientAxis"
 
     def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
-        for memlet in [*node.out_memlets.values(), *node.out_memlets.values()]:
+        for memlet in [*node.output_memlets(), *node.input_memlets()]:
             array = self.containers[memlet.data]
-            if array.transient and array:
+            if array.transient:
                 replace_cartesian_access = {}
                 if len(array.shape) >= 1 and array.shape[0] == 1:
                     replace_cartesian_access[AxisIterator._I.as_str()] = 0
