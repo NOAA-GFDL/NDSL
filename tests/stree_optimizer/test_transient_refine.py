@@ -1,9 +1,11 @@
-from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
 from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
 from ndsl.dsl.typing import Float, FloatField
+
+from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
+
 
 DATADIM_SIZE = 8
 DDIM_NAME = "DDIM"

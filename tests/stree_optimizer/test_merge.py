@@ -1,11 +1,12 @@
 import dace
 
-from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
+
+from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
 
 
 def stencil(in_field: FloatField, out_field: FloatField) -> None:
