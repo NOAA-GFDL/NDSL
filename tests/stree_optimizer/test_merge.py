@@ -1,8 +1,6 @@
-from types import TracebackType
-
 import dace
 
-import ndsl.dsl.dace.orchestration as orch
+from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
@@ -10,52 +8,22 @@ from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
-def _get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
-    """Get the Precompiled SDFG from the dace config dict where they are cached post
-    compilation and flush the cache in order for next build to re-use the function."""
-    sdfg_repo = stencil_factory.config.dace_config.loaded_precompiled_SDFG
-
-    if len(sdfg_repo.values()) != 1:
-        raise RuntimeError("Failure to compile SDFG")
-    sdfg = list(sdfg_repo.values())[0]
-
-    sdfg_repo.clear()
-
-    return sdfg
-
-
-class StreeOptimization:
-    def __init__(self) -> None:
-        pass
-
-    def __enter__(self) -> None:
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False
-
-
-def copy_stencil(in_field: FloatField, out_field: FloatField) -> None:
+def stencil(in_field: FloatField, out_field: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         out_field = in_field + 1
 
 
-def copy_stencil_with_self_assign(in_field: FloatField, out_field: FloatField) -> None:
+def stencil_with_self_assign(in_field: FloatField, out_field: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         out_field = out_field + in_field + 2
 
 
-def copy_stencil_with_forward_K(in_field: FloatField, out_field: FloatField) -> None:
+def stencil_with_forward_K(in_field: FloatField, out_field: FloatField) -> None:
     with computation(FORWARD), interval(...):
         out_field = in_field + 3
 
 
-def copy_stencil_with_different_intervals(
+def stencil_with_different_intervals(
     in_field: FloatField,
     out_field: FloatField,
 ) -> None:
@@ -63,7 +31,7 @@ def copy_stencil_with_different_intervals(
         out_field = in_field + 5
 
 
-def copy_stencil_with_buffer_read_offset_in_K(
+def stencil_with_buffer_read_offset_in_K(
     in_field: FloatField, out_field: FloatField, buffer: FloatField
 ) -> None:
     with computation(PARALLEL), interval(1, None):
@@ -92,20 +60,20 @@ class OrchestratedCode:
                 method_to_orchestrate=method,
             )
 
-        self.copy_stencil = stencil_factory.from_dims_halo(
-            func=copy_stencil,
+        self.stencil = stencil_factory.from_dims_halo(
+            func=stencil,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.copy_stencil_with_forward_K = stencil_factory.from_dims_halo(
-            func=copy_stencil_with_forward_K,
+        self.stencil_with_forward_K = stencil_factory.from_dims_halo(
+            func=stencil_with_forward_K,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.copy_stencil_with_buffer_read_offset_in_K = stencil_factory.from_dims_halo(
-            func=copy_stencil_with_buffer_read_offset_in_K,
+        self.stencil_with_buffer_read_offset_in_K = stencil_factory.from_dims_halo(
+            func=stencil_with_buffer_read_offset_in_K,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
-        self.copy_stencil_with_different_intervals = stencil_factory.from_dims_halo(
-            func=copy_stencil_with_different_intervals,
+        self.stencil_with_different_intervals = stencil_factory.from_dims_halo(
+            func=stencil_with_different_intervals,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
         )
 
@@ -116,35 +84,33 @@ class OrchestratedCode:
         in_field: FloatField,
         out_field: FloatField,
     ) -> None:
-        self.copy_stencil(in_field, out_field)
-        self.copy_stencil(in_field, out_field)
+        self.stencil(in_field, out_field)
+        self.stencil(in_field, out_field)
 
     def missing_merge_of_forscope_and_map(
         self,
         in_field: FloatField,
         out_field: FloatField,
     ) -> None:
-        self.copy_stencil(in_field, out_field)
-        self.copy_stencil_with_forward_K(in_field, out_field)
-        self.copy_stencil(in_field, out_field)
+        self.stencil(in_field, out_field)
+        self.stencil_with_forward_K(in_field, out_field)
+        self.stencil(in_field, out_field)
 
     def block_merge_when_depandencies_is_found(
         self,
         in_field: FloatField,
         out_field: FloatField,
     ) -> None:
-        self.copy_stencil(in_field, out_field)
-        self.copy_stencil_with_buffer_read_offset_in_K(
-            in_field, out_field, self._buffer
-        )
+        self.stencil(in_field, out_field)
+        self.stencil_with_buffer_read_offset_in_K(in_field, out_field, self._buffer)
 
     def overcompute_merge(
         self,
         in_field: FloatField,
         out_field: FloatField,
     ) -> None:
-        self.copy_stencil(in_field, out_field)
-        self.copy_stencil_with_different_intervals(in_field, out_field)
+        self.stencil(in_field, out_field)
+        self.stencil_with_different_intervals(in_field, out_field)
 
 
 def test_stree_merge_maps() -> None:
@@ -160,7 +126,7 @@ def test_stree_merge_maps() -> None:
     with StreeOptimization():
         # Trivial merge
         code.trivial_merge(in_qty, out_qty)
-        precompiled_sdfg = _get_SDFG_and_purge(stencil_factory)
+        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
         all_maps = [
             (me, state)
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
@@ -172,7 +138,7 @@ def test_stree_merge_maps() -> None:
 
         # Merge IJ - but do not merge K map & for (missing feature)
         code.missing_merge_of_forscope_and_map(in_qty, out_qty)
-        sdfg = _get_SDFG_and_purge(stencil_factory).sdfg
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
@@ -188,7 +154,7 @@ def test_stree_merge_maps() -> None:
 
         # Overcompute merge in K - we merge and introduce an If guard
         code.overcompute_merge(in_qty, out_qty)
-        sdfg = _get_SDFG_and_purge(stencil_factory).sdfg
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
@@ -198,7 +164,7 @@ def test_stree_merge_maps() -> None:
 
         # Forbid merging when data dependancy is detected
         code.block_merge_when_depandencies_is_found(in_qty, out_qty)
-        sdfg = _get_SDFG_and_purge(stencil_factory).sdfg
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
