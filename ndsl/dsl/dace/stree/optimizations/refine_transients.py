@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from types import TracebackType
 
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
@@ -25,125 +24,117 @@ def _change_index_of_tuple(
     return tuple(new_list)
 
 
-def _reduce_cartesian_axes_size_to_1(
-    transient_map_access: set[stree.nodes.MapEntry],
+def _reduce_cartesian_axis_size_to_1(
+    axis: AxisIterator,
+    transient_map_reads: dace.subsets.Range | None,
+    transient_map_writes: dace.subsets.Range | None,
     transient_data: dace.data.Data,
     ijk_order: tuple[int, int, int],
 ) -> bool:
-    """Reduce dimension size of transient to 1 if their are accessed only
-    in a single Map for the cartesian dimensions"""
-    refined = False
-    for axis in AxisIterator:
-        access_in_map_count = 0
-        for map_entry in transient_map_access:
-            if axis.as_str() in map_entry.params[0]:
-                access_in_map_count += 1
+    """Reduce dimension size of transient to 1 if all access (reads and writes)
+    are atomic"""
 
-        if access_in_map_count != 1:
-            continue
+    # Dev Note: Better dataflow analysis would look at exactly
+    #           what's goin on here!
 
-        # This transient is used in exactly one single-Axis map
-        # therefore this dimension can be removed. BUT we are not truly
-        # removing it, we are reducing it to 1 to not have to deal
-        # with different slicing.
-        transient_data.shape = _change_index_of_tuple(
-            transient_data.shape,
-            axis.as_cartesian_index(),
-            value=1,
+    # Assume 3D cartesian!
+    if len(transient_data.shape) < 3:
+        warnings.warn(
+            f"Potential non-3D array: {transient_data}, skipping.",
+            UserWarning,
+            stacklevel=2,
         )
+        return False
 
-        # Assume 3D cartesian!
-        if len(transient_data.shape) < 3:
-            warnings.warn(
-                f"Potential non-3D array: {transient_data}, skipping.",
-                UserWarning,
-                stacklevel=2,
-            )
-            return refined
-        if len(transient_data.shape) == 3:
-            layout = [*ijk_order]
-        else:
-            data_dim_count = len(transient_data.shape) - 3
-            layout = [dim + data_dim_count for dim in ijk_order] + [
-                i - 1 for i in range(data_dim_count, 0, -1)
-            ]
+    read_write_range: dace.subsets.Range = dace.subsets.union(
+        transient_map_reads, transient_map_writes
+    )
 
-        transient_data.set_strides_from_layout(*layout)
-        transient_data.lifetime = dace.dtypes.AllocationLifetime.State
-        refined = True
+    if read_write_range is None:
+        return False
 
-    return refined
+    if read_write_range.size()[axis.as_cartesian_index()] != 1:
+        return False
 
+    # This transient read and write access is done on exactly one element
+    # therefore this dimension can be removed. BUT we are not truly
+    # removing it, we are reducing it to 1 to not have to deal
+    # with different slicing.
+    transient_data.shape = _change_index_of_tuple(
+        transient_data.shape,
+        axis.as_cartesian_index(),
+        value=1,
+    )
 
-class _CartesianMapNesting:
-    def __init__(
-        self,
-        cartesian_current_map_nesting: list[stree.nodes.MapEntry | None],
-        node: stree.MapScope,
-    ) -> None:
-        self._cartesian_current_map_nesting = cartesian_current_map_nesting
-        self._node = node
+    if len(transient_data.shape) == 3:
+        layout = [*ijk_order]
+    else:
+        data_dim_count = len(transient_data.shape) - 3
+        layout = [dim + data_dim_count for dim in ijk_order] + [
+            i - 1 for i in range(data_dim_count, 0, -1)
+        ]
 
-    def __enter__(self) -> None:
-        if AxisIterator._I.value[0] in self._node.node.params[0]:
-            self._cartesian_current_map_nesting[0] = self._node.node
-        elif AxisIterator._J.value[0] in self._node.node.params[0]:
-            self._cartesian_current_map_nesting[1] = self._node.node
-        elif AxisIterator._K.value[0] in self._node.node.params[0]:
-            self._cartesian_current_map_nesting[2] = self._node.node
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        if AxisIterator._I.value[0] in self._node.node.params[0]:
-            self._cartesian_current_map_nesting[0] = None
-        elif AxisIterator._J.value[0] in self._node.node.params[0]:
-            self._cartesian_current_map_nesting[1] = None
-        elif AxisIterator._K.value[0] in self._node.node.params[0]:
-            self._cartesian_current_map_nesting[2] = None
+    transient_data.set_strides_from_layout(*layout)
+    transient_data.lifetime = dace.dtypes.AllocationLifetime.State
+    return True
 
 
-class CollectTransientAccessInCartesianMaps(stree.ScheduleNodeVisitor):
-    """Collect all access of transient arrays per Maps."""
+def _axis_from_loop_iterator(node: stree.MapScope | stree.ForScope) -> AxisIterator:
+    if isinstance(node, stree.MapScope):
+        if AxisIterator._I.value[0] in node.node.params[0]:
+            return AxisIterator._I
+        if AxisIterator._J.value[0] in node.node.params[0]:
+            return AxisIterator._J
+        elif AxisIterator._K.value[0] in node.node.params[0]:
+            return AxisIterator._K
+    elif isinstance(node, stree.ForScope):
+        if AxisIterator._I.value[0] in node.header.itervar:
+            return AxisIterator._I
+        elif AxisIterator._J.value[0] in node.header.itervar:
+            return AxisIterator._J
+        elif AxisIterator._K.value[0] in node.header.itervar:
+            return AxisIterator._K
+    raise NotImplementedError(f"Uncaught cartesian loop type {node}")
+
+
+class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
+    """Unionize all transient arrays access into a single Range."""
 
     def __init__(self) -> None:
-        self.transient_map_access: dict[str, set[stree.nodes.MapEntry]] = {}
-        self._cartesian_current_map_nesting: list[stree.nodes.MapEntry | None] = [
-            None,
-            None,
-            None,
-        ]
+        # Map access is a `list` instead of a `set` because we want to double count
+        # access that are in/out as two access on the axis.
+        self.transients_range_writes: dict[str, dace.subsets.Range | None] = {}
+        self.transients_range_reads: dict[str, dace.subsets.Range | None] = {}
 
     def __str__(self) -> str:
         return "CartesianCollectMaps"
 
-    def visit_MapScope(self, node: stree.MapScope) -> None:
-        if len(node.node.params) > 1:
-            ndsl_log.debug(
-                "Can't apply CartesianRefineTransients, require unidimensional Maps"
-            )
-            return
-
-        with _CartesianMapNesting(self._cartesian_current_map_nesting, node):
-            for child in node.children:
-                self.visit(child)
-
-    def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
-        for memlet in [*node.input_memlets(), *node.output_memlets()]:
+    def _record_access(
+        self,
+        memlets: stree.MemletSet,
+        recording_set: dict[str, dace.subsets.Range | None],
+    ) -> None:
+        for memlet in memlets:
             data = self.containers[memlet.data]
             if data.transient and isinstance(data, dace.data.Array):
-                for map_entry in self._cartesian_current_map_nesting:
-                    if map_entry is not None:
-                        self.transient_map_access[memlet.data].add(map_entry)
+                if not isinstance(memlet.subset, dace.subsets.Range):
+                    raise NotImplementedError(
+                        "Memlet refining only works with Range subsets"
+                    )
+                recording_set[memlet.data] = dace.subsets.union(
+                    recording_set[memlet.data], memlet.subset
+                )
+
+    def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
+        self._record_access(node.input_memlets(), self.transients_range_writes)
+        self._record_access(node.output_memlets(), self.transients_range_reads)
 
     def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
         self.containers = node.containers
         for name, data in self.containers.items():
             if data.transient and isinstance(data, dace.data.Array):
-                self.transient_map_access[name] = set()
+                self.transients_range_writes[name] = None
+                self.transients_range_reads[name] = None
 
         for child in node.children:
             self.visit(child)
@@ -152,28 +143,28 @@ class CollectTransientAccessInCartesianMaps(stree.ScheduleNodeVisitor):
 class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
     """Rebuild memlets from containers to ensure they are scope to the right size."""
 
+    def __init__(self, refined_arrays: set[str]) -> None:
+        self._refined_arrays = refined_arrays
+
     def __str__(self) -> str:
         return "RefineTransientAxis"
 
     def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
         for memlet in [*node.output_memlets(), *node.input_memlets()]:
+            if memlet.data not in self._refined_arrays:
+                continue
             array = self.containers[memlet.data]
             if array.transient:
-                replace_cartesian_access = {}
-                if len(array.shape) >= 1 and array.shape[0] == 1:
-                    replace_cartesian_access[AxisIterator._I.as_str()] = 0
-                if len(array.shape) >= 2 and array.shape[1] == 1:
-                    replace_cartesian_access[AxisIterator._J.as_str()] = 0
-                if len(array.shape) >= 3 and array.shape[2] == 1:
-                    # Workaround because the iterator can be `__k_0` instead of `__k`
-                    axis = None
-                    for axis_symbol in memlet.free_symbols:
-                        if axis_symbol.startswith(AxisIterator._K.as_str()):
-                            axis = axis_symbol
-                            break
-                    if axis:
-                        replace_cartesian_access[axis] = 0
-                memlet.replace(replace_cartesian_access)
+                if not isinstance(memlet.subset, dace.subsets.Range):
+                    raise NotImplementedError(
+                        "Memlet refining only works with Range subsets"
+                    )
+
+                # Reduce "refined" dimension to a single element, effectively
+                # eliminating it.
+                for index, _ in enumerate(memlet.subset.ranges):
+                    if array.shape[index] == 1:
+                        memlet.subset.ranges[index] = (0, 0, 1)
 
     def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
         self.containers = node.containers
@@ -188,14 +179,15 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
 
     It can do:
         - Looking at usage of a transient in a cartesian axis (e.g. loop over a
-        cartesian axis) it will reduce that axis to 1 if it exists in _only one_.
+        cartesian axis) it will reduce that axis to 1 if all access are atomic
+        (exactly _one_ element of the array is ever worked on)
 
     It should but cannot do/will bug if:
-        - Dataflow analysis on the axis to prevent reducing an axis to one where
-        the transient is used with offset, leading to faulty numerics
-        - Using the dataflow above, we can reduce the dimensions to the correct lowest
+        - If the transient is _written_ before being _read_ this won't catch it (not its job), but we could
+        - With better dataflow analysis, we can reduce the dimensions to the correct lowest
         size needed on the axis (e.g. transient[K] and transient[K+1], requires a 2-element
-        buffer)
+        buffer), instead of the defensive _no refine_ strategy used now. We have _most_ of the
+        info in the `Range`
         - Current action when detecting a valid candidate is to reduce the size of the dimension
         to 1, rather than removing it. This will effectively, if generic compilers do their job, reduce
         the cache access significantly. This also has been implemented to _not_ deal with offset/slicing
@@ -210,6 +202,12 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         - Test for J refine but not in I or K
         - Test with dataflow: if/else, while, etc.
         - Test with ForScope (FORWARD/BACKWARD) instead of Map
+
+    Coding traps:
+        - We reduce the "refined" dimensions to 1 which is functionally eliminating it. This is solid. In the
+        case of the one we can't eliminate we don't do anything. We could find the "smallest buffer size" needed
+        and reduce the local dimension to it. BUT if we do this, we have to take into account the offset into
+        memory (e.g. halo) for the `RebuildMemletsFromContainers`!
     """
 
     def __init__(self, backend: str) -> None:
@@ -230,11 +228,13 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
                 f"backend {backend}"
             )
 
+        self.refined_array: set[str] = set()
+
     def __str__(self) -> str:
         return "CartesianRefineTransients"
 
     def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
-        collect_map = CollectTransientAccessInCartesianMaps()
+        collect_map = CollectTransientRangeAccess()
         collect_map.visit(node)
 
         # Remove Axis
@@ -242,13 +242,19 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         for name, data in node.containers.items():
             if not (data.transient and isinstance(data, dace.data.Array)):
                 continue
-            refined = _reduce_cartesian_axes_size_to_1(
-                collect_map.transient_map_access[name],
-                data,
-                self.ijk_order,
-            )
-            refined_transient += 1 if refined else 0
+            refined = False
+            for axis in AxisIterator:
+                refined |= _reduce_cartesian_axis_size_to_1(
+                    axis,
+                    collect_map.transients_range_reads[name],
+                    collect_map.transients_range_writes[name],
+                    data,
+                    self.ijk_order,
+                )
 
-        RebuildMemletsFromContainers().visit(node)
+            refined_transient += 1 if refined else 0
+            self.refined_array.add(name)
+
+        RebuildMemletsFromContainers(self.refined_array).visit(node)
 
         ndsl_log.debug(f"🚀 {refined_transient} Transient refined")
