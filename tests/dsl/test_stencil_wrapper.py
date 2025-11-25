@@ -1,7 +1,6 @@
 import contextlib
 import unittest.mock
 
-import gt4py.cartesian.gtscript
 import numpy as np
 import pytest
 
@@ -16,7 +15,23 @@ from ndsl import (
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
-from ndsl.dsl.typing import Float, FloatField
+from ndsl.dsl.typing import (
+    BoolFieldIJ,
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    FloatFieldIJ32,
+    FloatFieldIJ64,
+    Int,
+    IntFieldIJ,
+    IntFieldIJ32,
+    IntFieldIJ64,
+)
+
+
+# GT4Py direct import need to be down after any `ndsl`
+import gt4py.cartesian.gtscript  # isort: skip
+from gt4py.cartesian import definitions  # isort: skip
 
 
 def get_stencil_config(
@@ -24,7 +39,7 @@ def get_stencil_config(
     backend: str,
     orchestration: DaCeOrchestration = DaCeOrchestration.Python,
     **kwargs,
-):
+) -> StencilConfig:
     dace_config = DaceConfig(None, backend=backend, orchestration=orchestration)
     config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -46,46 +61,57 @@ def mock_gtscript_stencil(mock):
         gt4py.cartesian.gtscript.stencil = original_stencil
 
 
-class MockFieldInfo:
-    def __init__(self, axes):
-        self.axes = axes
+class MockFieldInfo(definitions.FieldInfo):
+    def __init__(self, *, axes: tuple[str, ...] = (), data_dims: tuple[int, ...] = ()):
+        # defaults
+        access = definitions.AccessKind.READ
+        boundary = None
+        dtype = np.float64
+
+        super().__init__(
+            axes=axes,
+            data_dims=data_dims,
+            access=access,
+            boundary=boundary,
+            dtype=dtype,
+        )
 
 
 @pytest.mark.parametrize(
     "field_info, origin, field_origins",
     [
         pytest.param(
-            {"a": MockFieldInfo(["I"])},
+            {"a": MockFieldInfo(axes=("I"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1,)},
             id="single_field_I",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["J"])},
+            {"a": MockFieldInfo(axes=("J"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (2,)},
             id="single_field_J",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["K"])},
+            {"a": MockFieldInfo(axes=("K"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (3,)},
             id="single_field_K",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J"])},
+            {"a": MockFieldInfo(axes=("I", "J"))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1, 2)},
             id="single_field_IJ",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J", "K"])},
+            {"a": MockFieldInfo(axes=("I", "J", "K"))},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             id="single_field_origin_mapping",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J", "K"]), "b": MockFieldInfo(["I"])},
+            {"a": MockFieldInfo(axes=("I", "J", "K")), "b": MockFieldInfo(axes=("I"))},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             {"_all_": (1, 2, 3), "a": (1, 2, 3), "b": (1,)},
             id="two_fields_update_origin_mapping",
@@ -97,14 +123,26 @@ class MockFieldInfo:
             id="single_field_None",
         ),
         pytest.param(
-            {"a": MockFieldInfo(["I", "J"]), "b": MockFieldInfo(["I", "J", "K"])},
+            {
+                "a": MockFieldInfo(axes=("I", "J")),
+                "b": MockFieldInfo(axes=("I", "J", "K")),
+            },
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1, 2), "b": (1, 2, 3)},
             id="two_fields",
         ),
+        pytest.param(
+            {
+                "field": MockFieldInfo(axes=("I", "J", "K")),
+                "table": MockFieldInfo(data_dims=(5,)),
+            },
+            (1, 2, 3),
+            {"_all_": (1, 2, 3), "field": (1, 2, 3), "table": (0,)},
+            id="field_and_table",
+        ),
     ],
 )
-def test_compute_field_origins(field_info, origin, field_origins):
+def test_compute_field_origins(field_info, origin, field_origins) -> None:
     result = FrozenStencil._compute_field_origins(field_info, origin)
     assert result == field_origins
 
@@ -115,16 +153,13 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):
 
 
 @pytest.mark.parametrize("validate_args", [True, False])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [False])
-@pytest.mark.parametrize("format_source", [False])
 def test_copy_frozen_stencil(
-    backend: str,
-    rebuild: bool,
     validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = False,
+    format_source: bool = False,
+    device_sync: bool = False,
+) -> None:
     config = get_stencil_config(
         backend=backend,
         rebuild=rebuild,
@@ -147,15 +182,12 @@ def test_copy_frozen_stencil(
     np.testing.assert_array_equal(q_in, q_out)
 
 
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [False])
-@pytest.mark.parametrize("format_source", [False])
 def test_frozen_stencil_raises_if_given_origin(
-    backend: str,
-    rebuild: bool,
-    format_source: bool,
-    device_sync: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = False,
+    format_source: bool = False,
+    device_sync: bool = False,
+) -> None:
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -177,14 +209,11 @@ def test_frozen_stencil_raises_if_given_origin(
         stencil(q_in, q_out, origin=(0, 0, 0))
 
 
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [False])
-@pytest.mark.parametrize("format_source", [False])
 def test_frozen_stencil_raises_if_given_domain(
-    backend: str,
-    rebuild: bool,
-    format_source: bool,
-    device_sync: bool,
+    backend: str = "numpy",
+    rebuild: bool = False,
+    format_source: bool = False,
+    device_sync: bool = False,
 ):
     # only guaranteed when validating args
     config = get_stencil_config(
@@ -212,11 +241,11 @@ def test_frozen_stencil_raises_if_given_domain(
     [[False, False, False, False], [True, False, False, False]],
 )
 def test_frozen_stencil_kwargs_passed_to_init(
-    backend: str,
     rebuild: bool,
     validate_args: bool,
     format_source: bool,
     device_sync: bool,
+    backend: str = "numpy",
 ):
     config = get_stencil_config(
         backend=backend,
@@ -246,7 +275,19 @@ def test_frozen_stencil_kwargs_passed_to_init(
         externals={},
         **config.stencil_kwargs(func=copy_stencil),
         build_info={},
-        dtypes={float: Float},
+        dtypes={
+            # Mixed precision
+            float: Float,
+            int: Int,
+            # 2D temporaries
+            "FloatFieldIJ": FloatFieldIJ,
+            "FloatFieldIJ32": FloatFieldIJ32,
+            "FloatFieldIJ64": FloatFieldIJ64,
+            "IntFieldIJ": IntFieldIJ,
+            "IntFieldIJ32": IntFieldIJ32,
+            "IntFieldIJ64": IntFieldIJ64,
+            "BoolFieldIJ": BoolFieldIJ,
+        },
     )
 
 
@@ -255,9 +296,9 @@ def field_after_parameter_stencil(q_in: FloatField, param: float, q_out: FloatFi
         q_out = param * q_in
 
 
-def test_frozen_field_after_parameter(backend):
+def test_frozen_field_after_parameter() -> None:
     config = get_stencil_config(
-        backend=backend,
+        backend="numpy",
         rebuild=False,
         validate_args=False,
         format_source=False,
@@ -272,27 +313,25 @@ def test_frozen_field_after_parameter(backend):
     )
 
 
-@pytest.mark.parametrize("backend", ("numpy", "cuda"))
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("validate_args", [True])
+@pytest.mark.parametrize("backend", ("numpy", "gt:gpu"))
 def test_backend_options(
     backend: str,
-    rebuild: bool,
-    validate_args: bool,
-):
+    rebuild: bool = True,
+    validate_args: bool = True,
+) -> None:
     expected_options = {
         "numpy": {
             "backend": "numpy",
             "rebuild": True,
             "format_source": False,
-            "name": "test_stencil_wrapper.copy_stencil",
+            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
         },
-        "cuda": {
-            "backend": "cuda",
+        "gt:gpu": {
+            "backend": "gt:gpu",
             "rebuild": True,
             "device_sync": False,
             "format_source": False,
-            "name": "test_stencil_wrapper.copy_stencil",
+            "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
         },
     }
 
@@ -303,11 +342,16 @@ def test_backend_options(
     assert actual == expected
 
 
+def test_illegal_backend_options():
+    with pytest.raises(ValueError):
+        get_stencil_config(backend="illegal")
+
+
 def get_mock_quantity():
     return unittest.mock.MagicMock(spec=Quantity)
 
 
-def test_convert_quantities_to_storage_no_args():
+def test_convert_quantities_to_storage_no_args() -> None:
     args = []
     kwargs = {}
     _convert_quantities_to_storage(args, kwargs)
@@ -315,7 +359,7 @@ def test_convert_quantities_to_storage_no_args():
     assert len(kwargs) == 0
 
 
-def test_convert_quantities_to_storage_one_arg_quantity():
+def test_convert_quantities_to_storage_one_arg_quantity() -> None:
     quantity = get_mock_quantity()
     args = [quantity]
     kwargs = {}
@@ -325,7 +369,7 @@ def test_convert_quantities_to_storage_one_arg_quantity():
     assert len(kwargs) == 0
 
 
-def test_convert_quantities_to_storage_one_kwarg_quantity():
+def test_convert_quantities_to_storage_one_kwarg_quantity() -> None:
     quantity = get_mock_quantity()
     args = []
     kwargs = {"val": quantity}
@@ -335,7 +379,7 @@ def test_convert_quantities_to_storage_one_kwarg_quantity():
     assert kwargs["val"] == quantity.data
 
 
-def test_convert_quantities_to_storage_one_arg_nonquantity():
+def test_convert_quantities_to_storage_one_arg_nonquantity() -> None:
     non_quantity = unittest.mock.MagicMock(spec=tuple)
     args = [non_quantity]
     kwargs = {}
@@ -345,7 +389,7 @@ def test_convert_quantities_to_storage_one_arg_nonquantity():
     assert len(kwargs) == 0
 
 
-def test_convert_quantities_to_storage_one_kwarg_non_quantity():
+def test_convert_quantities_to_storage_one_kwarg_non_quantity() -> None:
     non_quantity = unittest.mock.MagicMock(spec=tuple)
     args = []
     kwargs = {"val": non_quantity}

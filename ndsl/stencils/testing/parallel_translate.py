@@ -1,6 +1,6 @@
 import copy
 from types import SimpleNamespace
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pytest
@@ -12,6 +12,7 @@ from ndsl.stencils.testing.translate import (
     TranslateFortranData2Py,
     read_serialized_data,
 )
+from ndsl.utils import grid_params_from_f90nml
 
 
 class ParallelTranslate:
@@ -22,8 +23,8 @@ class ParallelTranslate:
     mmr_ulp = TranslateFortranData2Py.mmr_ulp
     compute_grid_option = False
     tests_grid = False
-    inputs: Dict[str, Any] = {}
-    outputs: Dict[str, Any] = {}
+    inputs: dict[str, Any] = {}
+    outputs: dict[str, Any] = {}
 
     def __init__(self, rank_grids, namelist, stencil_factory, *args, **kwargs):
         if len(args) > 0:
@@ -59,7 +60,7 @@ class ParallelTranslate:
         self.namelist = namelist
         self.skip_test = False
 
-    def state_list_from_inputs_list(self, inputs_list: List[dict]) -> list:
+    def state_list_from_inputs_list(self, inputs_list: list[dict]) -> list:
         state_list = []
         for inputs in inputs_list:
             state_list.append(self.state_from_inputs(inputs))
@@ -100,7 +101,7 @@ class ParallelTranslate:
         return input_data
 
     def outputs_from_state(self, state: dict):
-        return_dict: Dict[str, np.ndarray] = {}
+        return_dict: dict[str, np.ndarray] = {}
         if len(self.outputs) == 0:
             return return_dict
         for name, properties in self.outputs.items():
@@ -129,7 +130,8 @@ class ParallelTranslate:
 
     @property
     def layout(self):
-        return self.namelist.layout
+        grid_params = grid_params_from_f90nml(self.namelist)
+        return grid_params["layout"]
 
     def compute_sequential(self, inputs_list, communicator_list):
         """Compute the outputs while iterating over a set of communicator

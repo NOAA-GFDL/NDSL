@@ -1,5 +1,4 @@
 import copy
-from typing import List, Optional, Tuple
 
 import dace
 import sympy as sp
@@ -14,11 +13,11 @@ from ndsl.logging import ndsl_log
 
 def _filter_all_maps(
     sdfg: dace.SDFG,
-    whitelist: List[str] = None,
-    blacklist: List[str] = None,
-    skip_dynamic_memlet=True,
-) -> List[
-    Tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]
+    whitelist: list[str] | None = None,
+    blacklist: list[str] | None = None,
+    skip_dynamic_memlet: bool = True,
+) -> list[
+    tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]
 ]:
     """
     Grab all maps outputs and filter by variable name (either black or whitelist)
@@ -33,9 +32,13 @@ def _filter_all_maps(
         A list of access nodes, with their state & edges organized as
         [state, node, edges]
     """
+    if whitelist is None:
+        whitelist = []
+    if blacklist is None:
+        blacklist = []
 
-    checks: List[
-        Tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]
+    checks: list[
+        tuple[dace.SDFGState, dace.nodes.AccessNode, gr.MultiConnectorEdge[dace.Memlet]]
     ] = []
     all_maps = [
         (me, state)
@@ -54,13 +57,11 @@ def _filter_all_maps(
                     continue
                 node = sdutil.get_last_view_node(state, e.dst)
                 # Whitelist
-                if whitelist is not None:
-                    if all([varname not in node.data for varname in whitelist]):
-                        continue
+                if all([varname not in node.data for varname in whitelist]):
+                    continue
                 # Blacklist
-                if blacklist is not None:
-                    if any([varname in node.data for varname in blacklist]):
-                        continue
+                if any([varname in node.data for varname in blacklist]):
+                    continue
                 # Skip dynamic (region) outputs
                 if skip_dynamic_memlet and state.memlet_path(e)[0].data.dynamic:
                     dynamic_skipped += 1
@@ -81,8 +82,8 @@ def _check_node(
     check_c_code: str,
     comment_c_code: str,
     assert_out: bool = False,
-    array_range: Optional[List[Tuple[int, int, int]]] = None,
-):
+    array_range: list[tuple[int, int, int]] | None = None,
+) -> None:
     """
     Grab all maps outputs and filter by variable name (either black or whitelist)
 
@@ -119,7 +120,7 @@ def _check_node(
     index_printf = ", ".join(["%d"] * len(input_array.shape))
 
     # Get range from memlet (which may not be the entire array size)
-    def evaluate(expr):
+    def evaluate(expr):  # type: ignore[no-untyped-def]
         return expr.subs({sp.Function("int_floor"): symbolic.int_floor})
 
     # A bug in DaCe can lead to an edge labeled for storage on CPU
@@ -173,7 +174,7 @@ def _check_node(
     )
 
 
-def trace_all_outputs_at_index(sdfg: dace.SDFG, i: int, j: int, k: int):
+def trace_all_outputs_at_index(sdfg: dace.SDFG, i: int, j: int, k: int) -> None:
     """Prints value for all variable when written for a specific index.
 
 
@@ -230,7 +231,7 @@ def negative_delp_checker(sdfg: dace.SDFG) -> None:
     ndsl_log.info(f"Added {len(all_maps_filtered)} delp* < 0 checks")
 
 
-def negative_qtracers_checker(sdfg: dace.SDFG):
+def negative_qtracers_checker(sdfg: dace.SDFG) -> None:
     """
     Adds a negative check on every tracers via their name when
     written to. Assert when check is True.
@@ -268,20 +269,25 @@ def negative_qtracers_checker(sdfg: dace.SDFG):
 
 def sdfg_nan_checker(
     sdfg: dace.SDFG,
-    i_range: Optional[Tuple[int, int, int]] = None,
-    j_range: Optional[Tuple[int, int, int]] = None,
-    k_range: Optional[Tuple[int, int, int]] = None,
-):
+    i_range: tuple[int, int, int] | None = None,
+    j_range: tuple[int, int, int] | None = None,
+    k_range: tuple[int, int, int] | None = None,
+) -> None:
     """
     Insert a check on array after each computational map to check for NaN
     in the domain. Assert when check is True.
     """
     all_maps_filtered = _filter_all_maps(sdfg, blacklist=["diss_estd"])
 
-    if i_range or j_range or k_range:
-        array_range = [i_range, j_range, k_range]
-    else:
+    if i_range is None and j_range is None and k_range is None:
         array_range = None
+    else:
+        if i_range is not None and j_range is not None and k_range is not None:
+            array_range = [i_range, j_range, k_range]
+        else:
+            raise RuntimeError(
+                "It looks like you have to specify either all or not of the ranges."
+            )
 
     for state, node, e in all_maps_filtered:
         _check_node(
@@ -299,7 +305,7 @@ def sdfg_nan_checker(
     ndsl_log.info(f"Added {len(all_maps_filtered)} NaN checks")
 
 
-def sdfg_execution_progress(sdfg: dace.SDFG):
+def sdfg_execution_progress(sdfg: dace.SDFG) -> None:
     all_maps_filtered = _filter_all_maps(sdfg)
 
     for state, node, e in all_maps_filtered:

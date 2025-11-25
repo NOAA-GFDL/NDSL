@@ -1,8 +1,6 @@
 import functools
-from typing import Union
 
 import ndsl.constants as constants
-from ndsl.exceptions import OutOfBoundsError
 
 
 def shift_boundary_slice_tuple(dims, origin, extent, boundary_type, slice_tuple):
@@ -83,19 +81,19 @@ def get_boundary_slice(dims, origin, extent, shape, boundary_type, n_halo, inter
             else:
                 start, stop = edge_index, edge_index + n_points
         if start < 0:
-            raise OutOfBoundsError(
-                f"boundary slice extends past start of domain on dimension {dim}"
+            raise IndexError(
+                f"Boundary slice extends past start of domain on dimension {dim}."
             )
         elif stop > shape_1d:
-            raise OutOfBoundsError(
-                f"boundary slice extends past end of domain on dimension {dim}"
+            raise IndexError(
+                f"Boundary slice extends past end of domain on dimension {dim}."
             )
         else:
             boundary_slice.append(slice(start, stop))
     return tuple(boundary_slice)
 
 
-def boundary_at_start_of_dim(boundary: int, dim: str) -> Union[bool, None]:
+def boundary_at_start_of_dim(boundary: int, dim: str) -> bool | None:
     """
     Return True if boundary is at the start of the dimension,
     False if at the end, None if the boundary does not align with the dimension.

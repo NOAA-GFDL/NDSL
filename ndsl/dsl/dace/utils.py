@@ -1,7 +1,7 @@
 import json
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any
 
 import dace
 import numpy as np
@@ -30,22 +30,20 @@ class DaCeProgress:
         ndsl_log.debug(f"{self.prefix} {self.label}...")
         self.start = time.time()
 
-    def __exit__(self, _type, _val, _traceback) -> None:
+    def __exit__(self, _type, _val, _traceback) -> None:  # type: ignore
         elapsed = time.time() - self.start
-        ndsl_log.debug(f"{self.prefix} {self.label}...{elapsed}s.")
+        ndsl_log.debug(f"{self.prefix} {self.label}...{elapsed:.2f}s.")
 
 
-def _is_ref(sd: dace.sdfg.SDFG, aname: str):
-    found = False
+def _is_ref(sd: dace.sdfg.SDFG, aname: str) -> bool:
     for node, state in sd.all_nodes_recursive():
         if not isinstance(state, dace.sdfg.SDFGState):
             continue
         if state.parent is sd:
             if isinstance(node, dace.nodes.AccessNode) and aname == node.data:
-                found = True
-                break
+                return True
 
-    return found
+    return False
 
 
 # ----------------------------------------------------------
@@ -68,19 +66,19 @@ class StorageReport:
     unreferenced_in_bytes: int = 0
     in_pooled_in_bytes: int = 0
     top_level_in_bytes: int = 0
-    details: List[ArrayReport] = field(default_factory=list)
+    details: list[ArrayReport] = field(default_factory=list)
 
 
 def memory_static_analysis(
     sdfg: dace.sdfg.SDFG,
-) -> Dict[dace.StorageType, StorageReport]:
+) -> dict[dace.StorageType, StorageReport]:
     """Analysis an SDFG for memory pressure.
 
     The results split memory by type (dace.StorageType) and account for
     allocated, unreferenced and top level (e.g. top-most SDFG) memory
     """
     # We report all allocation type
-    allocations: Dict[dace.StorageType, StorageReport] = {}
+    allocations: dict[dace.StorageType, StorageReport] = {}
     for storage_type in dace.StorageType:
         allocations[storage_type] = StorageReport(name=storage_type)
 
@@ -132,7 +130,7 @@ def memory_static_analysis(
 
 def report_memory_static_analysis(
     sdfg: dace.sdfg.SDFG,
-    allocations: Dict[dace.StorageType, StorageReport],
+    allocations: dict[dace.StorageType, StorageReport],
     detail_report: bool = False,
 ) -> str:
     """Create a human readable report form the memory analysis results"""
@@ -189,7 +187,7 @@ def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:
 
 
 class MaxBandwidthBenchmarkProgram:
-    def __init__(self, size, backend) -> None:
+    def __init__(self, size: Any, backend: str) -> None:
         from ndsl.dsl.dace.orchestration import DaCeOrchestration, orchestrate
 
         dace_config = DaceConfig(
@@ -205,16 +203,17 @@ class MaxBandwidthBenchmarkProgram:
         )
         orchestrate(obj=self, config=dace_config)
 
-    def __call__(self, A, B, n: int) -> None:
-        for i in dace.nounroll(range(n)):
+    def __call__(self, A: Any, B: Any, n: int) -> None:
+        for _i in dace.nounroll(range(n)):
             self.copy_stencil(A, B)
 
 
 def kernel_theoretical_timing(
     sdfg: dace.sdfg.SDFG,
-    hardware_bw_in_GB_s: Optional[float] = None,
-    backend: Optional[str] = None,
-) -> Dict[str, float]:
+    *,
+    backend: str,
+    hardware_bw_in_GB_s: float | None = None,
+) -> dict[str, float]:
     """Compute a lower timing bound for kernels with the following hypothesis:
 
     - Performance is memory bound, e.g. arithmetic intensity isn't counted
@@ -271,7 +270,7 @@ def kernel_theoretical_timing(
         (me, state) for me, state in allmaps if get_parent_map(state, me) is None
     ]
 
-    result: Dict[str, float] = {}
+    result: dict[str, float] = {}
     for node, state in topmaps:
         nsdfg = state.parent
         mx = state.exit_node(node)
@@ -319,9 +318,9 @@ def kernel_theoretical_timing(
 
 
 def report_kernel_theoretical_timing(
-    timings: Dict[str, float],
+    timings: dict[str, float],
     human_readable: bool = True,
-    out_format: Optional[str] = None,
+    out_format: str | None = None,
 ) -> str:
     """Produce a human readable or CSV of the kernel timings"""
     result_string = f"Maps processed: {len(timings)}.\n"
@@ -343,16 +342,16 @@ def report_kernel_theoretical_timing(
 
 def kernel_theoretical_timing_from_path(
     sdfg_path: str,
-    hardware_bw_in_GB_s: Optional[float] = None,
-    backend: Optional[str] = None,
-    output_format: Optional[str] = None,
+    backend: str,
+    hardware_bw_in_GB_s: float | None = None,
+    output_format: str | None = None,
 ) -> str:
     """Load an SDFG and report the theoretical kernel timings"""
     print(f"Running kernel_theoretical_timing for {sdfg_path}")
     timings = kernel_theoretical_timing(
         dace.SDFG.from_file(sdfg_path),
-        hardware_bw_in_GB_s=hardware_bw_in_GB_s,
         backend=backend,
+        hardware_bw_in_GB_s=hardware_bw_in_GB_s,
     )
     return report_kernel_theoretical_timing(
         timings,

@@ -128,12 +128,14 @@ def test_copy():
         data=np.zeros([20, 20, 79]),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     outfield = Quantity(
         data=np.ones([20, 20, 79]),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     copy(f_in=infield.data, f_out=outfield.data)
@@ -148,18 +150,21 @@ def test_adjustmentfactor():
         data=np.full(shape=[20, 20], fill_value=2.0),
         dims=[X_DIM, Y_DIM],
         units="m",
+        backend=backend,
     )
 
     outfield = Quantity(
         data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     testfield = Quantity(
         data=np.full(shape=[20, 20, 79], fill_value=4.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     adfact(factor=factorfield.data, f_out=outfield.data)
@@ -173,12 +178,14 @@ def test_setvalue():
         data=np.zeros(shape=[20, 20, 79]),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     testfield = Quantity(
         data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     setvalue(f_out=outfield.data, value=2.0)
@@ -193,18 +200,21 @@ def test_adjustdivide():
         data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     outfield = Quantity(
         data=np.full(shape=[20, 20, 79], fill_value=2.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     testfield = Quantity(
         data=np.full(shape=[20, 20, 79], fill_value=1.0),
         dims=[X_DIM, Y_DIM, Z_DIM],
         units="m",
+        backend=backend,
     )
 
     addiv(factor=factorfield.data, f_out=outfield.data)

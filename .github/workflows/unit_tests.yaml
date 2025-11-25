@@ -1,6 +1,12 @@
 name: "NDSL unit tests"
+
+# Run these these whenever ...
 on:
-  pull_request:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+  push:
+    branches:
+      - main # ... when merging into the main branch
 
 # cancel running jobs if theres a newer push
 concurrency:
@@ -10,28 +16,31 @@ concurrency:
 jobs:
   ndsl_unit_tests:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/noaa-gfdl/miniforge:mpich
     steps:
 
-        - name: Checkout repository
-          uses: actions/checkout@v4
-          with:
-            submodules: 'recursive'
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: 'recursive'
 
-        - name: Install Python packages
-          run: pip3 install .[test]
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        - name: prepare input eta files
-          run: python tests/grid/generate_eta_files.py
+      - name: Install mpi (MPICH flavor)
+        run: pip3 install mpich
 
-        - name: Run serial-cpu tests
-          run: coverage run --rcfile=setup.cfg -m pytest tests
+      - name: Install Python packages
+        run: pip3 install .[test,zarr]
 
-        - name: Run parallel-cpu tests
-          run: mpiexec -np 6 --oversubscribe coverage run --rcfile=setup.cfg -m mpi4py -m pytest tests/mpi
+      - name: Run serial-cpu tests
+        run: coverage run --rcfile=pyproject.toml -m pytest tests
 
-        - name: Output code coverage
-          run: |
-            coverage combine
-            coverage report
+      - name: Run parallel-cpu tests
+        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest tests/mpi
+
+      - name: Output code coverage
+        run: |
+          coverage combine
+          coverage report

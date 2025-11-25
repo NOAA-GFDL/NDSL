@@ -1,10 +1,16 @@
 name: "FV3 translate tests"
+
+# Run these these whenever ...
 on:
-  pull_request:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+  push:
+    branches:
+      - main # ... when merging into the main branch
 
 jobs:
   fv3_translate_tests:
     uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yaml@develop
     with:
-      component_trigger:  true
+      component_trigger: true
       component_name: NDSL

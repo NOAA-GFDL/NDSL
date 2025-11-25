@@ -1,0 +1,34 @@
+name: "Build docs"
+
+# This workflow builds the docs to catch us when modules are moved/deleted
+# and the auto-generated docstrings can't build anymore. This does not catch
+# us when new modules are added.
+
+# Run these these whenever ...
+on:
+  pull_request: # ... a PR is opened / updated
+  merge_group: # ... the PR is added to the merge queue
+
+# cancel running jobs if theres a newer push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install mkdocs
+        run: pip install mkdocs-material mkdocstrings[python] mkdocs-exclude
+
+      - name: Build docs
+        run: mkdocs build

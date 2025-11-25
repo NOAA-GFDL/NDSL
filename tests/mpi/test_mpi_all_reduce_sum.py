@@ -10,18 +10,18 @@ from ndsl import (
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.mpi import MPIComm
 from ndsl.dsl.typing import Float
-from tests.mpi.mpi_comm import MPI
+from tests.mpi import MPI
 
 
 @pytest.fixture
 def layout():
-    if MPI is not None:
-        size = MPI.COMM_WORLD.Get_size()
-        ranks_per_tile = size // 6
-        ranks_per_edge = int(ranks_per_tile**0.5)
-        return (ranks_per_edge, ranks_per_edge)
-    else:
+    if MPI is None:
         return (1, 1)
+
+    size = MPI.COMM_WORLD.Get_size()
+    ranks_per_tile = size // 6
+    ranks_per_edge = int(ranks_per_tile**0.5)
+    return (ranks_per_edge, ranks_per_edge)
 
 
 @pytest.fixture(params=[0.1, 1.0])
@@ -47,9 +47,7 @@ def communicator(cube_partitioner):
     )
 
 
-@pytest.mark.skipif(
-    MPI is None, reason="mpi4py is not available or pytest was not run in parallel"
-)
+@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_all_reduce(communicator):
     backends = ["dace:cpu", "gt:cpu_kfirst", "numpy"]
 
@@ -60,7 +58,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["K"],
             units="Some 1D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         base_array = np.array([i for i in range(5 * 5)], dtype=Float)
@@ -70,7 +68,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J"],
             units="Some 2D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         base_array = np.array([i for i in range(5 * 5 * 5)], dtype=Float)
@@ -80,7 +78,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J", "K"],
             units="Some 3D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         global_sum_q = communicator.all_reduce(testQuantity_1D, ReductionOperator.SUM)
@@ -100,7 +98,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["K"],
             units="New 1D unit",
-            gt4py_backend=backend,
+            backend=backend,
             origin=(8,),
             extent=(7,),
         )
@@ -112,7 +110,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J"],
             units="Some 2D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
 
         base_array = np.array([i for i in range(5 * 5 * 5)], dtype=Float)
@@ -122,7 +120,7 @@ def test_all_reduce(communicator):
             data=base_array,
             dims=["I", "J", "K"],
             units="Some 3D unit",
-            gt4py_backend=backend,
+            backend=backend,
         )
         communicator.all_reduce(
             testQuantity_1D, ReductionOperator.SUM, testQuantity_1D_out

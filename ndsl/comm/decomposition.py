@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from gt4py.cartesian import config as gt_config
+from mpi4py import MPI
 
 
 if TYPE_CHECKING:
@@ -23,7 +24,9 @@ def determine_rank_is_compiling(rank: int, size: int) -> bool:
     return rank < (size / 6)
 
 
-def block_waiting_for_compilation(comm, compilation_config: CompilationConfig) -> None:
+def block_waiting_for_compilation(
+    comm: MPI.Comm, compilation_config: CompilationConfig
+) -> None:
     """block moving on until an ok is received from the compiling rank
 
     Args:
@@ -35,7 +38,7 @@ def block_waiting_for_compilation(comm, compilation_config: CompilationConfig) -
         _ = comm.recv(source=compiling_rank)
 
 
-def unblock_waiting_tiles(comm) -> None:
+def unblock_waiting_tiles(comm: MPI.Comm) -> None:
     """sends a message to all the ranks waiting for compilation to finish
 
     Args:
@@ -55,14 +58,14 @@ def check_cached_path_exists(cache_filepath: str) -> None:
         raise RuntimeError(f"Error: Could not find caches for rank at {cache_filepath}")
 
 
-def build_cache_path(config: CompilationConfig) -> Tuple[str, str]:
+def build_cache_path(config: CompilationConfig) -> tuple[str, str]:
     """generate the GT-Cache path from the config
 
     Args:
         config (CompilationConfig): stencil-config object at post-init state
 
     Returns:
-        Tuple[str, str]: path and individual rank string
+        tuple[str, str]: path and individual rank string
     """
     if config.size == 1:
         target_rank_str = ""
@@ -76,7 +79,7 @@ def build_cache_path(config: CompilationConfig) -> Tuple[str, str]:
     return path, target_rank_str
 
 
-def set_distributed_caches(config: CompilationConfig):
+def set_distributed_caches(config: CompilationConfig) -> None:
     """In Run mode, check required file then point current rank cache to source cache"""
 
     # Check that we have all the file we need to early out in case

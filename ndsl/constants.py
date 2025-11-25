@@ -1,5 +1,6 @@
 import os
 from enum import Enum
+from typing import Literal
 
 import numpy as np
 
@@ -16,13 +17,22 @@ class ConstantVersions(Enum):
     GEOS = "GEOS"  # Constant as defined in GEOS v11.4.2
 
 
-CONST_VERSION_AS_STR = os.environ.get("PACE_CONSTANTS", "UFS")
+def _get_constant_version(
+    default: Literal["GFDL", "UFS", "GEOS"] = "UFS",
+) -> Literal["GFDL", "UFS", "GEOS"]:
+    constants_as_str = os.getenv("NDSL_CONSTANTS", default)
+    expected: list[Literal["GFDL", "UFS", "GEOS"]] = ["GFDL", "UFS", "GEOS"]
 
-try:
-    CONST_VERSION = ConstantVersions[CONST_VERSION_AS_STR]
-    ndsl_log.info(f"Constant selected: {CONST_VERSION}")
-except KeyError as e:
-    raise RuntimeError(f"Constants {CONST_VERSION_AS_STR} is not implemented, abort.")
+    if constants_as_str not in expected:
+        raise RuntimeError(
+            f"Constants '{constants_as_str}' is not implemented, abort. Valid values are {expected}."
+        )
+
+    return constants_as_str  # type: ignore
+
+
+CONST_VERSION = ConstantVersions[_get_constant_version()]
+ndsl_log.info(f"Constant selected: {CONST_VERSION}")
 
 #####################
 # Common constants

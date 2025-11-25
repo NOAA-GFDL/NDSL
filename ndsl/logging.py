@@ -5,10 +5,8 @@ import os
 import sys
 from typing import Annotated
 
-from mpi4py import MPI
+from ndsl.comm.mpi import MPI
 
-
-LOGLEVEL = os.environ.get("PACE_LOGLEVEL", "INFO").upper()
 
 # Python log levels are hierarchical, therefore setting INFO
 # means DEBUG and everything lower will be logged.
@@ -21,12 +19,26 @@ AVAILABLE_LOG_LEVELS = {
 }
 
 
+def _get_log_level(default: str = "info") -> str:
+    loglevel = os.getenv("NDSL_LOGLEVEL", default).lower()
+
+    if loglevel in AVAILABLE_LOG_LEVELS.keys():
+        return loglevel
+
+    logging.warning(
+        f"Unknown log level '{loglevel}', falling back to '{default}'. Valid values are: {AVAILABLE_LOG_LEVELS.keys()}."
+    )
+    return default
+
+
 def _ndsl_logger() -> logging.Logger:
+    log_level = _get_log_level()
+
     name_log = logging.getLogger(__name__)
-    name_log.setLevel(LOGLEVEL)
+    name_log.setLevel(AVAILABLE_LOG_LEVELS[log_level])
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(LOGLEVEL)
+    handler.setLevel(AVAILABLE_LOG_LEVELS[log_level])
     formatter = logging.Formatter(
         fmt=(
             f"%(asctime)s|%(levelname)s|rank {MPI.COMM_WORLD.Get_rank()}|"
@@ -40,14 +52,16 @@ def _ndsl_logger() -> logging.Logger:
 
 
 def _ndsl_logger_on_rank_0() -> logging.Logger:
+    log_level = _get_log_level()
+
     name_log = logging.getLogger(f"{__name__}_on_rank_0")
-    name_log.setLevel(LOGLEVEL)
+    name_log.setLevel(AVAILABLE_LOG_LEVELS[log_level])
 
     rank = MPI.COMM_WORLD.Get_rank()
 
     if rank == 0:
         handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(LOGLEVEL)
+        handler.setLevel(AVAILABLE_LOG_LEVELS[log_level])
         formatter = logging.Formatter(
             fmt=(
                 f"%(asctime)s|%(levelname)s|rank {MPI.COMM_WORLD.Get_rank()}|"

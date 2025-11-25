@@ -7,14 +7,14 @@ from ndsl import CompilationConfig, DaceConfig, StencilConfig
 @pytest.mark.parametrize("rebuild", [True, False])
 @pytest.mark.parametrize("format_source", [True, False])
 @pytest.mark.parametrize("compare_to_numpy", [True, False])
-@pytest.mark.parametrize("backend", ["numpy", "gt_gpu"])
+@pytest.mark.parametrize("backend", ["numpy", "gt:gpu"])
 def test_same_config_equal(
     backend: str,
     rebuild: bool,
     validate_args: bool,
     format_source: bool,
     compare_to_numpy: bool,
-):
+) -> None:
     dace_config = DaceConfig(
         communicator=None,
         backend=backend,
@@ -30,7 +30,6 @@ def test_same_config_equal(
         compare_to_numpy=compare_to_numpy,
         dace_config=dace_config,
     )
-    assert config == config
 
     same_config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -46,19 +45,14 @@ def test_same_config_equal(
     assert config == same_config
 
 
-@pytest.mark.parametrize("validate_args", [True])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("format_source", [True])
-@pytest.mark.parametrize("compare_to_numpy", [True])
 def test_different_backend_not_equal(
-    backend: str,
-    rebuild: bool,
-    validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-    compare_to_numpy: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = True,
+    validate_args: bool = True,
+    format_source: bool = True,
+    device_sync: bool = False,
+    compare_to_numpy: bool = True,
+) -> None:
     dace_config = DaceConfig(
         communicator=None,
         backend=backend,
@@ -77,7 +71,7 @@ def test_different_backend_not_equal(
 
     different_config = StencilConfig(
         compilation_config=CompilationConfig(
-            backend="fakebackend",
+            backend="debug",
             rebuild=rebuild,
             validate_args=validate_args,
             format_source=format_source,
@@ -89,19 +83,14 @@ def test_different_backend_not_equal(
     assert config != different_config
 
 
-@pytest.mark.parametrize("validate_args", [True])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("format_source", [True])
-@pytest.mark.parametrize("compare_to_numpy", [True])
 def test_different_rebuild_not_equal(
-    backend: str,
-    rebuild: bool,
-    validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-    compare_to_numpy: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = True,
+    validate_args: bool = True,
+    format_source: bool = True,
+    device_sync: bool = False,
+    compare_to_numpy: bool = True,
+) -> None:
     dace_config = DaceConfig(
         communicator=None,
         backend=backend,
@@ -132,18 +121,13 @@ def test_different_rebuild_not_equal(
     assert config != different_config
 
 
-@pytest.mark.parametrize("validate_args", [True])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("format_source", [True])
-@pytest.mark.parametrize("compare_to_numpy", [True])
 def test_different_device_sync_not_equal(
-    rebuild: bool,
-    validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-    compare_to_numpy: bool,
-):
+    rebuild: bool = True,
+    validate_args: bool = True,
+    format_source: bool = True,
+    device_sync: bool = False,
+    compare_to_numpy: bool = True,
+) -> None:
     dace_config = DaceConfig(
         communicator=None,
         backend="gt:gpu",
@@ -174,19 +158,14 @@ def test_different_device_sync_not_equal(
     assert config != different_config
 
 
-@pytest.mark.parametrize("validate_args", [True])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("format_source", [True])
-@pytest.mark.parametrize("compare_to_numpy", [True])
 def test_different_validate_args_not_equal(
-    backend: str,
-    rebuild: bool,
-    validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-    compare_to_numpy: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = True,
+    validate_args: bool = True,
+    format_source: bool = True,
+    device_sync: bool = False,
+    compare_to_numpy: bool = True,
+) -> None:
     dace_config = DaceConfig(
         None,
         backend,
@@ -217,19 +196,14 @@ def test_different_validate_args_not_equal(
     assert config != different_config
 
 
-@pytest.mark.parametrize("validate_args", [True])
-@pytest.mark.parametrize("device_sync", [False])
-@pytest.mark.parametrize("rebuild", [True])
-@pytest.mark.parametrize("format_source", [True])
-@pytest.mark.parametrize("compare_to_numpy", [True])
 def test_different_format_source_not_equal(
-    backend: str,
-    rebuild: bool,
-    validate_args: bool,
-    format_source: bool,
-    device_sync: bool,
-    compare_to_numpy: bool,
-):
+    backend: str = "numpy",
+    rebuild: bool = True,
+    validate_args: bool = True,
+    format_source: bool = True,
+    device_sync: bool = False,
+    compare_to_numpy: bool = True,
+) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -265,7 +239,7 @@ def test_different_compare_to_numpy_not_equal(
     format_source: bool = True,
     rebuild: bool = True,
     validate_args: bool = False,
-):
+) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(

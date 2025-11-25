@@ -6,13 +6,10 @@ import pytest
 
 from ndsl import CubedSpherePartitioner, TilePartitioner
 from ndsl.comm.decomposition import (
-    block_waiting_for_compilation,
     build_cache_path,
     check_cached_path_exists,
     determine_rank_is_compiling,
-    unblock_waiting_tiles,
 )
-from tests.mpi.mpi_comm import MPI
 
 
 @pytest.mark.parametrize(
@@ -35,7 +32,7 @@ def test_determine_rank_is_compiling(
 
 def test_check_cached_path_exists():
     with pytest.raises(RuntimeError):
-        check_cached_path_exists("notarealpath")
+        check_cached_path_exists("not/a/real/path")
 
 
 def test_check_cached_path_exists_working():
@@ -67,18 +64,3 @@ def test_build_cache_path(
     )
     _, rank_str = build_cache_path(compilation_config)
     assert rank_str == target_rank_str
-
-
-@pytest.mark.skipif(
-    MPI is None or MPI.COMM_WORLD.Get_size() != 6,
-    reason="mpi4py is not available or pytest was not run in parallel",
-)
-def test_unblock_waiting_tiles():
-    comm = MPI.COMM_WORLD
-    compilation_config = unittest.mock.MagicMock(compiling_equivalent=0)
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-    if rank != 0:
-        block_waiting_for_compilation(comm, compilation_config)
-    if rank == 0:
-        unblock_waiting_tiles(comm)

@@ -6,9 +6,8 @@ import pytest
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
     HaloUpdater,
-    OutOfBoundsError,
+    LocalComm,
     Quantity,
     TileCommunicator,
     TilePartitioner,
@@ -205,7 +204,7 @@ def communicator_list(cube_partitioner: CubedSpherePartitioner):
     for rank in range(total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=cube_partitioner,
@@ -223,7 +222,7 @@ def tile_communicator_list(tile_partitioner):
     for rank in range(total_ranks):
         return_list.append(
             TileCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=tile_partitioner,
@@ -300,7 +299,7 @@ def depth_quantity_list(
     """A list of quantities whose value indicates the distance from the computational
     domain boundary."""
     return_list = []
-    for rank in range(total_ranks):
+    for _rank in range(total_ranks):
         data = numpy.empty(shape, dtype=dtype)
         data[:] = numpy.nan
         for n_inside in range(max(n_points, max(extent) // 2), -1, -1):
@@ -320,11 +319,7 @@ def depth_quantity_list(
                     pos[i] = origin[i] + extent[i] + n_outside - 1
                     data[tuple(pos)] = numpy.nan
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         return_list.append(quantity)
     return return_list
@@ -337,7 +332,7 @@ def tile_depth_quantity_list(
     """A list of quantities whose value indicates the distance from the computational
     domain boundary for a single tile."""
     return_list = []
-    for rank in range(single_tile_ranks):
+    for _rank in range(single_tile_ranks):
         data = numpy.empty(shape, dtype=dtype)
         data[:] = numpy.nan
         for n_inside in range(max(n_points, max(extent) // 2), -1, -1):
@@ -357,11 +352,7 @@ def tile_depth_quantity_list(
                     pos[i] = origin[i] + extent[i] + n_outside - 1
                     data[tuple(pos)] = numpy.nan
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         return_list.append(quantity)
     return return_list
@@ -383,7 +374,7 @@ def test_halo_update_timer(
     ranks_per_tile,
 ):
     """
-    test that halo update produces nonzero timings for all expected labels
+    Test that halo update produces nonzero timings for all expected labels.
     """
     halo_updater_list = []
     for communicator, quantity in zip(communicator_list, zeros_quantity_list):
@@ -422,7 +413,7 @@ def test_depth_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that written values have the correct orientation"""
+    """Test that written values have the correct orientation."""
     sample_quantity = depth_quantity_list[0]
     y_dim, x_dim = get_horizontal_dims(sample_quantity.dims)
     y_index = sample_quantity.dims.index(y_dim)
@@ -462,7 +453,7 @@ def test_depth_tile_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that written values have the correct orientation on a tile"""
+    """Test that written values have the correct orientation on a tile."""
     sample_quantity = tile_depth_quantity_list[0]
     y_dim, x_dim = get_horizontal_dims(sample_quantity.dims)
     y_index = sample_quantity.dims.index(y_dim)
@@ -498,14 +489,10 @@ def zeros_quantity_list(total_ranks, dims, units, origin, extent, shape, numpy, 
     """A list of quantities whose values are 0 in the computational domain and 1
     outside of it."""
     return_list = []
-    for rank in range(total_ranks):
+    for _rank in range(total_ranks):
         data = numpy.ones(shape, dtype=dtype)
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         quantity.view[:] = 0.0
         return_list.append(quantity)
@@ -519,14 +506,10 @@ def zeros_quantity_tile_list(
     """A list of quantities whose values are 0 in the computational domain and 1
     outside of it on a single tile."""
     return_list = []
-    for rank in range(single_tile_ranks):
+    for _rank in range(single_tile_ranks):
         data = numpy.ones(shape, dtype=dtype)
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         quantity.view[:] = 0.0
         return_list.append(quantity)
@@ -542,10 +525,12 @@ def test_too_many_points_requested(
     n_points_update,
 ):
     """
-    test that an exception is raised when trying to update more halo points than exist
+    Test that an exception is raised when trying to update more halo points than exist.
     """
     for communicator, quantity in zip(communicator_list, zeros_quantity_list):
-        with pytest.raises(OutOfBoundsError):
+        with pytest.raises(
+            IndexError, match="Boundary slice extends past end of domain.*"
+        ):
             communicator.start_halo_update(quantity, n_points_update)
 
 
@@ -559,11 +544,11 @@ def test_too_many_points_requested_tile(
     n_points_update,
 ):
     """
-    test that an exception is raised when trying to update more halo points than exist
-    on a tile
+    Test that an exception is raised when trying to update more halo points than exist
+    on a tile.
     """
     for communicator, quantity in zip(tile_communicator_list, zeros_quantity_tile_list):
-        with pytest.raises(OutOfBoundsError):
+        with pytest.raises(IndexError):
             communicator.start_halo_update(quantity, n_points_update)
 
 
@@ -621,7 +606,7 @@ def test_tile_halo_update_unsupported_layout(
     tile_communicator_list,
     n_points_update,
 ):
-    """test that correct exception is raised if layout is unsupported"""
+    """Test that correct exception is raised if layout is unsupported."""
     # if you delete this test because this is now implemented,
     # please add the appropriate layout cases to the main halo update test
     for communicator, quantity in zip(tile_communicator_list, zeros_quantity_tile_list):
@@ -642,8 +627,8 @@ def test_zeros_tile_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that zeros from adjacent domains get written over ones on local halo
-    on a single tile"""
+    """Test that zeros from adjacent domains get written over ones on local halo
+    on a single tile."""
     halo_updater_list = []
     if 0 < n_points_update <= n_points:
         for communicator, quantity in zip(
@@ -688,7 +673,7 @@ def test_zeros_vector_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that zeros from adjacent domains get written over ones on local halo"""
+    """Test that zeros from adjacent domains get written over ones on local halo."""
     x_list = zeros_quantity_list
     y_list = copy.deepcopy(x_list)
     if 0 < n_points_update <= n_points:
@@ -738,8 +723,8 @@ def test_zeros_vector_tile_halo_update(
     boundary_dict,
     ranks_per_tile,
 ):
-    """test that zeros from adjacent domains get written over ones on local halo
-    on a single tile"""
+    """Test that zeros from adjacent domains get written over ones on local halo
+    on a single tile."""
     x_list = zeros_quantity_tile_list
     y_list = copy.deepcopy(x_list)
     if 0 < n_points_update <= n_points:
@@ -794,7 +779,7 @@ def test_vector_halo_update_timer(
     ranks_per_tile,
 ):
     """
-    test that halo update produces nonzero timings for all expected labels
+    Test that halo update produces nonzero timings for all expected labels.
     """
     x_list = zeros_quantity_list
     y_list = copy.deepcopy(x_list)

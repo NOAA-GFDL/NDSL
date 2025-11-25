@@ -1,26 +1,32 @@
+from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pytest
 from gt4py.storage import empty, ones
 
-from ndsl import CompilationConfig, GridIndexing, StencilConfig, StencilFactory
-from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
+from ndsl import (
+    CompilationConfig,
+    FrozenStencil,
+    GridIndexing,
+    StencilConfig,
+    StencilFactory,
+)
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
+from ndsl.dsl.typing import (
+    BoolFieldIJ,
+    FloatField,
+    FloatFieldIJ,
+    FloatFieldIJ32,
+    FloatFieldIJ64,
+    IntFieldIJ,
+    IntFieldIJ32,
+    IntFieldIJ64,
+)
+from ndsl.quantity import Quantity
+from tests.dsl import utils
 
 
-def _make_storage(
-    func,
-    grid_indexing,
-    stencil_config: StencilConfig,
-    *,
-    dtype=float,
-    aligned_index=(0, 0, 0),
-):
-    return func(
-        backend=stencil_config.compilation_config.backend,
-        shape=grid_indexing.domain,
-        dtype=dtype,
-        aligned_index=aligned_index,
-    )
-
-
-def test_timing_collector():
+def test_timing_collector() -> None:
     grid_indexing = GridIndexing(
         domain=(5, 5, 5),
         n_halo=2,
@@ -46,9 +52,138 @@ def test_timing_collector():
     build_report = stencil_factory.build_report(key="parse_time")
     assert "func" in build_report
 
-    inp = _make_storage(ones, grid_indexing, stencil_config, dtype=float)
-    out = _make_storage(empty, grid_indexing, stencil_config, dtype=float)
+    inp = utils.make_storage(ones, grid_indexing, stencil_config, dtype=float)
+    out = utils.make_storage(empty, grid_indexing, stencil_config, dtype=float)
 
     test(inp, out)
     exec_report = stencil_factory.exec_report()
     assert "func" in exec_report
+
+
+@pytest.mark.parametrize("klevel,expected_origin_k", [(None, 0), (1, 1), (30, 30)])
+def test_grid_indexing_get_2d_compute_origin_domain(
+    klevel: int | None,
+    expected_origin_k: int,
+):
+    indexing = GridIndexing(
+        domain=(12, 12, 79),
+        n_halo=3,
+        south_edge=True,
+        north_edge=True,
+        west_edge=True,
+        east_edge=True,
+    )
+
+    if klevel is None:
+        origin, domain = indexing.get_2d_compute_origin_domain()
+    else:
+        origin, domain = indexing.get_2d_compute_origin_domain(klevel)
+
+    assert origin[2] == expected_origin_k
+    assert domain[2] == 1
+
+
+def copy_stencil(q_in: FloatField, q_out: FloatField):  # type: ignore
+    with computation(PARALLEL), interval(...):
+        q_out[0, 0, 0] = q_in
+
+
+@pytest.mark.parametrize(
+    "extent,dimensions,domain,call_count",
+    [
+        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), 0),
+        ((20, 20), ["x", "y"], (20, 20, 30), 0),
+        ((20, 20), ["x_interface", "y"], (20, 20, 30), 0),
+        ((20, 20), ["x", "y_interface"], (20, 20, 30), 0),
+        ((20,), ["z"], (20, 20, 10), 0),
+        ((20,), ["z_interface"], (20, 20, 10), 0),
+        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), 1),
+        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), 1),
+        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), 1),
+    ],
+)
+def test_domain_size_comparison(
+    extent: tuple[int],
+    dimensions: list[str],
+    domain: tuple[int],
+    call_count: int,
+):
+    quantity = Quantity(
+        np.zeros(extent), dimensions, "n/a", extent=extent, backend="debug"
+    )
+    stencil = FrozenStencil(
+        copy_stencil,
+        origin=(0, 0, 0),
+        domain=domain,
+        stencil_config=MagicMock(spec=StencilConfig()),
+    )
+    # with expectation:
+    warning_mock = MagicMock()
+    with patch("ndsl.ndsl_log.warning", warning_mock):
+        stencil._validate_quantity_sizes(quantity)
+
+    assert warning_mock.call_count == call_count
+
+
+def two_dim_temporaries_stencil(q_out: FloatField) -> None:
+    with computation(FORWARD), interval(0, 1):
+        tmp_2d_fij: FloatFieldIJ = 1.0
+        tmp_2d_fij32: FloatFieldIJ32 = 2.0
+        tmp_3d_fij64: FloatFieldIJ64 = 3.0
+        tmp_3d_iij: IntFieldIJ = 4
+        tmp_3d_iij32: IntFieldIJ32 = 5
+        tmp_3d_iij64: IntFieldIJ64 = 6
+        mask: BoolFieldIJ = q_out >= 0
+
+    with computation(PARALLEL), interval(...):
+        if mask:
+            q_out = (
+                tmp_2d_fij
+                + tmp_2d_fij32
+                + tmp_3d_fij64
+                + tmp_3d_iij
+                + tmp_3d_iij32
+                + tmp_3d_iij64
+            )
+
+
+def test_stencil_2D_temporaries() -> None:
+    domain = (2, 2, 5)
+    quantity = Quantity(
+        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend="debug"
+    )
+    stencil = FrozenStencil(
+        two_dim_temporaries_stencil,
+        origin=(0, 0, 0),
+        domain=domain,
+        stencil_config=MagicMock(spec=StencilConfig()),
+    )
+    stencil(quantity)
+    assert (quantity.data[1, 1, :] == 21.0).all()
+
+
+@pytest.mark.parametrize(
+    "iterations",
+    [2, 1],
+)
+def test_validation_call_count(iterations: tuple[int]):
+    domain = (2, 2, 5)
+    quantity = Quantity(
+        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend="debug"
+    )
+    stencil_config = StencilConfig(
+        compilation_config=CompilationConfig(backend="numpy", rebuild=True)
+    )
+    stencil = FrozenStencil(
+        copy_stencil,
+        origin=(0, 0, 0),
+        domain=domain,
+        stencil_config=stencil_config,
+    )
+    # with expectation:
+    counting_mock = MagicMock()
+    with patch.object(FrozenStencil, "_validate_quantity_sizes", counting_mock):
+        for _i in range(iterations):
+            stencil(quantity, quantity)
+
+    assert counting_mock.call_count == 1

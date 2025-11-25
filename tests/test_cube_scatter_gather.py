@@ -6,7 +6,7 @@ import pytest
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
+    LocalComm,
     Quantity,
     TilePartitioner,
 )
@@ -100,7 +100,7 @@ def communicator_list(layout):
     for rank in range(total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                DummyComm(rank, total_ranks, shared_buffer),
+                LocalComm(rank, total_ranks, shared_buffer),
                 CubedSpherePartitioner(TilePartitioner(layout)),
                 timer=Timer(),
             )
@@ -169,6 +169,7 @@ def get_quantity(dims, units, extent, n_halo, numpy):
         units,
         origin=tuple(origin),
         extent=tuple(extent),
+        backend="numpy",
     )
 
 
@@ -228,7 +229,7 @@ def test_cube_scatter_no_recv_quantity(
             result_list.append(communicator.scatter(send_quantity=cube_quantity))
         else:
             result_list.append(communicator.scatter())
-    for rank, (result, scattered) in enumerate(zip(result_list, scattered_quantities)):
+    for _rank, (result, scattered) in enumerate(zip(result_list, scattered_quantities)):
         assert_quantity_equals(result, scattered)
 
 
@@ -246,7 +247,7 @@ def test_cube_scatter_with_recv_quantity(
         else:
             result = communicator.scatter(recv_quantity=recv)
         assert result is recv
-    for rank, (result, scattered) in enumerate(
+    for _rank, (result, scattered) in enumerate(
         zip(recv_quantities, scattered_quantities)
     ):
         assert_quantity_equals(result, scattered)
@@ -304,7 +305,7 @@ def test_cube_scatter_state_with_recv_state(
             result = communicator.scatter_state(recv_state=state)
         assert result["time"] == time
         assert result["air_temperature"] is recv
-    for rank, (result, scattered) in enumerate(
+    for _rank, (result, scattered) in enumerate(
         zip(recv_quantities, scattered_quantities)
     ):
         assert_quantity_equals(result, scattered)

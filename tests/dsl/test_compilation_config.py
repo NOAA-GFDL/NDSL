@@ -7,7 +7,7 @@ from ndsl import (
     CompilationConfig,
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    NullComm,
+    LocalComm,
     RunMode,
     TilePartitioner,
 )
@@ -30,11 +30,11 @@ def test_safety_checks():
 )
 def test_check_communicator_valid(
     size: int, use_minimal_caching: bool, run_mode: RunMode
-):
+) -> None:
     partitioner = CubedSpherePartitioner(
         TilePartitioner((int(sqrt(size / 6)), int((sqrt(size / 6)))))
     )
-    comm = NullComm(rank=0, total_ranks=size)
+    comm = LocalComm(rank=0, total_ranks=size, buffer_dict={})
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     config = CompilationConfig(
         run_mode=run_mode, use_minimal_caching=use_minimal_caching
@@ -50,9 +50,9 @@ def test_check_communicator_valid(
 )
 def test_check_communicator_invalid(
     nx: int, ny: int, use_minimal_caching: bool, run_mode: RunMode
-):
+) -> None:
     partitioner = CubedSpherePartitioner(TilePartitioner((nx, ny)))
-    comm = NullComm(rank=0, total_ranks=nx * ny * 6)
+    comm = LocalComm(rank=0, total_ranks=nx * ny * 6, buffer_dict={})
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     config = CompilationConfig(
         run_mode=run_mode, use_minimal_caching=use_minimal_caching
@@ -61,7 +61,7 @@ def test_check_communicator_invalid(
         config.check_communicator(cubed_sphere_comm)
 
 
-def test_get_decomposition_info_from_no_comm():
+def test_get_decomposition_info_from_no_comm() -> None:
     config = CompilationConfig()
     (
         computed_rank,
@@ -86,11 +86,11 @@ def test_get_decomposition_info_from_no_comm():
 )
 def test_get_decomposition_info_from_comm(
     rank: int, size: int, is_compiling: bool, equivalent: int
-):
+) -> None:
     partitioner = CubedSpherePartitioner(
         TilePartitioner((int(sqrt(size / 6)), int(sqrt(size / 6))))
     )
-    comm = NullComm(rank=rank, total_ranks=size)
+    comm = LocalComm(rank=rank, total_ranks=size, buffer_dict={})
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     config = CompilationConfig(use_minimal_caching=True, run_mode=RunMode.Run)
     (
@@ -123,14 +123,14 @@ def test_get_decomposition_info_from_comm(
     ],
 )
 def test_determine_compiling_equivalent(
-    rank, size, minimal_caching, run_mode, equivalent
-):
+    rank: int, size: int, minimal_caching: bool, run_mode: RunMode, equivalent: int
+) -> None:
     config = CompilationConfig(use_minimal_caching=minimal_caching, run_mode=run_mode)
     partitioner = CubedSpherePartitioner(
         TilePartitioner((sqrt(size / 6), sqrt(size / 6)))
     )
     comm = unittest.mock.MagicMock()
-    comm = NullComm(rank=rank, total_ranks=size)
+    comm = LocalComm(rank=rank, total_ranks=size, buffer_dict={})
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     assert (
         config.determine_compiling_equivalent(rank, cubed_sphere_comm.partitioner)
@@ -138,7 +138,7 @@ def test_determine_compiling_equivalent(
     )
 
 
-def test_as_dict():
+def test_as_dict() -> None:
     config = CompilationConfig()
     asdict = config.as_dict()
     assert asdict["backend"] == "numpy"
@@ -151,7 +151,7 @@ def test_as_dict():
     assert len(asdict) == 7
 
 
-def test_from_dict():
+def test_from_dict() -> None:
     specification_dict = {}
     config = CompilationConfig.from_dict(specification_dict)
     assert config.backend == "numpy"

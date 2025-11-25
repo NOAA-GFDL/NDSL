@@ -1,6 +1,6 @@
-from typing import List, Optional, Tuple
-
+from dace import config as dace_conf
 from dace.sdfg import SDFG
+from gt4py.cartesian import config as gt_config
 
 from ndsl.dsl.caches.cache_location import get_cache_directory, get_cache_fullpath
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
@@ -11,7 +11,7 @@ from ndsl.logging import ndsl_log
 # Distributed compilation
 
 
-def unblock_waiting_tiles(comm, sdfg_path: str) -> None:
+def unblock_waiting_tiles(comm, sdfg_path: str) -> None:  # type: ignore
     if comm and comm.Get_size() > 1:
         for tile in range(1, 6):
             tilesize = comm.Get_size() / 6
@@ -23,8 +23,8 @@ def build_info_filepath() -> str:
 
 
 def write_build_info(
-    sdfg: SDFG, layout: Tuple[int, int], resolution_per_tile: List[int], backend: str
-):
+    sdfg: SDFG, layout: tuple[int, int], resolution_per_tile: list[int], backend: str
+) -> None:
     """Write down all relevant information on the build to identify
     it at load time."""
     # Dev NOTE: we should be able to leverage sdfg.make_key to get a hash or
@@ -48,9 +48,9 @@ def write_build_info(
 def get_sdfg_path(
     daceprog_name: str,
     config: DaceConfig,
-    sdfg_file_path: Optional[str] = None,
-    override_run_only=False,
-) -> Optional[str]:
+    sdfg_file_path: str | None = None,
+    override_run_only: bool = False,
+) -> str | None:
     """Build an SDFG path from the qualified program name or it's direct path to .sdfg
 
     Args:
@@ -101,12 +101,12 @@ def get_sdfg_path(
                 f"cannot be run with current resolution {config.tile_resolution}"
             )
 
-    print(f"[DaCe Config] Rank {config.my_rank} loading SDFG {sdfg_dir_path}")
+    ndsl_log.debug(f"[DaCe Config] Rank {config.my_rank} loading SDFG {sdfg_dir_path}")
 
     return sdfg_dir_path
 
 
-def set_distributed_caches(config: DaceConfig):
+def set_distributed_caches(config: DaceConfig) -> None:
     """In Run mode, check required file then point current rank cache to source cache"""
 
     # Execute specific initialization per orchestration state
@@ -127,14 +127,25 @@ def set_distributed_caches(config: DaceConfig):
             )
 
     # Set read/write caches to the target rank
-    from gt4py.cartesian import config as gt_config
-
     if config.do_compile:
         verb = "reading/writing"
     else:
         verb = "reading"
 
     gt_config.cache_settings["dir_name"] = get_cache_directory(config.code_path)
+
+    # NOTE: In the (rare) case we orchestrate code _without_ any stencils, we need
+    # to set the build folder. The other code is in FrozenStencil and deals with the
+    # case of `dace` used in both orchestrated and not orchestrated.
+    # A better build system would deal with this in BOTH cases.
+    dace_conf.Config.set(
+        "default_build_folder",
+        value="{gt_root}/{gt_cache}/dacecache".format(
+            gt_root=gt_config.cache_settings["root_path"],
+            gt_cache=gt_config.cache_settings["dir_name"],
+        ),
+    )
+
     ndsl_log.info(
         f"[{orchestration_mode}] Rank {config.my_rank} "
         f"{verb} cache {gt_config.cache_settings['dir_name']}"

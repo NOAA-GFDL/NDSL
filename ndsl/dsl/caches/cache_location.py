@@ -5,8 +5,21 @@ from ndsl.dsl.caches.codepath import FV3CodePath
 def identify_code_path(
     rank: int,
     partitioner: Partitioner,
+    single_code_path: bool,
 ) -> FV3CodePath:
-    if partitioner.layout == (1, 1) or partitioner.layout == [1, 1]:
+    """Determine which code path your rank will hit.
+
+    If single_code_path is True, single_code_path is True,
+    only one code path exists (case of doubly periodic grid).
+    If single_code_path is False, we are in the case of the
+    cube-sphere and we will look at our position on the tile."""
+
+    # Doubly-periodic or single tile grid
+    if single_code_path:
+        return FV3CodePath.All
+
+    # Cube-sphere
+    if partitioner.layout == (1, 1):
         return FV3CodePath.All
     elif partitioner.layout[0] == 1 or partitioner.layout[1] == 1:
         raise NotImplementedError(

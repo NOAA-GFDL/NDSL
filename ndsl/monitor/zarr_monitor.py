@@ -1,10 +1,14 @@
+from __future__ import annotations
+
+import warnings
 from datetime import datetime, timedelta
-from typing import List, Tuple, Union
+from typing import TypeVar
 
 import cftime
 import xarray as xr
 
 import ndsl.constants as constants
+from ndsl.comm import Comm, ReductionOperator, Request
 from ndsl.comm.partitioner import Partitioner, subtile_slice
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
@@ -14,23 +18,68 @@ from ndsl.utils import list_by_dims
 
 __all__ = ["ZarrMonitor"]
 
+T = TypeVar("T")
 
-class DummyComm:
-    def Get_rank(self):
+
+class DummyComm(Comm[T]):
+    """Dummy comm object that works in single-core mode."""
+
+    def Get_rank(self) -> int:
         return 0
 
-    def Get_size(self):
+    def Get_size(self) -> int:
         return 1
 
-    def bcast(self, value, root=0):
+    def bcast(self, value: T | None, root: int = 0) -> T | None:
         assert root == 0, (
             "DummyComm should only be used on a single core, "
             "so root should only ever be 0"
         )
         return value
 
-    def barrier(self):
+    def barrier(self) -> None:
         return
+
+    def Barrier(self) -> None:
+        raise NotImplementedError("DummyComm.Barrier")
+
+    def Scatter(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Scatter")
+
+    def Gather(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Gather")
+
+    def allgather(self, sendobj: T) -> list[T]:
+        raise NotImplementedError("DummyComm.allgather")
+
+    def Send(self, sendbuf, dest, tag: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Send")
+
+    def sendrecv(self, sendbuf, dest, **kwargs: dict):  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.sendrcv")
+
+    def Isend(self, sendbuf, dest, tag: int = 0, **kwargs: dict) -> Request:  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Isend")
+
+    def Recv(self, recvbuf, source, tag: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Recv")
+
+    def Irecv(self, recvbuf, source, tag: int = 0, **kwargs: dict) -> Request:  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Irecv")
+
+    def Split(self, color, key) -> DummyComm:  # type: ignore[no-untyped-def]
+        raise NotImplementedError("DummyComm.Split")
+
+    def allreduce(
+        self, sendobj: T, op: ReductionOperator = ReductionOperator.NO_OP
+    ) -> T:
+        raise NotImplementedError("DummyComm.allreduce")
+
+    def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
+        raise NotImplementedError("DummyComm.Allreduce")
+
+    def Allreduce_inplace(self, obj: T, op: ReductionOperator) -> T:
+        raise NotImplementedError("DummyComm.Allreduce_inplace")
 
 
 class ZarrMonitor:
@@ -40,11 +89,12 @@ class ZarrMonitor:
 
     def __init__(
         self,
-        store: Union[str, "zarr.storage.MutableMapping"],
+        store: str | zarr.storage.MutableMapping,
         partitioner: Partitioner,
+        *,
         mode: str = "w",
-        mpi_comm=DummyComm(),
-    ):
+        mpi_comm: Comm | None = None,
+    ) -> None:
         """Create a ZarrMonitor.
 
         Args:
@@ -54,6 +104,14 @@ class ZarrMonitor:
             mpi_comm: mpi4py comm object to use for communications. By default, will
                 use a dummy comm object that works in single-core mode.
         """
+        if mpi_comm is None:
+            warnings.warn(
+                "`mpi_comm` will be a required argument starting with the next version of NDSL.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            mpi_comm = DummyComm()
+
         if mpi_comm.Get_rank() == 0:
             group = zarr.open_group(store, mode=mode)
         else:
@@ -61,7 +119,7 @@ class ZarrMonitor:
         self._group = mpi_comm.bcast(group)
         self._comm = mpi_comm
         self._writers = None
-        self._constants: List[str] = []
+        self._constants: list[str] = []
         self.partitioner = partitioner
 
     def _init_writers(self, state):
@@ -127,10 +185,10 @@ class ZarrMonitor:
                 name=name,
                 partitioner=self.partitioner,
             )
-            constant_writer.append(quantity)  # type: ignore[index]
+            constant_writer.append(quantity)
             self._constants.append(name)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
 
 
@@ -182,7 +240,7 @@ class _ZarrVariableWriter:
             fill_value=None,
         )
 
-    def sync_array(self):
+    def sync_array(self) -> None:
         self.array = self.comm.bcast(self.array, root=0)
 
     def _match_dim_order(self, quantity):
@@ -263,10 +321,10 @@ class _ZarrVariableWriter:
 
 
 def array_chunks(
-    layout: Tuple[int, int],
-    tile_array_shape: Tuple[int, ...],
-    array_dims: Tuple[str, ...],
-):
+    layout: tuple[int, int],
+    tile_array_shape: tuple[int, ...],
+    array_dims: tuple[str, ...],
+) -> tuple:
     layout_by_dims = list_by_dims(array_dims, layout, 1)
     chunks_list = []
     for extent, dim, n_ranks in zip(tile_array_shape, array_dims, layout_by_dims):
@@ -379,7 +437,7 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
         self.comm.barrier()
 
 
-def get_calendar(time: Union[datetime, timedelta, cftime.datetime]):
+def get_calendar(time: datetime | timedelta | cftime.datetime) -> str:
     try:
         return time.calendar  # type: ignore
     except AttributeError:
