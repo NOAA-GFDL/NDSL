@@ -216,6 +216,8 @@ class Quantity:
         self, path: str, name: str = "var", rank: int = -1, all_data: bool = False
     ) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
+            if rank < 0:
+                rank = MPI.COMM_WORLD.Get_rank()
             if all_data:
                 self.data_as_xarray.to_dataset(name=name).to_netcdf(
                     f"{path}__r{rank}.nc4"
