@@ -6,21 +6,21 @@ import xarray as xr
 import yaml
 
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         "Attempt to diff two NetCDFs with similar data."
-        "Differences that can be reconcialed are strict domain vs halo, variable name mapping."
-        "They program will report on assumptions taken."
+        "Differences that can be reconciled are strict domain vs halo, variable name mapping."
+        "The program will report on assumptions taken."
     )
     parser.add_argument(
         "netcdf_A",
         type=str,
-        help="path of NetCDFs, named A in the logs.",
+        help="path of first NetCDFs, named A in the logs.",
     )
     parser.add_argument(
         "netcdf_B",
         type=str,
-        help="path of NetCDFs, named B in the logs.",
+        help="path of second NetCDFs, named B in the logs.",
     )
     parser.add_argument(
         "-nm",
@@ -43,7 +43,7 @@ def main(
     netcdf_B: str,
     name_mapping: str | None = None,
     halo: int = 3,
-):
+) -> None:
     A = xr.open_dataset(netcdf_A)
     B = xr.open_dataset(netcdf_B)
     name_map = {}
@@ -179,7 +179,7 @@ def main(
     xr.Dataset(dataset).to_netcdf(f"best_guest_diff_{pathlib.Path(netcdf_A).stem}.nc4")
 
 
-def entry_point():
+def entry_point() -> None:
     parser = get_parser()
     args = parser.parse_args()
     main(
