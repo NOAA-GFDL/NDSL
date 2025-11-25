@@ -24,6 +24,7 @@ requirements: list[str] = [
     "cartopy",  # for plotting in ndsl.viz
     "pytest-subtests",  # for translate tests
     "dacite",  # for state
+    "networkx<=3.5",
 ]
 
 
