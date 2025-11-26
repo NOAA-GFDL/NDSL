@@ -257,7 +257,9 @@ class MultiModalFloatMetric(BaseMetric):
         self.check = np.all(self.success)
         self.sort_report = sort_report
 
-        if input_values is not None:
+        # We might have sliced outputs in the translate test. Rather than funnel the slicing
+        # all the way down, we bail out if we can measure input vs reference
+        if input_values is not None and input_values.shape == reference_values.shape:
             self.number_changing_values = (
                 (input_values != reference_values).flatten().shape[0]
             )
