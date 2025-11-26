@@ -79,24 +79,6 @@ def _reduce_cartesian_axis_size_to_1(
     return True
 
 
-def _axis_from_loop_iterator(node: stree.MapScope | stree.ForScope) -> AxisIterator:
-    if isinstance(node, stree.MapScope):
-        if AxisIterator._I.value[0] in node.node.params[0]:
-            return AxisIterator._I
-        if AxisIterator._J.value[0] in node.node.params[0]:
-            return AxisIterator._J
-        elif AxisIterator._K.value[0] in node.node.params[0]:
-            return AxisIterator._K
-    elif isinstance(node, stree.ForScope):
-        if AxisIterator._I.value[0] in node.header.itervar:
-            return AxisIterator._I
-        elif AxisIterator._J.value[0] in node.header.itervar:
-            return AxisIterator._J
-        elif AxisIterator._K.value[0] in node.header.itervar:
-            return AxisIterator._K
-    raise NotImplementedError(f"Uncaught cartesian loop type {node}")
-
-
 class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
     """Unionize all transient arrays access into a single Range."""
 
