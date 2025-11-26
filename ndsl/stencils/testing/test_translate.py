@@ -430,8 +430,6 @@ def test_parallel_savepoint(
                     absolute_eps_override=case.testobj.mmr_absolute_eps,
                     relative_fraction_override=case.testobj.mmr_relative_fraction,
                     ulp_override=case.testobj.mmr_ulp,
-                    ignore_near_zero_errors=ignore_near_zero,
-                    near_zero=case.testobj.near_zero,
                     sort_report=case.sort_report,
                 )
             else:
