@@ -5,10 +5,8 @@ import warnings
 from collections.abc import Callable
 from typing import Any
 
-from ndsl.dsl.dace import DaceConfig, orchestrate
+from ndsl import Local, Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.dsl.typing import Float
-from ndsl.initialization.allocator import QuantityFactory
-from ndsl.quantity import Local, Quantity
 
 
 _TOP_LEVEL: object | None = None
@@ -20,8 +18,8 @@ class NDSLRuntime:
 
     The __call__ function will automatically be orchestrated."""
 
-    def __init__(self, dace_config: DaceConfig) -> None:
-        self._dace_config = dace_config
+    def __init__(self, stencil_factory: StencilFactory) -> None:
+        self._stencil_factory = stencil_factory
         # Use this flag to detect that the init wasn't done properly
         self._base_class_was_properly_super_init = True
 

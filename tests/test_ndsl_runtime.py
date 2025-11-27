@@ -21,7 +21,7 @@ class Code(NDSLRuntime):
     def __init__(
         self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     ) -> None:
-        super().__init__(dace_config=stencil_factory.config.dace_config)
+        super().__init__(stencil_factory)
         self.copy = stencil_factory.from_dims_halo(
             the_copy_stencil, compute_dims=[X_DIM, Y_DIM, Z_DIM]
         )
@@ -43,7 +43,7 @@ class BadCode_NoSuperInit(NDSLRuntime):
 
 class Code_NoCall(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory) -> None:
-        super().__init__(dace_config=stencil_factory.config.dace_config)
+        super().__init__(stencil_factory)
         pass
 
     def run(self, A: Any, B: Any) -> None:
