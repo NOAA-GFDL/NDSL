@@ -7,9 +7,6 @@ import pytest
 
 from ndsl.constants import HORIZONTAL_DIMS, N_HALO_DEFAULT, X_DIMS, Y_DIMS
 from ndsl.dsl import gt4py_utils as utils
-
-# TODO: Remove once ndsl.Namelist is gone (Issue#64)
-from ndsl.namelist import Namelist as NdslNamelist
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.translate import (
     TranslateFortranData2Py,
@@ -133,12 +130,6 @@ class ParallelTranslate:
 
     @property
     def layout(self):
-        # TODO: Once ndsl.namelist.Namelist is gone (Issue#64),
-        # remove this check in favor of f90nml.namelist.Namelist
-        if isinstance(self.namelist, NdslNamelist):
-            return self.namelist.layout
-
-        # Assumption: namelist is f90nml.namelist.Namelist
         grid_params = grid_params_from_f90nml(self.namelist)
         return grid_params["layout"]
 

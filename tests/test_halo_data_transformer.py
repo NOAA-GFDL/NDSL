@@ -165,20 +165,18 @@ def quantity(dims, units, origin, extent, shape, dtype, gt4py_backend):
     """A list of quantities whose values are 42.42 in the computational domain and 1
     outside of it."""
     sz = _shape_length(shape)
-    print(f"{shape} {sz}")
     data = np.arange(0, sz, dtype=dtype).reshape(shape)
     if "gtc" not in gt4py_backend:
         # should also test code if gt4py_backend is unset
         gt4py_backend = None
-    quantity = Quantity(
+    return Quantity(
         data,
         dims=dims,
         units=units,
         origin=origin,
         extent=extent,
-        gt4py_backend=gt4py_backend,
+        backend=gt4py_backend,
     )
-    return quantity
 
 
 @pytest.fixture(params=[-0, -1, -2, -3])

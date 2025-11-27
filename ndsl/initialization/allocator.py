@@ -13,52 +13,17 @@ from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
-class StorageNumpy:
-    def __init__(self, backend: str) -> None:
-        """Initialize an object which behaves like the numpy module, but uses
-        gt4py storage objects for zeros, ones, and empty.
+class QuantityFactory:
+    def __init__(self, sizer: GridSizer, *, backend: str) -> None:
+        """
+        Initialize a QuantityFactory from a GridSizer and a GT4Py backend name.
 
         Args:
-            backend: gt4py backend
+            sizer: GridSizer object that determines the array sizes.
+            backend: GT4Py backend name used for performance-optimized allocation.
         """
+        self.sizer = sizer
         self.backend = backend
-
-    def empty(self, *args: Any, **kwargs: Any) -> np.ndarray:
-        return gt_storage.empty(*args, backend=self.backend, **kwargs)
-
-    def ones(self, *args: Any, **kwargs: Any) -> np.ndarray:
-        return gt_storage.ones(*args, backend=self.backend, **kwargs)
-
-    def zeros(self, *args: Any, **kwargs: Any) -> np.ndarray:
-        return gt_storage.zeros(*args, backend=self.backend, **kwargs)
-
-
-class QuantityFactory:
-    def __init__(  # type: ignore
-        self, sizer: GridSizer, numpy, *, silence_deprecation_warning: bool = False
-    ) -> None:
-        if not silence_deprecation_warning:
-            warnings.warn(
-                "Usage of QuantityFactory(sizer, numpy) is discouraged and will change "
-                "in the next release. Use QuantityFactory.from_backend(sizer, backend) "
-                "instead for a stable experience across the release.",
-                DeprecationWarning,
-                2,
-            )
-        self.sizer: GridSizer = sizer
-        self._numpy = numpy
-
-    def set_extra_dim_lengths(self, **kwargs: Any) -> None:
-        """
-        Set the length of extra (non-x/y/z) dimensions.
-        """
-        warnings.warn(
-            "`QuantityFactory.set_extra_dim_lengths` is deprecated. "
-            "Use `add_data_dimensions` or `update_data_dimensions`.",
-            DeprecationWarning,
-            2,
-        )
-        self.sizer.data_dimensions.update(kwargs)
 
     def update_data_dimensions(
         self,
@@ -95,21 +60,22 @@ class QuantityFactory:
 
     @classmethod
     def from_backend(cls, sizer: GridSizer, backend: str) -> QuantityFactory:
-        """Initialize a QuantityFactory to use a specific gt4py backend.
+        """Initialize a QuantityFactory to use a specific GT4Py backend.
+
+        Note: This method is deprecated. Please change your code to use the
+        constructor instead.
 
         Args:
-            sizer: object which determines array sizes
-            backend: gt4py backend
+            sizer: GridSizer object that determines the array sizes.
+            backend: GT4Py backend name used for performance-optimized allocation.
         """
-        numpy = StorageNumpy(backend)
-        # Don't print the deprecation warning in this case
-        return cls(sizer, numpy, silence_deprecation_warning=True)
-
-    def _backend(self) -> str | None:
-        if isinstance(self._numpy, StorageNumpy):
-            return self._numpy.backend
-
-        return None
+        warnings.warn(
+            "QuantityFactory.from_backend(sizer, backend) is deprecated. Use "
+            "QuantityFactory(sizer, backend=backend) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls(sizer, backend=backend)
 
     def empty(
         self,
@@ -119,15 +85,11 @@ class QuantityFactory:
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
-        """Allocate a Quantity - values are random.
+        """Allocate a Quantity and fill it with uninitialized (undefined) values.
 
         Equivalent to `numpy.empty`"""
         return self._allocate(
-            self._numpy.empty,
-            dims,
-            units,
-            dtype,
-            allow_mismatch_float_precision,
+            gt_storage.empty, dims, units, dtype, allow_mismatch_float_precision
         )
 
     def zeros(
@@ -142,11 +104,7 @@ class QuantityFactory:
 
         Equivalent to `numpy.zeros`"""
         return self._allocate(
-            self._numpy.zeros,
-            dims,
-            units,
-            dtype,
-            allow_mismatch_float_precision,
+            gt_storage.zeros, dims, units, dtype, allow_mismatch_float_precision
         )
 
     def ones(
@@ -161,11 +119,7 @@ class QuantityFactory:
 
         Equivalent to `numpy.ones`"""
         return self._allocate(
-            self._numpy.ones,
-            dims,
-            units,
-            dtype,
-            allow_mismatch_float_precision,
+            gt_storage.ones, dims, units, dtype, allow_mismatch_float_precision
         )
 
     def full(
@@ -177,11 +131,11 @@ class QuantityFactory:
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
-        """Allocate a Quantity and fill it with the value.
+        """Allocate a Quantity and fill it with the given value.
 
         Equivalent to `numpy.full`"""
         quantity = self._allocate(
-            self._numpy.empty,
+            gt_storage.empty,
             dims,
             units,
             dtype,
@@ -199,10 +153,10 @@ class QuantityFactory:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Create a Quantity from a numpy array.
+        Create a Quantity from values in the `data` array.
 
-        That numpy array must correspond to the correct shape and extent
-        for the given dims.
+        This copies the values of `data` into the resulting Quantity. The data
+        array thus must correspond to the correct shape and extent for the given dims.
         """
         base = self.zeros(
             dims=dims,
@@ -222,10 +176,12 @@ class QuantityFactory:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Create a Quantity from a numpy array.
+        Create a Quantity from values of the compute domain.
 
-        That numpy array must correspond to the correct shape and extent
-        of the compute domain for the given dims.
+        This function will allocate the full Quantity (including potential
+        halo points) to zero. The values of `data` are then copied into
+        the compute domain. That numpy array must correspond to the correct
+        shape and extent of the compute domain for the given dims.
         """
         base = self.zeros(
             dims=dims,
@@ -257,19 +213,22 @@ class QuantityFactory:
                 zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
             )
         ]
-        try:
-            data = allocator(
-                shape, dtype=dtype, aligned_index=origin, dimensions=dimensions
-            )
-        except TypeError:
-            data = allocator(shape, dtype=dtype)
+
+        data = allocator(
+            shape,
+            dtype=dtype,
+            aligned_index=origin,
+            dimensions=dimensions,
+            backend=self.backend,
+        )
+
         return Quantity(
             data,
             dims=dims,
             units=units,
             origin=origin,
             extent=extent,
-            gt4py_backend=self._backend(),
+            backend=self.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
             number_of_halo_points=self.sizer.n_halo,
         )

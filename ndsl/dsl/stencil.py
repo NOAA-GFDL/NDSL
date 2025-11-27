@@ -240,7 +240,6 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
             other = comm.sendrecv(array, pair_rank)
             arr_diffs = np.sum(np.logical_and(~np.isnan(array), array != other))
             if arr_diffs > 0:
-                print(name, rank, pair_rank, array, other)
                 differences[name] = arr_diffs
     return differences
 
@@ -289,6 +288,8 @@ class FrozenStencil(SDFGConvertible):
             self._timing_collector = TimingCollector()
         else:
             self._timing_collector = timing_collector
+
+        self._arguments_already_checked = False
 
         if externals is None:
             externals = {}
@@ -406,7 +407,11 @@ class FrozenStencil(SDFGConvertible):
         if self.stencil_config.verbose:
             ndsl_log.debug(f"Running {self._func_name}")
 
-        self._validate_quantity_sizes(*args, **kwargs)
+        if (
+            not self._arguments_already_checked
+            and self.stencil_config.compilation_config.validate_args
+        ):
+            self._validate_quantity_sizes(*args, **kwargs)
 
         # Marshal arguments
         args_list = list(args)
@@ -430,7 +435,10 @@ class FrozenStencil(SDFGConvertible):
             ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
-        if self.stencil_config.compilation_config.validate_args:
+        if (
+            not self._arguments_already_checked
+            and self.stencil_config.compilation_config.validate_args
+        ):
             if __debug__ and "origin" in kwargs:
                 raise TypeError("origin cannot be passed to FrozenStencil call")
             if __debug__ and "domain" in kwargs:
@@ -443,6 +451,7 @@ class FrozenStencil(SDFGConvertible):
                 validate_args=True,
                 exec_info=self._timing_collector.exec_info,
             )
+            self._arguments_already_checked = True
         else:
             self.stencil_object.run(
                 **args_as_kwargs,

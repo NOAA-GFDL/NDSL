@@ -6,8 +6,8 @@ import pytest
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    DummyComm,
     HaloUpdater,
+    LocalComm,
     Quantity,
     TileCommunicator,
     TilePartitioner,
@@ -204,7 +204,7 @@ def communicator_list(cube_partitioner: CubedSpherePartitioner):
     for rank in range(total_ranks):
         return_list.append(
             CubedSphereCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=cube_partitioner,
@@ -222,7 +222,7 @@ def tile_communicator_list(tile_partitioner):
     for rank in range(total_ranks):
         return_list.append(
             TileCommunicator(
-                comm=DummyComm(
+                comm=LocalComm(
                     rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
                 ),
                 partitioner=tile_partitioner,
@@ -319,11 +319,7 @@ def depth_quantity_list(
                     pos[i] = origin[i] + extent[i] + n_outside - 1
                     data[tuple(pos)] = numpy.nan
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         return_list.append(quantity)
     return return_list
@@ -356,11 +352,7 @@ def tile_depth_quantity_list(
                     pos[i] = origin[i] + extent[i] + n_outside - 1
                     data[tuple(pos)] = numpy.nan
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         return_list.append(quantity)
     return return_list
@@ -500,11 +492,7 @@ def zeros_quantity_list(total_ranks, dims, units, origin, extent, shape, numpy, 
     for _rank in range(total_ranks):
         data = numpy.ones(shape, dtype=dtype)
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         quantity.view[:] = 0.0
         return_list.append(quantity)
@@ -521,11 +509,7 @@ def zeros_quantity_tile_list(
     for _rank in range(single_tile_ranks):
         data = numpy.ones(shape, dtype=dtype)
         quantity = Quantity(
-            data,
-            dims=dims,
-            units=units,
-            origin=origin,
-            extent=extent,
+            data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
         )
         quantity.view[:] = 0.0
         return_list.append(quantity)

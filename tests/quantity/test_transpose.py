@@ -35,7 +35,6 @@ def quantity_data_input(initial_data, numpy, backend):
         array[:] = initial_data
     else:
         array = initial_data
-    print(type(array))
     return array
 
 
@@ -87,6 +86,7 @@ def quantity(quantity_data_input, initial_dims, initial_origin, initial_extent):
         units="unit_string",
         origin=initial_origin,
         extent=initial_extent,
+        backend="debug",
     )
 
 
@@ -166,7 +166,13 @@ def param_product(*param_lists):
 )
 @pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_transpose(
-    quantity, target_dims, final_data, final_dims, final_origin, final_extent, numpy
+    quantity: Quantity,
+    target_dims,
+    final_data,
+    final_dims,
+    final_origin,
+    final_extent,
+    numpy,
 ):
     result = quantity.transpose(target_dims)
     numpy.testing.assert_array_equal(result.data, final_data)
@@ -174,7 +180,7 @@ def test_transpose(
     assert result.origin == final_origin
     assert result.extent == final_extent
     assert result.units == quantity.units
-    assert result.gt4py_backend == quantity.gt4py_backend
+    assert result.backend == quantity.backend
 
 
 @pytest.mark.parametrize(
@@ -213,7 +219,9 @@ def test_transpose_invalid_cases(
 
 
 def test_transpose_retains_attrs(numpy):
-    quantity = Quantity(numpy.random.randn(3, 4), dims=["x", "y"], units="unit_string")
+    quantity = Quantity(
+        numpy.random.randn(3, 4), dims=["x", "y"], units="unit_string", backend="debug"
+    )
     quantity._attrs = {"long_name": "500 mb height"}
     transposed = quantity.transpose(["y", "x"])
     assert transposed.attrs == quantity.attrs

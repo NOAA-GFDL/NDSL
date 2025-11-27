@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from ndsl import DummyComm
+from ndsl import LocalComm
 from ndsl.buffer import recv_buffer
-from ndsl.exceptions import ConcurrencyError
-from tests.mpi.mpi_comm import MPI
+from ndsl.comm.local_comm import ConcurrencyError
+from tests.mpi import MPI
 
 
 worker_function_list = []
@@ -33,11 +33,11 @@ def send_recv(comm, numpy):
     data = numpy.asarray([rank], dtype=numpy.int32)
 
     if rank < size - 1:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"receiving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
@@ -50,11 +50,11 @@ def send_recv_big_data(comm, numpy):
     data = numpy.ones([5, 3, 96], dtype=numpy.float64) * rank
 
     if rank < size - 1:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"receiving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
@@ -96,11 +96,11 @@ def send_f_contiguous_buffer(comm, numpy):
     data = numpy.random.uniform(size=[2, 3]).T
 
     if rank < size - 1:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"receiving data from {rank - 1} to {rank}")
         comm.Recv(data, source=rank - 1)
     return data
@@ -115,7 +115,7 @@ def send_non_contiguous_buffer(comm, numpy):
     recv_buffer = numpy.zeros([4, 2, 3])
 
     if rank < size - 1:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
@@ -132,7 +132,7 @@ def send_subarray(comm, numpy):
     recv_buffer = numpy.zeros([2, 2, 2])
 
     if rank < size - 1:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data[1:-1, 1:-1, 1:-1], dest=rank + 1)
     if rank > 0:
@@ -151,11 +151,11 @@ def recv_to_subarray(comm, numpy):
     return_value = recv_buffer
 
     if rank < size - 1:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"sending data from {rank} to {rank + 1}")
         comm.Send(data, dest=rank + 1)
     if rank > 0:
-        if isinstance(comm, DummyComm):
+        if isinstance(comm, LocalComm):
             print(f"receiving data from {rank - 1} to {rank}")
         try:
             comm.Recv(recv_buffer[1:-1, 1:-1, 1:-1], source=rank - 1)
@@ -255,7 +255,7 @@ def dummy_list(total_ranks):
     return_list = []
     for rank in range(total_ranks):
         return_list.append(
-            DummyComm(rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer)
+            LocalComm(rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer)
         )
     return return_list
 

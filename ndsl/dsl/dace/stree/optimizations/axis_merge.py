@@ -20,6 +20,10 @@ from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
 )
 
 
+# Buggy passes that should work
+PUSH_IFSCOPE_DOWNWARD = False
+
+
 def _is_axis_map(node: stree.MapScope, axis: AxisIterator) -> bool:
     """Returns true if node is a map over the given axis."""
     map_parameter = node.node.params
@@ -171,7 +175,7 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         self.eager = eager
 
     def __str__(self) -> str:
-        return f"CartesianAxisMerge({self.axis.name})"
+        return f"CartesianAxisMerge_{self.axis.name}"
 
     def _merge_node(
         self,
@@ -187,7 +191,7 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
 
         if isinstance(node, stree.MapScope):
             return self._map_overcompute_merge(node, nodes)
-        elif isinstance(node, stree.IfScope):
+        elif PUSH_IFSCOPE_DOWNWARD and isinstance(node, stree.IfScope):
             return self._push_ifelse_down(node, nodes)
         elif isinstance(node, stree.TaskletNode):
             return self._push_tasklet_down(node, nodes)
@@ -221,7 +225,7 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
                 return 0  # Tasklet is a callback
 
         next_index = list_index(nodes, the_tasklet)
-        if next_index == len(nodes):
+        if next_index == len(nodes) - 1:
             return 0  # Last node - done
 
         next_node = nodes[next_index + 1]
@@ -231,7 +235,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         merged = self._merge_node(next_node, nodes)
 
         # Attempt to push the tasklet in the next map
-        ndsl_log.debug("  Push tasklet down into next map")
         next_node = nodes[next_index + 1]
         if isinstance(next_node, stree.MapScope):
             next_node.children.insert(0, the_tasklet)
@@ -292,7 +295,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
                     return merged
 
         # We are good to go - swap it all
-        ndsl_log.debug(f"  Push IF {the_if.condition.as_string} down")
         inner_if_map = the_if.children[0]
 
         # Swap IF & maps
@@ -322,18 +324,20 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         the_map: stree.MapScope,
         nodes: list[stree.ScheduleTreeNode],
     ) -> int:
-        if _last_node(nodes, the_map):
-            return 0
+        # End of nodes OR
+        # Not the right axis
+        # --> recurse
+        if _last_node(nodes, the_map) or not _is_axis_map(the_map, self.axis):
+            merged = 0
+            for child in the_map.children:
+                merged += self._merge_node(child, the_map.children)
+            return merged
 
         next_node = _get_next_node(nodes, the_map)
 
-        # If the next node is not a MapScope - recurse
+        # Next node is not a MapScope - no merge
         if not isinstance(next_node, stree.MapScope):
-            merged = self._merge_node(next_node, nodes)
-            new_next_node = _get_next_node(nodes, the_map)
-            if new_next_node == next_node:
-                return merged
-            return merged + self._merge_node(the_map, nodes)
+            return 0
 
         # Attempt to merge consecutive maps
         if not _can_merge_axis_maps(the_map, next_node, self.axis):
@@ -352,10 +356,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
                     1,  # NOTE: we can optimize this to gcd later
                 )
             ]
-        )
-
-        ndsl_log.debug(
-            f"  Merge {self.axis.name} map: {first_range} ⋃ {second_range} -> {merged_range}"
         )
 
         # push IfScope down if children are just maps
@@ -418,11 +418,17 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         # in the tasklet...
         # NormalizeAxisSymbol(self.axis).visit(node)
 
+        # TODO: we are meging single axis, we could prefix those runs by moving
+        #       if scope down inside the map if it has the proper axis, preparing
+        #       for a better merging scope. If we can't nerge, we can revert this
+        #       orep step
+
         overall_merged = 0
+        passes_apply = 0
         i = 0
         while True:
             i += 1
-            ndsl_log.debug(f"🔥 Merge attempt #{i}")
+            # ndsl_log.debug(f"🔥 Merge attempt #{i}")
             previous_children = copy.deepcopy(node.children)
             try:
                 merged = self._merge(node)
@@ -435,10 +441,11 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             # If we didn't merge, we revert the children
             # to the previous state
             if merged == 0:
-                ndsl_log.debug("🥹 No merges, revert!")
+                # ndsl_log.debug("🥹 No merges, revert!")
                 node.children = previous_children
                 break
+            passes_apply += 1
 
         ndsl_log.debug(
-            f"🚀 Cartesian Axis Merge ({self.axis.name}): {overall_merged} map merged"
+            f"🚀 Cartesian Axis Merge ({self.axis.name}): {overall_merged} map merged in {passes_apply} passes"
         )

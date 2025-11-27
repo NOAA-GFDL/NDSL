@@ -32,6 +32,8 @@ class Quantity:
         data: np.ndarray | cupy.ndarray,
         dims: Sequence[str],
         units: str,
+        *,
+        backend: str | None = None,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
@@ -41,24 +43,40 @@ class Quantity:
         """Initialize a Quantity.
 
         Args:
-            data (_type_): ndarray-like object containing the underlying data
-            dims (Sequence[str]): dimension names for each axis
-            units (str): units of the quantity
-            origin (Sequence[int] | None, optional): first point in data within the
-            computational domain. Defaults to None.
-            extent (Sequence[int] | None, optional): number of points along each axis
+            data: ndarray-like object containing the underlying data
+            dims: dimension names for each axis
+            units: units of the quantity
+            backend: GT4Py backend name. We ensure that the data is allocated in a
+                performance optimal way for that backend and copy if necessary.
+            origin: first point in data within the
+                computational domain. Defaults to None.
+            extent: number of points along each axis
                 within the computational domain. Defaults to None.
-            gt4py_backend (str | None, optional): backend to use for gt4py storages,
-                if not given this will be derived from a Storage
-                if given as the data argument. Defaults to None.
-            allow_mismatch_float_precision (bool, optional): allow for precision that is
+            gt4py_backend: deprecated, use `backend` instead.
+            allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
-            number_of_halo_points (int, optional): Number of halo points used. Defaults to 0.
+            number_of_halo_points: Number of halo points used. Defaults to 0.
 
         Raises:
             ValueError: Data-type mismatch between configuration and input-data
             TypeError: Typing of the data that does not fit
         """
+        if gt4py_backend is not None:
+            warnings.warn(
+                "gt4py_backend is deprecated. Use `backend` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if backend is None:
+                backend = gt4py_backend
+
+        if backend is None:
+            warnings.warn(
+                "`backend` will be a required argument starting with the next version of NDSL.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if (
             not allow_mismatch_float_precision
             and is_float(data.dtype)
@@ -80,6 +98,11 @@ class Quantity:
 
         if isinstance(data, (int, float, list)):
             # If converting basic data, use a numpy ndarray.
+            warnings.warn(
+                "Usage of basic data in Quantities is deprecated. Please use it with a numpy or cuppy ndarray instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             data = np.asarray(data)
 
         if not isinstance(data, (np.ndarray, cupy.ndarray)):
@@ -87,8 +110,10 @@ class Quantity:
                 f"Only supports numpy.ndarray and cupy.ndarray, got {type(data)}"
             )
 
-        if gt4py_backend is not None:
-            gt4py_backend_cls = gt_backend.from_name(gt4py_backend)
+        _validate_quantity_property_lengths(data.shape, dims, origin, extent)
+
+        if backend is not None:
+            gt4py_backend_cls = gt_backend.from_name(backend)
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
 
             dimensions: tuple[str | int, ...] = tuple(
@@ -104,21 +129,25 @@ class Quantity:
                 ]
             )
 
-            self._data = (
-                data
-                if is_optimal_layout(data, dimensions)
-                else self._initialize_data(
+            if is_optimal_layout(data, dimensions):
+                self._data = data
+            else:
+                warnings.warn(
+                    f"Suboptimal data layout found. Copying data to optimally align for backend '{backend}'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self._data = gt_storage.from_array(
                     data,
-                    origin=origin,
-                    gt4py_backend=gt4py_backend,
+                    data.dtype,
+                    backend=backend,
+                    aligned_index=origin,
                     dimensions=dimensions,
                 )
-            )
         else:
-            # We have no info about the gt4py_backend, so just assign it.
+            # We have no info about the gt4py backend, so just assign it.
             self._data = data
 
-        _validate_quantity_property_lengths(data.shape, dims, origin, extent)
         self._metadata = QuantityMetadata(
             origin=_ensure_int_tuple(origin, "origin"),
             extent=_ensure_int_tuple(extent, "extent"),
@@ -127,7 +156,8 @@ class Quantity:
             units=units,
             data_type=type(self._data),
             dtype=data.dtype,
-            gt4py_backend=gt4py_backend,
+            backend=backend,
+            gt4py_backend=backend,
         )
         self._attrs = {}  # type: ignore[var-annotated]
         self._compute_domain_view = BoundedArrayView(
@@ -138,10 +168,12 @@ class Quantity:
     def from_data_array(
         cls,
         data_array: xr.DataArray,
+        *,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         gt4py_backend: str | None = None,
         number_of_halo_points: int = 0,
+        backend: str | None = None,
     ) -> Quantity:
         """
         Initialize a Quantity from an xarray.DataArray.
@@ -150,12 +182,26 @@ class Quantity:
             data_array
             origin: first point in data within the computational domain
             extent: number of points along each axis within the computational domain
-            gt4py_backend: backend to use for gt4py storages, if not given this will
-                be derived from a Storage if given as the data argument, otherwise the
-                storage attribute is disabled and will raise an exception
+            gt4py_backend: deprecated, use `backend` instead.
+            allow_mismatch_float_precision: allow for precision that is
+                not the simulation-wide default configuration. Defaults to False.
+            number_of_halo_points: Number of halo points used. Defaults to 0.
+            backend: GT4Py backend name. If given, we allocate data in a performance
+                optimal way for this backend. Overrides any potentially saved `backend`
+                in `data.attrs["backend"]`.
         """
         if "units" not in data_array.attrs:
             raise ValueError("need units attribute to create Quantity from DataArray")
+
+        if gt4py_backend is not None:
+            warnings.warn(
+                "gt4py_backend is deprecated. Use `backend` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if backend is None:
+                backend = gt4py_backend
+
         return cls(
             data_array.values,
             cast(tuple[str], data_array.dims),
@@ -163,13 +209,15 @@ class Quantity:
             origin=origin,
             extent=extent,
             number_of_halo_points=number_of_halo_points,
-            gt4py_backend=gt4py_backend,
+            backend=_resolve_backend(data_array, backend),
         )
 
     def to_netcdf(
         self, path: str, name: str = "var", rank: int = -1, all_data: bool = False
     ) -> None:
         if rank < 0 or MPI.COMM_WORLD.Get_rank() == rank:
+            if rank < 0:
+                rank = MPI.COMM_WORLD.Get_rank()
             if all_data:
                 self.data_as_xarray.to_dataset(name=name).to_netcdf(
                     f"{path}__r{rank}.nc4"
@@ -221,17 +269,6 @@ class Quantity:
         """
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
-    def _initialize_data(self, data, origin, gt4py_backend: str, dimensions: tuple):  # type: ignore
-        """Allocates an ndarray with optimal memory layout, and copies the data over."""
-        storage = gt_storage.from_array(
-            data,
-            data.dtype,
-            backend=gt4py_backend,
-            aligned_index=origin,
-            dimensions=dimensions,
-        )
-        return storage
-
     @property
     def metadata(self) -> QuantityMetadata:
         return self._metadata
@@ -243,28 +280,25 @@ class Quantity:
 
     @property
     def gt4py_backend(self) -> str | None:
+        warnings.warn(
+            "gt4py_backend is deprecated. Use `backend` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.metadata.gt4py_backend
 
     @property
+    def backend(self) -> str | None:
+        return self.metadata.backend
+
+    @property
     def attrs(self) -> dict:
-        return dict(**self._attrs, units=self._metadata.units)
+        return dict(**self._attrs, units=self.units, backend=self.backend)
 
     @property
     def dims(self) -> tuple[str, ...]:
         """Names of each dimension"""
         return self.metadata.dims
-
-    @property
-    def values(self) -> np.ndarray:
-        warnings.warn(
-            "values exists only for backwards-compatibility with "
-            "DataArray and will be removed, use .view[:] instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return_array = np.asarray(self.view[:])
-        return_array.flags.writeable = False
-        return return_array
 
     @property
     def view(self) -> BoundedArrayView:
@@ -397,19 +431,14 @@ class Quantity:
             units=self.units,
             origin=_transpose_sequence(self.origin, transpose_order),
             extent=_transpose_sequence(self.extent, transpose_order),
-            gt4py_backend=self.gt4py_backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
+            backend=self.backend,
         )
         transposed._attrs = self._attrs
         return transposed
 
     def plot_k_level(self, k_index: int = 0) -> None:
         field = self.data
-        print(
-            "Min and max values:",
-            field[:, :, k_index].min(),
-            field[:, :, k_index].max(),
-        )
         plt.xlabel("I")
         plt.ylabel("J")
 
@@ -476,3 +505,16 @@ def _ensure_int_tuple(arg: Sequence, arg_name: str) -> tuple:
                 f"unexpected type {type(item)}"
             )
     return tuple(return_list)
+
+
+def _resolve_backend(data: xr.DataArray, backend: str | None) -> str:
+    if backend is not None:
+        # Forced backend name takes precedence
+        return backend
+
+    # If backend name was serialized with data, take this one
+    if "backend" in data.attrs:
+        return data.attrs["backend"]
+
+    # else, fall back to assume python-based layout.
+    return "debug"

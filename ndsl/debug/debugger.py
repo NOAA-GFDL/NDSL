@@ -9,6 +9,7 @@ import xarray as xr
 
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
+from ndsl.quantity.field_bundle import FieldBundle
 
 
 @dataclasses.dataclass
@@ -87,6 +88,8 @@ class Debugger:
                     data_arrays[f"{name}.{field.name}"] = self._to_xarray(
                         getattr(data, field.name), field.name
                     )
+            elif isinstance(data, FieldBundle):
+                data_arrays[name] = data.quantity.field_as_xarray
             else:
                 data_arrays[name] = self._to_xarray(data, name)
 

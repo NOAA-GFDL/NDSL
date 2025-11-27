@@ -19,18 +19,15 @@ from .dsl.dace.wrapped_halo_exchange import WrappedHaloUpdater
 from .dsl.ndsl_runtime import NDSLRuntime
 from .dsl.stencil import FrozenStencil, GridIndexing, StencilFactory, TimingCollector
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
-from .exceptions import OutOfBoundsError
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
 from .monitor.netcdf_monitor import NetCDFMonitor
-from .namelist import Namelist
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
 from .quantity import Local, Quantity, State
 from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
-from .testing.dummy_comm import DummyComm
 from .types import Allocator
 from .utils import MetaEnumStr
 
@@ -62,7 +59,6 @@ __all__ = [
     "CompilationConfig",
     "RunMode",
     "StencilConfig",
-    "OutOfBoundsError",
     "HaloExchangeSpec",
     "HaloUpdater",
     "HaloUpdateRequest",
@@ -72,7 +68,6 @@ __all__ = [
     "SubtileGridSizer",
     "ndsl_log",
     "NetCDFMonitor",
-    "Namelist",
     "NullPerformanceCollector",
     "PerformanceCollector",
     "NullProfiler",
@@ -83,7 +78,6 @@ __all__ = [
     "Quantity",
     "FieldBundle",
     "FieldBundleType",
-    "DummyComm",
     "Allocator",
     "MetaEnumStr",
     "State",

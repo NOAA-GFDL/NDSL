@@ -24,15 +24,12 @@ nav:
           - "boilerplate": docstrings/top/boilerplate.md
           - "buffer": docstrings/top/buffer.md
           - "constants": docstrings/top/constants.md
-          - "exceptions": docstrings/top/exceptions.md
-          - "filesystem": docstrings/top/filesystem.md
           - "io": docstrings/top/io.md
           - "logging": docstrings/top/logging.md
           - "namelist": docstrings/top/namelist.md
           - "optional_imports": docstrings/top/optional_imports.md
           - "types": docstrings/top/types.md
           - "typing": docstrings/top/typing.md
-          - "units": docstrings/top/units.md
           - "utils": docstrings/top/utils.md
       - checkpointer:
           - "base": docstrings/checkpointer/base.md
@@ -106,7 +103,6 @@ nav:
           - "tridiag": docstrings/stencils/tridiag.md
       - testing:
           - "comparison": docstrings/testing/comparison.md
-          - "dummy_comm": docstrings/testing/dummy_comm.md
           - "perturbation": docstrings/testing/perturbation.md
       - viz:
           - "cube_sphere": docstrings/viz/cube_sphere.md
@@ -149,6 +145,9 @@ plugins:
           paths: [./ndsl]  # Adjust this path to where your Python modules are
           options:
             show_source: false
+  - exclude:
+      glob:
+        - internal/*
 
 watch:
   # reload when the glossary file is updated

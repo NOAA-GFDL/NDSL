@@ -75,7 +75,6 @@ class NDSLRuntime:
                 obj=self,
                 config=self._dace_config,
             )
-            print(type(self))
 
     def __getattribute__(self, name: str) -> Any:
         attr = super().__getattribute__(name)
@@ -124,6 +123,6 @@ class NDSLRuntime:
             units=quantity.units,
             origin=quantity.origin,
             extent=quantity.extent,
-            gt4py_backend=quantity.gt4py_backend,
+            backend=quantity.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )

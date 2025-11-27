@@ -8,14 +8,13 @@ import dace.config
 from dace.frontend.python.parser import DaceProgram
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
+from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
-from ndsl.comm.null_comm import NullComm
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.gt4py_utils import is_gpu_backend
 from ndsl.dsl.typing import get_precision
-from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
 
@@ -31,14 +30,7 @@ def _debug_dace_orchestration() -> bool:
     Debugging Dace orchestration deeper can be done by turning on `syncdebug`.
     We control this Dace configuration below with our own override.
     """
-    if os.getenv("PACE_DACE_DEBUG", ""):
-        ndsl_log.warning("PACE_DACE_DEBUG is deprecated. Use NDSL_DACE_DEBUG instead.")
-        if os.getenv("NDSL_DACE_DEBUG", ""):
-            ndsl_log.warning(
-                "PACE_DACE_DEBUG and NDSL_DACE_DEBUG were both specified. NDSL_DACE_DEBUG will take precedence."
-            )
-
-    return os.getenv("NDSL_DACE_DEBUG", os.getenv("PACE_DACE_DEBUG", "False")) == "True"
+    return os.getenv("NDSL_DACE_DEBUG", "False") == "True"
 
 
 def _is_corner(rank: int, partitioner: Partitioner) -> bool:
@@ -110,6 +102,9 @@ def _determine_compiling_ranks(
         15 -> 8
     """
 
+    if config._single_code_path:
+        return config.my_rank == 0
+
     # Tile 0 compiles
     if partitioner.tile_index(config.my_rank) != 0:
         return False
@@ -155,6 +150,7 @@ class DaceConfig:
         tile_nz: int = 0,
         orchestration: DaCeOrchestration | None = None,
         time: bool = False,
+        single_code_path: bool = False,
     ):
         """Specialize the DaCe configuration for NDSL use.
 
@@ -171,8 +167,11 @@ class DaceConfig:
             orchestration: orchestration mode from DaCeOrchestration
             time: trigger performance collection, available to user with
                 `performance_collector`
+            single_codepath: code is expected to be the same on every rank (case
+                of column-physics) and therefore can be compiled once
         """
 
+        self._single_code_path = single_code_path
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
@@ -181,7 +180,7 @@ class DaceConfig:
             PerformanceCollector(
                 "InternalOrchestrationTimer",
                 comm=(
-                    communicator.comm if communicator is not None else NullComm(0, 6, 0)
+                    LocalComm(0, 6, {}) if communicator is None else communicator.comm
                 ),
             )
             if time
@@ -339,7 +338,11 @@ class DaceConfig:
         if communicator:
             self.my_rank = communicator.rank
             self.rank_size = communicator.comm.Get_size()
-            self.code_path = identify_code_path(self.my_rank, communicator.partitioner)
+            self.code_path = identify_code_path(
+                self.my_rank,
+                communicator.partitioner,
+                self._single_code_path,
+            )
             self.layout = communicator.partitioner.layout
             self.do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE

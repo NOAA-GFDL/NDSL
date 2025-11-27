@@ -30,7 +30,9 @@ class QuantityMetadata:
     dtype: type
     "dtype of the data in the ndarray-like object"
     gt4py_backend: str | None = None
-    "backend to use for gt4py storages"
+    "Deprecated. Use backend instead."
+    backend: str | None = None
+    "GT4Py backend name. Used for performance optimal data allocation."
 
     @property
     def dim_lengths(self) -> dict[str, int]:
@@ -57,6 +59,7 @@ class QuantityMetadata:
         metadata_copy.data_type = self.data_type
         metadata_copy.dtype = self.dtype
         metadata_copy.gt4py_backend = self.gt4py_backend
+        metadata_copy.backend = self.backend
 
 
 @dataclasses.dataclass

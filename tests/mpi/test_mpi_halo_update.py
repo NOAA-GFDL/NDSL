@@ -27,7 +27,7 @@ from ndsl.constants import (
     Z_DIM,
     Z_INTERFACE_DIM,
 )
-from tests.mpi.mpi_comm import MPI
+from tests.mpi import MPI
 
 
 @pytest.fixture
@@ -271,14 +271,9 @@ def depth_quantity(
                 data[tuple(pos)] = numpy.nan
                 pos[i] = origin[i] + extent[i] + n_outside - 1
                 data[tuple(pos)] = numpy.nan
-    quantity = Quantity(
-        data,
-        dims=dims,
-        units=units,
-        origin=origin,
-        extent=extent,
+    return Quantity(
+        data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
     )
-    return quantity
 
 
 @pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
@@ -320,11 +315,7 @@ def zeros_quantity(dims, units, origin, extent, shape, numpy, dtype):
     outside of it."""
     data = numpy.ones(shape, dtype=dtype)
     quantity = Quantity(
-        data,
-        dims=dims,
-        units=units,
-        origin=origin,
-        extent=extent,
+        data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
     )
     quantity.view[:] = 0.0
     return quantity

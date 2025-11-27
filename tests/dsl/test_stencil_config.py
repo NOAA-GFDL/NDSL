@@ -7,7 +7,7 @@ from ndsl import CompilationConfig, DaceConfig, StencilConfig
 @pytest.mark.parametrize("rebuild", [True, False])
 @pytest.mark.parametrize("format_source", [True, False])
 @pytest.mark.parametrize("compare_to_numpy", [True, False])
-@pytest.mark.parametrize("backend", ["numpy", "gt_gpu"])
+@pytest.mark.parametrize("backend", ["numpy", "gt:gpu"])
 def test_same_config_equal(
     backend: str,
     rebuild: bool,
@@ -71,7 +71,7 @@ def test_different_backend_not_equal(
 
     different_config = StencilConfig(
         compilation_config=CompilationConfig(
-            backend="fake_backend",
+            backend="debug",
             rebuild=rebuild,
             validate_args=validate_args,
             format_source=format_source,

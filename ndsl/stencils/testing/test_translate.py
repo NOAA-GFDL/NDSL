@@ -258,6 +258,11 @@ def test_sequential_savepoint(
             output_data = gt_utils.asarray(output[varname])
             if multimodal_metric:
                 metric = MultiModalFloatMetric(
+                    input_values=(
+                        original_input_data[varname]
+                        if varname in original_input_data.keys()
+                        else None
+                    ),
                     reference_values=ref_data,
                     computed_values=output_data,
                     absolute_eps_override=case.testobj.mmr_absolute_eps,
@@ -391,6 +396,7 @@ def test_parallel_savepoint(
     if not case.exists:
         pytest.skip(f"Data at rank {case.grid.rank} does not exists")
     input_data = dataset_to_dict(case.ds_in)
+    original_input_data = copy.deepcopy(input_data)
     # run python version of functionality
     output = case.testobj.compute_parallel(input_data, communicator)
     out_vars = set(case.testobj.outputs.keys())
@@ -414,13 +420,16 @@ def test_parallel_savepoint(
             output_data = gt_utils.asarray(output[varname])
             if multimodal_metric:
                 metric = MultiModalFloatMetric(
+                    input_values=(
+                        original_input_data[varname]
+                        if varname in original_input_data.keys()
+                        else None
+                    ),
                     reference_values=ref_data[varname][0],
                     computed_values=output_data,
                     absolute_eps_override=case.testobj.mmr_absolute_eps,
                     relative_fraction_override=case.testobj.mmr_relative_fraction,
                     ulp_override=case.testobj.mmr_ulp,
-                    ignore_near_zero_errors=ignore_near_zero,
-                    near_zero=case.testobj.near_zero,
                     sort_report=case.sort_report,
                 )
             else:

@@ -16,6 +16,7 @@ from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
 from dace.frontend.python.parser import DaceProgram
 from dace.transformation.auto.auto_optimize import make_transients_persistent
+from dace.transformation.dataflow import MapExpansion
 from dace.transformation.helpers import get_parent_map
 from dace.transformation.passes.simplify import SimplifyPass
 from gt4py import storage
@@ -34,7 +35,12 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     sdfg_nan_checker,
 )
 from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
-from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
+from ndsl.dsl.dace.stree.optimizations import (
+    AxisIterator,
+    CartesianAxisMerge,
+    CartesianRefineTransients,
+    CleanUpScheduleTree,
+)
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -42,13 +48,11 @@ from ndsl.dsl.dace.utils import (
 )
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
+from ndsl.quantity import Quantity, State
 
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
-
-_INTERNAL__SCHEDULE_TREE_PASSES = [CartesianAxisMerge(AxisIterator._K)]
-"""INTERNAL: Default schedule passes for CPU. To be replaced with proper configuration."""
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -125,7 +129,7 @@ def _simplify(
         # We disable ScalarToSymbolPromotion because it might push symbols onto edges
         # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
         # calls or (complicated) field accesses.
-        skip=["ScalarToSymbolPromotion"],
+        skip={"ScalarToSymbolPromotion"},
     ).apply_pass(sdfg, {})
 
 
@@ -156,14 +160,39 @@ def _build_sdfg(
             _simplify(sdfg)
 
         if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            # Here be 🐉 - but tests exists in test_optimization.py
             with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
+                # Break all loops into uni-dimensional loops to simplify optimizations
+                sdfg.apply_transformations_repeated(MapExpansion, validate=True)
                 stree = sdfg.as_schedule_tree()
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 if config.is_gpu_backend():
                     GPUPipeline().run(stree)
                 else:
-                    CPUPipeline(passes=_INTERNAL__SCHEDULE_TREE_PASSES).run(stree)
+                    passes = []
+
+                    if config.get_backend() == "dace:cpu_kfirst":
+                        passes.extend(
+                            [
+                                CleanUpScheduleTree(),
+                                CartesianAxisMerge(AxisIterator._I),
+                                CartesianAxisMerge(AxisIterator._J),
+                                CartesianAxisMerge(AxisIterator._K),
+                                CartesianRefineTransients(config.get_backend()),
+                            ]
+                        )
+                    else:
+                        passes.extend(
+                            [
+                                CleanUpScheduleTree(),
+                                CartesianAxisMerge(AxisIterator._K),
+                                CartesianAxisMerge(AxisIterator._I),
+                                CartesianAxisMerge(AxisIterator._J),
+                                CartesianRefineTransients(config.get_backend()),
+                            ]
+                        )
+                    CPUPipeline(passes=passes).run(stree)
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
@@ -543,11 +572,17 @@ def orchestrate(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    func = type.__getattribute__(type(obj), method_to_orchestrate)
+    func: Callable = type.__getattribute__(type(obj), method_to_orchestrate)
 
     # Flag argument as dace.constant
     for argument in dace_compiletime_args:
         func.__annotations__[argument] = DaceCompiletime
+
+    for arg_name, annotation in func.__annotations__.items():
+        if annotation in [Quantity, State] or (
+            isinstance(annotation, type) and issubclass(annotation, State)
+        ):
+            func.__annotations__[arg_name] = DaceCompiletime
 
     # Build DaCe orchestrated wrapper
     # This is a JIT object, e.g. DaCe compilation will happen on call
