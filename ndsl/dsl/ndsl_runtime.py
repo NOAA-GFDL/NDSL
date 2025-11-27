@@ -7,7 +7,7 @@ from typing import Any
 
 from ndsl import orchestrate
 from ndsl.dsl.stencil import StencilFactory
-from ndsl.dsl.typing import Float, FloatField, FloatFieldK
+from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Local, Quantity
 
@@ -127,6 +127,3 @@ class NDSLRuntime:
             backend=quantity.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
-
-    def horizontal_reduction(self, fieldIJK: FloatField, fieldK: FloatFieldK):
-        fieldK = fieldIJK.max(axis=0).max(axis=0)
