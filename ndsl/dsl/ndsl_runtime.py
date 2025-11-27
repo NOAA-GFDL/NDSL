@@ -5,8 +5,11 @@ import warnings
 from collections.abc import Callable
 from typing import Any
 
-from ndsl import Local, Quantity, QuantityFactory, StencilFactory, orchestrate
-from ndsl.dsl.typing import Float
+from ndsl import orchestrate
+from ndsl.dsl.stencil import StencilFactory
+from ndsl.dsl.typing import Float, FloatField, FloatFieldK
+from ndsl.initialization.allocator import QuantityFactory
+from ndsl.quantity import Local, Quantity
 
 
 _TOP_LEVEL: object | None = None
@@ -71,7 +74,7 @@ class NDSLRuntime:
         if callable(self):
             orchestrate(
                 obj=self,
-                config=self._dace_config,
+                config=self._stencil_factory.config.dace_config,
             )
 
     def __getattribute__(self, name: str) -> Any:
@@ -124,3 +127,6 @@ class NDSLRuntime:
             backend=quantity.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
+
+    def horizontal_reduction(self, fieldIJK: FloatField, fieldK: FloatFieldK):
+        fieldK = fieldIJK.max(axis=0).max(axis=0)
