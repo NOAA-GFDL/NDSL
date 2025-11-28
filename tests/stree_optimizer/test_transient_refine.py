@@ -39,7 +39,7 @@ class TransientRefineableCode(NDSLRuntime):
     def __init__(
         self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     ) -> None:
-        super().__init__(stencil_factory.config.dace_config)
+        super().__init__(stencil_factory)
         orchestratable_methods = [
             "refine_to_scalar",
             "refine_to_K_buffer",

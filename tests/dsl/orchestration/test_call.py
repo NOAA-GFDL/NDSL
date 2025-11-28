@@ -64,7 +64,7 @@ class DefaultTypeProgram(NDSLRuntime):
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
     ):
-        super().__init__(stencil_factory.config.dace_config)
+        super().__init__(stencil_factory)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [X_DIM, Y_DIM, Z_DIM])
 
     def __call__(self, a_quantity: Quantity, a_state: AState):
