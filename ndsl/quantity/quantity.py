@@ -115,6 +115,7 @@ class Quantity:
         if backend is not None:
             gt4py_backend_cls = gt_backend.from_name(backend)
             is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
+            device = gt4py_backend_cls.storage_info["device"]
 
             dimensions: tuple[str | int, ...] = tuple(
                 [
@@ -129,7 +130,16 @@ class Quantity:
                 ]
             )
 
-            if is_optimal_layout(data, dimensions):
+            if isinstance(data, np.ndarray):
+                is_correct_device = device == "cpu"
+            elif isinstance(data, cupy.ndarray):
+                is_correct_device = device == "gpu"
+            else:
+                raise ValueError(
+                    f"Unknown device target for quantity allocation {type(data)}"
+                )
+
+            if is_optimal_layout(data, dimensions) and is_correct_device:
                 self._data = data
             else:
                 warnings.warn(
@@ -174,6 +184,7 @@ class Quantity:
         gt4py_backend: str | None = None,
         number_of_halo_points: int = 0,
         backend: str | None = None,
+        allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
         Initialize a Quantity from an xarray.DataArray.
@@ -191,7 +202,7 @@ class Quantity:
                 in `data.attrs["backend"]`.
         """
         if "units" not in data_array.attrs:
-            raise ValueError("need units attribute to create Quantity from DataArray")
+            data_array.attrs.update({"units": "unknown"})
 
         if gt4py_backend is not None:
             warnings.warn(
@@ -210,6 +221,7 @@ class Quantity:
             extent=extent,
             number_of_halo_points=number_of_halo_points,
             backend=_resolve_backend(data_array, backend),
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
 
     def to_netcdf(
@@ -347,12 +359,20 @@ class Quantity:
     @property
     def field_as_xarray(self) -> xr.DataArray:
         """Returns an Xarray.DataArray of the field (domain)"""
-        return xr.DataArray(self.field, dims=self.dims, attrs=self.attrs)
+        if isinstance(self.data, cupy.ndarray):
+            field = self.field.get()
+        else:
+            field = self.field
+        return xr.DataArray(field, dims=self.dims, attrs=self.attrs)
 
     @property
     def data_as_xarray(self) -> xr.DataArray:
         """Returns an Xarray.DataArray of the underlying array"""
-        return xr.DataArray(self.data, dims=self.dims, attrs=self.attrs)
+        if isinstance(self.data, cupy.ndarray):
+            data = self.data.get()
+        else:
+            data = self.data
+        return xr.DataArray(data, dims=self.dims, attrs=self.attrs)
 
     @property
     def np(self) -> NumpyModule:
