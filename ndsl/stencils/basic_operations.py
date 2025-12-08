@@ -1,5 +1,13 @@
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
+from ndsl.dsl.typing import (
+    Bool,
+    BoolFieldIJ,
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    IntField,
+    IntFieldIJ,
+)
 
 
 def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
@@ -37,6 +45,30 @@ def set_value_defn(q_out: FloatField, value: Float) -> None:
     """
     with computation(PARALLEL), interval(...):
         q_out = value
+
+
+def set_value_2D_defn(buffer: FloatFieldIJ, value: Float) -> None:
+    """
+    Sets every element of buffer to the value specified by value argument.
+
+    Args:
+        buffer: output field
+        value: value of Float type
+    """
+    with computation(FORWARD), interval(0, 1):
+        buffer = value
+
+
+def set_IJ_mask_value_defn(mask_out: BoolFieldIJ, value: Bool) -> None:
+    """
+    Sets every element of buffer to the value specified by value argument.
+
+    Args:
+        buffer: output field
+        value: value of Bool type
+    """
+    with computation(FORWARD), interval(0, 1):
+        mask_out = value
 
 
 def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField) -> None:
