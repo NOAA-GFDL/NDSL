@@ -359,7 +359,7 @@ class Quantity:
     @property
     def field_as_xarray(self) -> xr.DataArray:
         """Returns an Xarray.DataArray of the field (domain)"""
-        if isinstance(self.data, cupy.ndarray):
+        if isinstance(self.field, cupy.ndarray):
             field = self.field.get()
         else:
             field = self.field
