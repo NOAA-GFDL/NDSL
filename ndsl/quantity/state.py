@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import inspect
 from collections.abc import Callable
 from pathlib import Path
 from types import TracebackType
@@ -14,10 +15,14 @@ from ndsl.comm.mpi import MPI
 from ndsl.types import Number
 
 
+from ndsl.quantity import Quantity, Local  # isort:skip
+
+
 if TYPE_CHECKING:
     from ndsl import QuantityFactory
 
 StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
+StateElementType: TypeAlias = dict[str, Quantity | Local | dict[Any, Any]]
 
 
 @dataclasses.dataclass
@@ -43,26 +48,52 @@ class State:
     """
 
     @classmethod
-    def _init(cls, quantity_factory_allocator: Callable) -> Self:
+    def _init(
+        cls,
+        quantity_factory_allocator: Callable,
+        allow_locals: bool = True,
+    ) -> Self:
         """Allocate memory and init with a blind quantity init operation"""
 
-        def _init_recursive(cls: Any) -> dict:
-            initial_quantities = {}
+        def _init_recursive(cls: Any) -> StateElementType:
+            initial_quantities: StateElementType = {}
             for _field in dataclasses.fields(cls):
+                if not _field.init:
+                    continue
+
                 if dataclasses.is_dataclass(_field.type):
                     initial_quantities[_field.name] = _init_recursive(_field.type)
-                else:
+                elif _field.type in [Quantity, Local]:
                     if "dims" not in _field.metadata.keys():
                         raise ValueError(
                             "Malformed state - no dims to init "
-                            f"Quantity in  {_field.name} of type {_field.type}"
+                            f"{_field.name} of type {_field.type}"
                         )
 
-                    initial_quantities[_field.name] = quantity_factory_allocator(
+                    allow_mismatch_float_precision = True
+                    quantity = quantity_factory_allocator(
                         _field.metadata["dims"],
                         _field.metadata["units"],
                         dtype=_field.metadata["dtype"],
-                        allow_mismatch_float_precision=True,
+                        allow_mismatch_float_precision=allow_mismatch_float_precision,
+                    )
+                    if _field.type == Local and allow_locals:
+                        local_ = Local(
+                            data=quantity.data,
+                            dims=quantity.dims,
+                            units=quantity.units,
+                            origin=quantity.origin,
+                            extent=quantity.extent,
+                            backend=quantity.backend,
+                            allow_mismatch_float_precision=allow_mismatch_float_precision,
+                        )
+                        initial_quantities[_field.name] = local_
+                    else:
+                        initial_quantities[_field.name] = quantity
+                else:
+                    raise TypeError(
+                        "State attributes needs to be Quantity, Scalar or nested dataclasses "
+                        f"got {_field.type} for {_field.name}."
                     )
 
             return initial_quantities
@@ -96,6 +127,20 @@ class State:
             self._factory.sizer.data_dimensions = self._original_dims
 
     @classmethod
+    def _check_no_locals(cls) -> None:
+        def _check_no_locals_recursive(cls: Any) -> None:
+            for _field in dataclasses.fields(cls):
+                if dataclasses.is_dataclass(_field.type):
+                    _check_no_locals_recursive(_field.type)
+                elif _field.type == Local:
+                    raise TypeError(
+                        f"State contains Local {_field.name}, you need to allocate using `make_local`. "
+                        "State with Locals can _only_ contain Locals."
+                    )
+
+        _check_no_locals_recursive(cls)
+
+    @classmethod
     def empty(
         cls,
         quantity_factory: QuantityFactory,
@@ -110,6 +155,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        cls._check_no_locals()
+
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -132,6 +179,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        cls._check_no_locals()
+
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -154,6 +203,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        cls._check_no_locals()
+
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -178,6 +229,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        cls._check_no_locals()
+
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -204,6 +257,8 @@ class State:
             data_dimensions: extra data dimensions required for any field with data dimensions.
                 Dict of name/size pair.
         """
+        cls._check_no_locals()
+
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -233,6 +288,8 @@ class State:
             check_shape_and_strides: Check for every given buffer that the shape & strides match the
                 previously allocated memory.
         """
+        cls._check_no_locals()
+
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -473,3 +530,144 @@ class State:
         data_as_numpy_dict = _load_recursive(datatree_as_dict)
 
         self.update_copy_memory(data_as_numpy_dict)
+
+
+@dataclasses.dataclass
+class LocalState(State):
+    _skip_guardrails: bool = dataclasses.field(default=False, init=False)
+
+    def __post_init__(self) -> None:
+        from ndsl.internal.python_extensions import find_first_NDSLRuntime_caller
+
+        runtime = find_first_NDSLRuntime_caller(inspect.currentframe())
+        if runtime is None:
+            raise RuntimeError("LocalState allocated outside of NDSLRuntime: forbidden")
+
+        self._parent_runtime = runtime
+
+    @classmethod
+    def _check_only_locals(cls) -> None:
+        def _check_only_locals_recursive(cls: Any) -> None:
+            for _field in dataclasses.fields(cls):
+                if dataclasses.is_dataclass(_field.type):
+                    _check_only_locals_recursive(_field.type)
+                elif _field.type == Quantity:
+                    raise TypeError(
+                        f"State contains Quantity {_field.name} but is allocated as a LocalState. "
+                        "LocalState with Locals can _only_ contain Locals."
+                    )
+
+        _check_only_locals_recursive(cls)
+
+    @classmethod
+    def make_locals(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] | None = None,
+    ) -> Self:
+        """Allocate all elements as Locals. Do not expect 0 on values, values are random.
+
+        Args:
+            quantity_factory: factory, expected to be defined on the Grid dimensions
+                e.g. without data dimensions.
+            data_dimensions: extra data dimensions required for any field with data dimensions.
+                Dict of name/size pair.
+        """
+        cls._check_only_locals()
+
+        if data_dimensions is None:
+            data_dimensions = {}
+
+        with cls._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.empty)
+            state._skip_guardrails = False
+        return state
+
+    def make_as_quantities(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] | None = None,
+    ) -> Self:
+        if data_dimensions is None:
+            data_dimensions = {}
+
+        with cls._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
+            state = cls._init(quantity_factory.empty, allow_locals=False)
+
+        # Remove the guardrails
+        state._skip_guardrails = True
+        return state
+
+    def __getattribute__(self, name: str) -> Any:
+        attr = super().__getattribute__(name)
+        if name == "_skip_guardrails" or self._skip_guardrails:
+            return attr
+
+        # We look for the first NDSLRuntime caller - we should be allocate alongside
+        # it - all other allocations are forbidden
+        from ndsl.internal.python_extensions import find_all_NDSLRuntime_callers
+
+        if isinstance(attr, Local):
+            runtimes = find_all_NDSLRuntime_callers(inspect.currentframe())
+            if "_patched" in type(self._parent_runtime).__name__:
+                unpatched_name = type(self._parent_runtime).__name__[: -len("_patched")]
+            else:
+                unpatched_name = type(self._parent_runtime).__name__
+            # No frame -> algorithmics breaks down OR locals allocate outside
+            # of a NDSLRuntime
+            if runtimes == []:
+                raise RuntimeError(
+                    f"Forbidden Local access: {name} called outside "
+                    f"of it's original NDSLRuntime ({unpatched_name})."
+                )
+
+            # Check my parent runtime is in the stack
+            for runtime in runtimes:
+                if runtime == self._parent_runtime:
+                    return attr
+
+            # No luck - we are probably called from the wrong NDSLRuntime: forbidden
+            raise RuntimeError(
+                f"Forbidden Local access: {name} called outside of {unpatched_name}."
+            )
+
+        return attr
+
+    @classmethod
+    def zeros(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] | None = None,
+    ) -> Self:
+        raise TypeError("LocalState cannot be allocated to zeros, use `make_locals`")
+
+    @classmethod
+    def empty(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] | None = None,
+    ) -> Self:
+        raise TypeError("LocalState cannot be allocated to empty, use `make_locals`")
+
+    @classmethod
+    def ones(
+        cls,
+        quantity_factory: QuantityFactory,
+        *,
+        data_dimensions: dict[str, int] | None = None,
+    ) -> Self:
+        raise TypeError("LocalState cannot be allocated to ones, use `make_locals`")
+
+    @classmethod
+    def full(
+        cls,
+        quantity_factory: QuantityFactory,
+        value: Number,
+        *,
+        data_dimensions: dict[str, int] | None = None,
+    ) -> Self:
+        raise TypeError("LocalState cannot be allocated to full, use `make_locals`")
