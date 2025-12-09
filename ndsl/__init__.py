@@ -26,7 +26,7 @@ from .monitor.netcdf_monitor import NetCDFMonitor
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
-from .quantity import Local, Quantity, State
+from .quantity import Local, LocalState, Quantity, State
 from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
 from .types import Allocator
 from .utils import MetaEnumStr
@@ -81,6 +81,7 @@ __all__ = [
     "Allocator",
     "MetaEnumStr",
     "State",
+    "LocalState",
     "NDSLRuntime",
     "Local",
 ]
