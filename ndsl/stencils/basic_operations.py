@@ -1,7 +1,28 @@
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
+from ndsl.dsl.typing import (
+    Bool,
+    BoolFieldIJ,
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    IntField,
+    IntFieldIJ,
+)
 
 
+def copy(q_in: FloatField, q_out: FloatField) -> None:
+    """
+    Copy q_in to q_out.
+
+    Args:
+        q_in: input field
+        q_out: output field
+    """
+    with computation(PARALLEL), interval(...):
+        q_out = q_in
+
+
+# TODO: Deprecate this call next release
 def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
     """
     Copy q_in to q_out.
@@ -14,6 +35,20 @@ def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
         q_out = q_in
 
 
+def adjustmentfactor_stencil(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
+    """
+    Multiplies every element of q_out by every element of the adjustment field over the
+    interval, replacing the elements of q_out by the result of the multiplication.
+
+    Args:
+        adjustment: adjustment field
+        q_out: output field
+    """
+    with computation(PARALLEL), interval(...):
+        q_out = q_out * adjustment
+
+
+# TODO: Deprecate this call next release
 def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
     """
     Multiplies every element of q_out by every element of the adjustment field over the
@@ -27,6 +62,19 @@ def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField) -
         q_out = q_out * adjustment
 
 
+def set_value(q_out: FloatField, value: Float) -> None:
+    """
+    Sets every element of q_out to the value specified by value argument.
+
+    Args:
+        q_out: output field
+        value: NDSL Float type
+    """
+    with computation(PARALLEL), interval(...):
+        q_out = value
+
+
+# TODO: Deprecate this call next release
 def set_value_defn(q_out: FloatField, value: Float) -> None:
     """
     Sets every element of q_out to the value specified by value argument.
@@ -37,6 +85,30 @@ def set_value_defn(q_out: FloatField, value: Float) -> None:
     """
     with computation(PARALLEL), interval(...):
         q_out = value
+
+
+def set_value_2D(buffer: FloatFieldIJ, value: Float) -> None:
+    """
+    Sets every element of buffer to the value specified by value argument.
+
+    Args:
+        buffer: output field
+        value: value of Float type
+    """
+    with computation(FORWARD), interval(0, 1):
+        buffer = value
+
+
+def set_IJ_mask_value(mask_out: BoolFieldIJ, value: Bool) -> None:
+    """
+    Sets every element of buffer to the value specified by value argument.
+
+    Args:
+        buffer: output field
+        value: value of Bool type
+    """
+    with computation(FORWARD), interval(0, 1):
+        mask_out = value
 
 
 def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField) -> None:
