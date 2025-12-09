@@ -602,6 +602,7 @@ class LocalState(State):
             "LocalState is allocated as a regular State (e.g. elements are Quantities instead of Locals)."
             "This is not the intended use and should be only used for testing.",
             category=UserWarning,
+            stacklevel=2,
         )
 
         if data_dimensions is None:
