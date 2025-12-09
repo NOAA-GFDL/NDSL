@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from ndsl import QuantityFactory
 
 StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
-StateElementType: TypeAlias = dict[str, Quantity | Local | dict[Any, Any]]
+StateElementType: TypeAlias = dict[str, Quantity | Local | dict[str, Any]]
 
 
 @dataclasses.dataclass
