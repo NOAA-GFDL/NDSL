@@ -21,6 +21,9 @@ from ndsl.quantity import Quantity, Local  # isort:skip
 if TYPE_CHECKING:
     from ndsl import QuantityFactory
 
+import warnings
+
+
 StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
 StateElementType: TypeAlias = dict[str, Quantity | Local | dict[str, Any]]
 
@@ -584,12 +587,23 @@ class LocalState(State):
             state._skip_guardrails = False
         return state
 
-    def make_as_quantities(
+    def make_as_state(
         cls,
         quantity_factory: QuantityFactory,
         *,
         data_dimensions: dict[str, int] | None = None,
     ) -> Self:
+        """Allow LocalState to be allocate as if it was a regular State, e.g. with Quantities.
+
+        This behavior is useful for testing and interfacing, but should not be used in the
+        regular numerical workflow, hence the warning."""
+
+        warnings.warn(
+            "LocalState is allocated as a regular State (e.g. elements are Quantities instead of Locals)."
+            "This is not the intended use and should be only used for testing.",
+            category=UserWarning,
+        )
+
         if data_dimensions is None:
             data_dimensions = {}
 
