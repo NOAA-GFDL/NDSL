@@ -54,9 +54,17 @@ class State:
     def _init(
         cls,
         quantity_factory_allocator: Callable,
-        allow_locals: bool = True,
+        *,
+        type_check: bool = True,
     ) -> Self:
-        """Allocate memory and init with a blind quantity init operation"""
+        """Allocate memory and init with a blind quantity init operation
+
+        Args:
+            quantity_factory_allocator: the allocator function from
+                a quantity_factory (zeros, ones, empty)
+            type_check: have strict type checking when running dacite. This flag
+                exists to allow overriding types on dataclasses for Locals
+        """
 
         def _init_recursive(cls: Any) -> StateElementType:
             initial_quantities: StateElementType = {}
@@ -69,8 +77,7 @@ class State:
                 elif _field.type in [Quantity, Local]:
                     if "dims" not in _field.metadata.keys():
                         raise ValueError(
-                            "Malformed state - no dims to init "
-                            f"{_field.name} of type {_field.type}"
+                            f"Malformed state - no dims to init {_field.name} of type {_field.type}"
                         )
 
                     allow_mismatch_float_precision = True
@@ -80,7 +87,7 @@ class State:
                         dtype=_field.metadata["dtype"],
                         allow_mismatch_float_precision=allow_mismatch_float_precision,
                     )
-                    if _field.type == Local and allow_locals:
+                    if _field.type == Local:
                         local_ = Local(
                             data=quantity.data,
                             dims=quantity.dims,
@@ -102,7 +109,11 @@ class State:
             return initial_quantities
 
         dict_of_quantities = _init_recursive(cls)
-        return dacite.from_dict(data_class=cls, data=dict_of_quantities)
+        return dacite.from_dict(
+            data_class=cls,
+            data=dict_of_quantities,
+            config=dacite.Config(check_types=type_check),
+        )
 
     class _FactorySwapDimensionsDefinitions:
         """INTERNAL: QuantityFactory carry a sizer which has a full definition of the dimensions.
@@ -537,8 +548,6 @@ class State:
 
 @dataclasses.dataclass
 class LocalState(State):
-    _skip_guardrails: bool = dataclasses.field(default=False, init=False)
-
     def __post_init__(self) -> None:
         from ndsl.internal.python_extensions import find_first_NDSLRuntime_caller
 
@@ -547,6 +556,9 @@ class LocalState(State):
             raise RuntimeError("LocalState allocated outside of NDSLRuntime: forbidden")
 
         self._parent_runtime = runtime
+
+    def _no_op__post_init__(self) -> None:
+        pass
 
     @classmethod
     def _check_only_locals(cls) -> None:
@@ -584,9 +596,9 @@ class LocalState(State):
 
         with cls._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
             state = cls._init(quantity_factory.empty)
-            state._skip_guardrails = False
         return state
 
+    @classmethod
     def make_as_state(
         cls,
         quantity_factory: QuantityFactory,
@@ -604,21 +616,59 @@ class LocalState(State):
             category=UserWarning,
             stacklevel=2,
         )
+        cls._check_only_locals()
 
         if data_dimensions is None:
             data_dimensions = {}
 
-        with cls._FactorySwapDimensionsDefinitions(quantity_factory, data_dimensions):
-            state = cls._init(quantity_factory.empty, allow_locals=False)
+        class _DeactivatePostInitMethod:
+            """[Here be 🐉] Temporily shadow the __post_init__ method to deactivate the guardrails
+            of the LocalState. DO NOT USE OUTSIDE OF THIS FUNCTION."""
 
-        # Remove the guardrails
-        state._skip_guardrails = True
+            def __init__(self) -> None:
+                pass
+
+            def __enter__(self) -> None:
+                self._original_post_init = LocalState.__post_init__
+                LocalState.__post_init__ = LocalState._no_op__post_init__  # type: ignore[method-assign]
+
+            def __exit__(
+                self,
+                type: type[BaseException] | None,
+                value: BaseException | None,
+                traceback: TracebackType | None,
+            ) -> None:
+                LocalState.__post_init__ = self._original_post_init  # type: ignore[method-assign]
+
+        with _DeactivatePostInitMethod():
+
+            def _swap_local_recursive(cls: Any) -> None:
+                for _field in dataclasses.fields(cls):
+                    if dataclasses.is_dataclass(_field.type):
+                        _swap_local_recursive(_field.type)
+                    elif _field.type is Local:
+                        _field.type = Quantity
+
+            _swap_local_recursive(cls)
+
+            with cls._FactorySwapDimensionsDefinitions(
+                quantity_factory, data_dimensions
+            ):
+                state = cls._init(quantity_factory.empty, type_check=False)
+
+            def _restore_local_recursive(cls: Any) -> None:
+                for _field in dataclasses.fields(cls):
+                    if dataclasses.is_dataclass(_field.type):
+                        _swap_local_recursive(_field.type)
+                    elif _field.type is Quantity:
+                        _field.type = Local
+
+            _restore_local_recursive(cls)
+
         return state
 
     def __getattribute__(self, name: str) -> Any:
         attr = super().__getattribute__(name)
-        if name == "_skip_guardrails" or self._skip_guardrails:
-            return attr
 
         # We look for the first NDSLRuntime caller - we should be allocate alongside
         # it - all other allocations are forbidden
