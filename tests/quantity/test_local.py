@@ -149,3 +149,19 @@ def test_forbidden_access_to_locals() -> None:
         match="State contains Quantity my_quantity but is allocated as a LocalState. LocalState with Locals can _only_ contain Locals.",
     ):
         the_code.allocate_bad_locals()
+
+
+def test_local_state_as_regular_state() -> None:
+    _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, backend="debug")
+    with pytest.raises(
+        RuntimeError,
+        match="LocalState allocated outside of NDSLRuntime: forbidden",
+    ):
+        _ = GoodLocals.make_locals(quantity_factory)
+    B = GoodLocals.make_as_state(quantity_factory)
+    assert type(B.my_local) is Quantity
+    with pytest.raises(
+        RuntimeError,
+        match="LocalState allocated outside of NDSLRuntime: forbidden",
+    ):
+        _ = GoodLocals.make_locals(quantity_factory)
