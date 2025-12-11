@@ -30,6 +30,10 @@ def _is_axis_map(node: stree.MapScope, axis: AxisIterator) -> bool:
     return len(map_parameter) == 1 and map_parameter[0].startswith(axis.as_str())
 
 
+def _is_axis_for(node: stree.ForScope, axis: AxisIterator) -> bool:
+    return node.header.itervar.startswith(axis.as_str())
+
+
 def _both_same_single_axis_maps(
     first: stree.MapScope,
     second: stree.MapScope,
@@ -198,20 +202,44 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             return self._map_overcompute_merge(node, nodes)
         elif PUSH_IFSCOPE_DOWNWARD and isinstance(node, stree.IfScope):
             return self._push_ifelse_down(node, nodes)
+        elif isinstance(node, stree.ForScope):
+            return self._for_merge(node, nodes)
         elif isinstance(node, stree.TaskletNode):
             return self._push_tasklet_down(node, nodes)
         elif isinstance(node, stree.ControlFlowScope):
-            return self._default_control_flow(node, nodes)
+            return self._default_control_flow(node)
         else:
             ndsl_log.debug(
                 f"  (╯°□°)╯︵ ┻━┻: can't merge {type(node)}. Recursion ends."
             )
         return 0
 
+    def _for_merge(
+        self,
+        the_for_scope: stree.ForScope,
+        nodes: list[stree.ScheduleTreeNode],
+    ) -> int:
+        merged = 0
+
+        if _is_axis_for(the_for_scope, self.axis):
+            # TODO: if the for scope is on a cartesian axis it can be
+            # merged with other for scope going in the same direction
+            pass
+        else:
+            # Non-cartesian for - can be pushed down if everything merged below
+            if (
+                len(the_for_scope.children) == 1
+                and isinstance(the_for_scope.children[0], stree.MapScope)
+                and _is_axis_map(the_for_scope.children[0], self.axis)
+            ):
+                swap_node_position_in_tree(the_for_scope, the_for_scope.children[0])
+                merged += 1
+
+        return merged + self._default_control_flow(the_for_scope)
+
     def _default_control_flow(
         self,
         the_control_flow: stree.ControlFlowScope,
-        nodes: list[stree.ScheduleTreeNode],
     ) -> int:
         if len(the_control_flow.children) != 0:
             return self._merge(the_control_flow)

@@ -53,6 +53,7 @@ class OrchestratedCode:
             "missing_merge_of_forscope_and_map",
             "overcompute_merge",
             "block_merge_when_depandencies_is_found",
+            "push_non_cartesian_for",
         ]
         for method in orchestratable_methods:
             orchestrate(
@@ -113,6 +114,15 @@ class OrchestratedCode:
         self.stencil(in_field, out_field)
         self.stencil_with_different_intervals(in_field, out_field)
 
+    def push_non_cartesian_for(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil(in_field, out_field)
+        for _ in dace.nounroll(range(2)):
+            self.stencil(in_field, out_field)
+
 
 def test_stree_merge_maps() -> None:
     domain = (3, 3, 4)
@@ -172,3 +182,20 @@ def test_stree_merge_maps() -> None:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 4  # 2 IJ + 2 Ks (un-merged)
+
+        # Push non-cartesian ForScope inwward, which allow to potentially
+        # merge cartesian maps
+        code.push_non_cartesian_for(in_qty, out_qty)
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, dace.nodes.MapEntry)
+        ]
+        assert len(all_maps) == 3  # All merged
+        all_loop_guard_state = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        ]
+        assert len(all_loop_guard_state) == 1  # 1 For loop
