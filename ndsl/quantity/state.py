@@ -118,17 +118,11 @@ class State:
             config=dacite.Config(check_types=type_check),
         )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         def _flag_optional_recursive(cls: Any) -> None:
-            initial_quantities: StateElementType = {}
             for _field in dataclasses.fields(cls):
-                if not _field.init:
-                    continue
-
                 if dataclasses.is_dataclass(_field.type):
-                    initial_quantities[_field.name] = _flag_optional_recursive(
-                        _field.type
-                    )
+                    _flag_optional_recursive(_field.type)
                 elif _field.type == OptionalQuantityType:
                     self.optional_quantities[_field.name] = True
                 else:
