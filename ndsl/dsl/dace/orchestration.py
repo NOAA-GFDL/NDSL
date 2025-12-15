@@ -51,7 +51,9 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, State
 
 
-_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = False
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = (
+    os.environ.get("NDSL_STREE_OPT", "False") == "True"
+)
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
 
 
@@ -192,7 +194,7 @@ def _build_sdfg(
                                 CartesianRefineTransients(config.get_backend()),
                             ]
                         )
-                    CPUPipeline(passes=passes).run(stree)
+                    CPUPipeline(passes=passes).run(stree, verbose=True)
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
@@ -239,7 +241,7 @@ def _build_sdfg(
                     arr.lifetime = dtypes.AllocationLifetime.Scope
             memory_pooled = float(memory_pooled) / (1024 * 1024)
             ndsl_log.debug(
-                f"{DaCeProgress.default_prefix(config)} Pooled {memory_pooled} mb",
+                f"{DaCeProgress.default_prefix(config)} Pooled {memory_pooled:.2f} mb",
             )
 
         # Set of debug tools inserted in the SDFG when dace.conf "syncdebug"

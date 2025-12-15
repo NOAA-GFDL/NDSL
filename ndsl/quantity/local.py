@@ -45,6 +45,10 @@ class Local(Quantity):
                 stacklevel=2,
             )
 
+        # Initialize memory to obviously wrong value - Local should _not_ be expected
+        # to be zero'ed.
+        data[:] = 123456789
+
         super().__init__(
             data,
             dims,
