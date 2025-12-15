@@ -113,9 +113,20 @@ class TheCode(NDSLRuntime):
     def allocate_bad_locals(self) -> None:
         self._bad = BadLocals.make_locals(self._quantity_factory)
 
+    def check_local_right_after_init(self) -> bool:
+        return (self._locals.my_local.field[:] == 123456789).all()
+
     def __call__(self) -> None:
         self._a_local.field[:] = 1  # legal
         self._locals.my_local.field[:] = 2  # legal
+
+
+def test_proper_initialization() -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        3, 3, 5, 0, backend="debug"
+    )
+    the_code = TheCode(stencil_factory, quantity_factory)
+    assert the_code.check_local_right_after_init()
 
 
 def test_forbidden_access_to_locals() -> None:
