@@ -25,7 +25,10 @@ import warnings
 
 
 StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
-StateElementType: TypeAlias = dict[str, Quantity | Local | dict[str, Any]]
+OptionalQuantityType: TypeAlias = Quantity | None
+StateElementType: TypeAlias = dict[
+    str, Quantity | OptionalQuantityType | Local | dict[str, Any]
+]
 
 
 @dataclasses.dataclass
@@ -74,7 +77,7 @@ class State:
 
                 if dataclasses.is_dataclass(_field.type):
                     initial_quantities[_field.name] = _init_recursive(_field.type)
-                elif _field.type in [Quantity, Local]:
+                elif _field.type in [Quantity, OptionalQuantityType, Local]:
                     if "dims" not in _field.metadata.keys():
                         raise ValueError(
                             f"Malformed state - no dims to init {_field.name} of type {_field.type}"
@@ -114,6 +117,25 @@ class State:
             data=dict_of_quantities,
             config=dacite.Config(check_types=type_check),
         )
+
+    def __post_init__(self):
+        def _flag_optional_recursive(cls: Any) -> None:
+            initial_quantities: StateElementType = {}
+            for _field in dataclasses.fields(cls):
+                if not _field.init:
+                    continue
+
+                if dataclasses.is_dataclass(_field.type):
+                    initial_quantities[_field.name] = _flag_optional_recursive(
+                        _field.type
+                    )
+                elif _field.type == OptionalQuantityType:
+                    self.optional_quantities[_field.name] = True
+                else:
+                    self.optional_quantities[_field.name] = False
+
+        self.optional_quantities: dict[str, bool] = {}
+        _flag_optional_recursive(type(self))
 
     class _FactorySwapDimensionsDefinitions:
         """INTERNAL: QuantityFactory carry a sizer which has a full definition of the dimensions.
@@ -364,9 +386,12 @@ class State:
         ) -> None:
             for name, array in memory_map.items():
                 if array is None:
-                    raise TypeError(
-                        f"State memory copy: illegal copy from None for attribute {name}"
-                    )
+                    if self.optional_quantities[name]:
+                        state.__setattr__(name, None)
+                    else:
+                        raise TypeError(
+                            f"State memory copy: illegal copy from None for attribute {name}"
+                        )
                 elif isinstance(array, dict):
                     _update_from_memory_recursive(state.__getattribute__(name), array)
                 else:
