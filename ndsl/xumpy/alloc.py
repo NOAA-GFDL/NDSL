@@ -43,7 +43,7 @@ def empty(
 def full(
     shape: tuple[int, ...],
     backend: str,
-    value: np.generic,
+    value: np.ScalarType,
     dtype: npt.DTypeLike = Float,
 ) -> np.ndarray | cp.ndarray:
     if is_gpu_backend(backend):
