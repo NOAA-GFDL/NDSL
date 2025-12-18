@@ -7,6 +7,9 @@ from ndsl import Quantity
 from ndsl.dsl.typing import Float
 from ndsl.optional_imports import cupy as cp
 
+if cp is None:
+    cp = np
+
 
 @singledispatch
 def max_on_horizontal_plane(
