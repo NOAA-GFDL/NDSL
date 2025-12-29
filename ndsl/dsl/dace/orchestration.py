@@ -315,7 +315,9 @@ def _build_sdfg(
                 sdfg_path, *args, **kwargs
             )
             config.loaded_dace_executables[dace_program] = DaceExecutable(
-                compiledSDFG, {}, 0
+                compiled_sdfg=compiledSDFG,
+                arguments={},
+                arguments_hash=0,
             )
 
 
