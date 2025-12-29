@@ -420,10 +420,11 @@ def _parse_sdfg(
 
     with DaCeProgress(config, "Load precompiled .sdfg (.so)"):
         compiledSDFG, _ = dace_program.load_precompiled_sdfg(sdfg_path, *args, **kwargs)
-        exe = config.loaded_dace_executables[dace_program]
-        exe.compiled_sdfg = compiledSDFG
-        exe.arguments = None
-        exe.arguments_hash = 0
+        config.loaded_dace_executables[dace_program] = DaceExecutable(
+            compiled_sdfg=compiledSDFG,
+            arguments=None,
+            arguments_hash=0,
+        )
 
     return compiledSDFG
 
