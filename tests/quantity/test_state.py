@@ -5,7 +5,7 @@ import numpy as np
 
 from ndsl import Quantity, State
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Float
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM, Float
 
 
 @dataclasses.dataclass
@@ -45,16 +45,28 @@ class CodeState(State):
             "dtype": Float,
         }
     )
+    C_interface: Quantity = dataclasses.field(
+        metadata={
+            "name": "C",
+            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "units": "kg kg-1",
+            "intent": "?",
+            "dtype": Float,
+        }
+    )
 
 
 def test_basic_state(tmpdir):
+    K_size = 3
     _, quantity_factory = get_factories_single_tile(
-        5, 5, 3, 0, backend="dace:cpu_kfirst"
+        5, 5, K_size, 0, backend="dace:cpu_kfirst"
     )
 
     # Test allocator
     microphys_state = CodeState.ones(quantity_factory)
     assert (microphys_state.inner_A.A.field[:] == 1.0).all()
+    assert microphys_state.C.shape[2] == K_size
+    assert microphys_state.C_interface.shape[2] == K_size + 1
 
     # Test NetCDF round trip
     microphys_state.inner_A.A.field[:] = 42.42

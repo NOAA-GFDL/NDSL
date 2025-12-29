@@ -153,6 +153,7 @@ class Grid:
                     TRACER_DIM: len(utils.tracer_variables),
                 },
                 layout=self.layout,
+                backend=self.backend,
             )
         return self._sizer
 
