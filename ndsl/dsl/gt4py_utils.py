@@ -450,6 +450,23 @@ def is_gpu_backend(backend: str) -> bool:
     return gt_backend.from_name(backend).storage_info["device"] == "gpu"
 
 
+_FORTRAN_LOOP_LAYOUT = (2, 1, 0)
+"""Fortran is a column-first (or stride-first) memory system,
+which in the internal gt4py loop layout means I (or axis[0]) has
+the higher value, e.g. "higher importance to run first"""
+
+
+def backend_is_fortran_aligned(backend: str) -> bool:
+    """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran
+    striding."""
+
+    # Dev NOTE: this is used in interfacing with NDSL (e.g. GEOS.)
+
+    return _FORTRAN_LOOP_LAYOUT == gt_backend.from_name(backend).storage_info[
+        "layout_map"
+    ](("I", "J", "K"))
+
+
 def zeros(shape, dtype=Float, *, backend: str):
     storage_type = cp.ndarray if is_gpu_backend(backend) else np.ndarray
     xp = cp if cp and storage_type is cp.ndarray else np
