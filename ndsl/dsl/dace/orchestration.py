@@ -29,12 +29,13 @@ from ndsl.dsl.dace.dace_config import (
     DaceConfig,
     DaCeOrchestration,
 )
+from ndsl.dsl.dace.dace_executable import DaceExecutable
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
-from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree import CPUPipeline
 from ndsl.dsl.dace.stree.optimizations import (
     AxisIterator,
     CartesianAxisMerge,
@@ -169,32 +170,38 @@ def _build_sdfg(
                 stree = sdfg.as_schedule_tree()
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
-                if config.is_gpu_backend():
-                    GPUPipeline().run(stree)
+                passes = []
+                if config.get_backend() == "dace:cpu_kfirst":
+                    passes.extend(
+                        [
+                            CleanUpScheduleTree(),
+                            CartesianAxisMerge(AxisIterator._I),
+                            CartesianAxisMerge(AxisIterator._J),
+                            CartesianAxisMerge(AxisIterator._K),
+                            CartesianRefineTransients(config.get_backend()),
+                        ]
+                    )
+                elif config.get_backend() in ["dace:cpu_KJI", "dace:gpu"]:
+                    passes.extend(
+                        [
+                            CleanUpScheduleTree(),
+                            CartesianAxisMerge(AxisIterator._K),
+                            CartesianAxisMerge(AxisIterator._J),
+                            CartesianAxisMerge(AxisIterator._I),
+                            CartesianRefineTransients(config.get_backend()),
+                        ]
+                    )
                 else:
-                    passes = []
-
-                    if config.get_backend() == "dace:cpu_kfirst":
-                        passes.extend(
-                            [
-                                CleanUpScheduleTree(),
-                                CartesianAxisMerge(AxisIterator._I),
-                                CartesianAxisMerge(AxisIterator._J),
-                                CartesianAxisMerge(AxisIterator._K),
-                                CartesianRefineTransients(config.get_backend()),
-                            ]
-                        )
-                    else:
-                        passes.extend(
-                            [
-                                CleanUpScheduleTree(),
-                                CartesianAxisMerge(AxisIterator._K),
-                                CartesianAxisMerge(AxisIterator._I),
-                                CartesianAxisMerge(AxisIterator._J),
-                                CartesianRefineTransients(config.get_backend()),
-                            ]
-                        )
-                    CPUPipeline(passes=passes).run(stree, verbose=True)
+                    passes.extend(
+                        [
+                            CleanUpScheduleTree(),
+                            CartesianAxisMerge(AxisIterator._K),
+                            CartesianAxisMerge(AxisIterator._I),
+                            CartesianAxisMerge(AxisIterator._J),
+                            CartesianRefineTransients(config.get_backend()),
+                        ]
+                    )
+                CPUPipeline(passes=passes).run(stree, verbose=True)
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
@@ -204,6 +211,8 @@ def _build_sdfg(
             # TODO
             # The following should happen on the stree level
             _to_gpu(sdfg)
+
+            sdfg.apply_gpu_transformations()
 
             make_transients_persistent(sdfg=sdfg, device=device_type)
 
@@ -230,19 +239,23 @@ def _build_sdfg(
         with DaCeProgress(config, "Simplify (2)"):
             _simplify(sdfg)
 
-        # Move all memory that can be into a pool to lower memory pressure.
-        # Change Persistent memory (sub-SDFG) into Scope and flag it.
-        with DaCeProgress(config, "Turn Persistents into pooled Scope"):
-            memory_pooled = 0.0
-            for _sd, _aname, arr in sdfg.arrays_recursive():
-                if arr.lifetime == dtypes.AllocationLifetime.Persistent:
-                    arr.pool = True
-                    memory_pooled += arr.total_size * arr.dtype.bytes
-                    arr.lifetime = dtypes.AllocationLifetime.Scope
-            memory_pooled = float(memory_pooled) / (1024 * 1024)
-            ndsl_log.debug(
-                f"{DaCeProgress.default_prefix(config)} Pooled {memory_pooled:.2f} mb",
-            )
+        # Move all memory that can be into a pool to lower memory pressure for GPU
+        # We skip this memory optimization for CPU because we don't have a memory
+        # pool available yet (DaCe v1)
+
+        if config.is_gpu_backend():
+            with DaCeProgress(config, "Turn Persistents into pooled Scope"):
+                memory_pooled = 0.0
+                for _sd, _aname, arr in sdfg.arrays_recursive():
+                    # Change Persistent memory (sub-SDFG) into Scope and flag it.
+                    if arr.lifetime == dtypes.AllocationLifetime.Persistent:
+                        arr.pool = True
+                        memory_pooled += arr.total_size * arr.dtype.bytes
+                        arr.lifetime = dtypes.AllocationLifetime.Scope
+                memory_pooled = float(memory_pooled) / (1024 * 1024)
+                ndsl_log.debug(
+                    f"{DaCeProgress.default_prefix(config)} Pooled {memory_pooled:.2f} mb",
+                )
 
         # Set of debug tools inserted in the SDFG when dace.conf "syncdebug"
         # is turned on.
@@ -301,7 +314,9 @@ def _build_sdfg(
             compiledSDFG, _ = dace_program.load_precompiled_sdfg(
                 sdfg_path, *args, **kwargs
             )
-            config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
+            config.loaded_dace_executables[dace_program] = DaceExecutable(
+                compiledSDFG, {}, 0
+            )
 
 
 def _call_sdfg(
@@ -314,7 +329,7 @@ def _call_sdfg(
         mode = config.get_orchestrate()
         if (
             mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
-            and dace_program not in config.loaded_precompiled_SDFG  # already cached
+            and dace_program not in config.loaded_dace_executables  # already cached
         ):
             ndsl_log.info("Building DaCe orchestration")
             _build_sdfg(dace_program, sdfg, config, args, kwargs)
@@ -322,38 +337,36 @@ def _call_sdfg(
         if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
             raise ValueError(f"Unexpected DaceOrchestration mode `{mode}`.")
 
-        if dace_program not in config.loaded_precompiled_SDFG:
+        if dace_program not in config.loaded_dace_executables:
             raise RuntimeError(
                 "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
                 "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
             )
 
-        # Pre-compiled SDFG code path does away with any data checks and
-        # cached the marshalling - leading to almost direct C call
-        # DaceProgram performs argument transformation & checks for a cost ~200ms
-        # of overhead
         with DaCeProgress(config, "Run"):
             if config.is_gpu_backend():
                 _upload_to_device(list(args) + list(kwargs.values()))
 
-            # NOTE: this will go over declared arguments and closure arguments.
-            # It is a very slow piece of code. Compiled SDFG comes with a "fast_call"
-            # function that expects all pointers to have been made C worthy. This is
-            # something we did with "FrozenCompileSDFG" but we undid because it meant that
-            # external changing memory (reallocation...) would quietly fail
+            exe = config.loaded_dace_executables[dace_program]
+
+            # Marshall given arguments into C-binding ready memory
             with config.performance_collector.timestep_timer.clock(
                 f"{dace_program.name}.ArgMarshalling"
             ):
-                current_sdfg_args = dace_program._create_sdfg_args(
-                    config.loaded_precompiled_SDFG[dace_program].sdfg, args, kwargs
-                )
-
+                hash_ = DaceExecutable.hash_expected_dsl_args(args, kwargs)
+                if exe.arguments is None or hash_ != exe.arguments_hash:
+                    marshalled_sdfg_args = dace_program._create_sdfg_args(
+                        config.loaded_dace_executables[dace_program].compiled_sdfg.sdfg,
+                        args,
+                        kwargs,
+                    )
+                    exe.arguments_hash = hash_
+                    exe.arguments = marshalled_sdfg_args
+            # Calling into the C
             with config.performance_collector.timestep_timer.clock(
                 f"{dace_program.name}.Runtime"
             ):
-                results = config.loaded_precompiled_SDFG[dace_program](
-                    **current_sdfg_args
-                )
+                results = exe.compiled_sdfg(**exe.arguments)
 
     config.performance_collector.collect_performance()
 
@@ -374,8 +387,8 @@ def _parse_sdfg(
         config: the DaceConfig configuration for this execution
     """
     # Check cache for already loaded SDFG
-    if dace_program in config.loaded_precompiled_SDFG:
-        return config.loaded_precompiled_SDFG[dace_program]
+    if dace_program in config.loaded_dace_executables:
+        return config.loaded_dace_executables[dace_program].compiled_sdfg
 
     # Build expected path
     sdfg_path = get_sdfg_path(dace_program.name, config)
@@ -407,7 +420,11 @@ def _parse_sdfg(
 
     with DaCeProgress(config, "Load precompiled .sdfg (.so)"):
         compiledSDFG, _ = dace_program.load_precompiled_sdfg(sdfg_path, *args, **kwargs)
-        config.loaded_precompiled_SDFG[dace_program] = compiledSDFG
+        exe = config.loaded_dace_executables[dace_program]
+        exe.compiled_sdfg = compiledSDFG
+        exe.arguments = None
+        exe.arguments_hash = 0
+
     return compiledSDFG
 
 
