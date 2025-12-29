@@ -1,8 +1,10 @@
-import dace
 import dataclasses
 from typing import Any
-from ndsl.quantity import State
+
+import dace
 from dace.frontend.python.parser import DaceProgram
+
+from ndsl.quantity import State
 
 
 @dataclasses.dataclass
