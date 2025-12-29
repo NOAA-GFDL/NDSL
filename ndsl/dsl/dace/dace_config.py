@@ -157,7 +157,7 @@ class DaceConfig:
         """Specialize the DaCe configuration for NDSL use.
 
         Dev note: This class wrongly carries two runtime values:
-            - `loaded_precompiled_SDFG`: cache of SDFG loaded post build
+            - `loaded_dace_executables`: cache of loaded SDFG & cached arguments
             - `performance_collector`: runtime timer shared for all runtime call
                 of orchestrate code
 
