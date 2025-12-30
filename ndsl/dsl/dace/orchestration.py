@@ -355,7 +355,7 @@ def _call_sdfg(
             with config.performance_collector.timestep_timer.clock(
                 f"{dace_program.name}.ArgMarshalling"
             ):
-                hash_ = DaceExecutable.hash_expected_dsl_args(args, kwargs)
+                hash_ = exe.hash_expected_dsl_args(args, kwargs)
                 if exe.arguments is None or hash_ != exe.arguments_hash:
                     marshalled_sdfg_args = dace_program._create_sdfg_args(
                         config.loaded_dace_executables[dace_program].compiled_sdfg.sdfg,
@@ -364,6 +364,7 @@ def _call_sdfg(
                     )
                     exe.arguments_hash = hash_
                     exe.arguments = marshalled_sdfg_args
+
             # Calling into the C
             with config.performance_collector.timestep_timer.clock(
                 f"{dace_program.name}.Runtime"

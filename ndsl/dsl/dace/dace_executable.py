@@ -1,4 +1,5 @@
 import dataclasses
+import warnings
 from typing import Any
 
 import dace
@@ -18,9 +19,11 @@ class DaceExecutable:
     """Arguments as C-ready pointers"""
     arguments_hash: int = 0
     """Hash reflexting the python/C pointers arguments"""
+    _skip_hash: bool = False
+    """Internal: skip hash computation because some
+    arguments where detected to be un-hashable last time"""
 
-    @staticmethod
-    def hash_expected_dsl_args(args: tuple[Any], kwargs: dict[str, Any]) -> int:
+    def hash_expected_dsl_args(self, args: tuple[Any], kwargs: dict[str, Any]) -> int:
         """Hash direct memory of NDSL expected types.
 
         Handling the following types:
@@ -28,6 +31,10 @@ class DaceExecutable:
         - state: called into a bespoke function,
         - everything else is passed as-is to `hash` which _can_ fail.
         """
+        if self._skip_hash:
+            self.arguments = None  # Flush arguments to force recompute
+            return 0
+
         to_hash = []
         for arg in list(args) + list(kwargs.values()):
             if hasattr(arg, "__array_interface__"):
@@ -39,7 +46,19 @@ class DaceExecutable:
             else:
                 to_hash.append(arg)
 
-        return hash(tuple(to_hash))
+        try:
+            h = hash(tuple(to_hash))
+        except TypeError as e:
+            warnings.warn(
+                f"[NDSL|Orchestration] argument type aren't hashable: {e}",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.arguments = None  # Flush arguments to force recompute
+            self._skip_hash = True  # Skip future checks
+            return 0
+
+        return h
 
 
 DaceExecutables = dict[DaceProgram, DaceExecutable]
