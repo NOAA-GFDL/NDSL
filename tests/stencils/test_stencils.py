@@ -6,7 +6,6 @@ from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, set_4d_field_size
-from ndsl.stencils import CopyCornersXY
 from ndsl.stencils.column_operations import (
     column_max,
     column_max_ddim,
@@ -165,10 +164,3 @@ def test_column_operations(boilerplate):
     assert min_index_ddim.field[:] == 5 + np.argmin(
         data_ddim.field[:, :, 5:, 1], axis=2
     )
-
-
-def test_CopyCornersXY_deprecation(boilerplate) -> None:
-    stencil_factory, _ = boilerplate
-
-    with pytest.deprecated_call(match="Usage of CopyCornersXY is deprecated"):
-        CopyCornersXY(stencil_factory, [X_DIM, Y_DIM, Z_DIM], None)

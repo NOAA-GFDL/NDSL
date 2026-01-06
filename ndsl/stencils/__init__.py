@@ -10,11 +10,10 @@ from .basic_operations import (
     set_value_2D,
     sign,
 )
-from .corners import CopyCornersXY, FillCornersBGrid
+from .corners import FillCornersBGrid
 
 
 __all__ = [
-    "CopyCornersXY",
     "FillCornersBGrid",
     "copy",
     "adjustmentfactor_stencil",
