@@ -141,13 +141,6 @@ def state_list(base_state, n_times, start_time, time_step, numpy):
 
 
 @requires_zarr
-def test_mpi_comm_will_be_required(cube_partitioner):
-    with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
-        with pytest.deprecated_call(match="`mpi_comm` will be a required argument"):
-            ZarrMonitor(tempdir, cube_partitioner)
-
-
-@requires_zarr
 def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
     with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
         monitor = ZarrMonitor(tempdir, cube_partitioner, mpi_comm=MPIComm())
