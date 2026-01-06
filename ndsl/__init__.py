@@ -3,7 +3,6 @@ from .logging import ndsl_log  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
-from .comm.null_comm import NullComm
 from .comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
@@ -38,7 +37,6 @@ __all__ = [
     "TileCommunicator",
     "LocalComm",
     "MPIComm",
-    "NullComm",
     "CubedSpherePartitioner",
     "TilePartitioner",
     "ConstantVersions",
