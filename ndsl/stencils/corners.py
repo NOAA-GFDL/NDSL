@@ -1,6 +1,3 @@
-import warnings
-from collections.abc import Sequence
-
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
@@ -8,69 +5,6 @@ from ndsl import StencilFactory
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
-
-
-class CopyCornersXY:
-    """
-    Helper-class to copy corners corresponding to the Fortran functions
-    copy_corners_x and copy_corners_y
-    """
-
-    def __init__(
-        self,
-        stencil_factory: StencilFactory,
-        dims: Sequence[str],
-        y_field,
-    ) -> None:
-        """
-        Args:
-            stencil_factory: creates stencils
-            dims: dimensionality of the data to be copied
-            y_field: 3D gt4py storage to use for y-differenceable field
-                (x-differenceable field uses same memory as base field)
-        """
-        warnings.warn(
-            "Usage of CopyCornersXY is deprecated and will be removed in the next release. "
-            "Use `CopyCornersX` and `CopyCornersY` in PyFV3 for a more future-proof "
-            "implementation of the corner code.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        grid_indexing = stencil_factory.grid_indexing
-        origin, domain = grid_indexing.get_origin_domain(
-            dims=dims, halos=(grid_indexing.n_halo, grid_indexing.n_halo)
-        )
-
-        self._y_field = y_field
-
-        ax_offsets = grid_indexing.axis_offsets(origin, domain)
-        self._copy_corners_xy = stencil_factory.from_origin_domain(
-            func=copy_corners_xy_stencil_defn,
-            origin=origin,
-            domain=domain,
-            externals={
-                **ax_offsets,
-            },
-        )
-
-    def __call__(self, field: FloatField):
-        """
-        Fills cell quantity field using corners from itself.
-
-        Args:
-            field: field to fill corners
-
-        Returns:
-            x_differenceable: input field, updated so it can be differenced
-                in x-direction
-            y_differenceable: copy of input field which can be differenced
-                in y-direction
-        """
-        # we could avoid aliasing field for the x-differenceable output, but this
-        # requires selectively validating the halos, since the Fortran code does the
-        # final (x-direction) corners copy directly on the base field
-        self._copy_corners_xy(field, field, self._y_field)
-        return field, self._y_field
 
 
 def kslice_from_inputs(
