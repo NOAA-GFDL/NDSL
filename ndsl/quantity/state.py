@@ -5,7 +5,7 @@ import inspect
 from collections.abc import Callable
 from pathlib import Path
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Self, TypeAlias
+from typing import TYPE_CHECKING, Any, Hashable, Self, TypeAlias
 
 import dacite
 import xarray as xr
@@ -473,14 +473,34 @@ class State:
 
         _update_zero_copy_recursive(self, memory_map)
 
-    def _netcdf_name(self, directory_path: Path) -> Path:
+    def _hash(self) -> int:
+        """Custom memory hash.
+
+        We do not use __hash__ because of issues with subclassing.
+        """
+
+        def _flatten_elements_for_hash(
+            state: State, flatten_hashable_list: list[Hashable]
+        ) -> None:
+            for _field in dataclasses.fields(state):
+                element = state.__getattribute__(_field.name)
+                if dataclasses.is_dataclass(_field.type):
+                    _flatten_elements_for_hash(element, flatten_hashable_list)
+                else:
+                    flatten_hashable_list.append(element)
+
+        to_hash: list[Hashable] = []
+        _flatten_elements_for_hash(self, to_hash)
+        return hash(tuple(to_hash))
+
+    def _netcdf_name(self, directory_path: Path, postfix: str = "") -> Path:
         """Resolve rank-tied postfix if needed"""
         rank_postfix = ""
         if MPI.COMM_WORLD.Get_size() > 1:
             rank_postfix = f"_rank{MPI.COMM_WORLD.Get_rank()}"
-        return directory_path / f"{type(self).__name__}{rank_postfix}.nc4"
+        return directory_path / f"{type(self).__name__}{rank_postfix}{postfix}.nc4"
 
-    def to_netcdf(self, directory_path: Path | None = None) -> None:
+    def to_netcdf(self, directory_path: Path | None = None, postfix: str = "") -> None:
         """
         Save state to NetCDF. Can be reloaded with `update_from_netcdf`.
 
@@ -509,9 +529,9 @@ class State:
                             f"Quantity in  {_field.name} of type {_field.type}"
                         )
 
-                    local_data[_field.name] = state.__getattribute__(
-                        _field.name
-                    ).field_as_xarray
+                    quantity = state.__getattribute__(_field.name)
+                    if quantity is not None:
+                        local_data[_field.name] = quantity.field_as_xarray
 
             return local_data
 
@@ -527,9 +547,11 @@ class State:
             datatree.pop(key)
         datatree["/"] = xr.Dataset(data_vars=top_level)
 
-        xr.DataTree.from_dict(datatree).to_netcdf(self._netcdf_name(directory_path))
+        xr.DataTree.from_dict(datatree).to_netcdf(
+            self._netcdf_name(directory_path, postfix)
+        )
 
-    def update_from_netcdf(self, directory_path: Path) -> None:
+    def update_from_netcdf(self, directory_path: Path, postfix: str = "") -> None:
         """This is a mirror of the `to_netcdf` method NOT a generic
         NetCDF loader. It expects the NetCDF to be named with the auto-naming scheme
         of `to_netcdf`.
@@ -538,7 +560,7 @@ class State:
             directory_path: directory carrying the netcdf saved with `to_netcdf`
 
         """
-        datatree = xr.open_datatree(self._netcdf_name(directory_path))
+        datatree = xr.open_datatree(self._netcdf_name(directory_path, postfix))
         datatree_as_dict = datatree.to_dict()
 
         # All other cases - recursing downward
