@@ -171,17 +171,19 @@ def test_stree_merge_maps_IJK() -> None:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, dace.nodes.MapEntry)
         ]
-        assert len(all_maps) == 3
+        # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
+        assert len(all_maps) == 4  # Should be all dmerged = 3
 
         # Forbid merging when data dependancy is detected
         code.block_merge_when_depandencies_is_found(in_qty, out_qty)
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
-            (me, state)
+            me.params[0]
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, dace.nodes.MapEntry)
         ]
-        assert len(all_maps) == 4  # 2 IJ + 2 Ks (un-merged)
+        # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
+        assert len(all_maps) == 5  # Should be 4 = 2 IJ + 2 Ks (un-merged)
 
         # Push non-cartesian ForScope inwward, which allow to potentially
         # merge cartesian maps
