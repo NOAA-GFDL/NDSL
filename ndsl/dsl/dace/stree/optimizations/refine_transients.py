@@ -251,8 +251,10 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
 
         if backend in ["dace:cpu_kfirst"]:
             self.ijk_order = (2, 1, 0)
-        elif backend in ["dace:cpu", "dace:gpu"]:
-            self.ijk_order = (1, 0, 2)
+        elif backend in ["dace:gpu", "dace:cpu_KJI"]:
+            self.ijk_order = (0, 1, 2)
+        elif backend in ["dace:cpu"]:
+            self.ijk_order = (1, 2, 0)
         else:
             raise NotImplementedError(
                 f"[Schedule Tree Opt] CartesianRefineTransient not implemented for backend {backend}"

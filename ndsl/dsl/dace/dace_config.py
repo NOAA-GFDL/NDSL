@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import enum
 import os
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 import dace.config
-from dace.frontend.python.parser import DaceProgram
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
 from ndsl import LocalComm
@@ -18,6 +17,9 @@ from ndsl.dsl.typing import get_precision
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
 
+
+if TYPE_CHECKING:
+    from ndsl.dsl.dace.dace_executable import DaceExecutables
 
 # This can be turned on to revert compilation for orchestration
 # in a rank-compile-itself more, instead of the distributed top-tile
@@ -155,7 +157,7 @@ class DaceConfig:
         """Specialize the DaCe configuration for NDSL use.
 
         Dev note: This class wrongly carries two runtime values:
-            - `loaded_precompiled_SDFG`: cache of SDFG loaded post build
+            - `loaded_dace_executables`: cache of loaded SDFG & cached arguments
             - `performance_collector`: runtime timer shared for all runtime call
                 of orchestrate code
 
@@ -175,7 +177,7 @@ class DaceConfig:
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
-        self.loaded_precompiled_SDFG: dict[DaceProgram, dace.CompiledSDFG] = {}
+        self.loaded_dace_executables: DaceExecutables = {}
         self.performance_collector = (
             PerformanceCollector(
                 "InternalOrchestrationTimer",
