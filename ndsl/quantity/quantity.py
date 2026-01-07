@@ -395,8 +395,7 @@ class Quantity:
         """
         if isinstance(self.data, np.ndarray):
             return hash(self.data.__array_interface__["data"])
-        else:
-            return hash(self.data.__cuda_array_interface__["data"])
+        return hash(self.data.__cuda_array_interface__["data"])
 
     @property
     def shape(self):  # type: ignore[no-untyped-def]

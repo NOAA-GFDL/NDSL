@@ -10,7 +10,7 @@ from ndsl.quantity import State
 
 @dataclasses.dataclass
 class DaceExecutable:
-    """Bundle the executable (lib) and it's marshalled
+    """Bundle the executable (lib) and its marshalled
     arguments for execution"""
 
     compiled_sdfg: dace.CompiledSDFG
@@ -18,7 +18,7 @@ class DaceExecutable:
     arguments: dict[str, Any] | None = None
     """Arguments as C-ready pointers"""
     arguments_hash: int = 0
-    """Hash reflexting the python/C pointers arguments"""
+    """Hash reflecting the python/C pointers arguments"""
     _skip_hash: bool = False
     """Internal: skip hash computation because some
     arguments where detected to be un-hashable last time"""
@@ -51,7 +51,7 @@ class DaceExecutable:
         except TypeError as e:
             warnings.warn(
                 f"[NDSL|Orchestration] argument type aren't hashable: {e}",
-                DeprecationWarning,
+                RuntimeWarning,
                 stacklevel=2,
             )
             self.arguments = None  # Flush arguments to force recompute

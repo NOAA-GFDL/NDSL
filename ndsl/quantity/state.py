@@ -493,12 +493,12 @@ class State:
         _flatten_elements_for_hash(self, to_hash)
         return hash(tuple(to_hash))
 
-    def _netcdf_name(self, directory_path: Path, postfix: str = "") -> str:
+    def _netcdf_name(self, directory_path: Path, postfix: str = "") -> Path:
         """Resolve rank-tied postfix if needed"""
         rank_postfix = ""
         if MPI.COMM_WORLD.Get_size() > 1:
             rank_postfix = f"_rank{MPI.COMM_WORLD.Get_rank()}"
-        return f"{directory_path}/{type(self).__name__}{rank_postfix}{postfix}.nc4"
+        return directory_path / f"{type(self).__name__}{rank_postfix}{postfix}.nc4"
 
     def to_netcdf(self, directory_path: Path | None = None, postfix: str = "") -> None:
         """
@@ -529,9 +529,9 @@ class State:
                             f"Quantity in  {_field.name} of type {_field.type}"
                         )
 
-                    qty = state.__getattribute__(_field.name)
-                    if qty is not None:
-                        local_data[_field.name] = qty.field_as_xarray
+                    quantity = state.__getattribute__(_field.name)
+                    if quantity is not None:
+                        local_data[_field.name] = quantity.field_as_xarray
 
             return local_data
 

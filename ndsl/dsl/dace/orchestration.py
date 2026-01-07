@@ -142,6 +142,7 @@ def _build_sdfg(
     """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
     device_type = DaceDeviceType.GPU if config.is_gpu_backend() else DaceDeviceType.CPU
+    backend_name = config.get_backend()
 
     if is_compiling:
         with DaCeProgress(config, "Validate original SDFG"):
@@ -171,24 +172,24 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
-                if config.get_backend() == "dace:cpu_kfirst":
+                if backend_name == "dace:cpu_kfirst":
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
                             CartesianAxisMerge(AxisIterator._I),
                             CartesianAxisMerge(AxisIterator._J),
                             CartesianAxisMerge(AxisIterator._K),
-                            CartesianRefineTransients(config.get_backend()),
+                            CartesianRefineTransients(backend_name),
                         ]
                     )
-                elif config.get_backend() in ["dace:cpu_KJI", "dace:gpu"]:
+                elif backend_name in ["dace:cpu_KJI", "dace:gpu"]:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
                             CartesianAxisMerge(AxisIterator._K),
                             CartesianAxisMerge(AxisIterator._J),
                             CartesianAxisMerge(AxisIterator._I),
-                            CartesianRefineTransients(config.get_backend()),
+                            CartesianRefineTransients(backend_name),
                         ]
                     )
                 else:
@@ -198,7 +199,7 @@ def _build_sdfg(
                             CartesianAxisMerge(AxisIterator._K),
                             CartesianAxisMerge(AxisIterator._I),
                             CartesianAxisMerge(AxisIterator._J),
-                            CartesianRefineTransients(config.get_backend()),
+                            CartesianRefineTransients(backend_name),
                         ]
                     )
                 CPUPipeline(passes=passes).run(stree, verbose=True)
@@ -271,9 +272,7 @@ def _build_sdfg(
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
             sdfg.compile()
-        write_build_info(
-            sdfg, config.layout, config.tile_resolution, config.get_backend()
-        )
+        write_build_info(sdfg, config.layout, config.tile_resolution, backend_name)
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):

@@ -88,16 +88,16 @@ def test_dace_call_argument_caching():
     )
     dconfig = stencil_factory.config.dace_config
 
-    qty_A = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "A")
+    quantity_A = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "A")
     state_A = AState.zeros(quantity_factory)
     code = DefaultTypeProgram(stencil_factory, quantity_factory)
-    code(qty_A, state_A)
+    code(quantity_A, state_A)
 
     assert len(dconfig.loaded_dace_executables.values()) == 1
 
     hash_A = list(dconfig.loaded_dace_executables.values())[0].arguments_hash
 
-    code(qty_A, state_A)
+    code(quantity_A, state_A)
 
     # Same call - no hash recompute
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash == hash_A
@@ -110,17 +110,17 @@ def test_dace_call_argument_caching():
     hash_B = list(dconfig.loaded_dace_executables.values())[0].arguments_hash
 
     # Back to original call - recompute to first hash
-    code(qty_A, state_A)
+    code(quantity_A, state_A)
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash != hash_B
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash == hash_A
 
     # Check that inner quantity data swap recomputes
-    qty_A.data = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "Abis").data
-    code(qty_A, state_A)
+    quantity_A.data = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "Abis").data
+    code(quantity_A, state_A)
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash != hash_A
     hash_Abis = list(dconfig.loaded_dace_executables.values())[0].arguments_hash
 
     # Check that state quantity swap recomputes
     state_A.the_quantity = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "InnerA")
-    code(qty_A, state_A)
+    code(quantity_A, state_A)
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash != hash_Abis
