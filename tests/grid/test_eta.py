@@ -52,6 +52,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
 
     quantity_factory = QuantityFactory(sizer, backend=backend)
@@ -97,6 +98,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
 
     quantity_factory = QuantityFactory(sizer, backend=backend)

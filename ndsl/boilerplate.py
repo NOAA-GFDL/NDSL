@@ -73,6 +73,7 @@ def _get_factories(
             n_halo=nhalo,
             layout=partitioner.layout,
             tile_partitioner=partitioner,
+            backend=backend,
         )
         comm = TileCommunicator(comm=mpi_comm, partitioner=partitioner)
     else:
