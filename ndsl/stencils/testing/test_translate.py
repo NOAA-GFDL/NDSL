@@ -12,8 +12,6 @@ from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
-from ndsl.quantity import Quantity
-from ndsl.restart._legacy_restart import RESTART_PROPERTIES
 from ndsl.stencils.testing.savepoint import DataLoader, SavepointCase, dataset_to_dict
 from ndsl.testing.comparison import BaseMetric, LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
@@ -309,23 +307,6 @@ def test_sequential_savepoint(
         )
     if len(passing_names) == 0:
         pytest.fail("No tests passed")
-
-
-def state_from_savepoint(serializer, savepoint, name_to_std_name):
-    properties = RESTART_PROPERTIES
-    origin = gt_utils.origin
-    state = {}
-    for name, _std_name in name_to_std_name.items():
-        array = serializer.read(name, savepoint)
-        extent = tuple(np.asarray(array.shape) - 2 * np.asarray(origin))
-        state["air_temperature"] = Quantity(
-            array,
-            dims=reversed(properties["air_temperature"]["dims"]),
-            units=properties["air_temperature"]["units"],
-            origin=origin,
-            extent=extent,
-        )
-    return state
 
 
 def get_communicator(comm, layout):
