@@ -10,6 +10,29 @@ from ndsl.initialization.grid_sizer import GridSizer
 
 
 class SubtileGridSizer(GridSizer):
+    def __init__(
+        self,
+        nx: int,
+        ny: int,
+        nz: int,
+        n_halo: int,
+        data_dimensions: dict[str, int],
+        backend: str | None = None,
+    ) -> None:
+        super().__init__(nx, ny, nz, n_halo, data_dimensions)
+
+        if backend is None:
+            warnings.warn(
+                "SubtileGridSizer will _require_ a backend going forward, update your API call "
+                "to include `backend=...`",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._pad_non_interface_dimensions = True
+        else:
+            fortran_style_memory = backend_is_fortran_aligned(backend)
+            self._pad_non_interface_dimensions = not fortran_style_memory
+
     @classmethod
     def from_tile_params(
         cls,
@@ -38,20 +61,6 @@ class SubtileGridSizer(GridSizer):
                 TilePartitioner is created with the given layout
             tile_rank (optional): rank of this subtile.
         """
-        if backend is None:
-            warnings.warn(
-                "SubtileGridSizer will _require_ a backend going forward, update your API call "
-                "to include `backend=...`",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            internal_pad_non_interface_dimensions = True
-        else:
-            if backend_is_fortran_aligned(backend):
-                internal_pad_non_interface_dimensions = False
-            else:
-                internal_pad_non_interface_dimensions = True
-
         if data_dimensions is None:
             data_dimensions = {}
 
@@ -76,14 +85,7 @@ class SubtileGridSizer(GridSizer):
                 "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
             )
 
-        return cls(
-            nx,
-            ny,
-            nz,
-            n_halo,
-            data_dimensions,
-            internal_pad_non_interface_dimensions,
-        )
+        return cls(nx, ny, nz, n_halo, data_dimensions)
 
     @classmethod
     def from_namelist(
@@ -160,7 +162,7 @@ class SubtileGridSizer(GridSizer):
     def get_shape(self, dims: Iterable[str]) -> tuple[int, ...]:
         shape_dict = self.data_dimensions.copy()
         # Check of we pad non-interface variables to have the same shape as interface variables
-        pad = 1 if self.internal_pad_non_interface_dimensions else 0
+        pad = 1 if self._pad_non_interface_dimensions else 0
         shape_dict.update(
             {
                 constants.X_DIM: self.nx + pad + 2 * self.n_halo,

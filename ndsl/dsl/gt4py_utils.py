@@ -453,7 +453,13 @@ def is_gpu_backend(backend: str) -> bool:
 _FORTRAN_LOOP_LAYOUT = (2, 1, 0)
 """Fortran is a column-first (or stride-first) memory system,
 which in the internal gt4py loop layout means I (or axis[0]) has
-the higher value, e.g. "higher importance to run first"""
+the higher value, e.g. "higher importance to run first":
+
+for k # Layout=0
+    for j # Layout=1
+        for i # Layout=2
+
+"""
 
 
 def backend_is_fortran_aligned(backend: str) -> bool:
