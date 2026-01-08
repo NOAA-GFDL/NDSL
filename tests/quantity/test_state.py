@@ -59,7 +59,7 @@ class CodeState(State):
 def test_basic_state(tmpdir):
     K_size = 3
     _, quantity_factory = get_factories_single_tile(
-        5, 5, K_size, 0, backend="dace:cpu_kfirst"
+        5, 5, K_size, 0, backend="dace:cpu_KJI"
     )
 
     # Test allocator

@@ -85,7 +85,7 @@ class SubtileGridSizer(GridSizer):
                 "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
             )
 
-        return cls(nx, ny, nz, n_halo, data_dimensions)
+        return cls(nx, ny, nz, n_halo, data_dimensions, backend)
 
     @classmethod
     def from_namelist(
