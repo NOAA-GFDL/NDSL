@@ -1,8 +1,8 @@
 from __future__ import annotations
-from dace.sdfg.analysis.vector_inference import Any
+
 import dace.properties
-from dace import library
-from dace import nodes
+from dace import library, nodes
+from dace.sdfg.analysis.vector_inference import Any
 from dace.transformation import transformation as xf
 
 
