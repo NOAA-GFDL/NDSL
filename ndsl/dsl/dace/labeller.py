@@ -9,7 +9,7 @@ from dace.transformation import transformation as xf
 
 @library.node
 class _Labeller(nodes.LibraryNode):
-    implementations = ""
+    implementations: dict[str, Any] = {}
     default_implementation = "pure"
     unique_name = dace.properties.Property(dtype=str, desc="Unique name")
 
@@ -20,6 +20,8 @@ class _Labeller(nodes.LibraryNode):
 
 @library.register_expansion(_Labeller, "pure")
 class _ExpandLabeller(xf.ExpandTransformation):
+    environments: list[Any] = []
+
     @staticmethod
     def expansion(
         node: _Labeller,
