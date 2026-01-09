@@ -8,7 +8,7 @@ from dace.transformation import transformation as xf
 
 
 @library.node
-class _Labeller(nodes.LibraryNode):
+class _Labeler(nodes.LibraryNode):
     implementations: dict[str, Any] = {}
     default_implementation = "pure"
     unique_name = dace.properties.Property(dtype=str, desc="Unique name")
@@ -18,13 +18,13 @@ class _Labeller(nodes.LibraryNode):
         self._unique_name = unique_name
 
 
-@library.register_expansion(_Labeller, "pure")
+@library.register_expansion(_Labeler, "pure")
 class _ExpandLabeller(xf.ExpandTransformation):
     environments: list[Any] = []
 
     @staticmethod
     def expansion(
-        node: _Labeller,
+        node: _Labeler,
         state: dace.SDFGState,
         sdfg: dace.SDFG,
     ) -> nodes.Tasklet:
@@ -59,10 +59,10 @@ def set_label(
                     state,
                     label=f"__Label_Enter__{qualname}",
                 )
-            state.add_node(_Labeller(unique_name=f"Enter__{qualname}"))
+            state.add_node(_Labeler(unique_name=f"Enter__{qualname}"))
         if sdfg.out_edges(state) == []:
             state = sdfg.add_state_after(
                 state,
                 label=f"__Label_Exit__{qualname}",
             )
-            state.add_node(_Labeller(unique_name=f"Exit__{qualname}"))
+            state.add_node(_Labeler(unique_name=f"Exit__{qualname}"))

@@ -30,7 +30,7 @@ from ndsl.dsl.dace.dace_config import (
     DaCeOrchestration,
 )
 from ndsl.dsl.dace.dace_executable import DaceExecutable
-from ndsl.dsl.dace.labeller import set_label
+from ndsl.dsl.dace.labeler import set_label
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
