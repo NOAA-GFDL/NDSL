@@ -522,9 +522,8 @@ class _LazyComputepathMethod:
                 *args,
                 **kwargs,
             )
-            assert sdfg is not None
             # Label the code (this is the topmost code)
-            if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            if sdfg is not None and _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=True)
             return _call_sdfg(
                 self.daceprog,
@@ -536,9 +535,8 @@ class _LazyComputepathMethod:
 
         def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             sdfg = _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
-            assert sdfg is not None
             # Label the code
-            if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            if sdfg is not None and _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=False)
             return sdfg
 
