@@ -30,6 +30,7 @@ from ndsl.dsl.dace.dace_config import (
     DaCeOrchestration,
 )
 from ndsl.dsl.dace.dace_executable import DaceExecutable
+from ndsl.dsl.dace.labeler import set_label
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
@@ -521,6 +522,9 @@ class _LazyComputepathMethod:
                 *args,
                 **kwargs,
             )
+            # Label the code (this is the topmost code)
+            if sdfg is not None and _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+                set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=True)
             return _call_sdfg(
                 self.daceprog,
                 sdfg,
@@ -530,7 +534,11 @@ class _LazyComputepathMethod:
             )
 
         def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-            return _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
+            sdfg = _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
+            # Label the code
+            if sdfg is not None and _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+                set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=False)
+            return sdfg
 
         def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
             return self.daceprog.__sdfg_closure__(reevaluate)
