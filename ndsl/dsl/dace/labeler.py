@@ -19,7 +19,7 @@ class _Labeler(nodes.LibraryNode):
 
 
 @library.register_expansion(_Labeler, "pure")
-class _ExpandLabeller(xf.ExpandTransformation):
+class _ExpandLabeler(xf.ExpandTransformation):
     environments: list[Any] = []
 
     @staticmethod
