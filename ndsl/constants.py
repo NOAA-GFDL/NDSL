@@ -40,9 +40,9 @@ ndsl_log.info(f"Constant selected: {CONST_VERSION}")
 
 I_DIM = X_DIM = "i"
 I_INTERFACE_DIM = X_INTERFACE_DIM = "i_interface"
-J_DIM = J_DIM = "j"
+J_DIM = Y_DIM = "j"
 J_INTERFACE_DIM = Y_INTERFACE_DIM = "j_interface"
-K_DIM = K_DIM = "k"
+K_DIM = Z_DIM = "k"
 K_INTERFACE_DIM = Z_INTERFACE_DIM = "k_interface"
 K_SOIL_DIM = Z_SOIL_DIM = "k_soil"
 
