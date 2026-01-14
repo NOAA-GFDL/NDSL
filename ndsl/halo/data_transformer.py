@@ -56,7 +56,7 @@ INDICES_CACHE: dict[str, "cp.ndarray"] = {}
 def _build_flatten_indices(  # type: ignore[no-untyped-def]
     key,
     shape,
-    slices: tuple[slice],
+    slices: tuple[slice, ...],
     dims,
     strides,
     itemsize: int,
@@ -525,7 +525,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
             offset += data_size
 
     def _unpack_vector(
-        self, quantities_x: list[Quantity], quantities_y: list[Quantity]
+        self, quantities_x: Sequence[Quantity], quantities_y: Sequence[Quantity]
     ) -> None:
         if __debug__:
             if len(quantities_x) != len(self._infos_x) and len(quantities_y) != len(
@@ -603,7 +603,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
     def _flatten_indices(
         self,
         exchange_data: HaloExchangeSpec,
-        slices: tuple[slice],
+        slices: tuple[slice, ...],
         rotate: bool,
     ) -> "cp.ndarray":
         """Extract a flat array of indices from the memory layout and the slice.
@@ -649,12 +649,12 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                     x_send_indices=self._flatten_indices(
                         info_x,
                         info_x.pack_slices,
-                        True,  # type: ignore[arg-type]
+                        True,
                     ),
                     x_recv_indices=self._flatten_indices(
                         info_x,
                         info_x.unpack_slices,
-                        False,  # type: ignore[arg-type]
+                        False,
                     ),
                     y_send_indices=None,
                     y_recv_indices=None,
@@ -667,22 +667,22 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                     x_send_indices=self._flatten_indices(
                         info_x,
                         info_x.pack_slices,
-                        True,  # type: ignore[arg-type]
+                        True,
                     ),
                     x_recv_indices=self._flatten_indices(
                         info_x,
                         info_x.unpack_slices,
-                        False,  # type: ignore[arg-type]
+                        False,
                     ),
                     y_send_indices=self._flatten_indices(
                         info_y,
                         info_y.pack_slices,
-                        True,  # type: ignore[arg-type]
+                        True,
                     ),
                     y_recv_indices=self._flatten_indices(
                         info_y,
                         info_y.unpack_slices,
-                        False,  # type: ignore[arg-type]
+                        False,
                     ),
                 )
 
@@ -882,7 +882,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
         else:
             raise RuntimeError(f"Unimplemented {self._type} unpack")
 
-    def _opt_unpack_scalar(self, quantities: list[Quantity]) -> None:
+    def _opt_unpack_scalar(self, quantities: Sequence[Quantity]) -> None:
         """Specialized unpacking for scalars. See async_unpack docs for usage."""
         if __debug__:
             if len(quantities) != len(self._infos_x):
@@ -937,7 +937,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                 offset += info_x._unpack_buffer_size
 
     def _opt_unpack_vector(
-        self, quantities_x: list[Quantity], quantities_y: list[Quantity]
+        self, quantities_x: Sequence[Quantity], quantities_y: Sequence[Quantity]
     ) -> None:
         """Specialized unpacking for vectors. See async_unpack docs for usage."""
         if __debug__:

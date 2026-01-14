@@ -291,9 +291,11 @@ class HaloUpdater:
         # to proper quantities
         with self._timer.clock("unpack"):
             for buffer in self._transformers.values():
+                if self._inflight_x_quantities is None:
+                    raise RuntimeError("Coding error, no quantities in flights")
                 buffer.async_unpack(
                     self._inflight_x_quantities,
-                    self._inflight_y_quantities,  # type: ignore[arg-type]
+                    self._inflight_y_quantities,
                 )
             if self._finalize_on_wait:
                 for transformer in self._transformers.values():
