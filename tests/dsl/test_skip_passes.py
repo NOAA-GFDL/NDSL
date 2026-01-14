@@ -13,7 +13,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
@@ -43,7 +43,7 @@ def test_skip_passes_becomes_oir_pipeline() -> None:
     ) as mock_stencil_builder:
         factory.from_dims_halo(
             stencil_definition,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
     pipeline: DefaultPipeline = mock_stencil_builder.call_args.kwargs.get(
         "oir_pipeline", DefaultPipeline()
@@ -55,7 +55,7 @@ def test_skip_passes_becomes_oir_pipeline() -> None:
     ) as mock_stencil_builder:
         factory.from_dims_halo(
             stencil_definition,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
             skip_passes=("HorizontalExecutionMerging",),
         )
     assert "oir_pipeline" in mock_stencil_builder.call_args.kwargs

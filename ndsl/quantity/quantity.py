@@ -420,7 +420,7 @@ class Quantity:
         Args:
             target_dims: a list of output dimensions. Instead of a single dimension
                 name, an iterable of dimensions can be used instead for any entries.
-                For example, you may want to use X_DIMS to place an
+                For example, you may want to use I_DIMS to place an
                 x-dimension without knowing whether it is on cell centers or interfaces.
 
         Returns:
@@ -437,22 +437,22 @@ class Quantity:
             >>> import numpy as np
             >>> quantity = Quantity(
             ...     data=np.zeros([2, 3, 4]),
-            ...     dims=[X_DIM, Y_DIM, Z_DIM],
+            ...     dims=[I_DIM, J_DIM, K_DIM],
             ...             units="m",
             ... )
 
             If you know you are working with cell-centered variables, you can do:
 
-            >>> from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-            >>> transposed_quantity = quantity.transpose([X_DIM, Y_DIM, Z_DIM])
+            >>> from ndsl.constants import I_DIM, J_DIM, K_DIM
+            >>> transposed_quantity = quantity.transpose([I_DIM, J_DIM, K_DIM])
 
             To support re-ordering without checking whether quantities are on
             cell centers or interfaces, the API supports giving a list of dimension
             names for dimensions. For example, to re-order to X-Y-Z dimensions
             regardless of the grid the variable is on, one could do:
 
-            >>> from ndsl.constants import X_DIMS, Y_DIMS, Z_DIMS
-            >>> transposed_quantity = quantity.transpose([X_DIMS, Y_DIMS, Z_DIMS])
+            >>> from ndsl.constants import I_DIMS, J_DIMS, K_DIMS
+            >>> transposed_quantity = quantity.transpose([I_DIMS, J_DIMS, K_DIMS])
         """
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]

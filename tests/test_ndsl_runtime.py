@@ -7,7 +7,7 @@ from ndsl.boilerplate import (
     get_factories_single_tile,
     get_factories_single_tile_orchestrated,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
@@ -23,9 +23,9 @@ class Code(NDSLRuntime):
     ) -> None:
         super().__init__(stencil_factory)
         self.copy = stencil_factory.from_dims_halo(
-            the_copy_stencil, compute_dims=[X_DIM, Y_DIM, Z_DIM]
+            the_copy_stencil, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self.local = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
+        self.local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
 
     def test_check(self) -> None:
         assert self.local.__descriptor__().transient
@@ -54,8 +54,8 @@ def test_runtime_make_local() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         5, 5, 3, 0, backend="numpy"
     )
-    A_ = quantity_factory.ones(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-    B_ = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
+    A_ = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+    B_ = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
 
     code = Code(stencil_factory, quantity_factory)
 
@@ -75,8 +75,8 @@ def test_runtime_has_orchestracted_call() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 3, 0, backend="dace:cpu_kfirst"
     )
-    A_ = quantity_factory.ones(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-    B_ = quantity_factory.zeros(dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
+    A_ = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+    B_ = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
     code = Code(stencil_factory, quantity_factory)
     code(A_, B_)
 

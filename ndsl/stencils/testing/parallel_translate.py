@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from ndsl.constants import HORIZONTAL_DIMS, N_HALO_DEFAULT, X_DIMS, Y_DIMS
+from ndsl.constants import HORIZONTAL_DIMS, N_HALO_DEFAULT, I_DIMS, J_DIMS
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.translate import (
@@ -170,9 +170,9 @@ def _serialize_slice(quantity, n_halo, real_dims=None):
             if dim in HORIZONTAL_DIMS:
                 if isinstance(n_halo, int):
                     halo = n_halo
-                elif dim in X_DIMS:
+                elif dim in I_DIMS:
                     halo = n_halo[0]
-                elif dim in Y_DIMS:
+                elif dim in J_DIMS:
                     halo = n_halo[1]
                 else:
                     raise RuntimeError(n_halo)

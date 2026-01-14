@@ -2,7 +2,7 @@ import pytest
 
 from ndsl import StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.stencils import (
     adjust_divide_stencil,
@@ -83,11 +83,11 @@ def test_copy():
     )
 
     infield = quantity_factory.zeros(
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=[I_DIM, J_DIM, K_DIM],
         units="m",
     )
     outfield = quantity_factory.ones(
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=[I_DIM, J_DIM, K_DIM],
         units="m",
     )
 
@@ -114,8 +114,8 @@ def test_adjustment_factor():
         nx=20, ny=20, nz=79, nhalo=0
     )
 
-    factor = quantity_factory.full(dims=[X_DIM, Y_DIM], units="m", value=2.0)
-    outfield = quantity_factory.full(dims=[X_DIM, Y_DIM, Z_DIM], units="m", value=2.0)
+    factor = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
+    outfield = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
 
     stencil = AdjustmentFactor(stencil_factory)
     stencil(factor=factor, f_out=outfield)
@@ -129,7 +129,7 @@ def test_setvalue():
     fill_value = 2.0
 
     outfield = quantity_factory.zeros(
-        dims=[X_DIM, Y_DIM, Z_DIM],
+        dims=[I_DIM, J_DIM, K_DIM],
         units="m",
     )
 
@@ -144,8 +144,8 @@ def test_adjust_divide():
         nx=20, ny=20, nz=79, nhalo=0
     )
 
-    factor = quantity_factory.full(dims=[X_DIM, Y_DIM, Z_DIM], units="m", value=2.0)
-    outfield = quantity_factory.full(dims=[X_DIM, Y_DIM, Z_DIM], units="m", value=2.0)
+    factor = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
+    outfield = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
 
     stencil = AdjustDivide(stencil_factory)
     stencil(factor=factor, f_out=outfield)

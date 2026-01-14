@@ -16,7 +16,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance import Timer
 
@@ -119,7 +119,7 @@ def module_count_calls_to_zeros(module):
 def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
     with module_count_calls_to_zeros(np), module_count_calls_to_zeros(cp):
         shape = (10, 10, 79)
-        dims = (X_DIM, Y_DIM, Z_DIM)
+        dims = (I_DIM, J_DIM, K_DIM)
         data = cp.ones(shape, dtype=float)
         quantity = Quantity(
             data,
@@ -149,9 +149,9 @@ def test_halo_update_communicate_though_cpu(backend, cpu_communicators):
         quantity = Quantity(
             data,
             dims=(
-                X_DIM,
-                Y_DIM,
-                Z_DIM,
+                I_DIM,
+                J_DIM,
+                K_DIM,
             ),
             units="m",
             origin=(3, 3, 0),

@@ -68,7 +68,7 @@ class SubtileGridSizer(GridSizer):
             tile_partitioner = TilePartitioner(layout)
         y_slice, x_slice = tile_partitioner.subtile_slice(
             tile_rank,
-            [constants.Y_DIM, constants.X_DIM],
+            [constants.J_DIM, constants.I_DIM],
             [ny_tile, nx_tile],
             overlap=True,
         )
@@ -139,12 +139,12 @@ class SubtileGridSizer(GridSizer):
         return_dict = self.data_dimensions.copy()
         return_dict.update(
             {
-                constants.X_DIM: self.nx,
-                constants.X_INTERFACE_DIM: self.nx + 1,
-                constants.Y_DIM: self.ny,
-                constants.Y_INTERFACE_DIM: self.ny + 1,
-                constants.Z_DIM: self.nz,
-                constants.Z_INTERFACE_DIM: self.nz + 1,
+                constants.I_DIM: self.nx,
+                constants.I_INTERFACE_DIM: self.nx + 1,
+                constants.J_DIM: self.ny,
+                constants.J_INTERFACE_DIM: self.ny + 1,
+                constants.K_DIM: self.nz,
+                constants.K_INTERFACE_DIM: self.nz + 1,
             }
         )
         return return_dict
@@ -165,12 +165,12 @@ class SubtileGridSizer(GridSizer):
         pad = 1 if self._pad_non_interface_dimensions else 0
         shape_dict.update(
             {
-                constants.X_DIM: self.nx + pad + 2 * self.n_halo,
-                constants.X_INTERFACE_DIM: self.nx + 1 + 2 * self.n_halo,
-                constants.Y_DIM: self.ny + pad + 2 * self.n_halo,
-                constants.Y_INTERFACE_DIM: self.ny + 1 + 2 * self.n_halo,
-                constants.Z_DIM: self.nz + pad,
-                constants.Z_INTERFACE_DIM: self.nz + 1,
+                constants.I_DIM: self.nx + pad + 2 * self.n_halo,
+                constants.I_INTERFACE_DIM: self.nx + 1 + 2 * self.n_halo,
+                constants.J_DIM: self.ny + pad + 2 * self.n_halo,
+                constants.J_INTERFACE_DIM: self.ny + 1 + 2 * self.n_halo,
+                constants.K_DIM: self.nz + pad,
+                constants.K_INTERFACE_DIM: self.nz + 1,
             }
         )
         return tuple(shape_dict[dim] for dim in dims)

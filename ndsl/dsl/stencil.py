@@ -21,7 +21,7 @@ from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
-from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.constants import I_DIM, I_DIMS, J_DIM, J_DIMS, K_DIM, K_DIMS
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
@@ -332,9 +332,9 @@ class FrozenStencil(SDFGConvertible):
                 ),
             )
 
-        assert (
-            len(self._argument_names) > 0
-        ), "A stencil with no arguments? You may be double decorating"
+        assert len(self._argument_names) > 0, (
+            "A stencil with no arguments? You may be double decorating"
+        )
 
         # Overloading `dtypes` to allow parsing of NDSL concepts
         ndsl_dtypes = {
@@ -589,7 +589,7 @@ class FrozenStencil(SDFGConvertible):
 
         domain_sizes = {
             axis_name: axis_size
-            for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
+            for axis_names, axis_size in zip([I_DIMS, J_DIMS, K_DIMS], self.domain)
             for axis_name in axis_names
         }
 
@@ -597,10 +597,10 @@ class FrozenStencil(SDFGConvertible):
             if isinstance(argument, Quantity):
                 for axis, quantity_size in zip(argument.dims, argument.extent):
                     full_size = quantity_size
-                    if axis in (X_DIMS + Y_DIMS):
+                    if axis in (I_DIMS + J_DIMS):
                         full_size += 2 * argument.metadata.n_halo
                     if (
-                        axis in (X_DIMS + Y_DIMS + Z_DIMS)
+                        axis in (I_DIMS + J_DIMS + K_DIMS)
                         and full_size < domain_sizes[axis]
                     ):
                         ndsl_log.warning(
@@ -693,7 +693,7 @@ class GridIndexing:
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
             tuple[int, int, int],
-            sizer.get_extent([X_DIM, Y_DIM, Z_DIM]),
+            sizer.get_extent([I_DIM, J_DIM, K_DIM]),
         )
         south_edge = comm.tile.partitioner.on_tile_bottom(comm.rank)
         north_edge = comm.tile.partitioner.on_tile_top(comm.rank)
@@ -898,11 +898,11 @@ class GridIndexing:
     def _origin_from_dims(self, dims: Iterable[str]) -> list[int]:
         return_origin = []
         for dim in dims:
-            if dim in X_DIMS:
+            if dim in I_DIMS:
                 return_origin.append(self.origin[0])
-            elif dim in Y_DIMS:
+            elif dim in J_DIMS:
                 return_origin.append(self.origin[1])
-            elif dim in Z_DIMS:
+            elif dim in K_DIMS:
                 return_origin.append(self.origin[2])
         return return_origin
 
@@ -925,7 +925,7 @@ class GridIndexing:
         for i, d in enumerate(dims):
             # need n_halo points at the start of the domain, regardless of whether
             # they are read, so that data is aligned in memory
-            if d in (X_DIMS + Y_DIMS):
+            if d in (I_DIMS + J_DIMS):
                 shape[i] += self.n_halo
         for i, n in enumerate(halos):
             shape[i] += n

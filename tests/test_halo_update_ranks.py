@@ -8,12 +8,12 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.constants import (
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
 )
 from ndsl.performance import Timer
 
@@ -42,12 +42,12 @@ def total_ranks(ranks_per_tile):
 def shape(nz, ny, nx, dims, n_points):
     return_list = []
     length_dict = {
-        X_DIM: 2 * n_points + nx,
-        X_INTERFACE_DIM: 2 * n_points + nx + 1,
-        Y_DIM: 2 * n_points + ny,
-        Y_INTERFACE_DIM: 2 * n_points + ny + 1,
-        Z_DIM: nz,
-        Z_INTERFACE_DIM: nz + 1,
+        I_DIM: 2 * n_points + nx,
+        I_INTERFACE_DIM: 2 * n_points + nx + 1,
+        J_DIM: 2 * n_points + ny,
+        J_INTERFACE_DIM: 2 * n_points + ny + 1,
+        K_DIM: nz,
+        K_INTERFACE_DIM: nz + 1,
     }
     for dim in dims:
         return_list.append(length_dict[dim])
@@ -58,12 +58,12 @@ def shape(nz, ny, nx, dims, n_points):
 def origin(n_points, dims):
     return_list = []
     origin_dict = {
-        X_DIM: n_points,
-        X_INTERFACE_DIM: n_points,
-        Y_DIM: n_points,
-        Y_INTERFACE_DIM: n_points,
-        Z_DIM: 0,
-        Z_INTERFACE_DIM: 0,
+        I_DIM: n_points,
+        I_INTERFACE_DIM: n_points,
+        J_DIM: n_points,
+        J_INTERFACE_DIM: n_points,
+        K_DIM: 0,
+        K_INTERFACE_DIM: 0,
     }
     for dim in dims:
         return_list.append(origin_dict[dim])
@@ -74,12 +74,12 @@ def origin(n_points, dims):
 def extent(n_points, dims, nz, ny, nx):
     return_list = []
     extent_dict = {
-        X_DIM: nx,
-        X_INTERFACE_DIM: nx + 1,
-        Y_DIM: ny,
-        Y_INTERFACE_DIM: ny + 1,
-        Z_DIM: nz,
-        Z_INTERFACE_DIM: nz + 1,
+        I_DIM: nx,
+        I_INTERFACE_DIM: nx + 1,
+        J_DIM: ny,
+        J_INTERFACE_DIM: ny + 1,
+        K_DIM: nz,
+        K_INTERFACE_DIM: nz + 1,
     }
     for dim in dims:
         return_list.append(extent_dict[dim])
@@ -122,7 +122,7 @@ def rank_quantity_list(total_ranks, numpy, dtype):
         data[1, 1] = rank
         quantity = Quantity(
             data,
-            dims=(Y_DIM, X_DIM),
+            dims=(J_DIM, I_DIM),
             units="m",
             origin=(1, 1),
             extent=(1, 1),

@@ -9,7 +9,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, horizontal, interval, region
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import CompareToNumpyStencil, get_stencils_with_varied_bounds
@@ -158,7 +158,7 @@ def test_stencil_factory_numpy_comparison_from_dims_halo(
     factory = StencilFactory(config=config, grid_indexing=indexing)
     stencil = factory.from_dims_halo(
         func=copy_stencil,
-        compute_dims=[X_DIM, Y_DIM, Z_DIM],
+        compute_dims=[I_DIM, J_DIM, K_DIM],
         compute_halos=(),
     )
     if enabled:

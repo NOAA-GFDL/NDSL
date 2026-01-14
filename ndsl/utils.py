@@ -39,9 +39,9 @@ def list_by_dims(
     """
     return_list = []
     for dim in dims:
-        if dim in constants.Y_DIMS:
+        if dim in constants.J_DIMS:
             return_list.append(horizontal_list[0])
-        elif dim in constants.X_DIMS:
+        elif dim in constants.I_DIMS:
             return_list.append(horizontal_list[1])
         else:
             return_list.append(non_horizontal_value)

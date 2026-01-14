@@ -3,7 +3,7 @@
 import numpy as np
 
 from ndsl.comm.partitioner import TilePartitioner
-from ndsl.constants import N_HALO_DEFAULT, X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import N_HALO_DEFAULT, I_DIM, J_DIM, K_DIM
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.grid.generation import GridDefinitions
@@ -166,7 +166,7 @@ class Grid:
     def make_quantity(
         self,
         array,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
         units="Unknown",
         origin=None,
         extent=None,
@@ -181,7 +181,7 @@ class Grid:
         self,
         data_dict,
         varname,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
         units="Unknown",
     ):
         data_dict[varname + "_quantity"] = self.quantity_wrap(
@@ -191,7 +191,7 @@ class Grid:
     def quantity_wrap(
         self,
         data,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
         units="unknown",
     ):
         origin = self.sizer.get_origin(dims)
@@ -440,7 +440,7 @@ class Grid:
         shape,
         origin,
         halo_points,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update."""
         return self.quantity_factory.get_quantity_halo_spec(

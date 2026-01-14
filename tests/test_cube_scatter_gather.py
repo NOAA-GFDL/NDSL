@@ -13,12 +13,12 @@ from ndsl import (
 from ndsl.constants import (
     HORIZONTAL_DIMS,
     TILE_DIM,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
 )
 from ndsl.performance import Timer
 
@@ -41,23 +41,23 @@ def n_tile_halo(request):
 @pytest.fixture(params=["x,y", "y,x", "xi,y", "x,y,z", "z,y,x", "y,z,x"])
 def dims(request, fast):
     if request.param == "x,y":
-        return [X_DIM, Y_DIM]
+        return [I_DIM, J_DIM]
     elif request.param == "y,x":
         if fast:
             pytest.skip("running in fast mode")
         else:
-            return [Y_DIM, X_DIM]
+            return [J_DIM, I_DIM]
     elif request.param == "xi,y":
-        return [X_INTERFACE_DIM, Y_DIM]
+        return [I_INTERFACE_DIM, J_DIM]
     elif request.param == "x,y,z":
-        return [X_DIM, Y_DIM, Z_DIM]
+        return [I_DIM, J_DIM, K_DIM]
     elif request.param == "z,y,x":
         if fast:
             pytest.skip("running in fast mode")
         else:
-            return [Z_DIM, Y_DIM, X_DIM]
+            return [K_DIM, J_DIM, I_DIM]
     elif request.param == "y,z,x":
-        return [Y_DIM, Z_DIM, X_DIM]
+        return [J_DIM, K_DIM, I_DIM]
     else:
         raise NotImplementedError()
 
@@ -83,12 +83,12 @@ def assert_quantity_equals(result, reference):
 @pytest.fixture()
 def dim_lengths(layout):
     return {
-        X_DIM: 2 * layout[1],
-        X_INTERFACE_DIM: 2 * layout[1] + 1,
-        Y_DIM: 2 * layout[0],
-        Y_INTERFACE_DIM: 2 * layout[0] + 1,
-        Z_DIM: 3,
-        Z_INTERFACE_DIM: 4,
+        I_DIM: 2 * layout[1],
+        I_INTERFACE_DIM: 2 * layout[1] + 1,
+        J_DIM: 2 * layout[0],
+        J_INTERFACE_DIM: 2 * layout[0] + 1,
+        K_DIM: 3,
+        K_INTERFACE_DIM: 4,
     }
 
 

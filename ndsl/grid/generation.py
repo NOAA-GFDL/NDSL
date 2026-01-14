@@ -13,12 +13,12 @@ from ndsl.constants import (
     N_HALO_DEFAULT,
     PI,
     RADIUS,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
 )
 from ndsl.dsl.gt4py_utils import asarray
 from ndsl.dsl.stencil import GridIndexing
@@ -89,8 +89,8 @@ class GridDefinition:
 
 
 class GridDefinitions:
-    CELL_CENTER = (X_DIM, Y_DIM)
-    CELL_CORNERS = (X_INTERFACE_DIM, Y_INTERFACE_DIM)
+    CELL_CENTER = (I_DIM, J_DIM)
+    CELL_CORNERS = (I_INTERFACE_DIM, J_INTERFACE_DIM)
     LON_OR_LAT_DIM = "lon_or_lat"
     TILE_DIM = "tile"
     CARTESIAN_DIM = "xyz_direction"
@@ -105,10 +105,10 @@ class GridDefinitions:
     area_cgrid = GridDefinition(dims=CELL_CORNERS, units="m^2")
     rarea = GridDefinition(dims=area.dims, units="1/m^2")
     rarea_c = GridDefinition(dims=area_cgrid.dims, units="1/m^2")
-    dx = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="m")
-    dy = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="m")
-    dxc = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="m")
-    dyc = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="m")
+    dx = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="m")
+    dy = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="m")
+    dxc = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="m")
+    dyc = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="m")
     dxa = GridDefinition(dims=CELL_CENTER, units="m")
     dya = GridDefinition(dims=CELL_CENTER, units="m")
     rdx = GridDefinition(dims=dx.dims, units="1/m")
@@ -117,95 +117,95 @@ class GridDefinitions:
     rdyc = GridDefinition(dims=dyc.dims, units="1/m")
     rdxa = GridDefinition(dims=dxa.dims, units="1/m")
     rdya = GridDefinition(dims=dya.dims, units="1/m")
-    ak = GridDefinition(dims=(Z_INTERFACE_DIM,), units="m")
-    bk = GridDefinition(dims=(Z_INTERFACE_DIM,), units="m")
+    ak = GridDefinition(dims=(K_INTERFACE_DIM,), units="m")
+    bk = GridDefinition(dims=(K_INTERFACE_DIM,), units="m")
     ec1 = GridDefinition(dims=CELL_CENTER + (CARTESIAN_DIM,), units="m")
     ec2 = GridDefinition(dims=CELL_CENTER + (CARTESIAN_DIM,), units="m")
     ew1 = GridDefinition(dims=CELL_CORNERS + (CARTESIAN_DIM,), units="m")
     ew2 = GridDefinition(dims=CELL_CORNERS + (CARTESIAN_DIM,), units="m")
     es1 = GridDefinition(
         dims=(
-            X_DIM,
-            Y_INTERFACE_DIM,
+            I_DIM,
+            J_INTERFACE_DIM,
             CARTESIAN_DIM,
         ),
         units="m",
     )
     es2 = GridDefinition(
         dims=(
-            X_DIM,
-            Y_INTERFACE_DIM,
+            I_DIM,
+            J_INTERFACE_DIM,
             CARTESIAN_DIM,
         ),
         units="m",
     )
-    cosa_u = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="")
-    cosa_v = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="")
-    cosa_s = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sina_u = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="")
-    sina_v = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="")
-    rsin_u = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="")
-    rsin_v = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="")
-    rsina = GridDefinition(dims=(X_INTERFACE_DIM, Y_INTERFACE_DIM), units="")
-    rsin2 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cosa = GridDefinition(dims=(X_INTERFACE_DIM, Y_INTERFACE_DIM), units="")
-    sina = GridDefinition(dims=(X_INTERFACE_DIM, Y_INTERFACE_DIM), units="")
-    cos_sg1 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg2 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg3 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg4 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg5 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg6 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg7 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg8 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    cos_sg9 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg1 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg2 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg3 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg4 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg5 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg6 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg7 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg8 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    sin_sg9 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    l2c_u = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="")
-    l2c_v = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="")
+    cosa_u = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
+    cosa_v = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
+    cosa_s = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sina_u = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
+    sina_v = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
+    rsin_u = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
+    rsin_v = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
+    rsina = GridDefinition(dims=(I_INTERFACE_DIM, J_INTERFACE_DIM), units="")
+    rsin2 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cosa = GridDefinition(dims=(I_INTERFACE_DIM, J_INTERFACE_DIM), units="")
+    sina = GridDefinition(dims=(I_INTERFACE_DIM, J_INTERFACE_DIM), units="")
+    cos_sg1 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg2 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg3 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg4 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg5 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg6 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg7 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg8 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    cos_sg9 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg1 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg2 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg3 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg4 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg5 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg6 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg7 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg8 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    sin_sg9 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    l2c_u = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
+    l2c_v = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
     ee1 = GridDefinition(dims=CELL_CORNERS + (CARTESIAN_DIM,), units="")
     ee2 = GridDefinition(dims=CELL_CORNERS + (CARTESIAN_DIM,), units="")
-    del6_u = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="")
-    del6_v = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="")
-    divg_u = GridDefinition(dims=(X_DIM, Y_INTERFACE_DIM), units="")
-    divg_v = GridDefinition(dims=(X_INTERFACE_DIM, Y_DIM), units="")
-    z11 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    z12 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    z21 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    z22 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    a11 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    a12 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    a21 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    a22 = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    edge_s = GridDefinition(dims=(X_INTERFACE_DIM,), units="")
-    edge_n = GridDefinition(dims=(X_INTERFACE_DIM,), units="")
+    del6_u = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
+    del6_v = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
+    divg_u = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
+    divg_v = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
+    z11 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    z12 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    z21 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    z22 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    a11 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    a12 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    a21 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    a22 = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    edge_s = GridDefinition(dims=(I_INTERFACE_DIM,), units="")
+    edge_n = GridDefinition(dims=(I_INTERFACE_DIM,), units="")
     edge_e = GridDefinition(
         dims=(
-            X_DIM,
-            Y_INTERFACE_DIM,
+            I_DIM,
+            J_INTERFACE_DIM,
         ),
         units="",
     )
     edge_w = GridDefinition(
         dims=(
-            X_DIM,
-            Y_INTERFACE_DIM,
+            I_DIM,
+            J_INTERFACE_DIM,
         ),
         units="",
     )
-    edge_vect_s = GridDefinition(dims=(X_DIM,), units="")
-    edge_vect_n = GridDefinition(dims=(X_DIM,), units="")
-    edge_vect_e_1d = GridDefinition(dims=(Y_DIM,), units="")
-    edge_vect_w_1d = GridDefinition(dims=(Y_DIM,), units="")
-    edge_vect_e = GridDefinition(dims=(X_DIM, Y_DIM), units="")
-    edge_vect_w = GridDefinition(dims=(X_DIM, Y_DIM), units="")
+    edge_vect_s = GridDefinition(dims=(I_DIM,), units="")
+    edge_vect_n = GridDefinition(dims=(I_DIM,), units="")
+    edge_vect_e_1d = GridDefinition(dims=(J_DIM,), units="")
+    edge_vect_w_1d = GridDefinition(dims=(J_DIM,), units="")
+    edge_vect_e = GridDefinition(dims=(I_DIM, J_DIM), units="")
+    edge_vect_w = GridDefinition(dims=(I_DIM, J_DIM), units="")
 
 
 # TODO
@@ -253,8 +253,8 @@ class MetricTerms:
             self.quantity_factory.sizer, self._comm
         )
         self._grid_dims = [
-            X_INTERFACE_DIM,
-            Y_INTERFACE_DIM,
+            I_INTERFACE_DIM,
+            J_INTERFACE_DIM,
             self.LON_OR_LAT_DIM,
         ]
         self._grid_64 = self.quantity_factory.zeros(
@@ -269,9 +269,9 @@ class MetricTerms:
         npx, npy, _ = self._tile_partitioner.global_extent(self._grid_64)
         self._npx = npx
         self._npy = npy
-        self._npz = self.quantity_factory.sizer.get_extent(Z_DIM)[0]
+        self._npz = self.quantity_factory.sizer.get_extent(K_DIM)[0]
         self._agrid_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.LON_OR_LAT_DIM],
+            [I_DIM, J_DIM, self.LON_OR_LAT_DIM],
             "radians",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -307,12 +307,12 @@ class MetricTerms:
             self._ks = 0
             self._ptop = 0
             self._ak = self.quantity_factory.zeros(
-                [Z_INTERFACE_DIM],
+                [K_INTERFACE_DIM],
                 "Pa",
                 dtype=Float,
             )
             self._bk = self.quantity_factory.zeros(
-                [Z_INTERFACE_DIM],
+                [K_INTERFACE_DIM],
                 "",
                 dtype=Float,
             )
@@ -1874,7 +1874,7 @@ class MetricTerms:
 
     def _compute_dxdy_cube_sphere(self):
         dx_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -1888,7 +1888,7 @@ class MetricTerms:
             axis=0,
         )
         dy_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -1924,7 +1924,7 @@ class MetricTerms:
 
     def _compute_dxdy_cartesian(self):
         dx_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -1932,7 +1932,7 @@ class MetricTerms:
         dx_64.data[:, :] = self._dx_const
 
         dy_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -1948,13 +1948,13 @@ class MetricTerms:
 
     def _compute_dxdy_agrid_cube_sphere(self):
         dx_agrid_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         dy_agrid_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -1997,7 +1997,7 @@ class MetricTerms:
 
     def _compute_dxdy_agrid_cartesian(self):
         dx_agrid_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2005,7 +2005,7 @@ class MetricTerms:
         dx_agrid_64.data[:, :] = self._dx_const
 
         dy_agrid_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2019,13 +2019,13 @@ class MetricTerms:
 
     def _compute_dxdy_center_cube_sphere(self):
         dx_center_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         dy_center_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2094,7 +2094,7 @@ class MetricTerms:
 
     def _compute_dxdy_center_cartesian(self):
         dx_center_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2102,7 +2102,7 @@ class MetricTerms:
         dx_center_64.data[:, :] = self._dx_const
 
         dy_center_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "m",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2118,7 +2118,7 @@ class MetricTerms:
 
     def _compute_area_cube_sphere(self) -> tuple[Quantity, Quantity]:
         area_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "m^2",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2137,7 +2137,7 @@ class MetricTerms:
 
     def _compute_area_cartesian(self) -> tuple[Quantity, Quantity]:
         area_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "m^2",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2147,7 +2147,7 @@ class MetricTerms:
 
     def _compute_area_c_cube_sphere(self):
         area_cgrid_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "m^2",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2191,7 +2191,7 @@ class MetricTerms:
 
     def _compute_area_c_cartesian(self):
         area_cgrid_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "m^2",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2206,12 +2206,12 @@ class MetricTerms:
         bk_data: np.ndarray | None = None,
     ) -> tuple[int, int, Quantity, Quantity]:
         ak = self.quantity_factory.zeros(
-            [Z_INTERFACE_DIM],
+            [K_INTERFACE_DIM],
             "Pa",
             dtype=Float,
         )
         bk = self.quantity_factory.zeros(
-            [Z_INTERFACE_DIM],
+            [K_INTERFACE_DIM],
             "",
             dtype=Float,
         )
@@ -2229,13 +2229,13 @@ class MetricTerms:
 
     def _calculate_center_vectors_cube_sphere(self):
         ec1_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         ec2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2259,13 +2259,13 @@ class MetricTerms:
 
     def _calculate_center_vectors_cartesian(self):
         ec1_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         ec2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2281,13 +2281,13 @@ class MetricTerms:
 
     def _calculate_vectors_west_cube_sphere(self):
         ew1_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         ew2_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2310,13 +2310,13 @@ class MetricTerms:
 
     def _calculate_vectors_west_cartesian(self):
         ew1_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         ew2_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2330,12 +2330,12 @@ class MetricTerms:
 
     def _calculate_vectors_south_cube_sphere(self):
         es1_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             allow_mismatch_float_precision=True,
         )
         es2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             allow_mismatch_float_precision=True,
         )
@@ -2357,12 +2357,12 @@ class MetricTerms:
 
     def _calculate_vectors_south_cartesian(self):
         es1_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             allow_mismatch_float_precision=True,
         )
         es2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             allow_mismatch_float_precision=True,
         )
@@ -2375,67 +2375,67 @@ class MetricTerms:
 
     def _calculate_more_trig_terms(self, cos_sg, sin_sg):
         cosa_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_s_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsina_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2477,67 +2477,67 @@ class MetricTerms:
 
     def _init_cell_trigonometry_cube_sphere(self):
         cosa_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_s_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsina_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2595,14 +2595,14 @@ class MetricTerms:
         supergrid_trig = {}
         for i in range(1, 10):
             supergrid_trig[f"cos_sg{i}"] = self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 "",
                 dtype=np.float64,
                 allow_mismatch_float_precision=True,
             )
             supergrid_trig[f"cos_sg{i}"].data[:-1, :-1] = cos_sg[:, :, i - 1]
             supergrid_trig[f"sin_sg{i}"] = self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 "",
                 dtype=np.float64,
                 allow_mismatch_float_precision=True,
@@ -2682,67 +2682,67 @@ class MetricTerms:
 
     def _init_cell_trigonometry_cartesian(self):
         cosa_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_s_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_u_64 = self.quantity_factory.ones(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_v_64 = self.quantity_factory.ones(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_u_64 = self.quantity_factory.ones(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_v_64 = self.quantity_factory.ones(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsina_64 = self.quantity_factory.ones(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin2_64 = self.quantity_factory.ones(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_64 = self.quantity_factory.ones(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2750,7 +2750,7 @@ class MetricTerms:
 
         for i in range(1, 10):
             sin_sg = self.quantity_factory.ones(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 "",
                 dtype=np.float64,
                 allow_mismatch_float_precision=True,
@@ -2763,7 +2763,7 @@ class MetricTerms:
             if i == 5:
                 self._sin_sg5_64 = sin_sg
             cos_sg = self.quantity_factory.zeros(
-                [X_DIM, Y_DIM],
+                [I_DIM, J_DIM],
                 "",
                 dtype=np.float64,
                 allow_mismatch_float_precision=True,
@@ -2794,67 +2794,67 @@ class MetricTerms:
         in-place without the halo updates. For use only in validation tests.
         """
         cosa_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_s_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_u_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin_v_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsina_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         rsin2_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         cosa_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         sina_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2923,13 +2923,13 @@ class MetricTerms:
 
     def _calculate_latlon_momentum_correction_cube_sphere(self):
         l2c_v_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=Float,
             allow_mismatch_float_precision=True,
         )
         l2c_u_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=Float,
             allow_mismatch_float_precision=True,
@@ -2946,13 +2946,13 @@ class MetricTerms:
 
     def _calculate_latlon_momentum_correction_cartesian(self):
         l2c_v_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=Float,
             allow_mismatch_float_precision=True,
         )
         l2c_u_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=Float,
             allow_mismatch_float_precision=True,
@@ -2967,13 +2967,13 @@ class MetricTerms:
 
     def _calculate_xy_unit_vectors_cube_sphere(self):
         ee1_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         ee2_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -2994,13 +2994,13 @@ class MetricTerms:
 
     def _calculate_xy_unit_vectors_cartesian(self):
         ee1_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         ee2_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_INTERFACE_DIM, self.CARTESIAN_DIM],
+            [I_INTERFACE_DIM, J_INTERFACE_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3015,25 +3015,25 @@ class MetricTerms:
 
     def _calculate_divg_del6(self):
         del6_u_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         del6_v_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         divg_u_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         divg_v_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3093,25 +3093,25 @@ class MetricTerms:
         in-place without the halo updates. For use only in validation tests.
         """
         del6_u_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         del6_v_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         divg_u_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         divg_v_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3154,13 +3154,13 @@ class MetricTerms:
 
     def _calculate_unit_vectors_lonlat_cube_sphere(self):
         vlon_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         vlat_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3179,13 +3179,13 @@ class MetricTerms:
 
     def _calculate_unit_vectors_lonlat_cartesian(self):
         vlon_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         vlat_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM, self.CARTESIAN_DIM],
+            [I_DIM, J_DIM, self.CARTESIAN_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3202,25 +3202,25 @@ class MetricTerms:
 
     def _calculate_grid_z(self):
         z11_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         z12_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         z21_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         z22_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3257,25 +3257,25 @@ class MetricTerms:
 
     def _calculate_grid_a(self):
         a11_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         a12_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         a21_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         a22_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3309,25 +3309,25 @@ class MetricTerms:
     def _calculate_edge_factors(self):
         nhalo = self._halo
         edge_s_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM],
+            [I_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_n_64 = self.quantity_factory.zeros(
-            [X_INTERFACE_DIM],
+            [I_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_e_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_w_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3357,25 +3357,25 @@ class MetricTerms:
 
     def _calculate_edge_a2c_vect_factors(self):
         edge_vect_s_64 = self.quantity_factory.zeros(
-            [X_DIM],
+            [I_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_vect_n_64 = self.quantity_factory.zeros(
-            [X_DIM],
+            [I_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_vect_e_64 = self.quantity_factory.zeros(
-            [Y_DIM],
+            [J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_vect_w_64 = self.quantity_factory.zeros(
-            [Y_DIM],
+            [J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
@@ -3412,13 +3412,13 @@ class MetricTerms:
 
     def _calculate_2d_edge_a2c_vect_factors(self):
         edge_vect_e_2d_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,
         )
         edge_vect_w_2d_64 = self.quantity_factory.zeros(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             "",
             dtype=np.float64,
             allow_mismatch_float_precision=True,

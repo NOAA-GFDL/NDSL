@@ -2,7 +2,7 @@ from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
 from ndsl import StencilFactory
-from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
+from ndsl.constants import I_INTERFACE_DIM, J_INTERFACE_DIM, K_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
@@ -332,7 +332,7 @@ class FillCornersBGrid:
             default_origin,
             default_domain,
         ) = stencil_factory.grid_indexing.get_origin_domain(
-            dims=[X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM],
+            dims=[I_INTERFACE_DIM, J_INTERFACE_DIM, K_INTERFACE_DIM],
             halos=(n_halo, n_halo),
         )
 
