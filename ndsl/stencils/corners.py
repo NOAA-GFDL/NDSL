@@ -1,3 +1,5 @@
+from typing import Literal, TypeAlias
+
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
@@ -5,6 +7,10 @@ from ndsl import StencilFactory
 from ndsl.constants import X_INTERFACE_DIM, Y_INTERFACE_DIM, Z_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
+
+
+FillCornersDirection: TypeAlias = Literal["x", "y"]
+GridType: TypeAlias = Literal["A", "B", "C", "D", "E"]
 
 
 def kslice_from_inputs(
@@ -26,7 +32,7 @@ def fill_corners_2cells_mult_x(
     se_mult: float,
     nw_mult: float,
     ne_mult: float,
-):
+) -> FloatField:
     """
     Fills cell quantity q using corners from q_corner and multipliers in x-dir.
     """
@@ -59,18 +65,18 @@ def fill_corners_2cells_mult_x(
     return q
 
 
-def fill_corners_2cells_x_stencil(q_out: FloatField, q_in: FloatField):
+def fill_corners_2cells_x_stencil(q_out: FloatField, q_in: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         q_out = fill_corners_2cells_mult_x(q_out, q_in, 1.0, 1.0, 1.0, 1.0)
 
 
-def fill_corners_2cells_y_stencil(q_out: FloatField, q_in: FloatField):
+def fill_corners_2cells_y_stencil(q_out: FloatField, q_in: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         q_out = fill_corners_2cells_mult_y(q_out, q_in, 1.0, 1.0, 1.0, 1.0)
 
 
 @gtscript.function
-def fill_corners_2cells_x(q: FloatField):
+def fill_corners_2cells_x(q: FloatField) -> FloatField:
     """
     Fills cell quantity q in x-dir.
     """
@@ -85,7 +91,7 @@ def fill_corners_3cells_mult_x(
     se_mult: float,
     nw_mult: float,
     ne_mult: float,
-):
+) -> FloatField:
     """
     Fills cell quantity q using corners from q_corner and multipliers in x-dir.
     """
@@ -120,7 +126,7 @@ def fill_corners_2cells_mult_y(
     se_mult: float,
     nw_mult: float,
     ne_mult: float,
-):
+) -> FloatField:
     """
     Fills cell quantity q using corners from q_corner and multipliers in y-dir.
     """
@@ -154,7 +160,7 @@ def fill_corners_2cells_mult_y(
 
 
 @gtscript.function
-def fill_corners_2cells_y(q: FloatField):
+def fill_corners_2cells_y(q: FloatField) -> FloatField:
     """
     Fills cell quantity q in y-dir.
     """
@@ -169,7 +175,7 @@ def fill_corners_3cells_mult_y(
     se_mult: float,
     nw_mult: float,
     ne_mult: float,
-):
+) -> FloatField:
     """
     Fills cell quantity q using corners from q_corner and multipliers in y-dir.
     """
@@ -198,7 +204,7 @@ def fill_corners_3cells_mult_y(
 
 def copy_corners_xy_stencil_defn(
     q_in: FloatField, q_out_x: FloatField, q_out_y: FloatField
-):
+) -> None:
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
@@ -324,8 +330,8 @@ class FillCornersBGrid:
         self,
         direction: str,
         stencil_factory: StencilFactory,
-        origin=None,
-        domain=None,
+        origin: tuple[int, ...] | None = None,
+        domain: tuple[int, ...] | None = None,
     ) -> None:
         n_halo = stencil_factory.grid_indexing.n_halo
         (
@@ -356,11 +362,11 @@ class FillCornersBGrid:
             func=defn, origin=origin, domain=domain, externals=externals
         )
 
-    def __call__(self, field: FloatField):
+    def __call__(self, field: FloatField) -> None:
         self._fill_corners_bgrid(field, field)
 
 
-def fill_corners_bgrid_x_defn(q_in: FloatField, q_out: FloatField):
+def fill_corners_bgrid_x_defn(q_in: FloatField, q_out: FloatField) -> None:
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
@@ -422,7 +428,7 @@ def fill_corners_bgrid_x_defn(q_in: FloatField, q_out: FloatField):
             q_out = q_in[0, -6, 0]
 
 
-def fill_corners_bgrid_y_defn(q_in: FloatField, q_out: FloatField):
+def fill_corners_bgrid_y_defn(q_in: FloatField, q_out: FloatField) -> None:
     from __externals__ import i_end, i_start, j_end, j_start
 
     with computation(PARALLEL), interval(...):
@@ -489,7 +495,13 @@ def fill_corners_bgrid_y_defn(q_in: FloatField, q_out: FloatField):
 
 
 # TODO these can definitely be consolidated/made simpler
-def fill_sw_corner_2d_bgrid(q, i, j, direction, grid_indexer):
+def fill_sw_corner_2d_bgrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+) -> None:
     if direction == "x":
         q[grid_indexer.isc - i, grid_indexer.jsc - j, :] = q[
             grid_indexer.isc - j, grid_indexer.jsc + i, :
@@ -500,7 +512,13 @@ def fill_sw_corner_2d_bgrid(q, i, j, direction, grid_indexer):
         ]
 
 
-def fill_nw_corner_2d_bgrid(q, i, j, direction, grid_indexer):
+def fill_nw_corner_2d_bgrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+) -> None:
     if direction == "x":
         q[grid_indexer.isc - i, grid_indexer.jec + 1 + j, :] = q[
             grid_indexer.isc - j, grid_indexer.jec + 1 - i, :
@@ -511,7 +529,13 @@ def fill_nw_corner_2d_bgrid(q, i, j, direction, grid_indexer):
         ]
 
 
-def fill_se_corner_2d_bgrid(q, i, j, direction, grid_indexer):
+def fill_se_corner_2d_bgrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+) -> None:
     if direction == "x":
         q[grid_indexer.iec + 1 + i, grid_indexer.jsc - j, :] = q[
             grid_indexer.iec + 1 + j, grid_indexer.jsc + i, :
@@ -522,7 +546,13 @@ def fill_se_corner_2d_bgrid(q, i, j, direction, grid_indexer):
         ]
 
 
-def fill_ne_corner_2d_bgrid(q, i, j, direction, grid_indexer):
+def fill_ne_corner_2d_bgrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+) -> None:
     if direction == "x":
         q[grid_indexer.iec + 1 + i, grid_indexer.jec + 1 + j :] = q[
             grid_indexer.iec + 1 + j, grid_indexer.jec + 1 - i, :
@@ -533,7 +563,15 @@ def fill_ne_corner_2d_bgrid(q, i, j, direction, grid_indexer):
         ]
 
 
-def fill_sw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None):
+def fill_sw_corner_2d_agrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+    kstart: int = 0,
+    nk: int | None = None,
+) -> None:
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction == "x":
         q[grid_indexer.isc - i, grid_indexer.jsc - j, kslice] = q[
@@ -545,7 +583,15 @@ def fill_sw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None)
         ]
 
 
-def fill_nw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None):
+def fill_nw_corner_2d_agrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+    kstart: int = 0,
+    nk: int | None = None,
+) -> None:
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction == "x":
         q[grid_indexer.isc - i, grid_indexer.jec + j, kslice] = q[
@@ -557,7 +603,15 @@ def fill_nw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None)
         ]
 
 
-def fill_se_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None):
+def fill_se_corner_2d_agrid(
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+    kstart: int = 0,
+    nk: int | None = None,
+) -> None:
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction == "x":
         q[grid_indexer.iec + i, grid_indexer.jsc - j, kslice] = q[
@@ -570,8 +624,14 @@ def fill_se_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None)
 
 
 def fill_ne_corner_2d_agrid(
-    q, i, j, direction, grid_indexer, mysign=1.0, kstart=0, nk=None
-):
+    q: FloatField,
+    i: int,
+    j: int,
+    direction: FillCornersDirection,
+    grid_indexer: GridIndexing,
+    kstart: int = 0,
+    nk: int | None = None,
+) -> None:
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction == "x":
         q[grid_indexer.iec + i, grid_indexer.jec + j, kslice] = q[
@@ -583,16 +643,24 @@ def fill_ne_corner_2d_agrid(
         ]
 
 
-def fill_corners_2d(q, grid_indexer, gridtype, direction="x"):
+def fill_corners_2d(
+    q: FloatField,
+    grid_indexer: GridIndexing,
+    gridtype: GridType,
+    direction: FillCornersDirection = "x",
+) -> None:
+    if gridtype == "A":
+        return fill_corners_2d_agrid(q, grid_indexer, direction)
+
     if gridtype == "B":
-        fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction)
-    elif gridtype == "A":
-        fill_corners_2d_agrid(q, grid_indexer, gridtype, direction)
-    else:
-        raise NotImplementedError()
+        return fill_corners_2d_bgrid(q, grid_indexer, direction)
+
+    raise NotImplementedError(f"GridType {gridtype} is not implemented.")
 
 
-def fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction="x"):
+def fill_corners_2d_bgrid(
+    q: FloatField, grid_indexer: GridIndexing, direction: FillCornersDirection = "x"
+) -> None:
     for i in range(1, 1 + grid_indexer.n_halo):
         for j in range(1, 1 + grid_indexer.n_halo):
             if grid_indexer.sw_corner:
@@ -605,7 +673,9 @@ def fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction="x"):
                 fill_ne_corner_2d_bgrid(q, i, j, direction, grid_indexer)
 
 
-def fill_corners_2d_agrid(q, grid_indexer, gridtype, direction="x"):
+def fill_corners_2d_agrid(
+    q: FloatField, grid_indexer: GridIndexing, direction: FillCornersDirection = "x"
+) -> None:
     for i in range(1, 1 + grid_indexer.n_halo):
         for j in range(1, 1 + grid_indexer.n_halo):
             if grid_indexer.sw_corner:
@@ -618,7 +688,9 @@ def fill_corners_2d_agrid(q, grid_indexer, gridtype, direction="x"):
                 fill_ne_corner_2d_agrid(q, i, j, direction, grid_indexer)
 
 
-def fill_corners_agrid(x, y, grid_indexer, vector):
+def fill_corners_agrid(
+    x: FloatField, y: FloatField, grid_indexer: GridIndexing, vector: bool
+) -> None:
     if vector:
         mysign = -1.0
     else:
@@ -656,7 +728,14 @@ def fill_corners_agrid(x, y, grid_indexer, vector):
                 y[i_end + j, j_end + i, :] = mysign * x[i_end - i + 1, j_end + j, :]
 
 
-def fill_sw_corner_vector_dgrid(x, y, i, j, grid_indexer, mysign):
+def fill_sw_corner_vector_dgrid(
+    x: FloatField,
+    y: FloatField,
+    i: int,
+    j: int,
+    grid_indexer: GridIndexing,
+    mysign: float,
+) -> None:
     x[grid_indexer.isc - i, grid_indexer.jsc - j, :] = (
         mysign * y[grid_indexer.isc - j, i + 2, :]
     )
@@ -665,7 +744,9 @@ def fill_sw_corner_vector_dgrid(x, y, i, j, grid_indexer, mysign):
     )
 
 
-def fill_nw_corner_vector_dgrid(x, y, i, j, grid_indexer):
+def fill_nw_corner_vector_dgrid(
+    x: FloatField, y: FloatField, i: int, j: int, grid_indexer: GridIndexing
+) -> None:
     x[grid_indexer.isc - i, grid_indexer.jec + 1 + j, :] = y[
         grid_indexer.isc - j, grid_indexer.jec + 1 - i, :
     ]
@@ -674,7 +755,9 @@ def fill_nw_corner_vector_dgrid(x, y, i, j, grid_indexer):
     ]
 
 
-def fill_se_corner_vector_dgrid(x, y, i, j, grid_indexer):
+def fill_se_corner_vector_dgrid(
+    x: FloatField, y: FloatField, i: int, j: int, grid_indexer: GridIndexing
+) -> None:
     x[grid_indexer.iec + i, grid_indexer.jsc - j, :] = y[
         grid_indexer.iec + 1 + j, i + 2, :
     ]
@@ -683,7 +766,14 @@ def fill_se_corner_vector_dgrid(x, y, i, j, grid_indexer):
     ]
 
 
-def fill_ne_corner_vector_dgrid(x, y, i, j, grid_indexer, mysign):
+def fill_ne_corner_vector_dgrid(
+    x: FloatField,
+    y: FloatField,
+    i: int,
+    j: int,
+    grid_indexer: GridIndexing,
+    mysign: float,
+) -> None:
     x[grid_indexer.iec + i, grid_indexer.jec + 1 + j, :] = (
         mysign * y[grid_indexer.iec + 1 + j, grid_indexer.jec - i + 1, :]
     )
@@ -692,7 +782,9 @@ def fill_ne_corner_vector_dgrid(x, y, i, j, grid_indexer, mysign):
     )
 
 
-def fill_corners_dgrid(x, y, grid_indexer, vector):
+def fill_corners_dgrid(
+    x: FloatField, y: FloatField, grid_indexer: GridIndexing, vector: bool
+) -> None:
     mysign = 1.0
     if vector:
         mysign = -1.0
@@ -708,12 +800,21 @@ def fill_corners_dgrid(x, y, grid_indexer, vector):
                 fill_ne_corner_vector_dgrid(x, y, i, j, grid_indexer, mysign)
 
 
-def fill_sw_corner_vector_cgrid(x, y, i, j, grid_indexer):
+def fill_sw_corner_vector_cgrid(
+    x: FloatField, y: FloatField, i: int, j: int, grid_indexer: GridIndexing
+) -> None:
     x[grid_indexer.isc - i, grid_indexer.jsc - j, :] = y[j + 2, grid_indexer.jsc - i, :]
     y[grid_indexer.isc - i, grid_indexer.jsc - j, :] = x[grid_indexer.isc - j, i + 2, :]
 
 
-def fill_nw_corner_vector_cgrid(x, y, i, j, grid_indexer, mysign):
+def fill_nw_corner_vector_cgrid(
+    x: FloatField,
+    y: FloatField,
+    i: int,
+    j: int,
+    grid_indexer: GridIndexing,
+    mysign: float,
+) -> None:
     x[grid_indexer.isc - i, grid_indexer.jec + j, :] = (
         mysign * y[j + 2, grid_indexer.jec + 1 + i, :]
     )
@@ -722,7 +823,14 @@ def fill_nw_corner_vector_cgrid(x, y, i, j, grid_indexer, mysign):
     )
 
 
-def fill_se_corner_vector_cgrid(x, y, i, j, grid_indexer, mysign):
+def fill_se_corner_vector_cgrid(
+    x: FloatField,
+    y: FloatField,
+    i: int,
+    j: int,
+    grid_indexer: GridIndexing,
+    mysign: float,
+) -> None:
     x[grid_indexer.iec + 1 + i, grid_indexer.jsc - j, :] = (
         mysign * y[grid_indexer.iec + 1 - j, grid_indexer.jsc - i, :]
     )
@@ -731,7 +839,9 @@ def fill_se_corner_vector_cgrid(x, y, i, j, grid_indexer, mysign):
     )
 
 
-def fill_ne_corner_vector_cgrid(x, y, i, j, grid_indexer):
+def fill_ne_corner_vector_cgrid(
+    x: FloatField, y: FloatField, i: int, j: int, grid_indexer: GridIndexing
+) -> None:
     x[grid_indexer.iec + 1 + i, grid_indexer.jec + j, :] = y[
         grid_indexer.iec + 1 - j, grid_indexer.jec + 1 + i, :
     ]
@@ -740,7 +850,9 @@ def fill_ne_corner_vector_cgrid(x, y, i, j, grid_indexer):
     ]
 
 
-def fill_corners_cgrid(x, y, grid_indexer, vector):
+def fill_corners_cgrid(
+    x: FloatField, y: FloatField, grid_indexer: GridIndexing, vector: bool
+) -> None:
     mysign = 1.0
     if vector:
         mysign = -1.0
@@ -762,7 +874,7 @@ def fill_corners_dgrid_defn(
     y_in: FloatField,
     y_out: FloatField,
     mysign: float,
-):
+) -> None:
     """
     Args:
         x_in (in):
