@@ -5,7 +5,6 @@ from ndsl import CubedSpherePartitioner, Quantity, TilePartitioner
 from ndsl.comm.partitioner import (
     _subtile_extents_from_tile_metadata,
     get_tile_index,
-    get_tile_number,
     tile_extent_from_rank_metadata,
 )
 from ndsl.constants import (
@@ -32,15 +31,6 @@ for ranks_per_tile in (1, 4):
             total_rank_list.append(total_ranks)
             tile_index_list.append(tile)
             rank += 1
-
-
-@pytest.mark.parametrize(
-    "rank, total_ranks, tile_index", zip(rank_list, total_rank_list, tile_index_list)
-)
-@pytest.mark.cpu_only
-def test_get_tile_number(rank, total_ranks, tile_index):
-    tile = get_tile_number(rank, total_ranks)
-    assert tile == tile_index + 1
 
 
 @pytest.mark.parametrize(
