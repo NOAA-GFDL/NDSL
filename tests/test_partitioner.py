@@ -8,13 +8,13 @@ from ndsl.comm.partitioner import (
     tile_extent_from_rank_metadata,
 )
 from ndsl.constants import (
-    TILE_DIM,
     I_DIM,
     I_INTERFACE_DIM,
     J_DIM,
     J_INTERFACE_DIM,
     K_DIM,
     K_INTERFACE_DIM,
+    TILE_DIM,
 )
 
 

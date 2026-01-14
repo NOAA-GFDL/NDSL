@@ -14,7 +14,9 @@ def _copy_ops(stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     qty_in.view[:] = np.indices(
         dimensions=quantity_factory.sizer.get_extent([I_DIM, J_DIM, K_DIM]),
         dtype=np.float64,
-    ).sum(axis=0)  # Value of each entry is sum of the I and J index at each point
+    ).sum(
+        axis=0
+    )  # Value of each entry is sum of the I and J index at each point
 
     # Define a stencil
     def copy_stencil(input_field: FloatField, output_field: FloatField):

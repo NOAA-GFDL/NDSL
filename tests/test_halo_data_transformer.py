@@ -9,6 +9,12 @@ from ndsl.buffer import Buffer
 from ndsl.comm import _boundary_utils
 from ndsl.constants import (
     EAST,
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     NORTH,
     NORTHEAST,
     NORTHWEST,
@@ -16,12 +22,6 @@ from ndsl.constants import (
     SOUTHEAST,
     SOUTHWEST,
     WEST,
-    I_DIM,
-    I_INTERFACE_DIM,
-    J_DIM,
-    J_INTERFACE_DIM,
-    K_DIM,
-    K_INTERFACE_DIM,
 )
 from ndsl.halo import HaloDataTransformer
 from ndsl.halo.rotate import rotate_scalar_data, rotate_vector_data

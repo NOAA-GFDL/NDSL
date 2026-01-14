@@ -18,10 +18,6 @@ from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
     HORIZONTAL_DIMS,
-    NORTHEAST,
-    NORTHWEST,
-    SOUTHEAST,
-    SOUTHWEST,
     I_DIM,
     I_DIMS,
     I_INTERFACE_DIM,
@@ -30,6 +26,10 @@ from ndsl.constants import (
     J_INTERFACE_DIM,
     K_DIM,
     K_INTERFACE_DIM,
+    NORTHEAST,
+    NORTHWEST,
+    SOUTHEAST,
+    SOUTHWEST,
 )
 from ndsl.performance import Timer
 from ndsl.quantity import QuantityHaloSpec

@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from ndsl.constants import HORIZONTAL_DIMS, N_HALO_DEFAULT, I_DIMS, J_DIMS
+from ndsl.constants import HORIZONTAL_DIMS, I_DIMS, J_DIMS, N_HALO_DEFAULT
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.translate import (

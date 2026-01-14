@@ -10,15 +10,15 @@ import numpy as np
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.communicator import Communicator
 from ndsl.constants import (
-    N_HALO_DEFAULT,
-    PI,
-    RADIUS,
     I_DIM,
     I_INTERFACE_DIM,
     J_DIM,
     J_INTERFACE_DIM,
     K_DIM,
     K_INTERFACE_DIM,
+    N_HALO_DEFAULT,
+    PI,
+    RADIUS,
 )
 from ndsl.dsl.gt4py_utils import asarray
 from ndsl.dsl.stencil import GridIndexing

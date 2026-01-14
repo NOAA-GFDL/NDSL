@@ -4,13 +4,13 @@ import pytest
 
 from ndsl import GridSizer, QuantityFactory, SubtileGridSizer
 from ndsl.constants import (
-    N_HALO_DEFAULT,
     I_DIM,
     I_INTERFACE_DIM,
     J_DIM,
     J_INTERFACE_DIM,
     K_DIM,
     K_INTERFACE_DIM,
+    N_HALO_DEFAULT,
 )
 
 

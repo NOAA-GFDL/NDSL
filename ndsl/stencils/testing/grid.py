@@ -3,7 +3,7 @@
 import numpy as np
 
 from ndsl.comm.partitioner import TilePartitioner
-from ndsl.constants import N_HALO_DEFAULT, I_DIM, J_DIM, K_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM, N_HALO_DEFAULT
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.grid.generation import GridDefinitions

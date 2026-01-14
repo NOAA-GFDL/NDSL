@@ -332,9 +332,9 @@ class FrozenStencil(SDFGConvertible):
                 ),
             )
 
-        assert len(self._argument_names) > 0, (
-            "A stencil with no arguments? You may be double decorating"
-        )
+        assert (
+            len(self._argument_names) > 0
+        ), "A stencil with no arguments? You may be double decorating"
 
         # Overloading `dtypes` to allow parsing of NDSL concepts
         ndsl_dtypes = {

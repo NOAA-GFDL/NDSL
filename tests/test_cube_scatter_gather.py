@@ -12,13 +12,13 @@ from ndsl import (
 )
 from ndsl.constants import (
     HORIZONTAL_DIMS,
-    TILE_DIM,
     I_DIM,
     I_INTERFACE_DIM,
     J_DIM,
     J_INTERFACE_DIM,
     K_DIM,
     K_INTERFACE_DIM,
+    TILE_DIM,
 )
 from ndsl.performance import Timer
 

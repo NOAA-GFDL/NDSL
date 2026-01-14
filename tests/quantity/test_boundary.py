@@ -5,13 +5,13 @@ from ndsl import Quantity
 from ndsl.comm._boundary_utils import _shift_boundary_slice, get_boundary_slice
 from ndsl.constants import (
     EAST,
-    NORTH,
-    SOUTH,
-    WEST,
     I_DIM,
     I_INTERFACE_DIM,
     J_DIM,
     K_DIM,
+    NORTH,
+    SOUTH,
+    WEST,
 )
 
 
