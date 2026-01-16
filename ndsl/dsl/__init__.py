@@ -32,7 +32,7 @@ def _get_literal_precision(default: Literal["32", "64"] = "64") -> Literal["32",
 NDSL_GLOBAL_PRECISION = int(_get_literal_precision())
 os.environ["GT4PY_LITERAL_INT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 os.environ["GT4PY_LITERAL_FLOAT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
-
+os.environ["GT4PY_FORCE_ANNOTATED_TEMPORARIES"] = "True"
 
 # Set cache names for default gt backends workflow
 import gt4py.cartesian.config  # noqa: E402
