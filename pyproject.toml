@@ -90,10 +90,6 @@ module = [
   "ndsl.dsl.gt4py_utils",
   # We don't fix legacy (unless we really need it)
   "ndsl.restart._legacy_restart",
-  # These files are deprecated
-  "ndsl.exceptions",
-  "ndsl.stencils.corners",
-  "ndsl.units",
   # translate test system is "beyond repair"
   "ndsl.stencils.testing.translate",
   "ndsl.stencils.testing.parallel_translate"
