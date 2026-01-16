@@ -1,3 +1,5 @@
+import typing
+
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
 from ndsl.dsl.typing import (
     Bool,
@@ -165,8 +167,9 @@ def average_in(
         q_out = (q_out + adjustment) * 0.5
 
 
+@typing.no_type_check
 @function
-def sign(a, b):  # type: ignore[no-untyped-def]
+def sign(a, b):
     """
     Defines a_sign_b as the absolute value of a, and checks if b is positive or
     negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
@@ -179,8 +182,9 @@ def sign(a, b):  # type: ignore[no-untyped-def]
     return a_sign_b if b > 0 else -a_sign_b
 
 
+@typing.no_type_check
 @function
-def dim(a, b):  # type: ignore[no-untyped-def]
+def dim(a, b):
     """
     Calculates a - b, camped to 0, i.e. max(a - b, 0).
     """

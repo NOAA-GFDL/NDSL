@@ -1,4 +1,4 @@
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, no_type_check
 
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
@@ -10,7 +10,7 @@ from ndsl.dsl.typing import FloatField
 
 
 FillCornersDirection: TypeAlias = Literal["x", "y"]
-GridType: TypeAlias = Literal["A", "B", "C", "D", "E"]
+GridType: TypeAlias = Literal["A", "B"]  # Arakawa grid type
 
 
 def kslice_from_inputs(
@@ -24,15 +24,16 @@ def kslice_from_inputs(
     return (kslice, int(nk))
 
 
+@no_type_check
 @gtscript.function
 def fill_corners_2cells_mult_x(
-    q: FloatField,
-    q_corner: FloatField,
-    sw_mult: float,
-    se_mult: float,
-    nw_mult: float,
-    ne_mult: float,
-) -> FloatField:
+    q,
+    q_corner,
+    sw_mult,
+    se_mult,
+    nw_mult,
+    ne_mult,
+):
     """
     Fills cell quantity q using corners from q_corner and multipliers in x-dir.
     """
@@ -75,23 +76,25 @@ def fill_corners_2cells_y_stencil(q_out: FloatField, q_in: FloatField) -> None:
         q_out = fill_corners_2cells_mult_y(q_out, q_in, 1.0, 1.0, 1.0, 1.0)
 
 
+@no_type_check
 @gtscript.function
-def fill_corners_2cells_x(q: FloatField) -> FloatField:
+def fill_corners_2cells_x(q):
     """
     Fills cell quantity q in x-dir.
     """
     return fill_corners_2cells_mult_x(q, q, 1.0, 1.0, 1.0, 1.0)
 
 
+@no_type_check
 @gtscript.function
 def fill_corners_3cells_mult_x(
-    q: FloatField,
-    q_corner: FloatField,
-    sw_mult: float,
-    se_mult: float,
-    nw_mult: float,
-    ne_mult: float,
-) -> FloatField:
+    q,
+    q_corner,
+    sw_mult,
+    se_mult,
+    nw_mult,
+    ne_mult,
+):
     """
     Fills cell quantity q using corners from q_corner and multipliers in x-dir.
     """
@@ -118,15 +121,16 @@ def fill_corners_3cells_mult_x(
     return q
 
 
+@no_type_check
 @gtscript.function
 def fill_corners_2cells_mult_y(
-    q: FloatField,
-    q_corner: FloatField,
-    sw_mult: float,
-    se_mult: float,
-    nw_mult: float,
-    ne_mult: float,
-) -> FloatField:
+    q,
+    q_corner,
+    sw_mult,
+    se_mult,
+    nw_mult,
+    ne_mult,
+):
     """
     Fills cell quantity q using corners from q_corner and multipliers in y-dir.
     """
@@ -159,23 +163,25 @@ def fill_corners_2cells_mult_y(
     return q
 
 
+@no_type_check
 @gtscript.function
-def fill_corners_2cells_y(q: FloatField) -> FloatField:
+def fill_corners_2cells_y(q):
     """
     Fills cell quantity q in y-dir.
     """
     return fill_corners_2cells_mult_y(q, q, 1.0, 1.0, 1.0, 1.0)
 
 
+@no_type_check
 @gtscript.function
 def fill_corners_3cells_mult_y(
-    q: FloatField,
-    q_corner: FloatField,
-    sw_mult: float,
-    se_mult: float,
-    nw_mult: float,
-    ne_mult: float,
-) -> FloatField:
+    q,
+    q_corner,
+    sw_mult,
+    se_mult,
+    nw_mult,
+    ne_mult,
+):
     """
     Fills cell quantity q using corners from q_corner and multipliers in y-dir.
     """
