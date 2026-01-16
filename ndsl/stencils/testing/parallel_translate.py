@@ -74,12 +74,14 @@ class ParallelTranslate:
             input_data = state[name]
             if len(properties["dims"]) > 0:
                 dims = properties["dims"]
+                backend = self._base.stencil_factory.backend
                 state[properties["name"]] = Quantity(
                     input_data,
                     dims,
                     properties["units"],
                     origin=self.grid.sizer.get_origin(dims),
                     extent=self.grid.sizer.get_extent(dims),
+                    backend=backend,
                 )
             else:
                 state[properties["name"]] = input_data
