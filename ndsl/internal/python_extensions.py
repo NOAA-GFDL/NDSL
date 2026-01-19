@@ -11,7 +11,7 @@ def find_first_NDSLRuntime_caller(frame: FrameType | None) -> NDSLRuntime | None
     search_frame: FrameType | None = frame
 
     # Search for a NDSLRuntime frame
-    while search_frame:
+    while search_frame is not None:
         if "self" in search_frame.f_locals and issubclass(
             type(search_frame.f_locals["self"]), NDSLRuntime
         ):
@@ -33,7 +33,7 @@ def find_all_NDSLRuntime_callers(frame: FrameType | None) -> list[NDSLRuntime]:
     runtimes = []
 
     # Search for a NDSLRuntime frame
-    while search_frame:
+    while search_frame is not None:
         if "self" in search_frame.f_locals and issubclass(
             type(search_frame.f_locals["self"]), NDSLRuntime
         ):
