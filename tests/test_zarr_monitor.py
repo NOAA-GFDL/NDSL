@@ -16,8 +16,8 @@ from ndsl.constants import (
     J_DIMS,
     J_INTERFACE_DIM,
     K_DIM,
-    X_DIM,
     K_SOIL_DIM,
+    X_DIM,
 )
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
 from ndsl.optional_imports import RaiseWhenAccessed, zarr
@@ -332,9 +332,9 @@ def _assert_no_nulls(dataset: xr.Dataset):
     number_of_null = dataset["var"].isnull().sum().item()
     total_size = dataset["var"].size
 
-    assert number_of_null == 0, (
-        f"Number of nulls {number_of_null}. Size of data {total_size}"
-    )
+    assert (
+        number_of_null == 0
+    ), f"Number of nulls {number_of_null}. Size of data {total_size}"
 
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
