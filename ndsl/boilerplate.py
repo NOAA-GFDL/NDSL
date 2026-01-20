@@ -1,3 +1,5 @@
+import warnings
+
 from ndsl import (
     CompilationConfig,
     DaceConfig,
@@ -56,9 +58,11 @@ def _get_factories(
     if topology == "tile":
         mpi_comm = MPIComm()
         if mpi_comm.Get_size() != 1:
-            raise ValueError(
+            warnings.warn(
                 "Single tile topology requested with an MPI communicator of size "
-                f"{mpi_comm.Get_size()} > 1. Re-configure MPI to run on only one rank."
+                f"{mpi_comm.Get_size()} > 1. Halo exchange will _not_ be done on the cube-sphere.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         partitioner = TilePartitioner((1, 1))
@@ -69,6 +73,7 @@ def _get_factories(
             n_halo=nhalo,
             layout=partitioner.layout,
             tile_partitioner=partitioner,
+            backend=backend,
         )
         comm = TileCommunicator(comm=mpi_comm, partitioner=partitioner)
     else:
@@ -82,7 +87,13 @@ def _get_factories(
 
 
 def get_factories_single_tile_orchestrated(
-    nx: int, ny: int, nz: int, nhalo: int, backend: str = "dace:cpu"
+    nx: int,
+    ny: int,
+    nz: int,
+    nhalo: int,
+    backend: str = "dace:cpu",
+    *,
+    orchestration_mode: DaCeOrchestration | None = None,
 ) -> tuple[StencilFactory, QuantityFactory]:
     """Build the pair of (StencilFactory, QuantityFactory) for orchestrated code on a single tile topology."""
 
@@ -95,7 +106,7 @@ def get_factories_single_tile_orchestrated(
         nz=nz,
         nhalo=nhalo,
         backend=backend,
-        orchestration=DaCeOrchestration.BuildAndRun,
+        orchestration=orchestration_mode or DaCeOrchestration.BuildAndRun,
         topology="tile",
     )
 

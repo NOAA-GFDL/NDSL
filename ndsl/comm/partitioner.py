@@ -43,21 +43,6 @@ def get_tile_index(rank: int, total_ranks: int) -> int:
     return rank // ranks_per_tile
 
 
-def get_tile_number(tile_rank: int, total_ranks: int) -> int:
-    """Deprecated: use get_tile_index.
-
-    Returns the tile number for a given rank and total number of ranks.
-    """
-    FutureWarning(
-        "get_tile_number will be removed in a later version, "
-        "use get_tile_index(rank, total_ranks) + 1 instead"
-    )
-    if total_ranks % 6 != 0:
-        raise ValueError(f"total_ranks {total_ranks} is not evenly divisible by 6")
-    ranks_per_tile = total_ranks // 6
-    return tile_rank // ranks_per_tile + 1
-
-
 class Partitioner(abc.ABC):
     tile: TilePartitioner
     layout: tuple[int, int]

@@ -85,14 +85,38 @@ class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
     def __init__(self) -> None:
         # Map access is a `list` instead of a `set` because we want to double count
         # access that are in/out as two access on the axis.
+        self.transients_cartesian_maps: dict[
+            str,
+            tuple[
+                set[dace.nodes.MapEntry],
+                set[dace.nodes.MapEntry],
+                set[dace.nodes.MapEntry],
+            ],
+        ] = {}
         self.transients_range_writes: dict[str, dace.subsets.Range | None] = {}
         self.transients_range_reads: dict[str, dace.subsets.Range | None] = {}
 
     def __str__(self) -> str:
         return "CartesianCollectMaps"
 
+    def _find_first_map_or_loop(
+        self,
+        node: stree.TaskletNode,
+        axis: AxisIterator,
+    ) -> dace.nodes.MapEntry | None:
+        parent = node.parent
+        while parent is not None:
+            if isinstance(parent, stree.MapScope):
+                for p in parent.node.params:
+                    if p.startswith(axis.as_str()):
+                        return parent.node
+
+            parent = parent.parent
+        return None
+
     def _record_access(
         self,
+        node: stree.TaskletNode,
         memlets: stree.MemletSet,
         recording_set: dict[str, dace.subsets.Range | None],
     ) -> None:
@@ -103,18 +127,38 @@ class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
                     raise NotImplementedError(
                         "Memlet refining only works with Range subsets"
                     )
+
+                # Union the range
                 recording_set[memlet.data] = dace.subsets.union(
                     recording_set[memlet.data], memlet.subset
                 )
 
+                # Record the map
+                map_entry = self._find_first_map_or_loop(node, AxisIterator._I)
+                if map_entry:
+                    self.transients_cartesian_maps[memlet.data][
+                        AxisIterator._I.as_cartesian_index()
+                    ].add(map_entry)
+                map_entry = self._find_first_map_or_loop(node, AxisIterator._J)
+                if map_entry:
+                    self.transients_cartesian_maps[memlet.data][
+                        AxisIterator._J.as_cartesian_index()
+                    ].add(map_entry)
+                map_entry = self._find_first_map_or_loop(node, AxisIterator._K)
+                if map_entry:
+                    self.transients_cartesian_maps[memlet.data][
+                        AxisIterator._K.as_cartesian_index()
+                    ].add(map_entry)
+
     def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
-        self._record_access(node.input_memlets(), self.transients_range_writes)
-        self._record_access(node.output_memlets(), self.transients_range_reads)
+        self._record_access(node, node.input_memlets(), self.transients_range_writes)
+        self._record_access(node, node.output_memlets(), self.transients_range_reads)
 
     def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
         self.containers = node.containers
         for name, data in self.containers.items():
             if data.transient and isinstance(data, dace.data.Array):
+                self.transients_cartesian_maps[name] = (set(), set(), set())
                 self.transients_range_writes[name] = None
                 self.transients_range_reads[name] = None
 
@@ -159,13 +203,18 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
     the cartesian dimensions.
 
 
+    It expects:
+        - All Maps and ForLoop are on a single axis - but doesn't check for it.
+
     It can do:
         - Looking at usage of a transient in a cartesian axis (e.g. loop over a
         cartesian axis) it will reduce that axis to 1 if all access are atomic
-        (exactly _one_ element of the array is ever worked on)
+        (exactly _one_ element of the array is ever worked on in a single loop)
+        - It will refuse to merge if the transient is used in multiple loops of for
+        a given axis - irrigardless of it's access pattern (e.g. even if it could be
+        refine because it's always written first.)
 
     It should but cannot do/will bug if:
-        - If the transient is _written_ before being _read_ this won't catch it (not its job), but we could
         - With better dataflow analysis, we can reduce the dimensions to the correct lowest
         size needed on the axis (e.g. transient[K] and transient[K+1], requires a 2-element
         buffer), instead of the defensive _no refine_ strategy used now. We have _most_ of the
@@ -173,7 +222,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         - Current action when detecting a valid candidate is to reduce the size of the dimension
         to 1, rather than removing it. This will effectively, if generic compilers do their job, reduce
         the cache access significantly. This also has been implemented to _not_ deal with offset/slicing
-        downstream impact of removing an axis. Nevertheless the xis should be removed if it's not
+        downstream impact of removing an axis. Nevertheless the axis should be removed if it's not
         used.
         - It only knows how to deal with 3D cartesian and 3D cartesian + data dimensions. Anything else will
         fail `_reduce_cartesian_axes_size_to_1` calculation
@@ -202,12 +251,13 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
 
         if backend in ["dace:cpu_kfirst"]:
             self.ijk_order = (2, 1, 0)
-        elif backend in ["dace:cpu", "dace:gpu"]:
-            self.ijk_order = (1, 0, 2)
+        elif backend in ["dace:gpu", "dace:cpu_KJI"]:
+            self.ijk_order = (0, 1, 2)
+        elif backend in ["dace:cpu"]:
+            self.ijk_order = (1, 2, 0)
         else:
             raise NotImplementedError(
-                "[Schedule Tree Opt] CartesianRefineTransient not implemented for "
-                f"backend {backend}"
+                f"[Schedule Tree Opt] CartesianRefineTransient not implemented for backend {backend}"
             )
 
         self.refined_array: set[str] = set()
@@ -226,6 +276,17 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
                 continue
             refined = False
             for axis in AxisIterator:
+                # We do not refine multi-map transients
+                if (
+                    len(
+                        collect_map.transients_cartesian_maps[name][
+                            axis.as_cartesian_index()
+                        ]
+                    )
+                    > 1
+                ):
+                    continue
+                # Refine axis down to 1
                 refined |= _reduce_cartesian_axis_size_to_1(
                     axis,
                     collect_map.transients_range_reads[name],

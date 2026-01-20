@@ -49,6 +49,7 @@ def test_set_hybrid_pressure_coefficients_correct(levels):
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
 
     quantity_factory = QuantityFactory(sizer, backend=backend)

@@ -77,6 +77,7 @@ def sizer(
             n_halo=N_HALO_DEFAULT,
             layout=layout,
             data_dimensions=extra_dimension_lengths,
+            backend="numpy",  # original utest case
         )
 
     if request.param == "from_namelist":
@@ -244,3 +245,42 @@ def test_allocator_data_dimensions_operations(sizer):
         match="Use `update_data_dimensions` if you meant to update the length.",
     ):
         quantity_factory.add_data_dimensions({"D0": 33})
+
+
+def test_pad_non_interface_dimensions():
+    nx = 10
+    ny = 20
+    nz = 30
+    dd = 40
+    layout_xy = 2
+    padded_grid_sizer = SubtileGridSizer.from_tile_params(
+        nx_tile=nx,
+        ny_tile=ny,
+        nz=nz,
+        n_halo=0,
+        layout=(layout_xy, layout_xy),
+        data_dimensions={"some_dim": dd},
+        backend="numpy",  # original utest case
+    )
+    padded_shape = padded_grid_sizer.get_shape([X_DIM, Y_DIM, Z_DIM, "some_dim"])
+    assert padded_shape[0] == nx // layout_xy + 1
+    assert padded_shape[1] == ny // layout_xy + 1
+    assert padded_shape[2] == nz + 1
+    assert padded_shape[3] == dd
+
+    non_padded_grid_sizer = SubtileGridSizer.from_tile_params(
+        nx_tile=nx,
+        ny_tile=ny,
+        nz=nz,
+        n_halo=0,
+        layout=(layout_xy, layout_xy),
+        data_dimensions={"some_dim": dd},
+        backend="dace:cpu_KJI",  # Fortran-friendly backend
+    )
+    non_padded_shape = non_padded_grid_sizer.get_shape(
+        [X_DIM, Y_DIM, Z_DIM, "some_dim"]
+    )
+    assert non_padded_shape[0] == nx // layout_xy
+    assert non_padded_shape[1] == ny // layout_xy
+    assert non_padded_shape[2] == nz
+    assert non_padded_shape[3] == dd

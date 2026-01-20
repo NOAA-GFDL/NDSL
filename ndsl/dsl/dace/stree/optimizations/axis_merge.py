@@ -21,13 +21,17 @@ from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
 
 
 # Buggy passes that should work
-PUSH_IFSCOPE_DOWNWARD = False
+PUSH_IFSCOPE_DOWNWARD = False  # Crashing the overall stree - bad algorithmics
 
 
 def _is_axis_map(node: stree.MapScope, axis: AxisIterator) -> bool:
     """Returns true if node is a map over the given axis."""
     map_parameter = node.node.params
     return len(map_parameter) == 1 and map_parameter[0].startswith(axis.as_str())
+
+
+def _is_axis_for(node: stree.ForScope, axis: AxisIterator) -> bool:
+    return node.header.itervar.startswith(axis.as_str())
 
 
 def _both_same_single_axis_maps(
@@ -87,11 +91,13 @@ class InsertOvercomputationGuard(stree.ScheduleNodeTransformer):
         )
         if not all_children_are_maps:
             if self._merged_range != self._original_range:
-                node.children = [
-                    stree.IfScope(
-                        condition=self._execution_condition(), children=node.children
-                    )
-                ]
+                if_scope = stree.IfScope(
+                    condition=self._execution_condition(), children=node.children
+                )
+                # Re-parent to IF
+                for child in node.children:
+                    child.parent = if_scope
+                node.children = [if_scope]
             return node
 
         node.children = self.visit(node.children)
@@ -160,6 +166,9 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         - merge a given axis with the next maps at the same recursion level
         - can overcompute (eager) to allow for more merging at the cost of an if
 
+    It expects:
+        - All Maps and ForLoop are on a single axis - but doesn't check for it.
+
     Args:
         axis: AxisIterator to be merged
         eager: overcompute with a conditional guard
@@ -193,20 +202,44 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             return self._map_overcompute_merge(node, nodes)
         elif PUSH_IFSCOPE_DOWNWARD and isinstance(node, stree.IfScope):
             return self._push_ifelse_down(node, nodes)
+        elif isinstance(node, stree.ForScope):
+            return self._for_merge(node, nodes)
         elif isinstance(node, stree.TaskletNode):
             return self._push_tasklet_down(node, nodes)
         elif isinstance(node, stree.ControlFlowScope):
-            return self._default_control_flow(node, nodes)
+            return self._default_control_flow(node)
         else:
             ndsl_log.debug(
                 f"  (╯°□°)╯︵ ┻━┻: can't merge {type(node)}. Recursion ends."
             )
         return 0
 
+    def _for_merge(
+        self,
+        the_for_scope: stree.ForScope,
+        nodes: list[stree.ScheduleTreeNode],
+    ) -> int:
+        merged = 0
+
+        if _is_axis_for(the_for_scope, self.axis):
+            # TODO: if the for scope is on a cartesian axis it can be
+            # merged with other for scope going in the same direction
+            pass
+        else:
+            # Non-cartesian for - can be pushed down if everything merged below
+            if (
+                len(the_for_scope.children) == 1
+                and isinstance(the_for_scope.children[0], stree.MapScope)
+                and _is_axis_map(the_for_scope.children[0], self.axis)
+            ):
+                swap_node_position_in_tree(the_for_scope, the_for_scope.children[0])
+                merged += 1
+
+        return merged + self._default_control_flow(the_for_scope)
+
     def _default_control_flow(
         self,
         the_control_flow: stree.ControlFlowScope,
-        nodes: list[stree.ScheduleTreeNode],
     ) -> int:
         if len(the_control_flow.children) != 0:
             return self._merge(the_control_flow)
@@ -374,6 +407,10 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
         ]
         first_map.children = merged_children
 
+        # Reparent children
+        for child in merged_children:
+            child.parent = first_map
+
         # TODO also merge containers and symbols (if applicable)
         first_map.node.map.range = merged_range
 
@@ -409,26 +446,22 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             - If NO merges - restore the previous children
             (undo potential changes that didn't lead to map merge)
             Then exit.
+
+
+        ToDo:
+            - ForLoop are not merge at the moment, only Maps.
+            - Non-cartesian ForLoop should be merged down _if_ the maps below
+            are unique (e.g. if everything has been merged). This is relevant for
+            linear solvers and other iteration-dependent algorithmics
+            - The K loops have varied indices name of the form _k_x[_y]. This overcomplicates
+            merging and we don't take care of it at the moment. We could write a pass cleaning
+            those first.
         """
-
-        # TODO: many interval generate many iterator name right now
-        #    e.g. _k_0, _k_1...
-        # This makes merging more difficult. We could write a pre-pass
-        # that cleans this up BUT we have an issue with the THIS_K feature
-        # in the tasklet...
-        # NormalizeAxisSymbol(self.axis).visit(node)
-
-        # TODO: we are meging single axis, we could prefix those runs by moving
-        #       if scope down inside the map if it has the proper axis, preparing
-        #       for a better merging scope. If we can't nerge, we can revert this
-        #       orep step
-
         overall_merged = 0
         passes_apply = 0
         i = 0
         while True:
             i += 1
-            # ndsl_log.debug(f"🔥 Merge attempt #{i}")
             previous_children = copy.deepcopy(node.children)
             try:
                 merged = self._merge(node)
@@ -441,7 +474,6 @@ class CartesianAxisMerge(stree.ScheduleNodeTransformer):
             # If we didn't merge, we revert the children
             # to the previous state
             if merged == 0:
-                # ndsl_log.debug("🥹 No merges, revert!")
                 node.children = previous_children
                 break
             passes_apply += 1

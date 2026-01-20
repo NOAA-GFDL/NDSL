@@ -3,7 +3,6 @@ from .logging import ndsl_log  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
-from .comm.null_comm import NullComm
 from .comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
@@ -26,7 +25,7 @@ from .monitor.netcdf_monitor import NetCDFMonitor
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
-from .quantity import Local, Quantity, State
+from .quantity import Local, LocalState, Quantity, State
 from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
 from .types import Allocator
 from .utils import MetaEnumStr
@@ -38,7 +37,6 @@ __all__ = [
     "TileCommunicator",
     "LocalComm",
     "MPIComm",
-    "NullComm",
     "CubedSpherePartitioner",
     "TilePartitioner",
     "ConstantVersions",
@@ -81,6 +79,7 @@ __all__ = [
     "Allocator",
     "MetaEnumStr",
     "State",
+    "LocalState",
     "NDSLRuntime",
     "Local",
 ]
