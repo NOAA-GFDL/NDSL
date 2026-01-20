@@ -33,10 +33,9 @@ class Quantity:
         dims: Sequence[str],
         units: str,
         *,
-        backend: str | None = None,
+        backend: str,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
-        gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
         number_of_halo_points: int = 0,
     ):
@@ -52,7 +51,6 @@ class Quantity:
                 computational domain. Defaults to None.
             extent: number of points along each axis
                 within the computational domain. Defaults to None.
-            gt4py_backend: deprecated, use `backend` instead.
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
@@ -61,21 +59,6 @@ class Quantity:
             ValueError: Data-type mismatch between configuration and input-data
             TypeError: Typing of the data that does not fit
         """
-        if gt4py_backend is not None:
-            warnings.warn(
-                "gt4py_backend is deprecated. Use `backend` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            if backend is None:
-                backend = gt4py_backend
-
-        if backend is None:
-            warnings.warn(
-                "`backend` will be a required argument starting with the next version of NDSL.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         if (
             not allow_mismatch_float_precision
@@ -96,15 +79,6 @@ class Quantity:
         else:
             extent = tuple(extent)
 
-        if isinstance(data, (int, float, list)):
-            # If converting basic data, use a numpy ndarray.
-            warnings.warn(
-                "Usage of basic data in Quantities is deprecated. Please use it with a numpy or cuppy ndarray instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            data = np.asarray(data)
-
         if not isinstance(data, (np.ndarray, cupy.ndarray)):
             raise TypeError(
                 f"Only supports numpy.ndarray and cupy.ndarray, got {type(data)}"
@@ -112,51 +86,47 @@ class Quantity:
 
         _validate_quantity_property_lengths(data.shape, dims, origin, extent)
 
-        if backend is not None:
-            gt4py_backend_cls = gt_backend.from_name(backend)
-            is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
-            device = gt4py_backend_cls.storage_info["device"]
+        gt4py_backend_cls = gt_backend.from_name(backend)
+        is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
+        device = gt4py_backend_cls.storage_info["device"]
 
-            dimensions: tuple[str | int, ...] = tuple(
-                [
-                    (
-                        axis  # type: ignore # mypy can't parse this list construction of hell
-                        if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
-                        else str(data.shape[index])
-                    )
-                    for index, (dim, axis) in enumerate(
-                        zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
-                    )
-                ]
+        dimensions: tuple[str | int, ...] = tuple(
+            [
+                (
+                    axis  # type: ignore # mypy can't parse this list construction of hell
+                    if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
+                    else str(data.shape[index])
+                )
+                for index, (dim, axis) in enumerate(
+                    zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
+                )
+            ]
+        )
+
+        if isinstance(data, np.ndarray):
+            is_correct_device = device == "cpu"
+        elif isinstance(data, cupy.ndarray):
+            is_correct_device = device == "gpu"
+        else:
+            raise ValueError(
+                f"Unknown device target for quantity allocation {type(data)}"
             )
 
-            if isinstance(data, np.ndarray):
-                is_correct_device = device == "cpu"
-            elif isinstance(data, cupy.ndarray):
-                is_correct_device = device == "gpu"
-            else:
-                raise ValueError(
-                    f"Unknown device target for quantity allocation {type(data)}"
-                )
-
-            if is_optimal_layout(data, dimensions) and is_correct_device:
-                self._data = data
-            else:
-                warnings.warn(
-                    f"Suboptimal data layout found. Copying data to optimally align for backend '{backend}'.",
-                    UserWarning,
-                    stacklevel=2,
-                )
-                self._data = gt_storage.from_array(
-                    data,
-                    data.dtype,
-                    backend=backend,
-                    aligned_index=origin,
-                    dimensions=dimensions,
-                )
-        else:
-            # We have no info about the gt4py backend, so just assign it.
+        if is_optimal_layout(data, dimensions) and is_correct_device:
             self._data = data
+        else:
+            warnings.warn(
+                f"Suboptimal data layout found. Copying data to optimally align for backend '{backend}'.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self._data = gt_storage.from_array(
+                data,
+                data.dtype,
+                backend=backend,
+                aligned_index=origin,
+                dimensions=dimensions,
+            )
 
         self._metadata = QuantityMetadata(
             origin=_ensure_int_tuple(origin, "origin"),
@@ -167,7 +137,6 @@ class Quantity:
             data_type=type(self._data),
             dtype=data.dtype,
             backend=backend,
-            gt4py_backend=backend,
         )
         self._attrs = {}  # type: ignore[var-annotated]
         self._compute_domain_view = BoundedArrayView(
@@ -181,7 +150,6 @@ class Quantity:
         *,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
-        gt4py_backend: str | None = None,
         number_of_halo_points: int = 0,
         backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
@@ -193,7 +161,6 @@ class Quantity:
             data_array
             origin: first point in data within the computational domain
             extent: number of points along each axis within the computational domain
-            gt4py_backend: deprecated, use `backend` instead.
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
@@ -203,15 +170,6 @@ class Quantity:
         """
         if "units" not in data_array.attrs:
             data_array.attrs.update({"units": "unknown"})
-
-        if gt4py_backend is not None:
-            warnings.warn(
-                "gt4py_backend is deprecated. Use `backend` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            if backend is None:
-                backend = gt4py_backend
 
         return cls(
             data_array.values,
@@ -291,16 +249,7 @@ class Quantity:
         return self.metadata.units
 
     @property
-    def gt4py_backend(self) -> str | None:
-        warnings.warn(
-            "gt4py_backend is deprecated. Use `backend` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.metadata.gt4py_backend
-
-    @property
-    def backend(self) -> str | None:
+    def backend(self) -> str:
         return self.metadata.backend
 
     @property

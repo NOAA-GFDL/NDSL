@@ -166,9 +166,7 @@ def quantity(dims, units, origin, extent, shape, dtype, gt4py_backend):
     outside of it."""
     sz = _shape_length(shape)
     data = np.arange(0, sz, dtype=dtype).reshape(shape)
-    if "gtc" not in gt4py_backend:
-        # should also test code if gt4py_backend is unset
-        gt4py_backend = None
+
     return Quantity(
         data,
         dims=dims,

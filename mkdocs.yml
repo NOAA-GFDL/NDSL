@@ -46,7 +46,6 @@ nav:
           - "decomposition": docstrings/comm/decomposition.md
           - "local_comm": docstrings/comm/local_comm.md
           - "mpi": docstrings/comm/mpi.md
-          - "null_comm": docstrings/comm/null_comm.md
           - "partitioner": docstrings/comm/partitioner.md
       - debug:
           - "config": docstrings/debug/config.md
