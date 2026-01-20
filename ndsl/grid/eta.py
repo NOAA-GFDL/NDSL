@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 
-from ndsl import logging
+from ndsl.logging import ndsl_log
 
 
 ETA_0 = 0.252
@@ -69,7 +69,7 @@ def set_hybrid_pressure_coefficients(
         ak, bk = _load_ak_bk_from_file(eta_file)
     else:
         if eta_file is not None:
-            logging.ndsl_log.warning(
+            ndsl_log.warning(
                 f"Ignoring eta_file {eta_file} since `ak_data` and `bk_data` were given."
             )
         ak, bk = ak_data, bk_data

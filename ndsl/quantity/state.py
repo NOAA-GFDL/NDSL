@@ -19,7 +19,7 @@ from ndsl.quantity import Quantity, Local  # isort:skip
 
 
 if TYPE_CHECKING:
-    from ndsl import QuantityFactory
+    from ndsl.initialization import QuantityFactory
 
 import warnings
 

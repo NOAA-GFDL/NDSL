@@ -67,7 +67,7 @@ class Debugger:
             try:
                 self._to_xarray(data, name).to_netcdf(path)
             except ValueError as e:
-                from ndsl import ndsl_log
+                from ndsl.logging import ndsl_log
 
                 ndsl_log.error(f"[Debugger] Failure to save {data}: {e}")
 

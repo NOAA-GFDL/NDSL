@@ -6,6 +6,8 @@ from .caching_comm import (
     CachingRequestWriter,
 )
 from .comm_abc import Comm, ReductionOperator, Request
+from .local_comm import LocalComm
+from .mpi import MPIComm
 
 
 __all__ = [
@@ -15,6 +17,8 @@ __all__ = [
     "CachingRequestReader",
     "CachingRequestWriter",
     "Comm",
+    "LocalComm",
+    "MPIComm",
     "ReductionOperator",
     "Request",
 ]

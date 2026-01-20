@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Self
 import dace.config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
-from ndsl import LocalComm
+from ndsl.comm import LocalComm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.dsl.caches.cache_location import identify_code_path

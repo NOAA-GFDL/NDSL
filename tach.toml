@@ -1,0 +1,27 @@
+exclude = [
+  "**/*__pycache__",
+  "**/*egg-info",
+  "**/docs",
+  "**/venv",
+  "external/"
+]
+forbid_circular_dependencies = false
+interfaces = []
+source_roots = [
+  "."
+]
+
+[[modules]]
+# Top-level __init__.py (public API)
+path = "ndsl"
+
+[[modules]]
+# Inside NDSL, forbid imports from the top-level __init__.py
+cannot_depend_on = ["ndsl"]
+path = "ndsl.*"
+
+[[modules]]
+# Force boilerplate to use public API
+cannot_depend_on = ["ndsl.*"]
+depends_on = ["ndsl"]
+path = "ndsl.boilerplate"
