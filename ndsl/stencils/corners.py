@@ -9,7 +9,7 @@ from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
 
-FillCornersDirection: TypeAlias = Literal["x", "y"]
+FillCornersDirection: TypeAlias = Literal["i", "x", "j", "y"]
 GridType: TypeAlias = Literal["A", "B"]  # Arakawa grid type
 
 
@@ -653,7 +653,7 @@ def fill_corners_2d(
     q: FloatField,
     grid_indexer: GridIndexing,
     gridtype: GridType,
-    direction: FillCornersDirection = "x",
+    direction: FillCornersDirection = "i",
 ) -> None:
     if gridtype == "A":
         return fill_corners_2d_agrid(q, grid_indexer, direction)
@@ -665,7 +665,7 @@ def fill_corners_2d(
 
 
 def fill_corners_2d_bgrid(
-    q: FloatField, grid_indexer: GridIndexing, direction: FillCornersDirection = "x"
+    q: FloatField, grid_indexer: GridIndexing, direction: FillCornersDirection = "i"
 ) -> None:
     for i in range(1, 1 + grid_indexer.n_halo):
         for j in range(1, 1 + grid_indexer.n_halo):
@@ -680,7 +680,7 @@ def fill_corners_2d_bgrid(
 
 
 def fill_corners_2d_agrid(
-    q: FloatField, grid_indexer: GridIndexing, direction: FillCornersDirection = "x"
+    q: FloatField, grid_indexer: GridIndexing, direction: FillCornersDirection = "i"
 ) -> None:
     for i in range(1, 1 + grid_indexer.n_halo):
         for j in range(1, 1 + grid_indexer.n_halo):
