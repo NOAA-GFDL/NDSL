@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     "shape, ny_rank_add, nx_rank_add, dims",
     [
-        pytest.param((5, 4, 4), 0, 0, ("z", "y", "x"), id="cell_center"),
+        pytest.param((5, 4, 4), 0, 0, ("k", "j", "i"), id="cell_center"),
         pytest.param(
-            (5, 4, 4), 1, 1, ("z", "y_interface", "x_interface"), id="cell_corner"
+            (5, 4, 4), 1, 1, ("k", "j_interface", "i_interface"), id="cell_corner"
         ),
-        pytest.param((5, 4, 4), 0, 1, ("z", "y", "x_interface"), id="cell_edge"),
+        pytest.param((5, 4, 4), 0, 1, ("k", "j", "i_interface"), id="cell_edge"),
     ],
 )
 def test_monitor_store_multi_rank_state(

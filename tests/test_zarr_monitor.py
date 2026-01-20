@@ -28,7 +28,7 @@ requires_zarr = pytest.mark.skipif(
 logger = logging.getLogger("test_zarr_monitor")
 
 # pace's K_DIMS doesn't check the soil dimension
-K_DIMS = ("z", "z_interface", "z_soil")
+K_DIMS = ("k", "k_interface", "k_soil")
 
 
 @pytest.fixture(params=["one_step", "three_steps"])
