@@ -16,6 +16,8 @@ from ndsl.constants import (
     J_DIMS,
     J_INTERFACE_DIM,
     K_DIM,
+    X_DIM,
+    K_SOIL_DIM,
 )
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
 from ndsl.optional_imports import RaiseWhenAccessed, zarr
@@ -98,7 +100,7 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
     if request.param == "one_var_2d":
         return {
             "var1": Quantity(
-                numpy.ones([ny, nx]), dims=("y", "x"), units="m", backend="debug"
+                numpy.ones([ny, nx]), dims=(J_DIM, X_DIM), units="m", backend="debug"
             )
         }
 
@@ -106,7 +108,7 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
         return {
             "var1": Quantity(
                 numpy.ones([nz, ny, nx]),
-                dims=("z", "y", "x"),
+                dims=(K_DIM, J_DIM, I_DIM),
                 units="m",
                 backend="debug",
             )
@@ -115,11 +117,11 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
     if request.param == "two_vars":
         return {
             "var1": Quantity(
-                numpy.ones([ny, nx]), dims=("y", "x"), units="m", backend="debug"
+                numpy.ones([ny, nx]), dims=(J_DIM, I_DIM), units="m", backend="debug"
             ),
             "var2": Quantity(
                 numpy.ones([nz, ny, nx]),
-                dims=("z", "y", "x"),
+                dims=(K_DIM, J_DIM, I_DIM),
                 units="degK",
                 backend="debug",
             ),
@@ -213,9 +215,9 @@ def validate_store(states, filename, numpy, start_time):
 @pytest.mark.parametrize(
     "shape, ny_rank_add, nx_rank_add, dims",
     [
-        ((5, 4, 4), 0, 0, ("z", "y", "x")),
-        ((5, 4, 4), 1, 1, ("z", "y_interface", "x_interface")),
-        ((5, 4, 4), 0, 1, ("z", "y", "x_interface")),
+        ((5, 4, 4), 0, 0, (K_DIM, J_DIM, I_DIM)),
+        ((5, 4, 4), 1, 1, (K_DIM, J_INTERFACE_DIM, I_INTERFACE_DIM)),
+        ((5, 4, 4), 0, 1, (K_DIM, J_DIM, I_INTERFACE_DIM)),
     ],
 )
 @requires_zarr
@@ -330,9 +332,9 @@ def _assert_no_nulls(dataset: xr.Dataset):
     number_of_null = dataset["var"].isnull().sum().item()
     total_size = dataset["var"].size
 
-    assert (
-        number_of_null == 0
-    ), f"Number of nulls {number_of_null}. Size of data {total_size}"
+    assert number_of_null == 0, (
+        f"Number of nulls {number_of_null}. Size of data {total_size}"
+    )
 
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
@@ -344,7 +346,7 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     zero_quantity = Quantity(
-        numpy.zeros([10, 10]), dims=("y", "x"), units="m", backend="debug"
+        numpy.zeros([10, 10]), dims=(J_DIM, I_DIM), units="m", backend="debug"
     )
     monitor.store({"var": zero_quantity})
 
@@ -357,7 +359,7 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale
 
 @requires_zarr
 def test_values_preserved(cube_partitioner, numpy):
-    dims = ("y", "x")
+    dims = (J_DIM, I_DIM)
     units = "m"
 
     store = {}
@@ -407,11 +409,11 @@ def test_monitor_file_store_inconsistent_calendars(
 
 @pytest.fixture(
     params=[
-        ["x", "y"],
-        ["x", "y", "z"],
-        ["x_interface", "y", "z"],
-        ["x", "y_interface", "z"],
-        ["x", "y", "z_soil"],
+        [I_DIM, J_DIM],
+        [I_DIM, J_DIM, K_DIM],
+        [I_INTERFACE_DIM, J_DIM, K_DIM],
+        [I_DIM, J_INTERFACE_DIM, K_DIM],
+        [I_DIM, J_DIM, K_SOIL_DIM],
     ],
 )
 def diag(request, numpy):
