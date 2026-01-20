@@ -10,10 +10,10 @@ class GridMetadata(abc.ABC):
 
 @dataclasses.dataclass
 class GridMetadataFV3(GridMetadata):
-    x: str = "x"
-    y: str = "y"
-    x_interface: str = "x_interface"
-    y_interface: str = "y_interface"
+    i: str = "i"
+    j: str = "j"
+    i_interface: str = "i_interface"
+    j_interface: str = "j_interface"
     tile: str = "tile"
     lon: str = "lon"
     lonb: str = "lonb"
@@ -23,10 +23,10 @@ class GridMetadataFV3(GridMetadata):
     @property
     def coord_vars(self):
         coord_vars = {
-            self.lonb: [self.y_interface, self.x_interface, self.tile],
-            self.latb: [self.y_interface, self.x_interface, self.tile],
-            self.lon: [self.y, self.x, self.tile],
-            self.lat: [self.y, self.x, self.tile],
+            self.lonb: [self.j_interface, self.i_interface, self.tile],
+            self.latb: [self.j_interface, self.i_interface, self.tile],
+            self.lon: [self.j, self.i, self.tile],
+            self.lat: [self.j, self.i, self.tile],
         }
         return coord_vars
 

@@ -343,9 +343,9 @@ class FillCornersBGrid:
             domain = default_domain
         """The full domain required to do corner computation everywhere"""
 
-        if direction == "x":
+        if direction in ["x", "i"]:
             defn = fill_corners_bgrid_x_defn
-        elif direction == "y":
+        elif direction in ["y", "j"]:
             defn = fill_corners_bgrid_y_defn
         else:
             raise ValueError("Direction must be either 'x' or 'y'")
@@ -490,44 +490,44 @@ def fill_corners_bgrid_y_defn(q_in: FloatField, q_out: FloatField):
 
 # TODO these can definitely be consolidated/made simpler
 def fill_sw_corner_2d_bgrid(q, i, j, direction, grid_indexer):
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jsc - j, :] = q[
             grid_indexer.isc - j, grid_indexer.jsc + i, :
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.isc - j, grid_indexer.jsc - i, :] = q[
             grid_indexer.isc + i, grid_indexer.jsc - j, :
         ]
 
 
 def fill_nw_corner_2d_bgrid(q, i, j, direction, grid_indexer):
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jec + 1 + j, :] = q[
             grid_indexer.isc - j, grid_indexer.jec + 1 - i, :
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.isc - j, grid_indexer.jec + 1 + i, :] = q[
             grid_indexer.isc + i, grid_indexer.jec + 1 + j, :
         ]
 
 
 def fill_se_corner_2d_bgrid(q, i, j, direction, grid_indexer):
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.iec + 1 + i, grid_indexer.jsc - j, :] = q[
             grid_indexer.iec + 1 + j, grid_indexer.jsc + i, :
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.iec + 1 + j, grid_indexer.jsc - i, :] = q[
             grid_indexer.iec + 1 - i, grid_indexer.jsc - j, :
         ]
 
 
 def fill_ne_corner_2d_bgrid(q, i, j, direction, grid_indexer):
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.iec + 1 + i, grid_indexer.jec + 1 + j :] = q[
             grid_indexer.iec + 1 + j, grid_indexer.jec + 1 - i, :
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.iec + 1 + i, grid_indexer.jec + 1 + j :] = q[
             grid_indexer.iec + 1 - i, grid_indexer.jec + 1 + j, :
         ]
@@ -535,11 +535,11 @@ def fill_ne_corner_2d_bgrid(q, i, j, direction, grid_indexer):
 
 def fill_sw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None):
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jsc - j, kslice] = q[
             grid_indexer.isc - j, grid_indexer.jsc + i - 1, kslice
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.isc - j, grid_indexer.jsc - i, kslice] = q[
             grid_indexer.isc + i - 1, grid_indexer.jsc - j, kslice
         ]
@@ -547,11 +547,11 @@ def fill_sw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None)
 
 def fill_nw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None):
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jec + j, kslice] = q[
             grid_indexer.isc - j, grid_indexer.jec - i + 1, kslice
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.isc - j, grid_indexer.jec + i, kslice] = q[
             grid_indexer.isc + i - 1, grid_indexer.jec + j, kslice
         ]
@@ -559,11 +559,11 @@ def fill_nw_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None)
 
 def fill_se_corner_2d_agrid(q, i, j, direction, grid_indexer, kstart=0, nk=None):
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.iec + i, grid_indexer.jsc - j, kslice] = q[
             grid_indexer.iec + j, grid_indexer.isc + i - 1, kslice
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.iec + j, grid_indexer.jsc - i, kslice] = q[
             grid_indexer.iec - i + 1, grid_indexer.jsc - j, kslice
         ]
@@ -573,17 +573,17 @@ def fill_ne_corner_2d_agrid(
     q, i, j, direction, grid_indexer, mysign=1.0, kstart=0, nk=None
 ):
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
-    if direction == "x":
+    if direction in ["x", "i"]:
         q[grid_indexer.iec + i, grid_indexer.jec + j, kslice] = q[
             grid_indexer.iec + j, grid_indexer.jec - i + 1, kslice
         ]
-    if direction == "y":
+    if direction in ["y", "j"]:
         q[grid_indexer.iec + j, grid_indexer.jec + i, kslice] = q[
             grid_indexer.iec - i + 1, grid_indexer.jec + j, kslice
         ]
 
 
-def fill_corners_2d(q, grid_indexer, gridtype, direction="x"):
+def fill_corners_2d(q, grid_indexer, gridtype, direction="i"):
     if gridtype == "B":
         fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction)
     elif gridtype == "A":
@@ -592,7 +592,7 @@ def fill_corners_2d(q, grid_indexer, gridtype, direction="x"):
         raise NotImplementedError()
 
 
-def fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction="x"):
+def fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction="i"):
     for i in range(1, 1 + grid_indexer.n_halo):
         for j in range(1, 1 + grid_indexer.n_halo):
             if grid_indexer.sw_corner:
@@ -605,7 +605,7 @@ def fill_corners_2d_bgrid(q, grid_indexer, gridtype, direction="x"):
                 fill_ne_corner_2d_bgrid(q, i, j, direction, grid_indexer)
 
 
-def fill_corners_2d_agrid(q, grid_indexer, gridtype, direction="x"):
+def fill_corners_2d_agrid(q, grid_indexer, gridtype, direction="i"):
     for i in range(1, 1 + grid_indexer.n_halo):
         for j in range(1, 1 + grid_indexer.n_halo):
             if grid_indexer.sw_corner:

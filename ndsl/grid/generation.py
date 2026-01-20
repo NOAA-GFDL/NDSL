@@ -474,7 +474,7 @@ class MetricTerms:
         terms._comm.halo_update(terms._grid_64, n_points=terms._halo)
 
         fill_corners_2d(
-            terms._grid_64.data, terms._grid_indexing, gridtype="B", direction="x"
+            terms._grid_64.data, terms._grid_indexing, gridtype="B", direction="i"
         )
 
         terms._init_agrid()
@@ -1846,7 +1846,7 @@ class MetricTerms:
         self._comm.halo_update(self._grid_64, n_points=self._halo)
 
         fill_corners_2d(
-            self._grid_64.data, self._grid_indexing, gridtype="B", direction="x"
+            self._grid_64.data, self._grid_indexing, gridtype="B", direction="i"
         )
 
     def _init_agrid(self):
@@ -1863,13 +1863,13 @@ class MetricTerms:
             self._agrid_64.data[:, :, 0][:, :, None],
             self._grid_indexing,
             gridtype="A",
-            direction="x",
+            direction="i",
         )
         fill_corners_2d(
             self._agrid_64.data[:, :, 1][:, :, None],
             self._grid_indexing,
             gridtype="A",
-            direction="y",
+            direction="j",
         )
 
     def _compute_dxdy_cube_sphere(self):
@@ -2185,7 +2185,7 @@ class MetricTerms:
             area_cgrid_64.data[:, :, None],
             self._grid_indexing,
             gridtype="B",
-            direction="x",
+            direction="i",
         )
         return quantity_cast_to_model_float(self.quantity_factory, area_cgrid_64)
 
