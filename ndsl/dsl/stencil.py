@@ -903,17 +903,17 @@ class GridIndexing:
         result = []
         for dimension in dimensions:
             if dimension == X_DIM:
-                result.append(self.origin[0])
+                result.append(self.domain[0])
             if dimension == X_INTERFACE_DIM:
-                result.append(self.origin[0] + 1)
+                result.append(self.domain[0] + 1)
             if dimension == Y_DIM:
-                result.append(self.origin[1])
+                result.append(self.domain[1])
             if dimension == Y_INTERFACE_DIM:
-                result.append(self.origin[1] + 1)
+                result.append(self.domain[1] + 1)
             if dimension == Z_DIM:
-                result.append(self.origin[2])
+                result.append(self.domain[2])
             if dimension == Z_INTERFACE_DIM:
-                result.append(self.origin[2] + 1)
+                result.append(self.domain[2] + 1)
         return result
 
     def get_shape(
