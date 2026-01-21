@@ -21,7 +21,17 @@ from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
-from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.constants import (
+    X_DIM,
+    X_DIMS,
+    X_INTERFACE_DIM,
+    Y_DIM,
+    Y_DIMS,
+    Y_INTERFACE_DIM,
+    Z_DIM,
+    Z_DIMS,
+    Z_INTERFACE_DIM,
+)
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
@@ -38,7 +48,7 @@ from ndsl.dsl.typing import (
     IntFieldIJ64,
     cast_to_index3d,
 )
-from ndsl.initialization import GridSizer, SubtileGridSizer
+from ndsl.initialization import GridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
@@ -650,6 +660,8 @@ class GridIndexing:
         north_edge: bool,
         west_edge: bool,
         east_edge: bool,
+        *,
+        k_start: int = 0,
     ):
         """
         Initialize a grid indexing object.
@@ -662,28 +674,13 @@ class GridIndexing:
             west_edge: whether the current rank is on the west edge of a tile
             east_edge: whether the current rank is on the east edge of a tile
         """
-        self.origin = (n_halo, n_halo, 0)
+        self.origin = (n_halo, n_halo, k_start)
         self.n_halo = n_halo
         self.domain = domain
         self.south_edge = south_edge
         self.north_edge = north_edge
         self.west_edge = west_edge
         self.east_edge = east_edge
-
-    @property
-    def domain(self) -> Index3D:
-        return self._domain
-
-    @domain.setter
-    def domain(self, domain: Index3D) -> None:
-        self._domain = domain
-        self._sizer = SubtileGridSizer(
-            nx=domain[0],
-            ny=domain[1],
-            nz=domain[2],
-            n_halo=self.n_halo,
-            data_dimensions={},
-        )
 
     @classmethod
     def from_sizer_and_communicator(
@@ -695,17 +692,13 @@ class GridIndexing:
             tuple[int, int, int],
             sizer.get_extent([X_DIM, Y_DIM, Z_DIM]),
         )
-        south_edge = comm.tile.partitioner.on_tile_bottom(comm.rank)
-        north_edge = comm.tile.partitioner.on_tile_top(comm.rank)
-        west_edge = comm.tile.partitioner.on_tile_left(comm.rank)
-        east_edge = comm.tile.partitioner.on_tile_right(comm.rank)
         return cls(
             domain=domain,
             n_halo=sizer.n_halo,
-            south_edge=south_edge,
-            north_edge=north_edge,
-            west_edge=west_edge,
-            east_edge=east_edge,
+            south_edge=comm.tile.partitioner.on_tile_bottom(comm.rank),
+            north_edge=comm.tile.partitioner.on_tile_top(comm.rank),
+            west_edge=comm.tile.partitioner.on_tile_left(comm.rank),
+            east_edge=comm.tile.partitioner.on_tile_right(comm.rank),
         )
 
     @property
@@ -870,7 +863,7 @@ class GridIndexing:
             domain: shape of the computation
         """
         origin = self._origin_from_dims(dims)
-        domain = list(self._sizer.get_extent(dims))
+        domain = self._domain_from_dims(dims)
         for i, n in enumerate(halos):
             origin[i] -= n
             domain[i] += 2 * n
@@ -906,6 +899,23 @@ class GridIndexing:
                 return_origin.append(self.origin[2])
         return return_origin
 
+    def _domain_from_dims(self, dimensions: Iterable[str]) -> list[int]:
+        result = []
+        for dimension in dimensions:
+            if dimension == X_DIM:
+                result.append(self.origin[0])
+            if dimension == X_INTERFACE_DIM:
+                result.append(self.origin[0] + 1)
+            if dimension == Y_DIM:
+                result.append(self.origin[1])
+            if dimension == Y_INTERFACE_DIM:
+                result.append(self.origin[1] + 1)
+            if dimension == Z_DIM:
+                result.append(self.origin[2])
+            if dimension == Z_INTERFACE_DIM:
+                result.append(self.origin[2] + 1)
+        return result
+
     def get_shape(
         self, dims: Sequence[str], halos: Sequence[int] = tuple()
     ) -> tuple[int, ...]:
@@ -918,10 +928,9 @@ class GridIndexing:
             halos: number of halo points for each dimension, defaults to zero
 
         Returns:
-            origin: origin of the computation
-            domain: shape of the computation
+            shape: storage required for an array with the given dimensions
         """
-        shape = list(self._sizer.get_extent(dims))
+        shape = self._domain_from_dims(dims)
         for i, d in enumerate(dims):
             # need n_halo points at the start of the domain, regardless of whether
             # they are read, so that data is aligned in memory
@@ -960,16 +969,15 @@ class GridIndexing:
                 "nk can be at most the size of the vertical domain minus k_start"
             )
 
-        new = GridIndexing(
+        return GridIndexing(
             self.domain[:2] + (nk,),
             self.n_halo,
             self.south_edge,
             self.north_edge,
             self.west_edge,
             self.east_edge,
+            k_start=self.origin[2] + k_start,
         )
-        new.origin = self.origin[:2] + (self.origin[2] + k_start,)
-        return new
 
 
 class StencilFactory:
