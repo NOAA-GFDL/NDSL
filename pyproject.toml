@@ -101,10 +101,7 @@ module = [
   # Unclear what the state of these modules is
   "ndsl.monitor.*",
   "ndsl.stencils.testing.serialbox_to_netcdf",
-  # deprecated
-  "ndsl.filesystem",
   # TODO: fix issue and remove this override
-  "ndsl.types",
   "ndsl.comm._boundary_utils",
   "ndsl.quantity.bounds"
 ]
