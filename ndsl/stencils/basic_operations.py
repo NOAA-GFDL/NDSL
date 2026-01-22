@@ -24,20 +24,6 @@ def copy(q_in: FloatField, q_out: FloatField) -> None:
         q_out = q_in
 
 
-def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
-    """
-    [DEPRECATED] Copy q_in to q_out.
-
-    This stencil is deprecated, use `copy(q_in, q_out)` instead.
-
-    Args:
-        q_in: input field
-        q_out: output field
-    """
-    with computation(PARALLEL), interval(...):
-        q_out = q_in
-
-
 def adjustmentfactor_stencil(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
     """
     Multiplies every element of q_out by every element of the adjustment field over the
@@ -51,38 +37,9 @@ def adjustmentfactor_stencil(adjustment: FloatFieldIJ, q_out: FloatField) -> Non
         q_out = q_out * adjustment
 
 
-def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
-    """
-    [DEPRECATED] Multiplies every element of q_out by every element of the adjustment
-    field over the interval, replacing the elements of q_out by the result of the multiplication.
-
-    This stencil is deprecated, use `adjustmentfactor_stencil(adjustment, q_out)` instead.
-
-    Args:
-        adjustment: adjustment field
-        q_out: output field
-    """
-    with computation(PARALLEL), interval(...):
-        q_out = q_out * adjustment
-
-
 def set_value(q_out: FloatField, value: Float) -> None:
     """
     Sets every element of q_out to the value specified by value argument.
-
-    Args:
-        q_out: output field
-        value: NDSL Float type
-    """
-    with computation(PARALLEL), interval(...):
-        q_out = value
-
-
-def set_value_defn(q_out: FloatField, value: Float) -> None:
-    """
-    [DEPRECATED] Sets every element of q_out to the value specified by value argument.
-
-    This stencil is deprecated, use `set_value(q_out, value)` instead.
 
     Args:
         q_out: output field

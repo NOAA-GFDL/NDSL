@@ -4,7 +4,6 @@ import copy
 import dataclasses
 import inspect
 import numbers
-import warnings
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
@@ -288,22 +287,6 @@ class FrozenStencil(SDFGConvertible):
             comm: if given, inputs and outputs will be compared to the "twin"
                 rank of this rank
         """
-        deprecated_basic_operations = [
-            "copy_defn",
-            "set_value_defn",
-            "adjustmentfactor_stencil_defn",
-        ]
-        if (
-            func.__module__ == "ndsl.stencils.basic_operations"
-            and func.__name__ in deprecated_basic_operations
-        ):
-            warnings.warn(
-                f"{func.__name__}(...) is deprecated and will be removed with the next "
-                f"version of NDSL. Use {func.__name__.removesuffix('_defn')}(...) instead.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
         self.origin = origin
