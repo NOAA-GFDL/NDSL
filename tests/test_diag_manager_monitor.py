@@ -21,9 +21,32 @@ from pyfms import mpp_domains, mpp, fms
 
 from pathlib import Path
 
+import yaml
+
+diag_config = {
+    "title": "pace_diag_manager_test",
+    "base_date": "1 1 1 0 0 0",
+    "diag_files": [
+        {
+            "file_name": "pace_diagnostics",
+            "freq": "225 seconds",
+            "time_units": "seconds",
+            "unlimdim": "time",
+            "varlist": [
+                {
+                    "module": "atm_mod",
+                    "var_name": "var1",
+                    "long_name": "variable_number_one",
+                    "reduction": "none",
+                    "kind": "r8"
+                }
+            ]
+        }
+    ]
+}
+
 
 logger = logging.getLogger(__name__)
-
 
 # TODO fix the parametrizations once the test works 
 #@pytest.mark.parametrize("layout", [(1, 1), (1, 2), (4, 4)])
@@ -45,7 +68,7 @@ logger = logging.getLogger(__name__)
 #    layout, nt, time_chunk_size, tmpdir, shape, ny_rank_add, nx_rank_add, dims, numpy
 #):
 
-def test_monitor_store_multi_rank_state():
+def test_diag_monitor_store_multi_rank_state():
     units = "m"
     backend = "debug"
     nz, ny, nx = (16, 16, 1)
@@ -62,6 +85,16 @@ def test_monitor_store_multi_rank_state():
     monitor_list: List[DiagManagerMonitor] = []
     tmpdir = "./diag_manager_monitor_test/"
     dims = ("z", "y", "x")
+
+
+    # write diag_table.yaml with required variables
+    with open("diag_table.yaml", "w") as f:
+        yaml.dump(diag_config, f, default_flow_style=False, sort_keys=False)
+    # creates a namelist for the diag manager to run, need to enable yaml support
+    # TODO might want to do this in the DiagManagerMonitor init instead, but needs to be done before FMS_init
+    text_content = "&diag_manager_nml\nuse_modern_diag=.true.\n/"
+    with open("input.nml", "w", encoding="utf-8") as f:
+        f.write(text_content)
 
     domain_id = fms_mpp_init(cubed_sphere=False)
 

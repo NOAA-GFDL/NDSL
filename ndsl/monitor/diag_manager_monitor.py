@@ -44,10 +44,6 @@ class DiagManagerMonitor(NetCDFMonitor):
             communicator: provides global communication to gather state
             time_chunk_size: number of times per file
         """
-        # creates a namelist for the diag manager to run, need to enable yaml support
-        text_content = "&diag_manager_nml\nuse_modern_diag=.true.\n/"
-        with open("input.nml", "w", encoding="utf-8") as f:
-            f.write(text_content)
         # then initialize diag_manager and this object, mpp domain should be created prior to this
         mpp_domains.set_current_domain(domain_id=domain_id)
         diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
