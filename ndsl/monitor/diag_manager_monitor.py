@@ -1,3 +1,4 @@
+import datetime
 import os
 from pathlib import Path
 from warnings import warn
@@ -50,7 +51,8 @@ class DiagManagerMonitor(NetCDFMonitor):
         self.domain_id = domain_id
         self.fields = {}
         self.axes = {}
-        super(DiagManagerMonitor, self).__init__(path, communicator, time_chunk_size, precision)
+        self.precision = precision
+        super().__init__(path, communicator, time_chunk_size, precision)
 
 
     def store(self, state: dict) -> None:
@@ -86,20 +88,21 @@ class DiagManagerMonitor(NetCDFMonitor):
 
         # get the associated quantities/axis for each field that has been registered
         if state is not None:
-            for field_name, field_id in self.fields:
-               field_quantity = getattr(state, field_name) # this may not work
-               axis_ids = list(map(lambda dimname: axis_ids[dimname], field_quantity.dims))
-               # TODO data conversion may not be correct here
-               diag_manager.send_data(diag_field_id=field_id, field=np.ascontiguousarray(field_quantity.data), convert_cf_order=True)
-               diag_manager.send_complete(field_id)
-               diag_manager.advance_field_time(field_id)
+            for field_name, field_id in self.fields.items():
+                field_quantity = state[field_name] # this may not work
+                axis_ids = list(map(lambda dimname: self.axes[dimname], field_quantity.dims))
+                print(f"sending data for {field_name} id: {field_id}\nquantity value: {field_quantity}\naxis ids: {axis_ids}")
+                # TODO data conversion may not be correct here
+                diag_manager.send_data(diag_field_id=field_id, field=np.ascontiguousarray(field_quantity.view[:]), convert_cf_order=True)
+                diag_manager.send_complete(field_id)
+                diag_manager.advance_field_time(field_id)
 
 
     def cleanup(self):
         diag_manager.end()
 
     # sets the end/initial times that the run is using in the diag manager 
-    def set_model_times(self, init_time, end_time):
+    def set_model_times(self, init_time: datetime, end_time: datetime):
         diag_manager.set_field_init_time(
             year=init_time.year,
             month=init_time.month,
@@ -118,18 +121,38 @@ class DiagManagerMonitor(NetCDFMonitor):
         )
 
     # registers a diag_manager field/variable for a given Quantity, adds name:field_id to self.fields
-    def register_field(self, name: str, quantity: Quantity, domain_id: int, timestep):
-        self.fields[name] = diag_manager.field_init(
-            name=name,
-            long_name=name,
-            units=quantity.units,
-            domain_id=domain_id,
-            set_name="atm",
-            cart_name=name,
-            precision=get_precision(quantity.data),
+    # TODO: 
+    def register_field(self, module_name: str, field_name: str, quantity: Quantity,
+                       long_name: str = None):
+
+        field_axes = [self.axes[dim] for dim in quantity.dims]
+        if field_axes is None:
+            raise ValueError(f"All axes for field {field_name} must be registered before registering the field.")
+        
+        # putting all the arguments here for now, only module_name, field_name, precision are required
+        self.fields[field_name] = diag_manager.register_field_array(
+            module_name=module_name,
+            field_name=field_name,
+            axes = field_axes,
+            long_name= long_name,
+            units= quantity.units,
+            dtype = "float32" if self.precision == np.float32 else "float64", #TODO
+            missing_value = None,
+            range_data = None,
+            mask_variant = None,
+            standard_name = None,
+            verbose = True,
+            do_not_log = None,
+            interp_method = None,
+            tile_count = None,
+            area = None,
+            volume = None, 
+            realm = None,
+            multiple_send_data = None
         )
 
     # registers a axis in diag_manager, adds name:axis_id to self.axes 
+    # TODO: might be able to make this private, intialize from quantity dims when registering field
     def register_axis(self, name: str, axis_data: np.ndarray, cart_name: str = None,
                       long_name: str = None, units: str = None):
         self.axes[name] = diag_manager.axis_init(

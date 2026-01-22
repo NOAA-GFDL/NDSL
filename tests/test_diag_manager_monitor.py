@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List
 
 import cftime
@@ -48,6 +48,123 @@ diag_config = {
 
 logger = logging.getLogger(__name__)
 
+# init fms mpi and set up a simple domain
+def fms_mpp_init(cubed_sphere:bool=False):
+    nhalo = 1
+    x = 16
+    y = 16 
+
+    fms.init(localcomm=MPI.COMM_WORLD.py2f(), calendar_type=fms.NOLEAP)
+
+    if not cubed_sphere:
+        layout = [1, 1]
+        io_layout = [1, 1]
+        global_indices = [0, x-1, 0, y-1]
+        halo = 1 
+
+        domain = mpp_domains.define_domains(
+            global_indices=global_indices,
+            layout=layout,
+            whalo=halo,
+            ehalo=halo,
+            shalo=halo,
+            nhalo=halo,
+            xflags=mpp_domains.CYCLIC_GLOBAL_DOMAIN,
+            yflags=mpp_domains.CYCLIC_GLOBAL_DOMAIN,
+        )
+
+        id_num = domain.domain_id
+        mpp_domains.define_io_domain(
+            domain_id=id_num,
+            io_layout=io_layout,
+        )
+        return id_num
+    else:
+        raise NotImplementedError("Cubed sphere FMS MPP init not implemented yet")
+
+# initializes domain to use for ALL tests
+domain_id = fms_mpp_init(cubed_sphere=False)
+
+
+def _create_input():
+    with open("diag_table.yaml", "w") as f:
+        yaml.dump(diag_config, f, default_flow_style=False, sort_keys=False)
+    text_content = "&diag_manager_nml\nuse_modern_diag=.true.\n/"
+    with open("input.nml", "w", encoding="utf-8") as f:
+        f.write(text_content)
+
+
+# Simple test to ensure DiagManagerMonitor can injest the diag yaml and register fields and axes
+#@pytest.mark.parametrize("do_send_data", [True, False])
+def test_dm_monitor():
+
+    _create_input()
+
+    nx = 16
+    ny = 16
+    ntimesteps = 3
+
+    buffer = {}
+
+    communicator = CubedSphereCommunicator(
+            comm = LocalComm(rank=0, total_ranks=1, buffer_dict=buffer), 
+            partitioner=TilePartitioner((1,1)),
+    )
+    communicator.tile
+
+    monitor = DiagManagerMonitor(
+        path="./",
+        communicator=communicator,
+        domain_id=domain_id,
+        time_chunk_size=1,
+        precision=np.float32,
+    )
+    
+    start = datetime(2010, 6, 20, 6, 0, 0)
+    end = datetime(2010, 6, 20, 12, 0, 0)
+    monitor.set_model_times(init_time=start, end_time=end)
+
+    monitor.register_axis(
+        name="x",
+        axis_data=np.arange(nx, dtype=np.float64),
+        cart_name='x',
+        long_name="x coordinate",
+        units="m",
+    )
+    monitor.register_axis(
+        name="y",
+        axis_data=np.arange(ny, dtype=np.float64),
+        cart_name='y',
+        long_name="y coordinate",
+        units="m",
+    )
+
+    field_q = Quantity(
+        data=np.ones( (nx,ny), dtype=np.float64),
+        dims=("x","y"),
+        units="m",
+        backend="debug",
+    )
+    monitor.register_field(
+        module_name="var1",
+        field_name="var1",
+        quantity=field_q,
+        long_name="variable one",
+    )
+    assert "x" in monitor.axes
+    assert "y" in monitor.axes
+    assert "var1" in monitor.fields
+
+    state = {
+        "var1": field_q,
+    }
+    monitor.store(state)
+
+    monitor.cleanup()
+    assert Path("pace_diagnostics.nc").exists()
+
+
+
 # TODO fix the parametrizations once the test works 
 #@pytest.mark.parametrize("layout", [(1, 1), (1, 2), (4, 4)])
 #@pytest.mark.parametrize(
@@ -68,6 +185,7 @@ logger = logging.getLogger(__name__)
 #    layout, nt, time_chunk_size, tmpdir, shape, ny_rank_add, nx_rank_add, dims, numpy
 #):
 
+# taken from netcdfmonitor test to make sure the generic monitor routines function as expected
 def test_diag_monitor_store_multi_rank_state():
     units = "m"
     backend = "debug"
@@ -86,17 +204,7 @@ def test_diag_monitor_store_multi_rank_state():
     tmpdir = "./diag_manager_monitor_test/"
     dims = ("z", "y", "x")
 
-
-    # write diag_table.yaml with required variables
-    with open("diag_table.yaml", "w") as f:
-        yaml.dump(diag_config, f, default_flow_style=False, sort_keys=False)
-    # creates a namelist for the diag manager to run, need to enable yaml support
-    # TODO might want to do this in the DiagManagerMonitor init instead, but needs to be done before FMS_init
-    text_content = "&diag_manager_nml\nuse_modern_diag=.true.\n/"
-    with open("input.nml", "w", encoding="utf-8") as f:
-        f.write(text_content)
-
-    domain_id = fms_mpp_init(cubed_sphere=False)
+    _create_input()
 
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
@@ -190,36 +298,3 @@ def test_diag_monitor_store_multi_rank_state():
     #np.testing.assert_array_equal(ds_const2["var_const2"].values, 1.0)
 
 
-# init fms mpi and set up a simple domain
-def fms_mpp_init(cubed_sphere:bool=False):
-    nhalo = 1
-    x = 16
-    y = 16 
-
-    fms.init(localcomm=MPI.COMM_WORLD.py2f(), calendar_type=fms.NOLEAP)
-
-    if not cubed_sphere:
-        layout = [1, 1]
-        io_layout = [1, 1]
-        global_indices = [0, x-1, 0, y-1]
-        halo = 1 
-
-        domain = mpp_domains.define_domains(
-            global_indices=global_indices,
-            layout=layout,
-            whalo=halo,
-            ehalo=halo,
-            shalo=halo,
-            nhalo=halo,
-            xflags=mpp_domains.CYCLIC_GLOBAL_DOMAIN,
-            yflags=mpp_domains.CYCLIC_GLOBAL_DOMAIN,
-        )
-
-        id_num = domain.domain_id
-        mpp_domains.define_io_domain(
-            domain_id=id_num,
-            io_layout=io_layout,
-        )
-        return id_num
-    else:
-        raise NotImplementedError("Cubed sphere FMS MPP init not implemented yet")
