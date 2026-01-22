@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Iterable
 from typing import Self
 
@@ -17,21 +16,12 @@ class SubtileGridSizer(GridSizer):
         nz: int,
         n_halo: int,
         data_dimensions: dict[str, int],
-        backend: str | None = None,
+        backend: str,
     ) -> None:
         super().__init__(nx, ny, nz, n_halo, data_dimensions)
 
-        if backend is None:
-            warnings.warn(
-                "SubtileGridSizer will _require_ a backend going forward, update your API call "
-                "to include `backend=...`",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self._pad_non_interface_dimensions = True
-        else:
-            fortran_style_memory = backend_is_fortran_aligned(backend)
-            self._pad_non_interface_dimensions = not fortran_style_memory
+        fortran_style_memory = backend_is_fortran_aligned(backend)
+        self._pad_non_interface_dimensions = not fortran_style_memory
 
     @classmethod
     def from_tile_params(
@@ -42,10 +32,10 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         layout: tuple[int, int],
         *,
+        backend: str,
         data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
-        backend: str | None = None,
     ) -> Self:
         """Create a SubtileGridSizer from parameters about the full tile.
 
@@ -54,9 +44,10 @@ class SubtileGridSizer(GridSizer):
             ny_tile: number of y cell centers on the tile
             nz: number of vertical levels
             n_halo: number of halo points
+            layout: (y, x) number of ranks along tile edges
+            backend: backend name
             data_dimensions: lengths of any non-x/y/z dimensions,
                 such as land or radiation dimensions
-            layout: (y, x) number of ranks along tile edges
             tile_partitioner (optional): partitioner object for the tile. By default, a
                 TilePartitioner is created with the given layout
             tile_rank (optional): rank of this subtile.
@@ -94,7 +85,7 @@ class SubtileGridSizer(GridSizer):
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
         *,
-        backend: str | None = None,
+        backend: str,
     ) -> Self:
         """Create a SubtileGridSizer from a Fortran namelist.
 
@@ -105,6 +96,7 @@ class SubtileGridSizer(GridSizer):
             tile_rank (optional): current rank on tile. Default is 0. Only matters if
                 different ranks have different domain shapes. If tile_partitioner
                 is a TilePartitioner, this argument does not matter.
+            backend: backend name
         """
         if "fv_core_nml" in namelist.keys():
             layout = namelist["fv_core_nml"]["layout"]
