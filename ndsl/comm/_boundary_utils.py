@@ -20,10 +20,10 @@ def shift_boundary_slice_tuple(
 
 
 def bound_default_slice(
-    slice_in: slice[int | None, int | None, int],
+    slice_in: slice,
     start: int | None = None,
     stop: int | None = None,
-) -> slice[int | None, int | None, int]:
+) -> slice:
     if slice_in.start is not None:
         start = slice_in.start
     if slice_in.stop is not None:

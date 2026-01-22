@@ -192,9 +192,7 @@ def _fill_index(index, length):  # type: ignore[no-untyped-def]
     return tuple(index) + (slice(None, None, None),) * (length - len(index))
 
 
-def _shift_slice(
-    slice_in: slice[int | None, int | None, int], shift: int, extent: int
-) -> slice[int | None, int | None, int]:
+def _shift_slice(slice_in: slice, shift: int, extent: int) -> slice:
     start = _shift_index(slice_in.start, shift, extent)
     stop = _shift_index(slice_in.stop, shift, extent)
     return slice(start, stop, slice_in.step)
