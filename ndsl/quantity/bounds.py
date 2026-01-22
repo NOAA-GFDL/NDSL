@@ -41,7 +41,7 @@ class BoundaryArrayView:
     def __setitem__(self, index, value):  # type: ignore[no-untyped-def]
         self._data[self._get_array_index(index)] = value
 
-    def _get_array_index(self, index):  # type: ignore[no-untyped-def]
+    def _get_array_index(self, index) -> tuple[slice | int, ...]:  # type: ignore[no-untyped-def]
         if isinstance(index, list):
             index = tuple(index)
         if not isinstance(index, tuple):
@@ -142,10 +142,10 @@ class BoundedArrayView:
 
         return self._data  # array[()] does not return an ndarray
 
-    def __setitem__(self, index, value):  # type: ignore[no-untyped-def]
+    def __setitem__(self, index, value) -> None:  # type: ignore[no-untyped-def]
         self._data[self._get_compute_index(index)] = value
 
-    def _get_compute_index(self, index):  # type: ignore[no-untyped-def]
+    def _get_compute_index(self, index) -> tuple[int | slice | None, ...]:  # type: ignore[no-untyped-def]
         if not isinstance(index, (tuple, list)):
             index = (index,)
         if len(index) > len(self._dims):
@@ -154,7 +154,7 @@ class BoundedArrayView:
                 f"{len(self._dims)}-dimensional quantity"
             )
         index = _fill_index(index, len(self._data.shape))
-        shifted_index = []
+        shifted_index: list[int | slice | None] = []
         for entry, origin, extent in zip(index, self.origin, self.extent):
             if isinstance(entry, slice):
                 shifted_slice = _shift_slice(entry, origin, extent)
@@ -188,7 +188,7 @@ class BoundedArrayView:
         return self._interior
 
 
-def _fill_index(index, length):  # type: ignore[no-untyped-def]
+def _fill_index(index, length: int) -> tuple:  # type: ignore[no-untyped-def]
     return tuple(index) + (slice(None, None, None),) * (length - len(index))
 
 

@@ -9,8 +9,8 @@ def shift_boundary_slice_tuple(
     origin: Sequence[int],
     extent: Sequence[int],
     boundary_type: int,
-    slice_tuple: tuple[slice | int],
-) -> tuple:
+    slice_tuple: tuple[slice | int, ...],
+) -> tuple[slice | int, ...]:
     slice_list = []
     for dim, entry, origin_1d, extent_1d in zip(dims, slice_tuple, origin, extent):
         slice_list.append(
@@ -76,7 +76,7 @@ def get_boundary_slice(
     dims: tuple[str, ...],
     origin: tuple[int, ...],
     extent: tuple[int, ...],
-    shape: tuple[int],
+    shape: tuple[int, ...],
     boundary_type: int,
     n_halo: int,
     interior: bool,
