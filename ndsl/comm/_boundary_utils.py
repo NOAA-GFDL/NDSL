@@ -1,9 +1,16 @@
 import functools
+from collections.abc import Sequence
 
 import ndsl.constants as constants
 
 
-def shift_boundary_slice_tuple(dims, origin, extent, boundary_type, slice_tuple):
+def shift_boundary_slice_tuple(
+    dims: Sequence[str],
+    origin: Sequence[int],
+    extent: Sequence[int],
+    boundary_type: int,
+    slice_tuple: tuple[slice | int],
+) -> tuple:
     slice_list = []
     for dim, entry, origin_1d, extent_1d in zip(dims, slice_tuple, origin, extent):
         slice_list.append(
@@ -12,7 +19,11 @@ def shift_boundary_slice_tuple(dims, origin, extent, boundary_type, slice_tuple)
     return tuple(slice_list)
 
 
-def bound_default_slice(slice_in, start=None, stop=None):
+def bound_default_slice(
+    slice_in: slice[int | None, int | None, int],
+    start: int | None = None,
+    stop: int | None = None,
+) -> slice[int | None, int | None, int]:
     if slice_in.start is not None:
         start = slice_in.start
     if slice_in.stop is not None:
@@ -20,7 +31,9 @@ def bound_default_slice(slice_in, start=None, stop=None):
     return slice(start, stop, slice_in.step)
 
 
-def _shift_boundary_slice(dim, origin, extent, boundary_type, slice_object):
+def _shift_boundary_slice(
+    dim: str, origin: int, extent: int, boundary_type: int, slice_object: slice | int
+) -> slice | int:
     """_get_boundary_slice for corner views"""
     start_offset, stop_offset = _get_offset(boundary_type, dim, origin, extent)
     if isinstance(slice_object, slice):
@@ -28,32 +41,46 @@ def _shift_boundary_slice(dim, origin, extent, boundary_type, slice_object):
             start = slice_object.start + start_offset
         else:
             start = slice_object.start
+
         if slice_object.stop is not None:
             stop = slice_object.stop + stop_offset
         else:
             stop = slice_object.stop
+
         return bound_default_slice(
             slice(start, stop, slice_object.step), origin, origin + extent
         )
-    else:
-        return slice_object + start_offset  # usually an integer
+
+    # usually an integer
+    return slice_object + start_offset
 
 
-def _get_offset(boundary_type, dim, origin, extent):
+def _get_offset(
+    boundary_type: int, dim: str, origin: int, extent: int
+) -> tuple[int, int]:
     if boundary_type is constants.INTERIOR:
         return origin, origin + extent
-    else:
-        boundary_at_start = boundary_at_start_of_dim(boundary_type, dim)
-        if boundary_at_start is None:  # default is to index within compute domain
-            return origin, origin
-        elif boundary_at_start:
-            return origin, origin
-        else:
-            return origin + extent, origin + extent
+
+    boundary_at_start = boundary_at_start_of_dim(boundary_type, dim)
+    if boundary_at_start is None:  # default is to index within compute domain
+        return origin, origin
+
+    if boundary_at_start:
+        return origin, origin
+
+    return origin + extent, origin + extent
 
 
 @functools.lru_cache(maxsize=None)
-def get_boundary_slice(dims, origin, extent, shape, boundary_type, n_halo, interior):
+def get_boundary_slice(
+    dims: tuple[str, ...],
+    origin: tuple[int, ...],
+    extent: tuple[int, ...],
+    shape: tuple[int],
+    boundary_type: int,
+    n_halo: int,
+    interior: bool,
+) -> tuple[slice, ...]:
     boundary_slice = []
     for dim, origin_1d, extent_1d, shape_1d in zip(dims, origin, extent, shape):
         if dim in constants.INTERFACE_DIMS:
