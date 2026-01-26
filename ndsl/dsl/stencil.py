@@ -25,11 +25,11 @@ from ndsl.constants import (
     I_DIMS,
     I_INTERFACE_DIM,
     J_DIM,
-    J_INTERFACE_DIM,
     J_DIMS,
+    J_INTERFACE_DIM,
     K_DIM,
-    K_INTERFACE_DIM,
     K_DIMS,
+    K_INTERFACE_DIM,
 )
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
@@ -325,9 +325,9 @@ class FrozenStencil(SDFGConvertible):
                 ),
             )
 
-        assert len(self._argument_names) > 0, (
-            "A stencil with no arguments? You may be double decorating"
-        )
+        assert (
+            len(self._argument_names) > 0
+        ), "A stencil with no arguments? You may be double decorating"
 
         # Overloading `dtypes` to allow parsing of NDSL concepts
         ndsl_dtypes = {
