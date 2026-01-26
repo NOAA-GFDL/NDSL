@@ -30,6 +30,7 @@ from ndsl.constants import (
     K_DIM,
     K_DIMS,
     K_INTERFACE_DIM,
+    DeprecatedAxis,
 )
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
@@ -831,7 +832,7 @@ class GridIndexing:
         }
 
     def get_origin_domain(
-        self, dims: Sequence[str], halos: Sequence[int] = tuple()
+        self, dims: Sequence[str | DeprecatedAxis], halos: Sequence[int] = tuple()
     ) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """
         Get the origin and domain for a computation that occurs over a certain grid
@@ -845,8 +846,9 @@ class GridIndexing:
             origin: origin of the computation
             domain: shape of the computation
         """
-        origin = self._origin_from_dims(dims)
-        domain = self._domain_from_dims(dims)
+        normalized_dims = [f"{d}" for d in dims]
+        origin = self._origin_from_dims(normalized_dims)
+        domain = self._domain_from_dims(normalized_dims)
         for i, n in enumerate(halos):
             origin[i] -= n
             domain[i] += 2 * n
@@ -1024,7 +1026,7 @@ class StencilFactory:
     def from_dims_halo(
         self,
         func: Callable[..., None],
-        compute_dims: Sequence[str],
+        compute_dims: Sequence[str | DeprecatedAxis],
         compute_halos: Sequence[int] = tuple(),
         externals: Mapping[str, Any] | None = None,
         skip_passes: tuple[str, ...] = (),

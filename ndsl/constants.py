@@ -1,4 +1,5 @@
 import os
+import warnings
 from enum import Enum
 from typing import Literal
 
@@ -38,13 +39,53 @@ ndsl_log.info(f"Constant selected: {CONST_VERSION}")
 # Common constants
 #####################
 
-I_DIM = X_DIM = "i"
-I_INTERFACE_DIM = X_INTERFACE_DIM = "i_interface"
-J_DIM = Y_DIM = "j"
-J_INTERFACE_DIM = Y_INTERFACE_DIM = "j_interface"
-K_DIM = Z_DIM = "k"
-K_INTERFACE_DIM = Z_INTERFACE_DIM = "k_interface"
-K_SOIL_DIM = Z_SOIL_DIM = "k_soil"
+I_DIM = "i"
+I_INTERFACE_DIM = "i_interface"
+J_DIM = "j"
+J_INTERFACE_DIM = "j_interface"
+K_DIM = "k"
+K_INTERFACE_DIM = "k_interface"
+K_SOIL_DIM = "k_soil"
+
+_DEPRECATED_NAMES = {
+    "X_DIM": I_DIM,
+    "Y_DIM": J_DIM,
+    "Z_DIM": K_DIM,
+    "X_INTERFACE_DIM": I_INTERFACE_DIM,
+    "Y_INTERFACE_DIM": J_INTERFACE_DIM,
+    "Z_INTERFACE_DIM": K_INTERFACE_DIM,
+    "Z_SOIL_DIM": K_SOIL_DIM,
+}
+
+
+class DeprecatedAxis:
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self) -> str:
+        warnings.warn(
+            f"Constant {self.name} is deprecated, please use I/J/K equivalent",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _DEPRECATED_NAMES[self.name]
+
+    def __repr__(self) -> str:
+        warnings.warn(
+            f"Constant {self.name} is deprecated, please use I/J/K equivalent",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _DEPRECATED_NAMES[self.name]
+
+
+X_DIM = DeprecatedAxis("X_DIM")
+X_INTERFACE_DIM = DeprecatedAxis("X_INTERFACE_DIM")
+Y_DIM = DeprecatedAxis("Y_DIM")
+Y_INTERFACE_DIM = DeprecatedAxis("Y_INTERFACE_DIM")
+Z_DIM = DeprecatedAxis("Z_DIM")
+Z_INTERFACE_DIM = DeprecatedAxis("Z_INTERFACE_DIM")
+Z_SOIL_DIM = DeprecatedAxis("Z_SOIL_DIM")
 
 I_DIMS = (I_DIM, I_INTERFACE_DIM)
 J_DIMS = (J_DIM, J_INTERFACE_DIM)

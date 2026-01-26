@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 from gt4py import storage as gt_storage
 
-from ndsl.constants import SPATIAL_DIMS
+from ndsl.constants import SPATIAL_DIMS, DeprecatedAxis
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
@@ -59,7 +59,7 @@ class QuantityFactory:
 
     def empty(
         self,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         dtype: type = Float,
         *,
@@ -74,7 +74,7 @@ class QuantityFactory:
 
     def zeros(
         self,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         dtype: type = Float,
         *,
@@ -83,13 +83,14 @@ class QuantityFactory:
         """Allocate a Quantity and fill it with the value 0.
 
         Equivalent to `numpy.zeros`"""
+
         return self._allocate(
             gt_storage.zeros, dims, units, dtype, allow_mismatch_float_precision
         )
 
     def ones(
         self,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         dtype: type = Float,
         *,
@@ -104,7 +105,7 @@ class QuantityFactory:
 
     def full(
         self,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
         dtype: type = Float,
@@ -127,7 +128,7 @@ class QuantityFactory:
     def from_array(
         self,
         data: np.ndarray,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         *,
         allow_mismatch_float_precision: bool = False,
@@ -150,7 +151,7 @@ class QuantityFactory:
     def from_compute_array(
         self,
         data: np.ndarray,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         *,
         allow_mismatch_float_precision: bool = False,
@@ -175,14 +176,15 @@ class QuantityFactory:
     def _allocate(
         self,
         allocator: Callable,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         units: str,
         dtype: type = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
-        origin = self.sizer.get_origin(dims)
-        extent = self.sizer.get_extent(dims)
-        shape = self.sizer.get_shape(dims)
+        normalized_dims = [f"{d}" for d in dims]
+        origin = self.sizer.get_origin(normalized_dims)
+        extent = self.sizer.get_extent(normalized_dims)
+        shape = self.sizer.get_shape(normalized_dims)
         dimensions = [
             (
                 axis
@@ -190,7 +192,10 @@ class QuantityFactory:
                 else str(shape[index])
             )
             for index, (dim, axis) in enumerate(
-                zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
+                zip(
+                    normalized_dims,
+                    ("I", "J", "K", *([None] * (len(normalized_dims) - 3))),
+                )
             )
         ]
 
@@ -204,7 +209,7 @@ class QuantityFactory:
 
         return Quantity(
             data,
-            dims=dims,
+            dims=normalized_dims,
             units=units,
             origin=origin,
             extent=extent,
@@ -215,7 +220,7 @@ class QuantityFactory:
 
     def get_quantity_halo_spec(
         self,
-        dims: Sequence[str],
+        dims: Sequence[str | DeprecatedAxis],
         n_halo: int | None = None,
         dtype: type = Float,
     ) -> QuantityHaloSpec:
