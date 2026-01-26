@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from enum import Enum
+
 import gt4py.cartesian.backend as gt_backend
 
 
