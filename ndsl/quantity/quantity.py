@@ -13,12 +13,12 @@ from gt4py.cartesian import backend as gt_backend
 
 import ndsl.constants as constants
 from ndsl.comm.mpi import MPI
+from ndsl.constants import DeprecatedAxis
 from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
-from ndsl.constants import DeprecatedAxis
 
 
 if cupy is None:
@@ -137,7 +137,7 @@ class Quantity:
             origin=_ensure_int_tuple(origin, "origin"),
             extent=_ensure_int_tuple(extent, "extent"),
             n_halo=number_of_halo_points,
-            dims=tuple(dims),
+            dims=tuple(normalized_dims),
             units=units,
             data_type=type(self._data),
             dtype=data.dtype,
