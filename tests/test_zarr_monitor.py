@@ -30,7 +30,7 @@ requires_zarr = pytest.mark.skipif(
 logger = logging.getLogger("test_zarr_monitor")
 
 # pace's K_DIMS doesn't check the soil dimension
-K_DIMS = ("k", "k_interface", "k_soil")
+ALL_K_DIMS = ("k", "k_interface", "k_soil")
 
 
 @pytest.fixture(params=["one_step", "three_steps"])
@@ -460,11 +460,11 @@ def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store)
         )
         if rank % 2 == 0:
             diag_to_store = _transpose(
-                diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[K_DIMS, J_DIMS, I_DIMS]
+                diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[ALL_K_DIMS, J_DIMS, I_DIMS]
             )
         else:
             diag_to_store = _transpose(
-                diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, K_DIMS]
+                diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, ALL_K_DIMS]
             )
         # verify that we can store transposed diags across ranks
         monitor.store({"a": diag_to_store})
@@ -475,12 +475,12 @@ def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank)
     # verify that we can store transposed diags across time
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     diag_1 = _transpose(
-        diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[K_DIMS, J_DIMS, I_DIMS]
+        diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[ALL_K_DIMS, J_DIMS, I_DIMS]
     )
     zarr_monitor_single_rank.store({"time": time_1, "a": diag_1})
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
     diag_2 = _transpose(
-        diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, K_DIMS]
+        diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, ALL_K_DIMS]
     )
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
 
