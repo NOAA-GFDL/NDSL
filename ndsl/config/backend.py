@@ -125,4 +125,6 @@ class Backend:
 # Those two internal values are used for default parameters values
 # as it is bad practice to call a function in default argument value
 _BACKEND_PERFORMANCE_CPU = Backend.performance_cpu()
+"""Internal: cache performance CPU. Please use Backend.performance_cpu()."""
 _BACKEND_PYTHON = Backend.python()
+"""Internal: cache performance CPU. Please use Backend.python()."""
