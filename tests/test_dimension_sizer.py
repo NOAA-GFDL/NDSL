@@ -69,6 +69,7 @@ def namelist(nx_tile, ny_tile, nz, layout):
 def sizer(
     request, nx_tile, ny_tile, nz, layout, namelist, extra_dimension_lengths
 ) -> GridSizer:
+    backend = "numpy"  # original utest case
     if request.param == "from_tile_params":
         return SubtileGridSizer.from_tile_params(
             nx_tile=nx_tile,
@@ -77,11 +78,11 @@ def sizer(
             n_halo=N_HALO_DEFAULT,
             layout=layout,
             data_dimensions=extra_dimension_lengths,
-            backend="numpy",  # original utest case
+            backend=backend,
         )
 
     if request.param == "from_namelist":
-        return SubtileGridSizer.from_namelist(namelist)
+        return SubtileGridSizer.from_namelist(namelist, backend=backend)
 
     raise NotImplementedError()
 

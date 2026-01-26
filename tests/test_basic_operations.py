@@ -1,5 +1,3 @@
-import pytest
-
 from ndsl import StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
@@ -10,7 +8,6 @@ from ndsl.stencils import (
     copy,
     set_value,
 )
-from ndsl.stencils.basic_operations import copy_defn
 
 
 class Copy:
@@ -95,18 +92,6 @@ def test_copy():
     stencil(f_in=infield, f_out=outfield)
 
     assert (infield.field == outfield.field).all()
-
-
-def test_copy_defn_deprecated():
-    stencil_factory, _ = get_factories_single_tile(nx=20, ny=20, nz=79, nhalo=0)
-
-    with pytest.deprecated_call(match=r"^copy_defn\(\.\.\.\) is deprecated"):
-        grid_indexing = stencil_factory.grid_indexing
-        stencil_factory.from_origin_domain(
-            copy_defn,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
 
 
 def test_adjustment_factor():
