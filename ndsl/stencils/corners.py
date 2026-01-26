@@ -1,3 +1,4 @@
+import warnings
 from typing import Literal, TypeAlias, no_type_check
 
 from gt4py.cartesian import gtscript
@@ -8,13 +9,12 @@ from ndsl.constants import I_INTERFACE_DIM, J_INTERFACE_DIM, K_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
-import warnings
 
 FillCornersDirection: TypeAlias = Literal["i", "x", "j", "y"]
 GridType: TypeAlias = Literal["A", "B"]  # Arakawa grid type
 
 
-def _check_for_deprecation(axis: str):
+def _check_for_deprecation(axis: str) -> None:
     if axis in ["x", "y"]:
         warnings.warn(
             f"Corners direction {axis} is deprecated use 'i' or 'j'",
