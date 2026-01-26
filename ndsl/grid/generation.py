@@ -9,6 +9,7 @@ import numpy as np
 
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.communicator import Communicator
+from ndsl.config import Backend
 from ndsl.constants import (
     N_HALO_DEFAULT,
     PI,
@@ -488,7 +489,7 @@ class MetricTerms:
         npy: int,
         npz: int,
         communicator: Communicator,
-        backend: str,
+        backend: Backend,
         grid_type: int = 0,
         dx_const: float = 1000.0,
         dy_const: float = 1000.0,

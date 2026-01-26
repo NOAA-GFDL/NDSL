@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 
 from ndsl.comm.comm_abc import Comm
+from ndsl.config import Backend
 
 
 @dataclasses.dataclass
@@ -41,7 +42,7 @@ class Report:
 def get_experiment_info(
     experiment_name: str,
     time_step: int,
-    backend: str,
+    backend: Backend,
     git_hash: str,
     is_orchestrated: bool,
 ) -> Experiment:
@@ -52,7 +53,7 @@ def get_experiment_info(
         git_hash=git_hash,
         timestamp=datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
         timesteps=time_step,
-        backend=f"{orchestration}/{backend}",
+        backend=f"{orchestration}/{backend.as_safe_for_path()}",
     )
     return experiment
 
@@ -92,7 +93,8 @@ def gather_timing_data(
         comm.Gather(sendbuf, recvbuf, root=0)
         if is_root:
             timing_info[timer_name] = TimeReport(
-                hits=0, times=copy.deepcopy(recvbuf.tolist())  # type: ignore[union-attr] # (recvbuf is defined on root rank)
+                hits=0,
+                times=copy.deepcopy(recvbuf.tolist()),  # type: ignore[union-attr] # (recvbuf is defined on root rank)
             )
     return timing_info
 
@@ -132,7 +134,7 @@ def get_sypd(timing_info: dict[str, TimeReport], dt_atmos: float) -> float:
 
 def collect_data_and_write_to_file(
     time_step: int,
-    backend: str,
+    backend: Backend,
     is_orchestrated: bool,
     git_hash: str,
     comm: Comm,

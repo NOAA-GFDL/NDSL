@@ -4,6 +4,7 @@ from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
 from .comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from .config.backend import Backend
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
 from .dsl.dace.dace_config import DaceConfig, DaCeOrchestration
@@ -33,6 +34,7 @@ from .utils import MetaEnumStr
 
 __all__ = [
     "dsl",
+    "Backend",
     "CubedSphereCommunicator",
     "TileCommunicator",
     "LocalComm",

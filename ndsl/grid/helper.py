@@ -11,7 +11,7 @@ from ndsl.constants import Z_DIM, Z_INTERFACE_DIM
 
 # TODO: if we can remove translate tests in favor of checkpointer tests,
 # we can remove this "disallowed" import (ndsl.util does not depend on ndsl.dsl)
-from ndsl.dsl.gt4py_utils import is_gpu_backend, split_cartesian_into_storages
+from ndsl.dsl.gt4py_utils import split_cartesian_into_storages
 from ndsl.dsl.typing import Float
 from ndsl.grid.generation import MetricTerms
 from ndsl.initialization.allocator import QuantityFactory
@@ -230,7 +230,7 @@ class VerticalGridData:
         """Top of atmosphere pressure (Pa)"""
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
-        if self.ak.backend is not None and is_gpu_backend(self.ak.backend):
+        if self.ak.backend is not None and self.ak.backend.is_gpu_backend():
             return Float(self.ak.view[0].get())
         else:
             return Float(self.ak.view[0])

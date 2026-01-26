@@ -1,6 +1,7 @@
 import warnings
 
 from ndsl import (
+    Backend,
     CompilationConfig,
     DaceConfig,
     DaCeOrchestration,
@@ -14,6 +15,7 @@ from ndsl import (
     TileCommunicator,
     TilePartitioner,
 )
+from ndsl.config.backend import _BACKEND_PERFORMANCE_CPU, _BACKEND_PYTHON
 
 
 def _get_factories(
@@ -21,7 +23,7 @@ def _get_factories(
     ny: int,
     nz: int,
     nhalo: int,
-    backend: str,
+    backend: Backend,
     orchestration: DaCeOrchestration,
     topology: str,
 ) -> tuple[StencilFactory, QuantityFactory]:
@@ -91,13 +93,13 @@ def get_factories_single_tile_orchestrated(
     ny: int,
     nz: int,
     nhalo: int,
-    backend: str = "dace:cpu",
+    backend: Backend = _BACKEND_PERFORMANCE_CPU,
     *,
     orchestration_mode: DaCeOrchestration | None = None,
 ) -> tuple[StencilFactory, QuantityFactory]:
     """Build the pair of (StencilFactory, QuantityFactory) for orchestrated code on a single tile topology."""
 
-    if backend is not None and not backend.startswith("dace"):
+    if backend is not None and not backend.is_orchestrated():
         raise ValueError("Only `dace:*` backends can be orchestrated.")
 
     return _get_factories(
@@ -112,7 +114,7 @@ def get_factories_single_tile_orchestrated(
 
 
 def get_factories_single_tile(
-    nx: int, ny: int, nz: int, nhalo: int, backend: str = "numpy"
+    nx: int, ny: int, nz: int, nhalo: int, backend: Backend = _BACKEND_PYTHON
 ) -> tuple[StencilFactory, QuantityFactory]:
     """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
     return _get_factories(
@@ -121,6 +123,6 @@ def get_factories_single_tile(
         nz=nz,
         nhalo=nhalo,
         backend=backend,
-        orchestration=DaCeOrchestration.Python,
+        orchestration=DaCeOrchestration.BuildAndRun,
         topology="tile",
     )

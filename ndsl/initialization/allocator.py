@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 from gt4py import storage as gt_storage
 
+from ndsl.config import Backend
 from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
@@ -13,13 +14,13 @@ from ndsl.quantity import Quantity, QuantityHaloSpec
 
 
 class QuantityFactory:
-    def __init__(self, sizer: GridSizer, *, backend: str) -> None:
+    def __init__(self, sizer: GridSizer, *, backend: Backend) -> None:
         """
-        Initialize a QuantityFactory from a GridSizer and a GT4Py backend name.
+        Initialize a QuantityFactory from a GridSizer and a NDSL backend name.
 
         Args:
             sizer: GridSizer object that determines the array sizes.
-            backend: GT4Py backend name used for performance-optimized allocation.
+            backend: NDSL backend name used for performance-optimized allocation.
         """
         self.sizer = sizer
         self.backend = backend
@@ -225,7 +226,6 @@ class QuantityFactory:
             dims: dimensionality of the data
             n_halo: number of halo points to update, defaults to self.n_halo
             dtype: data type of the data
-            backend: gt4py backend to use
         """
 
         # TEMPORARY: we do a nasty temporary allocation here to read in the hardware

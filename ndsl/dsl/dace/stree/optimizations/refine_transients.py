@@ -5,7 +5,7 @@ import warnings
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
-from ndsl import ndsl_log
+from ndsl import Backend, ndsl_log
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
 
 
@@ -241,7 +241,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         memory (e.g. halo) for the `RebuildMemletsFromContainers`!
     """
 
-    def __init__(self, backend: str) -> None:
+    def __init__(self, backend: Backend) -> None:
         warnings.warn(
             "CartesianRefineTransients is a WIP. It's usage is *severely* limited "
             "and will most likely lead to bad numerics. Check the docs, check utest.",
@@ -249,11 +249,14 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
             stacklevel=2,
         )
 
-        if backend in ["dace:cpu_kfirst"]:
+        if backend.as_humanly_readable() in ["orch:dace:cpu:IJK"]:
             self.ijk_order = (2, 1, 0)
-        elif backend in ["dace:gpu", "dace:cpu_KJI"]:
+        elif backend.as_humanly_readable() in [
+            "orch:dace:gpu:KJI",
+            "orch:dace:cpu:KJI",
+        ]:
             self.ijk_order = (0, 1, 2)
-        elif backend in ["dace:cpu"]:
+        elif backend.as_humanly_readable() in ["orch:dace:cpu:KIJ"]:
             self.ijk_order = (1, 2, 0)
         else:
             raise NotImplementedError(

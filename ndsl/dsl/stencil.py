@@ -20,6 +20,7 @@ from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
+from ndsl.config.backend import Backend, BackendFramework
 from ndsl.constants import (
     X_DIM,
     X_DIMS,
@@ -182,7 +183,7 @@ class CompareToNumpyStencil:
             comm=comm,
         )
         compilation_config = CompilationConfig(
-            backend="numpy",
+            backend=Backend.python(),
             rebuild=stencil_config.compilation_config.rebuild,
             validate_args=stencil_config.compilation_config.validate_args,
             format_source=True,
@@ -316,7 +317,10 @@ class FrozenStencil(SDFGConvertible):
         # NOTE: this is also down in `dace/build.py` for orchestration
         # This is still needed for non-orchestrated used of DaCe.
         # A better build system would take care of BOTH of those at the same time
-        if "dace" in self.stencil_config.compilation_config.backend:
+        if (
+            BackendFramework.DACE
+            == self.stencil_config.compilation_config.backend.framework
+        ):
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
@@ -986,7 +990,7 @@ class StencilFactory:
         self.comm = comm
 
     @property
-    def backend(self) -> str:
+    def backend(self) -> Backend:
         return self.config.compilation_config.backend
 
     def from_origin_domain(

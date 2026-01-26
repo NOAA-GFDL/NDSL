@@ -7,6 +7,7 @@ from typing import Protocol
 import numpy as np
 
 from ndsl.comm.comm_abc import Comm
+from ndsl.config import Backend
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.report import (
     Report,
@@ -29,13 +30,13 @@ class AbstractPerformanceCollector(Protocol):
 
     def write_out_performance(
         self,
-        backend: str,
+        backend: Backend,
         is_orchestrated: bool,
         dt_atmos: float,
     ) -> None: ...
 
     def write_out_rank_0(
-        self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
+        self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
     ) -> None: ...
 
     @classmethod
@@ -77,7 +78,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
         self.timestep_timer.reset()
 
     def write_out_rank_0(
-        self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
+        self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
     ) -> None:
         if self.comm.Get_rank() == 0:
             git_hash = "None"
@@ -114,7 +115,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
 
     def write_out_performance(
         self,
-        backend: str,
+        backend: Backend,
         is_orchestrated: bool,
         dt_atmos: float,
     ) -> None:
@@ -162,13 +163,13 @@ class NullPerformanceCollector(AbstractPerformanceCollector):
 
     def write_out_performance(
         self,
-        backend: str,
+        backend: Backend,
         is_orchestrated: bool,
         dt_atmos: float,
     ) -> None:
         pass
 
     def write_out_rank_0(
-        self, backend: str, is_orchestrated: bool, dt_atmos: float, sim_status: str
+        self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
     ) -> None:
         pass
