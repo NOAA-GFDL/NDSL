@@ -3,8 +3,8 @@ from functools import singledispatch
 import numpy as np
 import numpy.typing as npt
 
-from ndsl import Quantity
 from ndsl.optional_imports import cupy as cp
+from ndsl.quantity import Quantity
 
 
 @singledispatch

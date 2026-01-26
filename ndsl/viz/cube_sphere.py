@@ -2,9 +2,10 @@ import numpy as np
 from cartopy import crs as ccrs
 from matplotlib import pyplot as plt
 
-from ndsl import Quantity, ndsl_log
 from ndsl.comm.communicator import Communicator
 from ndsl.grid import GridData
+from ndsl.logging import ndsl_log
+from ndsl.quantity import Quantity
 from ndsl.viz.fv3 import pcolormesh_cube
 
 

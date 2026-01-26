@@ -22,7 +22,7 @@ requires-python = ">=3.11,<3.12"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
-dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject", "build"]
+dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject", "build", "tach"]
 docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-exclude"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 test = ["pytest", "coverage"]

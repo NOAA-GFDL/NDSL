@@ -3,7 +3,7 @@ from typing import TypeAlias
 
 import numpy as np
 
-from ndsl import Quantity
+from ndsl.quantity import Quantity
 
 
 SavepointName: TypeAlias = str

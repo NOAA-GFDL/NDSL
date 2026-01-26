@@ -3,9 +3,9 @@ from functools import singledispatch
 import numpy as np
 import numpy.typing as npt
 
-from ndsl import Quantity
 from ndsl.dsl.typing import Float
 from ndsl.optional_imports import cupy as cp
+from ndsl.quantity import Quantity
 
 
 if cp is None:
