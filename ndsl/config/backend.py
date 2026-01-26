@@ -33,9 +33,13 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
     "st:gt:cpu:IJK": "gt:cpu_kfirst",
     "st:gt:cpu:KJI": "gt:cpu_ifirst",
     "st:gt:gpu:KJI": "gt:gpu",
+    "st:dace:cpu:IJK": "dace:cpu_kfirst",
     "orch:dace:cpu:IJK": "dace:cpu_kfirst",
+    "st:dace:cpu:KIJ": "dace:cpu",
     "orch:dace:cpu:KIJ": "dace:cpu",
+    "st:dace:cpu:KJI": "dace:cpu_KJI",
     "orch:dace:cpu:KJI": "dace:cpu_KJI",
+    "st:dace:gpu:KJI": "dace:gpu",
     "orch:dace:gpu:KJI": "dace:gpu",
 }
 """Internal: match the NDSL backend names with the GT4Py names"""
@@ -45,6 +49,10 @@ class Backend:
     """Backend for NDSL"""
 
     def __init__(self, ndsl_backend: str) -> None:
+        if ndsl_backend not in _NDSL_TO_GT4PY_BACKEND_NAMING.keys():
+            raise ValueError(
+                f"Unknown {ndsl_backend}, options are {list(_NDSL_TO_GT4PY_BACKEND_NAMING.keys())}"
+            )
         parts = ndsl_backend.split(":")
         if len(parts) != 4:
             raise ValueError(f"Backend {ndsl_backend} is ill-formed.")
