@@ -11,6 +11,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
+from ndsl.config import Backend
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
 from ndsl.dsl.typing import (
     BoolFieldIJ,
@@ -36,7 +37,7 @@ def test_timing_collector() -> None:
         east_edge=True,
     )
     stencil_config = StencilConfig(
-        compilation_config=CompilationConfig(backend="numpy", rebuild=True)
+        compilation_config=CompilationConfig(Backend.python(), rebuild=True)
     )
 
     stencil_factory = StencilFactory(stencil_config, grid_indexing)
@@ -109,7 +110,7 @@ def test_domain_size_comparison(
     call_count: int,
 ):
     quantity = Quantity(
-        np.zeros(extent), dimensions, "n/a", extent=extent, backend="debug"
+        np.zeros(extent), dimensions, "n/a", extent=extent, backend=Backend.debug()
     )
     stencil = FrozenStencil(
         copy_stencil,
@@ -150,7 +151,7 @@ def two_dim_temporaries_stencil(q_out: FloatField) -> None:
 def test_stencil_2D_temporaries() -> None:
     domain = (2, 2, 5)
     quantity = Quantity(
-        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend="debug"
+        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend=Backend.debug()
     )
     stencil = FrozenStencil(
         two_dim_temporaries_stencil,
@@ -169,10 +170,10 @@ def test_stencil_2D_temporaries() -> None:
 def test_validation_call_count(iterations: tuple[int]):
     domain = (2, 2, 5)
     quantity = Quantity(
-        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend="debug"
+        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend=Backend.debug()
     )
     stencil_config = StencilConfig(
-        compilation_config=CompilationConfig(backend="numpy", rebuild=True)
+        compilation_config=CompilationConfig(Backend.python(), rebuild=True)
     )
     stencil = FrozenStencil(
         copy_stencil,

@@ -7,6 +7,7 @@ from ndsl.comm.partitioner import (
     get_tile_index,
     tile_extent_from_rank_metadata,
 )
+from ndsl.config import Backend
 from ndsl.constants import (
     TILE_DIM,
     X_DIM,
@@ -984,7 +985,11 @@ def test_subtile_extent_with_tile_dimensions(
 ):
     data_array = np.zeros((tile_extent))
     quantity = Quantity(
-        data_array, array_dims, "dimensionless", origin=[0, 0, 0, 0], backend="debug"
+        data_array,
+        array_dims,
+        "dimensionless",
+        origin=[0, 0, 0, 0],
+        backend=Backend.debug(),
     )
 
     tile_partitioner = TilePartitioner(layout, edge_interior_ratio)

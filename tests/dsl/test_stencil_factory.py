@@ -9,6 +9,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
+from ndsl.config import Backend
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, horizontal, interval, region
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
@@ -16,7 +17,7 @@ from ndsl.dsl.stencil import CompareToNumpyStencil, get_stencils_with_varied_bou
 from ndsl.dsl.typing import Field, FloatField
 
 
-BACKENDS = ["numpy", "dace:cpu"]
+BACKENDS = [Backend.python(), Backend("st:dace:cpu:KIJ")]
 
 
 def copy_stencil(q_in: FloatField, q_out: FloatField):
@@ -39,7 +40,7 @@ def add_1_in_region_stencil(q_in: FloatField, q_out: FloatField):
             q_out = q_in + 1.0
 
 
-def setup_data_vars(backend: str) -> tuple[Field, Field]:
+def setup_data_vars(backend: Backend) -> tuple[Field, Field]:
     shape = (7, 7, 3)
     q = make_storage_from_shape(shape, backend=backend)
     q[:] = 1.0
@@ -48,7 +49,7 @@ def setup_data_vars(backend: str) -> tuple[Field, Field]:
     return q, q_ref
 
 
-def get_stencil_factory(backend: str) -> StencilFactory:
+def get_stencil_factory(backend: Backend) -> StencilFactory:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(
@@ -72,7 +73,7 @@ def get_stencil_factory(backend: str) -> StencilFactory:
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
-def test_get_stencils_with_varied_bounds(backend: str) -> None:
+def test_get_stencils_with_varied_bounds(backend: Backend) -> None:
     origins = [(2, 2, 0), (1, 1, 0)]
     domains = [(1, 1, 3), (2, 2, 3)]
     factory = get_stencil_factory(backend)
@@ -92,7 +93,7 @@ def test_get_stencils_with_varied_bounds(backend: str) -> None:
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
-def test_get_stencils_with_varied_bounds_and_regions(backend: str) -> None:
+def test_get_stencils_with_varied_bounds_and_regions(backend: Backend) -> None:
     factory = get_stencil_factory(backend)
     origins = [(3, 3, 0), (2, 2, 0)]
     domains = [(1, 1, 3), (2, 2, 3)]
@@ -113,7 +114,7 @@ def test_get_stencils_with_varied_bounds_and_regions(backend: str) -> None:
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
-def test_stencil_vertical_bounds(backend: str) -> None:
+def test_stencil_vertical_bounds(backend: Backend) -> None:
     factory = get_stencil_factory(backend)
     origins = [(3, 3, 0), (2, 2, 1)]
     domains = [(1, 1, 3), (2, 2, 4)]
@@ -133,7 +134,7 @@ def test_stencil_vertical_bounds(backend: str) -> None:
 @pytest.mark.parametrize("backend", BACKENDS)
 @pytest.mark.parametrize("enabled", [True, False])
 def test_stencil_factory_numpy_comparison_from_dims_halo(
-    backend: str, enabled: bool
+    backend: Backend, enabled: bool
 ) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
@@ -170,7 +171,7 @@ def test_stencil_factory_numpy_comparison_from_dims_halo(
 @pytest.mark.parametrize("backend", BACKENDS)
 @pytest.mark.parametrize("enabled", [True, False])
 def test_stencil_factory_numpy_comparison_from_origin_domain(
-    backend: str, enabled: bool
+    backend: Backend, enabled: bool
 ) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
@@ -203,7 +204,9 @@ def test_stencil_factory_numpy_comparison_from_origin_domain(
 
 
 @pytest.mark.parametrize("backend", BACKENDS)
-def test_stencil_factory_numpy_comparison_runs_without_exceptions(backend: str) -> None:
+def test_stencil_factory_numpy_comparison_runs_without_exceptions(
+    backend: Backend,
+) -> None:
     dace_config = DaceConfig(communicator=None, backend=backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(

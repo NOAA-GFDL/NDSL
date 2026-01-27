@@ -3,6 +3,7 @@ from collections import namedtuple
 import pytest
 
 from ndsl import GridSizer, QuantityFactory, SubtileGridSizer
+from ndsl.config import Backend
 from ndsl.constants import (
     N_HALO_DEFAULT,
     X_DIM,
@@ -69,7 +70,7 @@ def namelist(nx_tile, ny_tile, nz, layout):
 def sizer(
     request, nx_tile, ny_tile, nz, layout, namelist, extra_dimension_lengths
 ) -> GridSizer:
-    backend = "numpy"  # original utest case
+    backend = Backend.python()  # original utest case
     if request.param == "from_tile_params":
         return SubtileGridSizer.from_tile_params(
             nx_tile=nx_tile,
@@ -203,7 +204,7 @@ def test_subtile_dimension_sizer_shape(sizer, dim_case):
 
 
 def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, backend="numpy")
+    allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.zeros(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -214,7 +215,7 @@ def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
 
 
 def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, backend="numpy")
+    allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.ones(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -225,7 +226,7 @@ def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
 
 
 def test_allocator_empty(sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, backend="numpy")
+    allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.empty(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -235,7 +236,7 @@ def test_allocator_empty(sizer, dim_case, units, dtype):
 
 
 def test_allocator_data_dimensions_operations(sizer):
-    quantity_factory = QuantityFactory(sizer, backend="numpy")
+    quantity_factory = QuantityFactory(sizer, backend=Backend.python())
     quantity_factory.add_data_dimensions({"D0": 11})
     assert "D0" in quantity_factory.sizer.data_dimensions.keys()
     assert quantity_factory.sizer.data_dimensions["D0"] == 11
@@ -261,7 +262,7 @@ def test_pad_non_interface_dimensions():
         n_halo=0,
         layout=(layout_xy, layout_xy),
         data_dimensions={"some_dim": dd},
-        backend="numpy",  # original utest case
+        backend=Backend.python(),  # original utest case
     )
     padded_shape = padded_grid_sizer.get_shape([X_DIM, Y_DIM, Z_DIM, "some_dim"])
     assert padded_shape[0] == nx // layout_xy + 1
@@ -276,7 +277,7 @@ def test_pad_non_interface_dimensions():
         n_halo=0,
         layout=(layout_xy, layout_xy),
         data_dimensions={"some_dim": dd},
-        backend="dace:cpu_KJI",  # Fortran-friendly backend
+        backend=Backend("st:dace:cpu:KJI"),  # Fortran-friendly backend
     )
     non_padded_shape = non_padded_grid_sizer.get_shape(
         [X_DIM, Y_DIM, Z_DIM, "some_dim"]

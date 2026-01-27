@@ -16,6 +16,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
+from ndsl.config import Backend
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance import Timer
@@ -35,7 +36,7 @@ def ranks_per_tile(layout):
 
 
 @pytest.fixture
-def total_ranks(ranks_per_tile):
+def total_ranks(ranks_per_tile) -> int:
     return 6 * ranks_per_tile
 
 
@@ -50,7 +51,7 @@ def cube_partitioner(tile_partitioner):
 
 
 @pytest.fixture
-def cpu_communicators(cube_partitioner):
+def cpu_communicators(cube_partitioner, total_ranks):
     shared_buffer = {}
     return_list = []
     for rank in range(cube_partitioner.total_ranks):
@@ -68,7 +69,7 @@ def cpu_communicators(cube_partitioner):
 
 
 @pytest.fixture
-def gpu_communicators(cube_partitioner):
+def gpu_communicators(cube_partitioner, total_ranks):
     shared_buffer = {}
     return_list = []
     for rank in range(cube_partitioner.total_ranks):
@@ -127,6 +128,7 @@ def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
             units="m",
             origin=(3, 3, 1),
             extent=(3, 3, 1),
+            backend=Backend("st:gt:gpu:KJI"),
         )
         halo_updater_list = []
         for communicator in gpu_communicators:
@@ -156,6 +158,7 @@ def test_halo_update_communicate_though_cpu(backend, cpu_communicators):
             units="m",
             origin=(3, 3, 0),
             extent=(3, 3, 0),
+            backend=Backend("st:gt:gpu:KJI"),
         )
         halo_updater_list = []
         for communicator in cpu_communicators:

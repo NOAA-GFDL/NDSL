@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 
 from ndsl import CubedSpherePartitioner, LocalComm, MPIComm, Quantity, TilePartitioner
+from ndsl.config import Backend
 from ndsl.constants import (
     X_DIM,
     X_DIMS,
@@ -98,7 +99,10 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
     if request.param == "one_var_2d":
         return {
             "var1": Quantity(
-                numpy.ones([ny, nx]), dims=("y", "x"), units="m", backend="debug"
+                numpy.ones([ny, nx]),
+                dims=("y", "x"),
+                units="m",
+                backend=Backend.debug(),
             )
         }
 
@@ -108,20 +112,23 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
                 numpy.ones([nz, ny, nx]),
                 dims=("z", "y", "x"),
                 units="m",
-                backend="debug",
+                backend=Backend.debug(),
             )
         }
 
     if request.param == "two_vars":
         return {
             "var1": Quantity(
-                numpy.ones([ny, nx]), dims=("y", "x"), units="m", backend="debug"
+                numpy.ones([ny, nx]),
+                dims=("y", "x"),
+                units="m",
+                backend=Backend.debug(),
             ),
             "var2": Quantity(
                 numpy.ones([nz, ny, nx]),
                 dims=("z", "y", "x"),
                 units="degK",
-                backend="debug",
+                backend=Backend.debug(),
             ),
         }
 
@@ -254,7 +261,7 @@ def test_monitor_file_store_multi_rank_state(
                     numpy.ones([nz, ny_rank, nx_rank]),
                     dims=dims,
                     units=units,
-                    backend="debug",
+                    backend=Backend.debug(),
                 ),
             }
             monitor_list[rank].store(state)
@@ -344,7 +351,7 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     zero_quantity = Quantity(
-        numpy.zeros([10, 10]), dims=("y", "x"), units="m", backend="debug"
+        numpy.zeros([10, 10]), dims=("y", "x"), units="m", backend=Backend.debug()
     )
     monitor.store({"var": zero_quantity})
 
@@ -366,7 +373,10 @@ def test_values_preserved(cube_partitioner, numpy):
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     quantity = Quantity(
-        numpy.random.uniform(size=(10, 10)), dims=dims, units=units, backend="debug"
+        numpy.random.uniform(size=(10, 10)),
+        dims=dims,
+        units=units,
+        backend=Backend.debug(),
     )
     monitor.store({"var": quantity})
 
@@ -420,7 +430,7 @@ def diag(request, numpy):
         numpy.ones([size + 2 for size in range(len(dims))]),
         dims=dims,
         units="m",
-        backend="debug",
+        backend=Backend.debug(),
     )
 
 
@@ -494,7 +504,7 @@ def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
         numpy.ones([size + 2 for size in range(len(diag.dims))]),
         dims=new_dims,
         units="m",
-        backend="debug",
+        backend=Backend.debug(),
     )
     with pytest.raises(ValueError) as excinfo:
         zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
@@ -510,6 +520,8 @@ def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_ra
     diag_2 = copy.deepcopy(diag)
     diag_2._attrs.update({"some_non_units_attrs": 9.0})
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
-    diag_3 = Quantity(data=diag.view[:], dims=diag.dims, units="not_m", backend="debug")
+    diag_3 = Quantity(
+        data=diag.view[:], dims=diag.dims, units="not_m", backend=Backend.debug()
+    )
     with pytest.raises(ValueError):
         zarr_monitor_single_rank.store({"time": time_3, "a": diag_3})

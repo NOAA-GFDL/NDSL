@@ -7,6 +7,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
+from ndsl.config import Backend
 from ndsl.constants import (
     X_DIM,
     X_INTERFACE_DIM,
@@ -126,7 +127,7 @@ def rank_quantity_list(total_ranks, numpy, dtype):
             units="m",
             origin=(1, 1),
             extent=(1, 1),
-            backend="debug",
+            backend=Backend.debug(),
         )
         quantity_list.append(quantity)
     return quantity_list

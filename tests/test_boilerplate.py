@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from ndsl import QuantityFactory, StencilFactory
+from ndsl.config import Backend
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -44,8 +45,8 @@ def test_boilerplate_import_numpy():
     )
 
     # Ensure backend is propagated to StencilFactory and QuantityFactory
-    assert stencil_factory.backend == "numpy"
-    assert quantity_factory.backend == "numpy"
+    assert stencil_factory.backend == Backend.python()
+    assert quantity_factory.backend == Backend.python()
 
     _copy_ops(stencil_factory, quantity_factory)
 
@@ -74,5 +75,5 @@ def test_boilerplate_non_dace_based_orchestration_raises():
 
     with pytest.raises(ValueError, match="Only .* backends can be orchestrated."):
         get_factories_single_tile_orchestrated(
-            nx=5, ny=5, nz=2, nhalo=1, backend="numpy"
+            nx=5, ny=5, nz=2, nhalo=1, backend=Backend.python()
         )

@@ -3,6 +3,7 @@ import pytest
 
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, set_4d_field_size
@@ -19,12 +20,17 @@ FloatField_ddim = set_4d_field_size(2, Float)
 
 @pytest.fixture
 def boilerplate() -> tuple[StencilFactory, QuantityFactory]:
-    return get_factories_single_tile(nx=1, ny=1, nz=10, nhalo=0, backend="dace:cpu")
+    return get_factories_single_tile(
+        nx=1,
+        ny=1,
+        nz=10,
+        nhalo=0,
+        backend=Backend("st:dace:cpu:KIJ"),
+    )
 
 
 class ColumnOperations:
     def __init__(self, stencil_factory: StencilFactory):
-
         def column_max_stencil(
             data: FloatField, max_value: FloatFieldIJ, max_index: FloatFieldIJ
         ):

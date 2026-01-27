@@ -13,6 +13,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
+from ndsl.config import Backend
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -24,7 +25,7 @@ def stencil_definition(a: FloatField):
 
 
 def test_skip_passes_becomes_oir_pipeline() -> None:
-    backend = "numpy"
+    backend = Backend.python()
     dace_config = DaceConfig(None, backend)
     config = StencilConfig(
         compilation_config=CompilationConfig(backend=backend), dace_config=dace_config
