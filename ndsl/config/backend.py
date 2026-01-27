@@ -44,11 +44,22 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
 }
 """Internal: match the NDSL backend names with the GT4Py names"""
 
+_NDSL_SHORT_TO_LONG_NAME = {
+    "numpy": "st:python:cpu:numpy",
+    "debug": "st:python:cpu:debug",
+}
+"""Internal: match short name to long name form"""
+
 
 class Backend:
     """Backend for NDSL"""
 
     def __init__(self, ndsl_backend: str) -> None:
+        # Swap short form to long form
+        if ndsl_backend in _NDSL_SHORT_TO_LONG_NAME.keys():
+            ndsl_backend = _NDSL_SHORT_TO_LONG_NAME[ndsl_backend]
+
+        # Checks for existence and form
         if ndsl_backend not in _NDSL_TO_GT4PY_BACKEND_NAMING.keys():
             raise ValueError(
                 f"Unknown {ndsl_backend}, options are {list(_NDSL_TO_GT4PY_BACKEND_NAMING.keys())}"
@@ -56,8 +67,9 @@ class Backend:
         parts = ndsl_backend.split(":")
         if len(parts) != 4:
             raise ValueError(f"Backend {ndsl_backend} is ill-formed.")
+
+        # Breakdown and save into internal parameters
         self._humanly_readable = ndsl_backend
-        # Split into internal parameters
         self._strategy = BackendStrategy(parts[0].lower())
         self._framework = BackendFramework(parts[1].lower())
         self._device = BackendTargetDevice(parts[2].lower())
