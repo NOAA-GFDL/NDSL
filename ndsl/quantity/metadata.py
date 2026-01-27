@@ -66,9 +66,9 @@ class QuantityHaloSpec:
     """Describe the memory to be exchanged, including size of the halo."""
 
     n_points: int
-    strides: tuple[int]
+    strides: tuple[int, ...]
     itemsize: int
-    shape: tuple[int]
+    shape: tuple[int, ...]
     origin: tuple[int, ...]
     extent: tuple[int, ...]
     dims: tuple[str, ...]

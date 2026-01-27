@@ -6,7 +6,7 @@ import numpy as np
 from ndsl import Quantity, State
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.config import Backend
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM, Float
+from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM, Float
 
 
 @dataclasses.dataclass
@@ -16,7 +16,7 @@ class CodeState(State):
         A: Quantity = dataclasses.field(
             metadata={
                 "name": "A",
-                "dims": [X_DIM, Y_DIM, Z_DIM],
+                "dims": [I_DIM, J_DIM, K_DIM],
                 "units": "kg kg-1",
                 "intent": "?",
                 "dtype": Float,
@@ -28,7 +28,7 @@ class CodeState(State):
         B: Quantity = dataclasses.field(
             metadata={
                 "name": "B",
-                "dims": [X_DIM, Y_DIM, Z_DIM],
+                "dims": [I_DIM, J_DIM, K_DIM],
                 "units": "1",
                 "intent": "?",
                 "dtype": Float,
@@ -40,7 +40,7 @@ class CodeState(State):
     C: Quantity = dataclasses.field(
         metadata={
             "name": "C",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg kg-1",
             "intent": "?",
             "dtype": Float,
@@ -49,7 +49,7 @@ class CodeState(State):
     C_interface: Quantity = dataclasses.field(
         metadata={
             "name": "C",
-            "dims": [X_DIM, Y_DIM, Z_INTERFACE_DIM],
+            "dims": [I_DIM, J_DIM, K_INTERFACE_DIM],
             "units": "kg kg-1",
             "intent": "?",
             "dtype": Float,
@@ -107,7 +107,7 @@ class CodeStateWithDDim(State):
         ddim_A: Quantity = dataclasses.field(
             metadata={
                 "name": "A",
-                "dims": [X_DIM, Y_DIM, Z_DIM, "ExtraDim1"],
+                "dims": [I_DIM, J_DIM, K_DIM, "ExtraDim1"],
                 "units": "kg kg-1",
                 "intent": "?",
                 "dtype": Float,
@@ -119,7 +119,7 @@ class CodeStateWithDDim(State):
         ddim_B: Quantity = dataclasses.field(
             metadata={
                 "name": "A",
-                "dims": [X_DIM, Y_DIM, Z_DIM, "ExtraDim2"],
+                "dims": [I_DIM, J_DIM, K_DIM, "ExtraDim2"],
                 "units": "kg kg-1",
                 "intent": "?",
                 "dtype": Float,
@@ -131,7 +131,7 @@ class CodeStateWithDDim(State):
     no_ddim: Quantity = dataclasses.field(
         metadata={
             "name": "C",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "kg kg-1",
             "intent": "?",
             "dtype": Float,

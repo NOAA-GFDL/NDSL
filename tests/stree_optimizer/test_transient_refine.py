@@ -1,7 +1,7 @@
 from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
 from ndsl.dsl.typing import Float, FloatField
 
@@ -55,23 +55,23 @@ class TransientRefineableCode(NDSLRuntime):
             )
         self.stencil = stencil_factory.from_dims_halo(
             func=stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_K_offset = stencil_factory.from_dims_halo(
             func=stencil_with_K_offset,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_JK_offset = stencil_factory.from_dims_halo(
             func=stencil_with_JK_offset,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_ddim = stencil_factory.from_dims_halo(
             func=stencil_with_ddim,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
-        self.tmp = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
+        self.tmp = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
         self.tmp_ddim = self.make_local(
-            quantity_factory, [X_DIM, Y_DIM, Z_DIM, DDIM_NAME]
+            quantity_factory, [I_DIM, J_DIM, K_DIM, DDIM_NAME]
         )
 
     def refine_to_scalar(self, in_field: Quantity, out_field: Quantity) -> None:
@@ -97,12 +97,12 @@ def test_stree_roundtrip_transient_is_refined() -> None:
         domain[0], domain[1], domain[2], 0, backend=Backend.performance_cpu()
     )
 
-    in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
-    out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
+    in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
     quantity_factory.add_data_dimensions({DDIM_NAME: DATADIM_SIZE})
-    in_qty_ddim = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM, DDIM_NAME], "")
-    out_qty_ddim = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM, DDIM_NAME], "")
+    in_qty_ddim = quantity_factory.ones([I_DIM, J_DIM, K_DIM, DDIM_NAME], "")
+    out_qty_ddim = quantity_factory.zeros([I_DIM, J_DIM, K_DIM, DDIM_NAME], "")
 
     code = TransientRefineableCode(stencil_factory, quantity_factory)
 

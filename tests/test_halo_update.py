@@ -19,18 +19,18 @@ from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
     HORIZONTAL_DIMS,
+    I_DIM,
+    I_DIMS,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_DIMS,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     NORTHEAST,
     NORTHWEST,
     SOUTHEAST,
     SOUTHWEST,
-    X_DIM,
-    X_DIMS,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_DIMS,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
 )
 from ndsl.performance import Timer
 from ndsl.quantity import QuantityHaloSpec
@@ -90,22 +90,22 @@ def n_points_update(request, n_points, fast):
 
 @pytest.fixture(
     params=[
-        pytest.param((Y_DIM, X_DIM), id="center"),
-        pytest.param((Z_DIM, Y_DIM, X_DIM), id="center_3d"),
+        pytest.param((J_DIM, I_DIM), id="center"),
+        pytest.param((K_DIM, J_DIM, I_DIM), id="center_3d"),
         pytest.param(
-            (X_DIM, Y_DIM, Z_DIM),
+            (I_DIM, J_DIM, K_DIM),
             id="center_3d_reverse",
         ),
         pytest.param(
-            (X_DIM, Z_DIM, Y_DIM),
+            (I_DIM, K_DIM, J_DIM),
             id="center_3d_shuffle",
         ),
-        pytest.param((Y_INTERFACE_DIM, X_INTERFACE_DIM), id="interface"),
+        pytest.param((J_INTERFACE_DIM, I_INTERFACE_DIM), id="interface"),
         pytest.param(
             (
-                Z_INTERFACE_DIM,
-                Y_INTERFACE_DIM,
-                X_INTERFACE_DIM,
+                K_INTERFACE_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
             ),
             id="interface_3d",
         ),
@@ -113,11 +113,11 @@ def n_points_update(request, n_points, fast):
 )
 def dims(request, fast):
     if fast and request.param in (
-        (X_DIM, Y_DIM, Z_DIM),
+        (I_DIM, J_DIM, K_DIM),
         (
-            Z_INTERFACE_DIM,
-            Y_INTERFACE_DIM,
-            X_INTERFACE_DIM,
+            K_INTERFACE_DIM,
+            J_INTERFACE_DIM,
+            I_INTERFACE_DIM,
         ),
     ):
         pytest.skip("running in fast mode")
@@ -153,12 +153,12 @@ def n_buffer(request):
 def shape(nz, ny, nx, dims, n_points, n_buffer):
     return_list = []
     length_dict = {
-        X_DIM: 2 * n_points + nx + n_buffer,
-        X_INTERFACE_DIM: 2 * n_points + nx + 1 + n_buffer,
-        Y_DIM: 2 * n_points + ny + n_buffer,
-        Y_INTERFACE_DIM: 2 * n_points + ny + 1 + n_buffer,
-        Z_DIM: nz + n_buffer,
-        Z_INTERFACE_DIM: nz + 1 + n_buffer,
+        I_DIM: 2 * n_points + nx + n_buffer,
+        I_INTERFACE_DIM: 2 * n_points + nx + 1 + n_buffer,
+        J_DIM: 2 * n_points + ny + n_buffer,
+        J_INTERFACE_DIM: 2 * n_points + ny + 1 + n_buffer,
+        K_DIM: nz + n_buffer,
+        K_INTERFACE_DIM: nz + 1 + n_buffer,
     }
     for dim in dims:
         return_list.append(length_dict[dim])
@@ -169,12 +169,12 @@ def shape(nz, ny, nx, dims, n_points, n_buffer):
 def origin(n_points, dims, n_buffer):
     return_list = []
     origin_dict = {
-        X_DIM: n_points + n_buffer,
-        X_INTERFACE_DIM: n_points + n_buffer,
-        Y_DIM: n_points + n_buffer,
-        Y_INTERFACE_DIM: n_points + n_buffer,
-        Z_DIM: n_buffer,
-        Z_INTERFACE_DIM: n_buffer,
+        I_DIM: n_points + n_buffer,
+        I_INTERFACE_DIM: n_points + n_buffer,
+        J_DIM: n_points + n_buffer,
+        J_INTERFACE_DIM: n_points + n_buffer,
+        K_DIM: n_buffer,
+        K_INTERFACE_DIM: n_buffer,
     }
     for dim in dims:
         return_list.append(origin_dict[dim])
@@ -185,12 +185,12 @@ def origin(n_points, dims, n_buffer):
 def extent(n_points, dims, nz, ny, nx):
     return_list = []
     extent_dict = {
-        X_DIM: nx,
-        X_INTERFACE_DIM: nx + 1,
-        Y_DIM: ny,
-        Y_INTERFACE_DIM: ny + 1,
-        Z_DIM: nz,
-        Z_INTERFACE_DIM: nz + 1,
+        I_DIM: nx,
+        I_INTERFACE_DIM: nx + 1,
+        J_DIM: ny,
+        J_INTERFACE_DIM: ny + 1,
+        K_DIM: nz,
+        K_INTERFACE_DIM: nz + 1,
     }
     for dim in dims:
         return_list.append(extent_dict[dim])
@@ -248,12 +248,12 @@ def updated_slice(ny, nx, dims, n_points, n_points_update):
     n_points_remain = n_points - n_points_update
     return_list = []
     length_dict = {
-        X_DIM: slice(n_points_remain, n_points + nx + n_points_update),
-        X_INTERFACE_DIM: slice(n_points_remain, n_points + nx + 1 + n_points_update),
-        Y_DIM: slice(n_points_remain, n_points + ny + n_points_update),
-        Y_INTERFACE_DIM: slice(n_points_remain, n_points + ny + 1 + n_points_update),
-        Z_DIM: slice(None, None),
-        Z_INTERFACE_DIM: slice(None, None),
+        I_DIM: slice(n_points_remain, n_points + nx + n_points_update),
+        I_INTERFACE_DIM: slice(n_points_remain, n_points + nx + 1 + n_points_update),
+        J_DIM: slice(n_points_remain, n_points + ny + n_points_update),
+        J_INTERFACE_DIM: slice(n_points_remain, n_points + ny + 1 + n_points_update),
+        K_DIM: slice(None, None),
+        K_INTERFACE_DIM: slice(None, None),
     }
     for dim in dims:
         return_list.append(length_dict[dim])
@@ -371,7 +371,7 @@ def tile_depth_quantity_list(
 
 @pytest.mark.parametrize(
     "layout, n_points, n_points_update, dims",
-    [[(1, 1), 3, "same", [X_DIM, Y_DIM, Z_DIM]]],
+    [[(1, 1), 3, "same", [I_DIM, J_DIM, K_DIM]]],
     indirect=True,
 )
 def test_halo_update_timer(
@@ -617,8 +617,8 @@ def test_zeros_halo_update(
 @pytest.mark.parametrize(
     "layout, n_points, n_points_update, dims",
     [
-        [(1, 1), 3, "same", [X_DIM, Y_DIM, Z_DIM]],
-        [(2, 2), 3, "same", [X_DIM, Y_DIM, Z_DIM]],
+        [(1, 1), 3, "same", [I_DIM, J_DIM, K_DIM]],
+        [(2, 2), 3, "same", [I_DIM, J_DIM, K_DIM]],
     ],
     indirect=True,
 )
@@ -786,7 +786,7 @@ def test_zeros_vector_tile_halo_update(
 
 @pytest.mark.parametrize(
     "layout, n_points, n_points_update, dims",
-    [[(1, 1), 3, "same", [X_DIM, Y_DIM, Z_DIM]]],
+    [[(1, 1), 3, "same", [I_DIM, J_DIM, K_DIM]]],
     indirect=True,
 )
 def test_vector_halo_update_timer(
@@ -835,13 +835,13 @@ def test_vector_halo_update_timer(
 
 
 def get_horizontal_dims(dims):
-    for dim in X_DIMS:
+    for dim in I_DIMS:
         if dim in dims:
             x_dim = dim
             break
     else:
         raise ValueError(f"no x dimension in {dims}")
-    for dim in Y_DIMS:
+    for dim in J_DIMS:
         if dim in dims:
             y_dim = dim
             break

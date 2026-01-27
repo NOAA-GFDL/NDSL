@@ -3,7 +3,7 @@ import dace
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
 
@@ -65,22 +65,22 @@ class OrchestratedCode:
 
         self.stencil = stencil_factory.from_dims_halo(
             func=stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_forward_K = stencil_factory.from_dims_halo(
             func=stencil_with_forward_K,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_buffer_read_offset_in_K = stencil_factory.from_dims_halo(
             func=stencil_with_buffer_read_offset_in_K,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_different_intervals = stencil_factory.from_dims_halo(
             func=stencil_with_different_intervals,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
-        self._buffer = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], units="")
+        self._buffer = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="")
 
     def trivial_merge(
         self,
@@ -132,8 +132,8 @@ def test_stree_merge_maps_IJK() -> None:
     )
 
     code = OrchestratedCode(stencil_factory, quantity_factory)
-    in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
-    out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
+    in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
     with StreeOptimization():
         # Trivial merge
@@ -211,8 +211,8 @@ def test_stree_merge_maps_KJI() -> None:
     )
 
     code = OrchestratedCode(stencil_factory, quantity_factory)
-    in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
-    out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
+    in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
     with StreeOptimization():
         # Trivial merge

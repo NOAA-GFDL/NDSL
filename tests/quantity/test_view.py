@@ -3,7 +3,7 @@ import pytest
 
 from ndsl import Quantity
 from ndsl.config import Backend
-from ndsl.constants import X_DIM, Y_DIM
+from ndsl.constants import I_DIM, J_DIM
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def quantity(request):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -35,7 +35,7 @@ def quantity(request):
 #         pytest.param(
 #             Quantity(
 #                 np.array([1, 2, 3]),
-#                 dims=[X_DIM],
+#                 dims=[I_DIM],
 #                 units="m",
 #                 origin=(1,),
 #                 extent=(1,),
@@ -47,7 +47,7 @@ def quantity(request):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -59,7 +59,7 @@ def quantity(request):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -71,7 +71,7 @@ def quantity(request):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -83,7 +83,7 @@ def quantity(request):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -103,7 +103,7 @@ def quantity(request):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -123,7 +123,7 @@ def quantity(request):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -143,7 +143,7 @@ def quantity(request):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(3, 2),
 #                 extent=(1, 1),
@@ -178,7 +178,7 @@ def quantity(request):
     [
         Quantity(
             np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="m",
             origin=(1, 1),
             extent=(1, 1),
@@ -212,7 +212,7 @@ def test_many_indices_raises(quantity, view_name):
     [
         Quantity(
             np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-            dims=[X_DIM, Y_DIM],
+            dims=[I_DIM, J_DIM],
             units="m",
             origin=(1, 1),
             extent=(1, 1),
@@ -247,7 +247,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -259,7 +259,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([1, 2, 3]),
-#                 dims=[X_DIM],
+#                 dims=[I_DIM],
 #                 units="m",
 #                 origin=(1,),
 #                 extent=(1,),
@@ -271,7 +271,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -283,7 +283,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -295,7 +295,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -307,7 +307,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -327,7 +327,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -347,7 +347,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -367,7 +367,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[X_DIM, Y_DIM],
+#                 dims=[I_DIM, J_DIM],
 #                 units="m",
 #                 origin=(1, 2),
 #                 extent=(1, 1),
@@ -403,7 +403,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -415,7 +415,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([1, 2, 3]),
-#                 dims=[Y_DIM],
+#                 dims=[J_DIM],
 #                 units="m",
 #                 origin=(1,),
 #                 extent=(1,),
@@ -427,7 +427,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([1, 2, 3]),
-#                 dims=[Y_INTERFACE_DIM],
+#                 dims=[J_INTERFACE_DIM],
 #                 units="m",
 #                 origin=(1,),
 #                 extent=(1,),
@@ -439,7 +439,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -451,7 +451,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -463,7 +463,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -475,7 +475,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -495,7 +495,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -515,7 +515,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -535,7 +535,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(3, 2),
 #                 extent=(1, 1),
@@ -571,7 +571,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -583,7 +583,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([1, 2, 3]),
-#                 dims=[Y_DIM],
+#                 dims=[J_DIM],
 #                 units="m",
 #                 origin=(1,),
 #                 extent=(1,),
@@ -595,7 +595,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([1, 2, 3]),
-#                 dims=[Y_INTERFACE_DIM],
+#                 dims=[J_INTERFACE_DIM],
 #                 units="m",
 #                 origin=(1,),
 #                 extent=(1,),
@@ -607,7 +607,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -619,7 +619,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -631,7 +631,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -643,7 +643,7 @@ def test_many_slices_raises(quantity, view_name):
 #         pytest.param(
 #             Quantity(
 #                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 1),
 #                 extent=(1, 1),
@@ -663,7 +663,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -683,7 +683,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(2, 2),
 #                 extent=(1, 1),
@@ -703,7 +703,7 @@ def test_many_slices_raises(quantity, view_name):
 #                         [20, 21, 22, 23, 24],
 #                     ]
 #                 ),
-#                 dims=[Y_DIM, X_DIM],
+#                 dims=[J_DIM, I_DIM],
 #                 units="m",
 #                 origin=(1, 2),
 #                 extent=(1, 1),
@@ -739,7 +739,7 @@ def test_many_slices_raises(quantity, view_name):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -752,7 +752,7 @@ def test_many_slices_raises(quantity, view_name):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -765,7 +765,7 @@ def test_many_slices_raises(quantity, view_name):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -778,7 +778,7 @@ def test_many_slices_raises(quantity, view_name):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -799,7 +799,7 @@ def test_many_slices_raises(quantity, view_name):
                         [20, 21, 22, 23, 24],
                     ]
                 ),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(2, 2),
                 extent=(1, 1),
@@ -837,7 +837,7 @@ def test_southwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -850,7 +850,7 @@ def test_southwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -863,7 +863,7 @@ def test_southwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -876,7 +876,7 @@ def test_southwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -897,7 +897,7 @@ def test_southwest(quantity, view_slice, reference):
                         [20, 21, 22, 23, 24],
                     ]
                 ),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(2, 2),
                 extent=(1, 1),
@@ -935,7 +935,7 @@ def test_southeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[Y_DIM, X_DIM],
+                dims=[J_DIM, I_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -948,7 +948,7 @@ def test_southeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[Y_DIM, X_DIM],
+                dims=[J_DIM, I_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -961,7 +961,7 @@ def test_southeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[Y_DIM, X_DIM],
+                dims=[J_DIM, I_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -974,7 +974,7 @@ def test_southeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[Y_DIM, X_DIM],
+                dims=[J_DIM, I_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -987,7 +987,7 @@ def test_southeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[Y_DIM, X_DIM],
+                dims=[J_DIM, I_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1008,7 +1008,7 @@ def test_southeast(quantity, view_slice, reference):
                         [20, 21, 22, 23, 24],
                     ]
                 ),
-                dims=[Y_DIM, X_DIM],
+                dims=[J_DIM, I_DIM],
                 units="m",
                 origin=(2, 2),
                 extent=(1, 1),
@@ -1046,7 +1046,7 @@ def test_northwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1059,7 +1059,7 @@ def test_northwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1072,7 +1072,7 @@ def test_northwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1085,7 +1085,7 @@ def test_northwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1098,7 +1098,7 @@ def test_northwest(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1119,7 +1119,7 @@ def test_northwest(quantity, view_slice, reference):
                         [20, 21, 22, 23, 24],
                     ]
                 ),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(2, 2),
                 extent=(1, 1),
@@ -1157,7 +1157,7 @@ def test_northeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1170,7 +1170,7 @@ def test_northeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1183,7 +1183,7 @@ def test_northeast(quantity, view_slice, reference):
         pytest.param(
             Quantity(
                 np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(1, 1),
@@ -1204,7 +1204,7 @@ def test_northeast(quantity, view_slice, reference):
                         [20, 21, 22, 23, 24],
                     ]
                 ),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(2, 2),
                 extent=(1, 1),
@@ -1225,7 +1225,7 @@ def test_northeast(quantity, view_slice, reference):
                         [20, 21, 22, 23, 24],
                     ]
                 ),
-                dims=[X_DIM, Y_DIM],
+                dims=[I_DIM, J_DIM],
                 units="m",
                 origin=(1, 1),
                 extent=(3, 3),

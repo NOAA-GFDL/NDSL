@@ -5,13 +5,13 @@ import pytest
 from ndsl import GridSizer, QuantityFactory, SubtileGridSizer
 from ndsl.config import Backend
 from ndsl.constants import (
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     N_HALO_DEFAULT,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
 )
 
 
@@ -116,7 +116,7 @@ DimCase = namedtuple("DimCase", ["dims", "origin", "extent", "shape"])
 def dim_case(request, nx, ny, nz) -> DimCase:
     if request.param == "x_only":
         return DimCase(
-            (X_DIM,),
+            (I_DIM,),
             (N_HALO_DEFAULT,),
             (nx,),
             (2 * N_HALO_DEFAULT + nx + 1,),
@@ -124,7 +124,7 @@ def dim_case(request, nx, ny, nz) -> DimCase:
 
     if request.param == "x_interface_only":
         return DimCase(
-            (X_INTERFACE_DIM,),
+            (I_INTERFACE_DIM,),
             (N_HALO_DEFAULT,),
             (nx + 1,),
             (2 * N_HALO_DEFAULT + nx + 1,),
@@ -132,7 +132,7 @@ def dim_case(request, nx, ny, nz) -> DimCase:
 
     if request.param == "y_only":
         return DimCase(
-            (Y_DIM,),
+            (J_DIM,),
             (N_HALO_DEFAULT,),
             (ny,),
             (2 * N_HALO_DEFAULT + ny + 1,),
@@ -140,23 +140,23 @@ def dim_case(request, nx, ny, nz) -> DimCase:
 
     if request.param == "y_interface_only":
         return DimCase(
-            (Y_INTERFACE_DIM,),
+            (J_INTERFACE_DIM,),
             (N_HALO_DEFAULT,),
             (ny + 1,),
             (2 * N_HALO_DEFAULT + ny + 1,),
         )
 
     if request.param == "z_only":
-        return DimCase((Z_DIM,), (0,), (nz,), (nz + 1,))
+        return DimCase((K_DIM,), (0,), (nz,), (nz + 1,))
 
     if request.param == "z_interface_only":
-        return DimCase((Z_INTERFACE_DIM,), (0,), (nz + 1,), (nz + 1,))
+        return DimCase((K_INTERFACE_DIM,), (0,), (nz + 1,), (nz + 1,))
 
     if request.param == "x_y":
         return DimCase(
             (
-                X_DIM,
-                Y_DIM,
+                I_DIM,
+                J_DIM,
             ),
             (N_HALO_DEFAULT, N_HALO_DEFAULT),
             (nx, ny),
@@ -169,9 +169,9 @@ def dim_case(request, nx, ny, nz) -> DimCase:
     if request.param == "z_y_x":
         return DimCase(
             (
-                Z_DIM,
-                Y_DIM,
-                X_DIM,
+                K_DIM,
+                J_DIM,
+                I_DIM,
             ),
             (0, N_HALO_DEFAULT, N_HALO_DEFAULT),
             (nz, ny, nx),
@@ -264,7 +264,7 @@ def test_pad_non_interface_dimensions():
         data_dimensions={"some_dim": dd},
         backend=Backend.python(),  # original utest case
     )
-    padded_shape = padded_grid_sizer.get_shape([X_DIM, Y_DIM, Z_DIM, "some_dim"])
+    padded_shape = padded_grid_sizer.get_shape([I_DIM, J_DIM, K_DIM, "some_dim"])
     assert padded_shape[0] == nx // layout_xy + 1
     assert padded_shape[1] == ny // layout_xy + 1
     assert padded_shape[2] == nz + 1
@@ -280,7 +280,7 @@ def test_pad_non_interface_dimensions():
         backend=Backend("st:dace:cpu:KJI"),  # Fortran-friendly backend
     )
     non_padded_shape = non_padded_grid_sizer.get_shape(
-        [X_DIM, Y_DIM, Z_DIM, "some_dim"]
+        [I_DIM, J_DIM, K_DIM, "some_dim"]
     )
     assert non_padded_shape[0] == nx // layout_xy
     assert non_padded_shape[1] == ny // layout_xy

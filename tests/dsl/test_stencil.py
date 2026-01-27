@@ -12,6 +12,14 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.config import Backend
+from ndsl.constants import (
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
+)
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
 from ndsl.dsl.typing import (
     BoolFieldIJ,
@@ -92,15 +100,15 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):  # type: ignore
 @pytest.mark.parametrize(
     "extent,dimensions,domain,call_count",
     [
-        ((20, 20, 30), ["x", "y", "z"], (20, 20, 20), 0),
-        ((20, 20), ["x", "y"], (20, 20, 30), 0),
-        ((20, 20), ["x_interface", "y"], (20, 20, 30), 0),
-        ((20, 20), ["x", "y_interface"], (20, 20, 30), 0),
-        ((20,), ["z"], (20, 20, 10), 0),
-        ((20,), ["z_interface"], (20, 20, 10), 0),
-        ((15, 20, 30), ["x", "y", "z"], (20, 20, 30), 1),
-        ((20, 15, 30), ["x", "y", "z"], (20, 20, 30), 1),
-        ((20, 20, 15), ["x", "y", "z"], (20, 20, 30), 1),
+        ((20, 20, 30), [I_DIM, J_DIM, K_DIM], (20, 20, 20), 0),
+        ((20, 20), [I_DIM, J_DIM], (20, 20, 30), 0),
+        ((20, 20), [I_INTERFACE_DIM, J_DIM], (20, 20, 30), 0),
+        ((20, 20), [I_DIM, J_INTERFACE_DIM], (20, 20, 30), 0),
+        ((20,), [K_DIM], (20, 20, 10), 0),
+        ((20,), [K_INTERFACE_DIM], (20, 20, 10), 0),
+        ((15, 20, 30), [I_DIM, J_DIM, K_DIM], (20, 20, 30), 1),
+        ((20, 15, 30), [I_DIM, J_DIM, K_DIM], (20, 20, 30), 1),
+        ((20, 20, 15), [I_DIM, J_DIM, K_DIM], (20, 20, 30), 1),
     ],
 )
 def test_domain_size_comparison(
@@ -151,7 +159,11 @@ def two_dim_temporaries_stencil(q_out: FloatField) -> None:
 def test_stencil_2D_temporaries() -> None:
     domain = (2, 2, 5)
     quantity = Quantity(
-        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend=Backend.debug()
+        np.zeros(domain),
+        [I_DIM, J_DIM, K_DIM],
+        "n/a",
+        extent=domain,
+        backend=Backend.debug(),
     )
     stencil = FrozenStencil(
         two_dim_temporaries_stencil,
@@ -170,7 +182,11 @@ def test_stencil_2D_temporaries() -> None:
 def test_validation_call_count(iterations: tuple[int]):
     domain = (2, 2, 5)
     quantity = Quantity(
-        np.zeros(domain), ["x", "y", "z"], "n/a", extent=domain, backend=Backend.debug()
+        np.zeros(domain),
+        [I_DIM, J_DIM, K_DIM],
+        "n/a",
+        extent=domain,
+        backend=Backend.debug(),
     )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(Backend.python(), rebuild=True)

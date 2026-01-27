@@ -22,15 +22,15 @@ from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiti
 from ndsl.comm.mpi import MPI
 from ndsl.config.backend import Backend, BackendFramework
 from ndsl.constants import (
-    X_DIM,
-    X_DIMS,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_DIMS,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_DIMS,
-    Z_INTERFACE_DIM,
+    I_DIM,
+    I_DIMS,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_DIMS,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_DIMS,
+    K_INTERFACE_DIM,
 )
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
@@ -586,7 +586,7 @@ class FrozenStencil(SDFGConvertible):
 
         domain_sizes = {
             axis_name: axis_size
-            for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
+            for axis_names, axis_size in zip([I_DIMS, J_DIMS, K_DIMS], self.domain)
             for axis_name in axis_names
         }
 
@@ -594,10 +594,10 @@ class FrozenStencil(SDFGConvertible):
             if isinstance(argument, Quantity):
                 for axis, quantity_size in zip(argument.dims, argument.extent):
                     full_size = quantity_size
-                    if axis in (X_DIMS + Y_DIMS):
+                    if axis in (I_DIMS + J_DIMS):
                         full_size += 2 * argument.metadata.n_halo
                     if (
-                        axis in (X_DIMS + Y_DIMS + Z_DIMS)
+                        axis in (I_DIMS + J_DIMS + K_DIMS)
                         and full_size < domain_sizes[axis]
                     ):
                         ndsl_log.warning(
@@ -677,7 +677,7 @@ class GridIndexing:
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
             tuple[int, int, int],
-            sizer.get_extent([X_DIM, Y_DIM, Z_DIM]),
+            sizer.get_extent([I_DIM, J_DIM, K_DIM]),
         )
         return cls(
             domain=domain,
@@ -878,28 +878,28 @@ class GridIndexing:
     def _origin_from_dims(self, dims: Iterable[str]) -> list[int]:
         return_origin = []
         for dim in dims:
-            if dim in X_DIMS:
+            if dim in I_DIMS:
                 return_origin.append(self.origin[0])
-            elif dim in Y_DIMS:
+            elif dim in J_DIMS:
                 return_origin.append(self.origin[1])
-            elif dim in Z_DIMS:
+            elif dim in K_DIMS:
                 return_origin.append(self.origin[2])
         return return_origin
 
     def _domain_from_dims(self, dimensions: Iterable[str]) -> list[int]:
         result = []
         for dimension in dimensions:
-            if dimension == X_DIM:
+            if dimension == I_DIM:
                 result.append(self.domain[0])
-            if dimension == X_INTERFACE_DIM:
+            if dimension == I_INTERFACE_DIM:
                 result.append(self.domain[0] + 1)
-            if dimension == Y_DIM:
+            if dimension == J_DIM:
                 result.append(self.domain[1])
-            if dimension == Y_INTERFACE_DIM:
+            if dimension == J_INTERFACE_DIM:
                 result.append(self.domain[1] + 1)
-            if dimension == Z_DIM:
+            if dimension == K_DIM:
                 result.append(self.domain[2])
-            if dimension == Z_INTERFACE_DIM:
+            if dimension == K_INTERFACE_DIM:
                 result.append(self.domain[2] + 1)
         return result
 
@@ -921,7 +921,7 @@ class GridIndexing:
         for i, d in enumerate(dims):
             # need n_halo points at the start of the domain, regardless of whether
             # they are read, so that data is aligned in memory
-            if d in (X_DIMS + Y_DIMS):
+            if d in (I_DIMS + J_DIMS):
                 shape[i] += self.n_halo
         for i, n in enumerate(halos):
             shape[i] += n

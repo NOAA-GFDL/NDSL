@@ -14,7 +14,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
-from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM
+from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.restart._legacy_restart import (
     _apply_dims,
     get_rank_suffix,
@@ -76,13 +76,13 @@ def test_open_c12_restart(layout):
                 assert isinstance(value, Quantity)
                 assert np.sum(np.isnan(value.view[:])) == 0
                 for dim, extent in zip(value.dims, value.extent):
-                    if dim == X_DIM:
+                    if dim == I_DIM:
                         assert extent == nx
-                    elif dim == X_INTERFACE_DIM:
+                    elif dim == I_INTERFACE_DIM:
                         assert extent == nx + 1
-                    elif dim == Y_DIM:
+                    elif dim == J_DIM:
                         assert extent == ny
-                    elif dim == Y_INTERFACE_DIM:
+                    elif dim == J_INTERFACE_DIM:
                         assert extent == ny + 1
 
 
@@ -91,33 +91,33 @@ def test_open_c12_restart(layout):
     [
         {
             "specific_humidity": {
-                "dims": [Z_DIM, Y_DIM, X_DIM],
+                "dims": [K_DIM, J_DIM, I_DIM],
                 "units": "kg/kg",
                 "restart_name": "sphum",
             },
         },
         {
             "specific_humidity_by_another_name": {
-                "dims": [Z_DIM, Y_DIM, X_DIM],
+                "dims": [K_DIM, J_DIM, I_DIM],
                 "units": "kg/kg",
                 "restart_name": "sphum",
             },
         },
         {
             "specific_humidity": {
-                "dims": [Z_DIM, Y_DIM, X_DIM],
+                "dims": [K_DIM, J_DIM, I_DIM],
                 "units": "kg/kg",
                 "restart_name": "sphum",
             },
         },
         {
             "specific_humidity": {
-                "dims": [Z_DIM, Y_DIM, X_DIM],
+                "dims": [K_DIM, J_DIM, I_DIM],
                 "units": "kg/kg",
                 "restart_name": "sphum",
             },
             "snow_water_mixing_ratio": {
-                "dims": [Z_DIM, Y_DIM, X_DIM],
+                "dims": [K_DIM, J_DIM, I_DIM],
                 "units": "kg/kg",
                 "restart_name": "snowwat",
             },
@@ -170,13 +170,13 @@ def test_open_c12_restart_empty_to_state_without_crashing(layout):
                 assert isinstance(value, Quantity)
                 assert np.sum(np.isnan(value.view[:])) == 0
                 for dim, extent in zip(value.dims, value.extent):
-                    if dim == X_DIM:
+                    if dim == I_DIM:
                         assert extent == nx
-                    elif dim == X_INTERFACE_DIM:
+                    elif dim == I_INTERFACE_DIM:
                         assert extent == nx + 1
-                    elif dim == Y_DIM:
+                    elif dim == J_DIM:
                         assert extent == ny
-                    elif dim == Y_INTERFACE_DIM:
+                    elif dim == J_INTERFACE_DIM:
                         assert extent == ny + 1
 
 
@@ -218,13 +218,13 @@ def test_open_c12_restart_to_allocated_state_without_crashing(layout):
                 assert isinstance(value, Quantity)
                 assert np.sum(np.isnan(value.view[:])) == 0
                 for dim, extent in zip(value.dims, value.extent):
-                    if dim == X_DIM:
+                    if dim == I_DIM:
                         assert extent == nx
-                    elif dim == X_INTERFACE_DIM:
+                    elif dim == I_INTERFACE_DIM:
                         assert extent == nx + 1
-                    elif dim == Y_DIM:
+                    elif dim == J_DIM:
                         assert extent == ny
-                    elif dim == Y_INTERFACE_DIM:
+                    elif dim == J_INTERFACE_DIM:
                         assert extent == ny + 1
 
 

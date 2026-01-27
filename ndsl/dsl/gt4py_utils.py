@@ -550,8 +550,8 @@ def device_sync(backend: Backend) -> None:
 
 def split_cartesian_into_storages(var: np.ndarray) -> Sequence[np.ndarray]:
     """
-    Provided a storage of dims [X_DIM, Y_DIM, CARTESIAN_DIM]
-         or [X_INTERFACE_DIM, Y_INTERFACE_DIM, CARTESIAN_DIM]
+    Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM]
+         or [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM]
     Split it into separate 2D storages for each cartesian
     dimension, and return these in a list.
     """

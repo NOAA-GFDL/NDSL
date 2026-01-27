@@ -16,6 +16,7 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.config import Backend
+from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 
 
 logger = logging.getLogger(__name__)
@@ -29,11 +30,11 @@ logger = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     "shape, ny_rank_add, nx_rank_add, dims",
     [
-        pytest.param((5, 4, 4), 0, 0, ("z", "y", "x"), id="cell_center"),
+        pytest.param((5, 4, 4), 0, 0, (K_DIM, J_DIM, I_DIM), id="cell_center"),
         pytest.param(
-            (5, 4, 4), 1, 1, ("z", "y_interface", "x_interface"), id="cell_corner"
+            (5, 4, 4), 1, 1, (K_DIM, J_INTERFACE_DIM, I_INTERFACE_DIM), id="cell_corner"
         ),
-        pytest.param((5, 4, 4), 0, 1, ("z", "y", "x_interface"), id="cell_edge"),
+        pytest.param((5, 4, 4), 0, 1, (K_DIM, J_DIM, I_INTERFACE_DIM), id="cell_edge"),
     ],
 )
 def test_monitor_store_multi_rank_state(

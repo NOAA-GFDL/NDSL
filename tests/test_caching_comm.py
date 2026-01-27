@@ -13,12 +13,12 @@ from ndsl import (
 )
 from ndsl.comm import CachingCommReader, CachingCommWriter
 from ndsl.config import Backend
-from ndsl.constants import X_DIM, Y_DIM
+from ndsl.constants import I_DIM, J_DIM
 
 
 def test_halo_update_integration():
     shape = (18, 18)
-    dims = [X_DIM, Y_DIM]
+    dims = [I_DIM, J_DIM]
     origin = (3, 3)
     extent = (12, 12)
     n_ranks = 6

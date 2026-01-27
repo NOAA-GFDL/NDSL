@@ -291,8 +291,11 @@ class HaloUpdater:
         # to proper quantities
         with self._timer.clock("unpack"):
             for buffer in self._transformers.values():
+                if self._inflight_x_quantities is None:
+                    raise RuntimeError("Coding error, no quantities in flights")
                 buffer.async_unpack(
-                    self._inflight_x_quantities, self._inflight_y_quantities  # type: ignore[arg-type]
+                    self._inflight_x_quantities,
+                    self._inflight_y_quantities,
                 )
             if self._finalize_on_wait:
                 for transformer in self._transformers.values():
@@ -347,13 +350,13 @@ class HaloUpdateRequest:
 
 def on_c_grid(x_quantity: Quantity, y_quantity: Quantity) -> bool:
     if (
-        constants.X_DIM not in x_quantity.dims
-        or constants.Y_INTERFACE_DIM not in x_quantity.dims
+        constants.I_DIM not in x_quantity.dims
+        or constants.J_INTERFACE_DIM not in x_quantity.dims
     ):
         return False
     if (
-        constants.Y_DIM not in y_quantity.dims
-        or constants.X_INTERFACE_DIM not in y_quantity.dims
+        constants.J_DIM not in y_quantity.dims
+        or constants.I_INTERFACE_DIM not in y_quantity.dims
     ):
         return False
     else:
@@ -426,15 +429,15 @@ class VectorInterfaceHaloUpdater:
         west_boundary = self.boundaries[constants.WEST]
         south_data = x_quantity.view.southwest.sel(
             **{  # type: ignore[arg-type]
-                constants.Y_INTERFACE_DIM: 0,
-                constants.X_DIM: slice(
-                    0, x_quantity.extent[x_quantity.dims.index(constants.X_DIM)]
+                constants.J_INTERFACE_DIM: 0,
+                constants.I_DIM: slice(
+                    0, x_quantity.extent[x_quantity.dims.index(constants.I_DIM)]
                 ),
             }
         )
         south_data = rotate_scalar_data(
             south_data,
-            [constants.X_DIM],
+            [constants.I_DIM],
             x_quantity.np,
             -south_boundary.n_clockwise_rotations,
         )
@@ -442,15 +445,15 @@ class VectorInterfaceHaloUpdater:
             south_data = -south_data
         west_data = y_quantity.view.southwest.sel(
             **{  # type: ignore[arg-type]
-                constants.X_INTERFACE_DIM: 0,
-                constants.Y_DIM: slice(
-                    0, y_quantity.extent[y_quantity.dims.index(constants.Y_DIM)]
+                constants.I_INTERFACE_DIM: 0,
+                constants.J_DIM: slice(
+                    0, y_quantity.extent[y_quantity.dims.index(constants.J_DIM)]
                 ),
             }
         )
         west_data = rotate_scalar_data(
             west_data,
-            [constants.Y_DIM],
+            [constants.J_DIM],
             y_quantity.np,
             -west_boundary.n_clockwise_rotations,
         )
@@ -488,17 +491,17 @@ class VectorInterfaceHaloUpdater:
         east_rank = self.boundaries[constants.EAST].to_rank
         north_data = x_quantity.view.northwest.sel(
             **{  # type: ignore[arg-type]
-                constants.Y_INTERFACE_DIM: -1,
-                constants.X_DIM: slice(
-                    0, x_quantity.extent[x_quantity.dims.index(constants.X_DIM)]
+                constants.J_INTERFACE_DIM: -1,
+                constants.I_DIM: slice(
+                    0, x_quantity.extent[x_quantity.dims.index(constants.I_DIM)]
                 ),
             }
         )
         east_data = y_quantity.view.southeast.sel(
             **{  # type: ignore[arg-type]
-                constants.X_INTERFACE_DIM: -1,
-                constants.Y_DIM: slice(
-                    0, y_quantity.extent[y_quantity.dims.index(constants.Y_DIM)]
+                constants.I_INTERFACE_DIM: -1,
+                constants.J_DIM: slice(
+                    0, y_quantity.extent[y_quantity.dims.index(constants.J_DIM)]
                 ),
             }
         )

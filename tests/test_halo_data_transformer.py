@@ -10,6 +10,12 @@ from ndsl.comm import _boundary_utils
 from ndsl.config import Backend
 from ndsl.constants import (
     EAST,
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     NORTH,
     NORTHEAST,
     NORTHWEST,
@@ -17,12 +23,6 @@ from ndsl.constants import (
     SOUTHEAST,
     SOUTHWEST,
     WEST,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
 )
 from ndsl.halo import HaloDataTransformer
 from ndsl.halo.rotate import rotate_scalar_data, rotate_vector_data
@@ -73,12 +73,12 @@ def n_halos(request):
 def origin(n_halos, dims, n_buffer):
     return_list = []
     origin_dict = {
-        X_DIM: n_halos + n_buffer,
-        X_INTERFACE_DIM: n_halos + n_buffer,
-        Y_DIM: n_halos + n_buffer,
-        Y_INTERFACE_DIM: n_halos + n_buffer,
-        Z_DIM: n_buffer,
-        Z_INTERFACE_DIM: n_buffer,
+        I_DIM: n_halos + n_buffer,
+        I_INTERFACE_DIM: n_halos + n_buffer,
+        J_DIM: n_halos + n_buffer,
+        J_INTERFACE_DIM: n_halos + n_buffer,
+        K_DIM: n_buffer,
+        K_INTERFACE_DIM: n_buffer,
     }
     for dim in dims:
         return_list.append(origin_dict[dim])
@@ -87,22 +87,22 @@ def origin(n_halos, dims, n_buffer):
 
 @pytest.fixture(
     params=[
-        pytest.param((Y_DIM, X_DIM), id="center"),
-        pytest.param((Z_DIM, Y_DIM, X_DIM), id="center_3d"),
+        pytest.param((J_DIM, I_DIM), id="center"),
+        pytest.param((K_DIM, J_DIM, I_DIM), id="center_3d"),
         pytest.param(
-            (X_DIM, Y_DIM, Z_DIM),
+            (I_DIM, J_DIM, K_DIM),
             id="center_3d_reverse",
         ),
         pytest.param(
-            (X_DIM, Z_DIM, Y_DIM),
+            (I_DIM, K_DIM, J_DIM),
             id="center_3d_shuffle",
         ),
-        pytest.param((Y_INTERFACE_DIM, X_INTERFACE_DIM), id="interface"),
+        pytest.param((J_INTERFACE_DIM, I_INTERFACE_DIM), id="interface"),
         pytest.param(
             (
-                Z_INTERFACE_DIM,
-                Y_INTERFACE_DIM,
-                X_INTERFACE_DIM,
+                K_INTERFACE_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
             ),
             id="interface_3d",
         ),
@@ -110,11 +110,11 @@ def origin(n_halos, dims, n_buffer):
 )
 def dims(request, fast):
     if fast and request.param in (
-        (X_DIM, Y_DIM, Z_DIM),
+        (I_DIM, J_DIM, K_DIM),
         (
-            Z_INTERFACE_DIM,
-            Y_INTERFACE_DIM,
-            X_INTERFACE_DIM,
+            K_INTERFACE_DIM,
+            J_INTERFACE_DIM,
+            I_INTERFACE_DIM,
         ),
     ):
         pytest.skip("running in fast mode")
@@ -125,12 +125,12 @@ def dims(request, fast):
 def shape(nz, ny, nx, dims, n_halos, n_buffer):
     return_list = []
     length_dict = {
-        X_DIM: 2 * n_halos + nx + n_buffer,
-        X_INTERFACE_DIM: 2 * n_halos + nx + 1 + n_buffer,
-        Y_DIM: 2 * n_halos + ny + n_buffer,
-        Y_INTERFACE_DIM: 2 * n_halos + ny + 1 + n_buffer,
-        Z_DIM: nz + n_buffer,
-        Z_INTERFACE_DIM: nz + 1 + n_buffer,
+        I_DIM: 2 * n_halos + nx + n_buffer,
+        I_INTERFACE_DIM: 2 * n_halos + nx + 1 + n_buffer,
+        J_DIM: 2 * n_halos + ny + n_buffer,
+        J_INTERFACE_DIM: 2 * n_halos + ny + 1 + n_buffer,
+        K_DIM: nz + n_buffer,
+        K_INTERFACE_DIM: nz + 1 + n_buffer,
     }
     for dim in dims:
         return_list.append(length_dict[dim])
@@ -141,12 +141,12 @@ def shape(nz, ny, nx, dims, n_halos, n_buffer):
 def extent(n_points, dims, nz, ny, nx):
     return_list = []
     extent_dict = {
-        X_DIM: nx,
-        X_INTERFACE_DIM: nx + 1,
-        Y_DIM: ny,
-        Y_INTERFACE_DIM: ny + 1,
-        Z_DIM: nz,
-        Z_INTERFACE_DIM: nz + 1,
+        I_DIM: nx,
+        I_INTERFACE_DIM: nx + 1,
+        J_DIM: ny,
+        J_INTERFACE_DIM: ny + 1,
+        K_DIM: nz,
+        K_INTERFACE_DIM: nz + 1,
     }
     for dim in dims:
         return_list.append(extent_dict[dim])
