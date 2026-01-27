@@ -255,7 +255,9 @@ class Quantity:
 
     @property
     def attrs(self) -> dict:
-        return dict(**self._attrs, units=self.units, backend=self.backend)
+        return dict(
+            **self._attrs, units=self.units, backend=self.backend.as_humanly_readable()
+        )
 
     @property
     def dims(self) -> tuple[str, ...]:
@@ -495,7 +497,11 @@ def _resolve_backend(data: xr.DataArray, backend: Backend | None) -> Backend:
 
     # If backend name was serialized with data, take this one
     if "backend" in data.attrs:
-        return data.attrs["backend"]
+        if not isinstance(data.attrs["backend"], str):
+            raise ValueError(
+                f"Quantity.attrs 'backend' must be a string, found {data.attrs['backend']}"
+            )
+        return Backend(data.attrs["backend"])
 
     # else, fall back to assume python-based layout.
     return Backend.debug()
