@@ -18,7 +18,6 @@ from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 from ndsl.types import NumpyModule
-from ndsl.constants import DeprecatedAxis
 
 
 if cupy is None:
@@ -31,7 +30,7 @@ class Quantity:
     def __init__(
         self,
         data: np.ndarray | cupy.ndarray,
-        dims: Sequence[str | DeprecatedAxis],
+        dims: Sequence[str],
         units: str,
         *,
         backend: str,
@@ -91,7 +90,6 @@ class Quantity:
         is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
         device = gt4py_backend_cls.storage_info["device"]
 
-        normalized_dims = [f"{d}" for d in dims]
         dimensions: tuple[str | int, ...] = tuple(
             [
                 (
@@ -100,10 +98,7 @@ class Quantity:
                     else str(data.shape[index])
                 )
                 for index, (dim, axis) in enumerate(
-                    zip(
-                        normalized_dims,
-                        ("I", "J", "K", *([None] * (len(normalized_dims) - 3))),
-                    )
+                    zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
                 )
             ]
         )
