@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 import gt4py.cartesian.backend as gt_backend
 
@@ -96,6 +97,18 @@ class Backend:
 
     def __hash__(self) -> int:
         return hash(self._humanly_readable)
+
+    def __add__(self, other: str) -> Any:
+        """Concatenation operators"""
+        if isinstance(other, Backend):
+            raise TypeError("OperationError: Backend cannot add to another Backend")
+        return str(self) + other
+
+    def __radd__(self, other: str) -> Any:
+        """Concatenation operators"""
+        if isinstance(other, Backend):
+            raise TypeError("OperationError: Backend cannot add to another Backend")
+        return other + str(self)
 
     @staticmethod
     def debug() -> Backend:
