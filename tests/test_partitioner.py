@@ -8,13 +8,13 @@ from ndsl.comm.partitioner import (
     tile_extent_from_rank_metadata,
 )
 from ndsl.constants import (
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     TILE_DIM,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
 )
 
 
@@ -74,30 +74,30 @@ def test_subtile_index(rank, layout, subtile_index):
 @pytest.mark.parametrize(
     "array_extent, array_dims, layout, tile_extent",
     [
-        ((16, 32), (Y_DIM, X_DIM), (1, 1), (16, 32)),
-        ((16, 32), (Y_DIM, X_INTERFACE_DIM), (1, 1), (16, 32)),
-        ((16, 32), (Y_INTERFACE_DIM, X_DIM), (1, 1), (16, 32)),
+        ((16, 32), (J_DIM, I_DIM), (1, 1), (16, 32)),
+        ((16, 32), (J_DIM, I_INTERFACE_DIM), (1, 1), (16, 32)),
+        ((16, 32), (J_INTERFACE_DIM, I_DIM), (1, 1), (16, 32)),
         (
             (16, 32),
-            (Y_INTERFACE_DIM, X_INTERFACE_DIM),
+            (J_INTERFACE_DIM, I_INTERFACE_DIM),
             (1, 1),
             (16, 32),
         ),
         (
             (8, 16, 32),
-            (Z_DIM, Y_DIM, X_DIM),
+            (K_DIM, J_DIM, I_DIM),
             (1, 1),
             (8, 16, 32),
         ),
-        ((2, 2), (Y_DIM, X_DIM), (2, 2), (4, 4)),
-        ((3, 2), (Y_INTERFACE_DIM, X_DIM), (2, 2), (5, 4)),
-        ((2, 3), (Y_DIM, X_INTERFACE_DIM), (2, 2), (4, 5)),
+        ((2, 2), (J_DIM, I_DIM), (2, 2), (4, 4)),
+        ((3, 2), (J_INTERFACE_DIM, I_DIM), (2, 2), (5, 4)),
+        ((2, 3), (J_DIM, I_INTERFACE_DIM), (2, 2), (4, 5)),
         (
             (4, 2, 3),
             (
-                Z_INTERFACE_DIM,
-                Y_DIM,
-                X_INTERFACE_DIM,
+                K_INTERFACE_DIM,
+                J_DIM,
+                I_INTERFACE_DIM,
             ),
             (2, 2),
             (4, 4, 5),
@@ -117,7 +117,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
     ),
     [
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (8, 8),
             (1, 1),
             0,
@@ -127,7 +127,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="6_rank_centered",
         ),
         pytest.param(
-            [Z_DIM, Y_DIM, X_DIM],
+            [K_DIM, J_DIM, I_DIM],
             (10, 8, 8),
             (1, 1),
             0,
@@ -137,7 +137,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="6_rank_centered_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (11, 8, 8),
             (1, 1),
             0,
@@ -147,7 +147,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="6_rank_centered_z_interface",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_DIM],
+            [J_INTERFACE_DIM, I_DIM],
             (9, 8),
             (1, 1),
             0,
@@ -157,7 +157,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="6_rank_y_interface",
         ),
         pytest.param(
-            [Y_DIM, X_INTERFACE_DIM],
+            [J_DIM, I_INTERFACE_DIM],
             (8, 9),
             (1, 1),
             0,
@@ -167,7 +167,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="6_rank_x_interface",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (9, 9),
             (1, 1),
             0,
@@ -177,7 +177,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="6_rank_both_interface",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (8, 8),
             (2, 2),
             0,
@@ -187,7 +187,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="24_rank_centered_left",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (8, 8),
             (2, 2),
             3,
@@ -197,7 +197,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="24_rank_centered_right",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (9, 9),
             (2, 2),
             0,
@@ -207,7 +207,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="24_rank_interface_left_no_overlap",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (9, 9),
             (2, 2),
             3,
@@ -217,7 +217,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="24_rank_interface_right_no_overlap",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (9, 9),
             (2, 2),
             0,
@@ -227,7 +227,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="24_rank_interface_left_overlap",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (9, 9),
             (2, 2),
             3,
@@ -237,7 +237,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="24_rank_interface_right_overlap",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (4, 4),
             (1, 2),
             0,
@@ -247,7 +247,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="12_rank_no_interface_right_overlap",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (4, 4),
             (1, 2),
             1,
@@ -257,7 +257,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="12_rank_no_interface_right_overlap",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (4, 4),
             (1, 2),
             1,
@@ -267,7 +267,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="12_rank_centered_right_no_overlap_rectangle_layout",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (1, 3),
             0,
@@ -277,7 +277,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="18_rank_left_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (1, 3),
             1,
@@ -287,7 +287,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="18_rank_mid_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (1, 3),
             2,
@@ -297,7 +297,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="18_rank_right_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (2, 3),
             0,
@@ -307,7 +307,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="36_rank_botleft_right_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (2, 3),
             1,
@@ -317,7 +317,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="36_rank_botmid_right_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (2, 3),
             2,
@@ -327,7 +327,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="36_rank_botright_right_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (2, 3),
             3,
@@ -337,7 +337,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="36_rank_topleft_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (2, 3),
             4,
@@ -347,7 +347,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="36_rank_topmid_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 4, 4),
             (2, 3),
             5,
@@ -357,7 +357,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="36_rank_topright_no_overlap_rectangle_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             0,
@@ -367,7 +367,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_botleft_no_overlap_square_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             1,
@@ -377,7 +377,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_botmid_no_overlap_square_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             4,
@@ -387,7 +387,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_midmid_no_overlap_square_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             5,
@@ -397,7 +397,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_midright_no_overlap_square_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             8,
@@ -407,7 +407,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_topright_no_overlap_square_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             0,
@@ -417,7 +417,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_botleft_no_overlap_square_layout_sixth_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             1,
@@ -427,7 +427,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_botmid_no_overlap_square_layout_sixth_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             4,
@@ -437,7 +437,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_midmid_no_overlap_square_layout_sixth_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             5,
@@ -447,7 +447,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_midright_no_overlap_square_layout_sixth_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 8, 8),
             (3, 3),
             8,
@@ -457,7 +457,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="54_rank_topright_no_overlap_square_layout_half_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 16, 16),
             (4, 4),
             0,
@@ -467,7 +467,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="96_rank_farbotfarleft_no_overlap_square_layout_third_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 16, 16),
             (4, 4),
             1,
@@ -477,7 +477,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="96_rank_farbotcloseleft_no_overlap_square_layout_third_edge_tiles_3d",
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 16, 16),
             (4, 4),
             6,
@@ -490,7 +490,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             ),
         ),
         pytest.param(
-            [Z_INTERFACE_DIM, Y_DIM, X_DIM],
+            [K_INTERFACE_DIM, J_DIM, I_DIM],
             (5, 16, 16),
             (4, 4),
             14,
@@ -500,7 +500,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="96_rank_fartopcloseright_no_overlap_square_layout_third_edge_tiles_3d",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (13, 13),
             (2, 4),
             1,
@@ -510,7 +510,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="48_rank_botcloseleft_interface_right_overlap",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (13, 13),
             (2, 4),
             1,
@@ -520,7 +520,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="48_rank_botcloseleft_interface_overlap_half_edge",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_INTERFACE_DIM],
+            [J_INTERFACE_DIM, I_INTERFACE_DIM],
             (13, 13),
             (2, 4),
             7,
@@ -530,7 +530,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="48_rank_topfarright_interface_overlap_half_edge",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (12, 12),
             (2, 4),
             0,
@@ -540,7 +540,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="48_rank_botfarleft_overlap_half_edge",
         ),
         pytest.param(
-            [Y_DIM, X_INTERFACE_DIM],
+            [J_DIM, I_INTERFACE_DIM],
             (12, 13),
             (3, 4),
             0,
@@ -550,7 +550,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="72_rank_botfarleft_x_interface_half_edge",
         ),
         pytest.param(
-            [Y_DIM, X_INTERFACE_DIM],
+            [J_DIM, I_INTERFACE_DIM],
             (12, 13),
             (3, 4),
             1,
@@ -560,7 +560,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="72_rank_botcloseleft_x_interface_half_edge",
         ),
         pytest.param(
-            [Y_DIM, X_INTERFACE_DIM],
+            [J_DIM, I_INTERFACE_DIM],
             (12, 13),
             (3, 4),
             11,
@@ -570,7 +570,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="72_rank_topfarright_x_interface_half_edge",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_DIM],
+            [J_INTERFACE_DIM, I_DIM],
             (13, 12),
             (3, 4),
             0,
@@ -580,7 +580,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="72_rank_botfarleft_y_interface_half_edge",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_DIM],
+            [J_INTERFACE_DIM, I_DIM],
             (13, 12),
             (3, 4),
             1,
@@ -590,7 +590,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="72_rank_botcloseleft_y_interface_half_edge",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_DIM],
+            [J_INTERFACE_DIM, I_DIM],
             (13, 12),
             (3, 4),
             8,
@@ -600,7 +600,7 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
             id="72_rank_topfarleft_y_interface_half_edge",
         ),
         pytest.param(
-            [Y_INTERFACE_DIM, X_DIM],
+            [J_INTERFACE_DIM, I_DIM],
             (13, 12),
             (3, 4),
             11,
@@ -627,7 +627,7 @@ def test_subtile_slice(
     ),
     [
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (16, 16),
             (5, 5),
             0,
@@ -637,7 +637,7 @@ def test_subtile_slice(
             id="150_rank_yx_botfarleft",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (16, 16),
             (5, 5),
             1,
@@ -647,7 +647,7 @@ def test_subtile_slice(
             id="150_rank_yx_botcloseleft",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (16, 16),
             (5, 5),
             8,
@@ -657,7 +657,7 @@ def test_subtile_slice(
             id="150_rank_yx_closebotcloseright",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (16, 16),
             (5, 5),
             14,
@@ -667,7 +667,7 @@ def test_subtile_slice(
             id="150_rank_yx_midfarright",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (16, 16),
             (5, 5),
             24,
@@ -677,7 +677,7 @@ def test_subtile_slice(
             id="150_rank_yx_fartopfarright",
         ),
         pytest.param(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             (16, 16),
             (5, 5),
             0,
@@ -687,7 +687,7 @@ def test_subtile_slice(
             id="150_rank_xy_botfarleft",
         ),
         pytest.param(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             (16, 16),
             (5, 5),
             1,
@@ -697,7 +697,7 @@ def test_subtile_slice(
             id="150_rank_xy_botcloseleft",
         ),
         pytest.param(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             (16, 16),
             (5, 5),
             8,
@@ -707,7 +707,7 @@ def test_subtile_slice(
             id="150_rank_xy_closebotcloseright",
         ),
         pytest.param(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             (16, 16),
             (5, 5),
             14,
@@ -717,7 +717,7 @@ def test_subtile_slice(
             id="150_rank_xy_midfarright",
         ),
         pytest.param(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             (16, 16),
             (5, 5),
             24,
@@ -744,7 +744,7 @@ def test_subtile_slice_even_grid_odd_layout(
     ),
     [
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (13, 19),
             (4, 4),
             24,
@@ -757,7 +757,7 @@ def test_subtile_slice_even_grid_odd_layout(
             id="48_rank_odd_grid_even_layout_y",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (12, 19),
             (4, 2),
             24,
@@ -790,7 +790,7 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
     "array_dims, tile_extent, layout, edge_interior_ratio, rank_extent",
     [
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (12, 12),
             (2, 3),
             1.0,
@@ -798,7 +798,7 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
             id="36_rank_full_edge_tiles",
         ),
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (12, 12),
             (2, 3),
             0.5,
@@ -806,7 +806,7 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
             id="36_rank_half_edge_tiles",
         ),
         pytest.param(
-            [X_DIM, Y_DIM],
+            [I_DIM, J_DIM],
             (12, 12),
             (3, 4),
             0.5,
@@ -814,7 +814,7 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
             id="72_rank_half_edge_tiles",
         ),
         pytest.param(
-            [X_INTERFACE_DIM, Y_DIM],
+            [I_INTERFACE_DIM, J_DIM],
             (13, 12),
             (3, 4),
             0.5,
@@ -822,7 +822,7 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
             id="72_rank_half_edge_tiles_x_interface",
         ),
         pytest.param(
-            [X_DIM, Y_INTERFACE_DIM],
+            [I_DIM, J_INTERFACE_DIM],
             (12, 13),
             (3, 4),
             0.5,
@@ -830,7 +830,7 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
             id="72_rank_half_edge_tiles_y_interface",
         ),
         pytest.param(
-            [X_DIM, Z_DIM, Y_DIM],
+            [I_DIM, K_DIM, J_DIM],
             (12, 5, 12),
             (3, 4),
             0.5,
@@ -840,9 +840,9 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
         pytest.param(
             [
                 TILE_DIM,
-                X_DIM,
-                Z_DIM,
-                Y_DIM,
+                I_DIM,
+                K_DIM,
+                J_DIM,
             ],
             (6, 12, 5, 12),
             (3, 4),
@@ -877,7 +877,7 @@ def test_subtile_extents_from_tile_metadata(
     ),
     [
         pytest.param(
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (12, 12),
             (3, 4),
             1.0,
@@ -929,9 +929,9 @@ def test_tile_extent_from_metadata(
         pytest.param(
             [
                 TILE_DIM,
-                X_DIM,
-                Z_DIM,
-                Y_DIM,
+                I_DIM,
+                K_DIM,
+                J_DIM,
             ],
             (6, 12, 5, 12),
             (3, 4),
@@ -944,9 +944,9 @@ def test_tile_extent_from_metadata(
         pytest.param(
             [
                 TILE_DIM,
-                Y_DIM,
-                Z_DIM,
-                X_DIM,
+                J_DIM,
+                K_DIM,
+                I_DIM,
             ],
             (6, 12, 5, 12),
             (3, 4),
@@ -958,10 +958,10 @@ def test_tile_extent_from_metadata(
         ),
         pytest.param(
             [
-                Z_DIM,
-                Y_DIM,
+                K_DIM,
+                J_DIM,
                 TILE_DIM,
-                X_DIM,
+                I_DIM,
             ],
             (5, 12, 6, 12),
             (3, 4),

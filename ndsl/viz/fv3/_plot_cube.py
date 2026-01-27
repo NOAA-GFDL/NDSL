@@ -11,10 +11,10 @@ from cartopy import crs as ccrs
 from matplotlib import pyplot as plt
 
 from ._constants import (
-    COORD_X_CENTER,
-    COORD_X_OUTER,
-    COORD_Y_CENTER,
-    COORD_Y_OUTER,
+    COORD_I_CENTER,
+    COORD_I_OUTER,
+    COORD_J_CENTER,
+    COORD_J_OUTER,
     VAR_LAT_CENTER,
     VAR_LAT_OUTER,
     VAR_LON_CENTER,
@@ -40,10 +40,10 @@ if os.getenv("CARTOPY_EXTERNAL_DOWNLOADER") != "natural_earth":
     )
 
 WRAPPER_GRID_METADATA = GridMetadataFV3(
-    COORD_X_CENTER,
-    COORD_Y_CENTER,
-    COORD_X_OUTER,
-    COORD_Y_OUTER,
+    COORD_I_CENTER,
+    COORD_J_CENTER,
+    COORD_I_OUTER,
+    COORD_J_OUTER,
     "tile",
     VAR_LON_CENTER,
     VAR_LON_OUTER,
@@ -255,7 +255,7 @@ def _mappable_var(
     for var, dims in grid_metadata.coord_vars.items():
         mappable_ds[var] = _align_grid_var_dims(ds[var], required_dims=dims)
     if isinstance(grid_metadata, GridMetadataFV3):
-        var_da = _align_plot_var_dims(ds[var_name], grid_metadata.y, grid_metadata.x)
+        var_da = _align_plot_var_dims(ds[var_name], grid_metadata.j, grid_metadata.i)
         return mappable_ds.merge(var_da)
     elif isinstance(grid_metadata, GridMetadataScream):
         return mappable_ds.merge(ds[var_name])

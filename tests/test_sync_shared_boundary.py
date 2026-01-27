@@ -7,7 +7,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
-from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM
+from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM
 from ndsl.performance import Timer
 
 
@@ -77,7 +77,7 @@ def rank_quantity_list(total_ranks, numpy, dtype, units=units):
         x_data[:] = rank
         x_quantity = Quantity(
             x_data,
-            dims=(Y_INTERFACE_DIM, X_DIM),
+            dims=(J_INTERFACE_DIM, I_DIM),
             units=units,
             origin=(0, 0),
             extent=(3, 2),
@@ -87,7 +87,7 @@ def rank_quantity_list(total_ranks, numpy, dtype, units=units):
         y_data[:] = rank
         y_quantity = Quantity(
             y_data,
-            dims=(Y_DIM, X_INTERFACE_DIM),
+            dims=(J_DIM, I_INTERFACE_DIM),
             units=units,
             origin=(0, 0),
             extent=(2, 3),
@@ -145,7 +145,7 @@ def counting_quantity_list(total_ranks, numpy, dtype, units=units):
         x_data = numpy.array([[0, 1], [2, 3], [4, 5]]) + 6 * rank
         x_quantity = Quantity(
             x_data,
-            dims=(Y_INTERFACE_DIM, X_DIM),
+            dims=(J_INTERFACE_DIM, I_DIM),
             units=units,
             origin=(0, 0),
             extent=(3, 2),
@@ -154,7 +154,7 @@ def counting_quantity_list(total_ranks, numpy, dtype, units=units):
         y_data = 6 * total_ranks + numpy.array([[0, 1, 2], [3, 4, 5]]) + 6 * rank
         y_quantity = Quantity(
             y_data,
-            dims=(Y_DIM, X_INTERFACE_DIM),
+            dims=(J_DIM, I_INTERFACE_DIM),
             units=units,
             origin=(0, 0),
             extent=(2, 3),

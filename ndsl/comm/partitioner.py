@@ -830,7 +830,7 @@ def _rank_slice_from_tile_metadata_cached(
         cartesian_dims, interior_extents, edge_extents
     ):
         if dim in constants.HORIZONTAL_DIMS:
-            if dim in constants.Y_DIMS:
+            if dim in constants.J_DIMS:
                 index = subtile_index[0]
                 n_ranks = layout[0]
             else:

@@ -1,6 +1,6 @@
 from ndsl import StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
@@ -18,7 +18,7 @@ class TriviallyMergeableCode:
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(
             func=double_map,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(self, in_field: FloatField, out_field: FloatField):
@@ -32,8 +32,8 @@ def test_stree_roundtrip_no_opt():
     )
 
     code = TriviallyMergeableCode(stencil_factory)
-    in_qty = quantity_factory.ones([X_DIM, Y_DIM, Z_DIM], "")
-    out_qty = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "")
+    in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
     # Temporarily flip the internal switch
     import ndsl.dsl.dace.orchestration as orch

@@ -3,7 +3,7 @@ from ndsl.boilerplate import (
     get_factories_single_tile,
     get_factories_single_tile_orchestrated,
 )
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval, max
 from ndsl.dsl.typing import Float, FloatField, set_4d_field_size
 
@@ -29,7 +29,7 @@ class SampleCalculation:
             externals={
                 "ntke": ntke,
             },
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(self, q_in: FloatFieldTracer, q_out: FloatField):
@@ -45,11 +45,11 @@ def test_non_orchestrated_call() -> None:
     )
 
     q_out = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_DIM],
+        [I_DIM, J_DIM, K_DIM],
         units="unknown",
     )
     q_in = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+        [I_DIM, J_DIM, K_DIM, TRACER_DIM],
         units="unknown",
     )
     q_in.field[:, :, :, ntke] = fill_value
@@ -70,11 +70,11 @@ def test_orchestrated_call() -> None:
     )
 
     q_out = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_DIM],
+        [I_DIM, J_DIM, K_DIM],
         units="unknown",
     )
     q_in = quantity_factory.zeros(
-        [X_DIM, Y_DIM, Z_DIM, TRACER_DIM],
+        [I_DIM, J_DIM, K_DIM, TRACER_DIM],
         units="unknown",
     )
     q_in.field[:, :, :, ntke] = fill_value

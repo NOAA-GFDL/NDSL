@@ -12,7 +12,7 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float
 
 
@@ -36,7 +36,7 @@ class GoodLocals(LocalState):
     my_local: Local = dataclasses.field(
         metadata={
             "name": "my_local",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "?",
             "intent": "?",
             "dtype": Float,
@@ -49,7 +49,7 @@ class BadLocals(LocalState):
     my_local: Local = dataclasses.field(
         metadata={
             "name": "my_local",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "?",
             "intent": "?",
             "dtype": Float,
@@ -58,7 +58,7 @@ class BadLocals(LocalState):
     my_quantity: Quantity = dataclasses.field(
         metadata={
             "name": "my_local",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "?",
             "intent": "?",
             "dtype": Float,
@@ -73,7 +73,7 @@ class TheCode(NDSLRuntime):
         super().__init__(stencil_factory)
         self._quantity_factory = quantity_factory
         self._locals = GoodLocals.make_locals(quantity_factory)
-        self._a_local = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
+        self._a_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
 
     def allocate_bad_locals(self) -> None:
         self._bad = BadLocals.make_locals(self._quantity_factory)
