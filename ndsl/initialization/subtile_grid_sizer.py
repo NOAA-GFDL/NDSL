@@ -3,7 +3,7 @@ from typing import Self
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
-from ndsl.constants import N_HALO_DEFAULT, DeprecatedAxis
+from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.gt4py_utils import backend_is_fortran_aligned
 from ndsl.initialization.grid_sizer import GridSizer
 
@@ -141,20 +141,17 @@ class SubtileGridSizer(GridSizer):
         )
         return return_dict
 
-    def get_origin(self, dims: Iterable[str | DeprecatedAxis]) -> tuple[int, ...]:
-        normalized_dims = [f"{d}" for d in dims]
+    def get_origin(self, dims: Iterable[str]) -> tuple[int, ...]:
         return_list = [
-            self.n_halo if dim in constants.HORIZONTAL_DIMS else 0
-            for dim in normalized_dims
+            self.n_halo if dim in constants.HORIZONTAL_DIMS else 0 for dim in dims
         ]
         return tuple(return_list)
 
-    def get_extent(self, dims: Iterable[str | DeprecatedAxis]) -> tuple[int, ...]:
+    def get_extent(self, dims: Iterable[str]) -> tuple[int, ...]:
         extents = self.dim_extents
-        normalized_dims = [f"{d}" for d in dims]
-        return tuple(extents[dim] for dim in normalized_dims)
+        return tuple(extents[dim] for dim in dims)
 
-    def get_shape(self, dims: Iterable[str | DeprecatedAxis]) -> tuple[int, ...]:
+    def get_shape(self, dims: Iterable[str]) -> tuple[int, ...]:
         shape_dict = self.data_dimensions.copy()
         # Check of we pad non-interface variables to have the same shape as interface variables
         pad = 1 if self._pad_non_interface_dimensions else 0
@@ -168,5 +165,4 @@ class SubtileGridSizer(GridSizer):
                 constants.K_INTERFACE_DIM: self.nz + 1,
             }
         )
-        normalized_dims = [f"{d}" for d in dims]
-        return tuple(shape_dict[dim] for dim in normalized_dims)
+        return tuple(shape_dict[dim] for dim in dims)
