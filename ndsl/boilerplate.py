@@ -100,7 +100,7 @@ def get_factories_single_tile_orchestrated(
     """Build the pair of (StencilFactory, QuantityFactory) for orchestrated code on a single tile topology."""
 
     if backend is not None and not backend.is_orchestrated():
-        raise ValueError("Only `dace:*` backends can be orchestrated.")
+        raise ValueError(f"Only `orch:*` backends can be orchestrated, got {backend}.")
 
     return _get_factories(
         nx=nx,

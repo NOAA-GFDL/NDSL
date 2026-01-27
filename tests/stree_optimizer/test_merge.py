@@ -207,7 +207,7 @@ def test_stree_merge_maps_IJK() -> None:
 def test_stree_merge_maps_KJI() -> None:
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, Backend("st:dace:cpu:KJI")
+        domain[0], domain[1], domain[2], 0, Backend("orch:dace:cpu:KJI")
     )
 
     code = OrchestratedCode(stencil_factory, quantity_factory)
