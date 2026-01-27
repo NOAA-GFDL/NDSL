@@ -158,7 +158,7 @@ class CompilationConfig:
     @classmethod
     def from_dict(cls, data: dict) -> Self:
         instance = cls(
-            backend=data.get("backend", "numpy"),
+            backend=data.get("backend", Backend.python()),
             rebuild=data.get("rebuild", False),
             validate_args=data.get("validate_args", True),
             format_source=data.get("format_source", False),
@@ -240,7 +240,7 @@ class StencilConfig(Hashable):
         self, *, func: Callable[..., None], skip_passes: Iterable[str] = ()
     ) -> dict:
         kwargs = {
-            "backend": self.compilation_config.backend,
+            "backend": self.compilation_config.backend.as_gt4py(),
             "rebuild": self.compilation_config.rebuild,
             "name": func.__module__ + "." + func.__name__,
             **self.backend_opts,

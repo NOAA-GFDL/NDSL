@@ -171,6 +171,7 @@ class DaceConfig:
                 of column-physics) and therefore can be compiled once
         """
 
+        self._backend = backend
         self._single_code_path = single_code_path
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
@@ -330,7 +331,6 @@ class DaceConfig:
             except OSError:
                 pass
 
-        self._backend = backend
         self.tile_resolution = [tile_nx, tile_nx, tile_nz]
         from ndsl.dsl.dace.build import set_distributed_caches
 
