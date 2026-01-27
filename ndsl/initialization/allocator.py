@@ -200,7 +200,7 @@ class QuantityFactory:
             dtype=dtype,
             aligned_index=origin,
             dimensions=dimensions,
-            backend=self.backend,
+            backend=self.backend.as_gt4py(),
         )
 
         return Quantity(
