@@ -79,6 +79,12 @@ class Backend:
     def __repr__(self) -> str:
         return self.as_humanly_readable()
 
+    def __eq__(self, other: object) -> bool:
+        return self._humanly_readable == self._humanly_readable
+
+    def __hash__(self) -> int:
+        return hash(self._humanly_readable)
+
     @staticmethod
     def debug() -> Backend:
         return Backend("st:python:cpu:debug")
