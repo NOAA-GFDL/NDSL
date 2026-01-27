@@ -43,7 +43,7 @@ def process_override(threshold_overrides, testobj, test_name, backend: Backend):
         matches = [
             spec
             for spec in override
-            if Backend(spec["backend"]) == backend and spec["platform"] == platform()
+            if spec["backend"] == backend and spec["platform"] == platform()
         ]
         if len(matches) == 1:
             match = matches[0]
