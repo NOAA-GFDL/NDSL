@@ -14,14 +14,14 @@ class BackendStrategy(Enum):
 
 
 class BackendTargetDevice(Enum):
-    """Targeted device"""
+    """Target device"""
 
     CPU = "cpu"
     GPU = "gpu"
 
 
 class BackendFramework(Enum):
-    """Main framework (or language) backend relies on"""
+    """Main lower-level framework (or language) backend relies on"""
 
     GRIDTOOLS = "gt"
     DACE = "dace"
@@ -48,12 +48,26 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
 _NDSL_SHORT_TO_LONG_NAME = {
     "numpy": "st:python:cpu:numpy",
     "debug": "st:python:cpu:debug",
+    "performance_cpu": "orch:dace:cpu:IJK",
+    "hybrid_fortran_cpu": "orch:dace:cpu:KJI",
+    "performance_gpu": "orch:dace:gpu:KJI",
 }
 """Internal: match short name to long name form"""
 
 
 class Backend:
-    """Backend for NDSL"""
+    """Backend for NDSL.
+
+    The backend is a string concatenating information on the intent of the user
+    for a given execution seperated by a ':'.
+
+    It describes to NDSL the strategy, device and framwork to be used
+    on the frontend code. Additionaly, it gives a hint toward the macro-strategy
+    for loop ordering (IJK, KJI, etc.) or a more broad intent (debug, numpy).
+
+    For convenience, shorcuts are given to the most common needs (see internal
+    `_NDSL_SHORT_TO_LONG_NAME`).
+    """
 
     def __init__(self, ndsl_backend: str) -> None:
         # Swap short form to long form
@@ -112,23 +126,23 @@ class Backend:
 
     @staticmethod
     def debug() -> Backend:
-        return Backend("st:python:cpu:debug")
+        return Backend("debug")
 
     @staticmethod
     def python() -> Backend:
-        return Backend("st:python:cpu:numpy")
+        return Backend("numpy")
 
     @staticmethod
     def performance_cpu() -> Backend:
-        return Backend("orch:dace:cpu:IJK")
+        return Backend("performance_cpu")
 
     @staticmethod
     def hybrid_fortran_cpu() -> Backend:
-        return Backend("orch:dace:cpu:KJI")
+        return Backend("hybrid_fortran_cpu")
 
     @staticmethod
     def performance_gpu() -> Backend:
-        return Backend("orch:dace:gpu:KJI")
+        return Backend("performance_gpu")
 
     @property
     def device(self) -> BackendTargetDevice:
@@ -139,6 +153,7 @@ class Backend:
         return self._framework
 
     def as_gt4py(self) -> str:
+        """Given a NDSL backend, give back a GT4Py equivalent"""
         if self._humanly_readable in _NDSL_TO_GT4PY_BACKEND_NAMING.keys():
             return _NDSL_TO_GT4PY_BACKEND_NAMING[self._humanly_readable]
         raise ValueError(
@@ -161,7 +176,7 @@ class Backend:
         return self._device == BackendTargetDevice.GPU
 
 
-# Those two internal values are used for default parameters values
+# Those two internal values are used for default parameters values in functions/methods
 # as it is bad practice to call a function in default argument value
 _BACKEND_PERFORMANCE_CPU = Backend.performance_cpu()
 """Internal: cache performance CPU. Please use Backend.performance_cpu()."""
