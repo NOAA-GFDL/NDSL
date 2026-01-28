@@ -1,7 +1,7 @@
 import pytest
 
 from ndsl import CompilationConfig, DaceConfig, StencilConfig
-from ndsl.config.backend import backend_python, Backend
+from ndsl.config.backend import Backend, backend_python
 
 
 @pytest.mark.parametrize("validate_args", [True, False])

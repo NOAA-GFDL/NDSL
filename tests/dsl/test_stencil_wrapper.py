@@ -12,7 +12,7 @@ from ndsl import (
     Quantity,
     StencilConfig,
 )
-from ndsl.config.backend import backend_python, Backend
+from ndsl.config.backend import Backend, backend_python
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
