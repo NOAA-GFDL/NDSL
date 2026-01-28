@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from warnings import warn
 
+from ndsl.quantity.metadata import QuantityMetadata
 import numpy as np
 import xarray as xr
 
@@ -22,11 +23,14 @@ from pyfms import diag_manager, fms, mpp_domains
 
 from mpi4py import MPI
 
+from datetime import datetime, timedelta
+
 
 class DiagManagerMonitor(NetCDFMonitor):
     """
     sympl.Monitor-style object for sending diagnostics to FMS's diag manager
     """
+    _diag_initialized = False
 
     _CONSTANT_FILENAME = "constants"
 
@@ -47,7 +51,9 @@ class DiagManagerMonitor(NetCDFMonitor):
         """
         # then initialize diag_manager and this object, mpp domain should be created prior to this
         mpp_domains.set_current_domain(domain_id=domain_id)
-        diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
+        if not DiagManagerMonitor._diag_initialized:
+            diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
+            DiagManagerMonitor._diag_initialized = True
         self.domain_id = domain_id
         self.fields = {}
         self.axes = {}
@@ -90,12 +96,12 @@ class DiagManagerMonitor(NetCDFMonitor):
         if state is not None:
             for field_name, field_id in self.fields.items():
                 field_quantity = state[field_name] # this may not work
-                axis_ids = list(map(lambda dimname: self.axes[dimname], field_quantity.dims))
-                print(f"sending data for {field_name} id: {field_id}\nquantity value: {field_quantity}\naxis ids: {axis_ids}")
+                # TODO: this step may need to be skipped in certain scenarios, will jump off that bridge when we get there
+                diag_manager.advance_field_time(field_id)
+                print(f"sending data for {field_name} id: {field_id}\ntime: {state['time']}\nquantity value: {field_quantity}")
                 # TODO data conversion may not be correct here
                 diag_manager.send_data(diag_field_id=field_id, field=np.ascontiguousarray(field_quantity.view[:]), convert_cf_order=True)
                 diag_manager.send_complete(field_id)
-                diag_manager.advance_field_time(field_id)
 
 
     def cleanup(self):
@@ -103,6 +109,7 @@ class DiagManagerMonitor(NetCDFMonitor):
 
     # sets the end/initial times that the run is using in the diag manager 
     def set_model_times(self, init_time: datetime, end_time: datetime):
+        print(f"setting model times in diag_manager: init_time={init_time}, end_time={end_time}")
         diag_manager.set_field_init_time(
             year=init_time.year,
             month=init_time.month,
@@ -120,22 +127,34 @@ class DiagManagerMonitor(NetCDFMonitor):
             second=end_time.second,
         )
 
+    # sets the timestep for a given diag_manager field/variable
+    # TODO would be nice to check the diag_table.yaml for the file freq and ensure the timestep is valid 
+    def _set_field_timestep(self, field_id: int, timestep: timedelta, ticks_per_second: int = 1):
+        print(f"setting field timestep in diag_manager: field_id={field_id}, timestep= days={timestep.days}, seconds={timestep.seconds}, ticks_per_second={ticks_per_second}")
+        diag_manager.set_field_timestep(
+            diag_field_id=field_id,
+            ddays=timestep.days,
+            dseconds=timestep.seconds,
+            dticks=ticks_per_second,
+        )
+
     # registers a diag_manager field/variable for a given Quantity, adds name:field_id to self.fields
     # TODO: 
-    def register_field(self, module_name: str, field_name: str, quantity: Quantity,
-                       long_name: str = None):
+    def register_field(self, module_name: str, field_name: str, dims: list[str], units: str, timestep: timedelta = None,
+                       long_name: str = None, ticks_per_seconds: int = 1):
 
-        field_axes = [self.axes[dim] for dim in quantity.dims]
-        if field_axes is None:
+        field_axes = [self.axes[dim] for dim in dims]
+        if any(field_axes) is None:
             raise ValueError(f"All axes for field {field_name} must be registered before registering the field.")
-        
+
+        print(f"registering field {field_name} with axes {field_axes}, timestep {timestep}")
         # putting all the arguments here for now, only module_name, field_name, precision are required
-        self.fields[field_name] = diag_manager.register_field_array(
+        field_id = diag_manager.register_field_array(
             module_name=module_name,
             field_name=field_name,
             axes = field_axes,
             long_name= long_name,
-            units= quantity.units,
+            units= units,
             dtype = "float32" if self.precision == np.float32 else "float64", #TODO
             missing_value = None,
             range_data = None,
@@ -150,11 +169,17 @@ class DiagManagerMonitor(NetCDFMonitor):
             realm = None,
             multiple_send_data = None
         )
+        self.fields[field_name] = field_id 
+        if timestep is not None:
+            self._set_field_timestep(field_id=field_id, timestep=timestep, ticks_per_second=ticks_per_seconds)
+        else:
+            raise NotImplementedError("Static fields not yet implemented.")
+        
 
     # registers a axis in diag_manager, adds name:axis_id to self.axes 
     # TODO: might be able to make this private, intialize from quantity dims when registering field
     def register_axis(self, name: str, axis_data: np.ndarray, cart_name: str = None,
-                      long_name: str = None, units: str = None):
+                      long_name: str = None, not_xy: bool = False, units: str = None):
         self.axes[name] = diag_manager.axis_init(
             name=name,
             long_name=long_name,
@@ -162,6 +187,7 @@ class DiagManagerMonitor(NetCDFMonitor):
             cart_name=cart_name,
             domain_id=self.domain_id,
             set_name="atm",
+            not_xy=not_xy,
             units="radians"
         )
 

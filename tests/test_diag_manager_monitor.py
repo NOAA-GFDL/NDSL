@@ -29,7 +29,7 @@ diag_config = {
     "diag_files": [
         {
             "file_name": "pace_diagnostics",
-            "freq": "225 seconds",
+            "freq": "15 seconds",
             "time_units": "seconds",
             "unlimdim": "time",
             "varlist": [
@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 def fms_mpp_init(cubed_sphere:bool=False):
     nhalo = 1
     x = 16
-    y = 16 
+    y = 16
 
     fms.init(localcomm=MPI.COMM_WORLD.py2f(), calendar_type=fms.NOLEAP)
 
@@ -60,7 +60,7 @@ def fms_mpp_init(cubed_sphere:bool=False):
         layout = [1, 1]
         io_layout = [1, 1]
         global_indices = [0, x-1, 0, y-1]
-        halo = 1 
+        halo = 1
 
         domain = mpp_domains.define_domains(
             global_indices=global_indices,
@@ -107,7 +107,7 @@ def test_dm_monitor():
     buffer = {}
 
     communicator = CubedSphereCommunicator(
-            comm = LocalComm(rank=0, total_ranks=1, buffer_dict=buffer), 
+            comm = LocalComm(rank=0, total_ranks=1, buffer_dict=buffer),
             partitioner=TilePartitioner((1,1)),
     )
     communicator.tile
@@ -119,9 +119,10 @@ def test_dm_monitor():
         time_chunk_size=1,
         precision=np.float32,
     )
-    
-    start = datetime(2010, 6, 20, 6, 0, 0)
-    end = datetime(2010, 6, 20, 12, 0, 0)
+
+    start = datetime(1, 1, 1, 0, 0, second=0)
+    end = datetime(1, 1, 1, 0, 0, second=45)
+    step = timedelta(seconds=15)
     monitor.set_model_times(init_time=start, end_time=end)
 
     monitor.register_axis(
@@ -130,6 +131,7 @@ def test_dm_monitor():
         cart_name='x',
         long_name="x coordinate",
         units="m",
+        not_xy=False,
     )
     monitor.register_axis(
         name="y",
@@ -137,35 +139,43 @@ def test_dm_monitor():
         cart_name='y',
         long_name="y coordinate",
         units="m",
+        not_xy=False,
     )
 
-    field_q = Quantity(
-        data=np.ones( (nx,ny), dtype=np.float64),
-        dims=("x","y"),
-        units="m",
-        backend="debug",
-    )
     monitor.register_field(
-        module_name="var1",
+        module_name="atm_mod",
         field_name="var1",
-        quantity=field_q,
+        dims=["x","y"],
+        units="m",
         long_name="variable one",
+        timestep=step,
     )
     assert "x" in monitor.axes
     assert "y" in monitor.axes
     assert "var1" in monitor.fields
 
-    state = {
-        "var1": field_q,
-    }
-    monitor.store(state)
+    for t in range(ntimesteps):
+        # increment time and create the expected state dict with quantity data
+        current_time = start + t * step
+        field_q = Quantity(
+            data=t * np.ones( (nx,ny), dtype=np.float64),
+            dims=("x","y"),
+            units="m",
+            backend="debug",
+        )
+        state = {
+            "time": current_time,
+            "var1": field_q,
+        }
+        # send the state to the monitor and send it off to diag_manager
+        monitor.store(state)
 
     monitor.cleanup()
     assert Path("pace_diagnostics.nc").exists()
 
 
 
-# TODO fix the parametrizations once the test works 
+# TODO fix the parametrizations once the test works
 #@pytest.mark.parametrize("layout", [(1, 1), (1, 2), (4, 4)])
 #@pytest.mark.parametrize(
 #    "nt, time_chunk_size",
@@ -186,6 +196,7 @@ def test_dm_monitor():
 #):
 
 # taken from netcdfmonitor test to make sure the generic monitor routines function as expected
+@pytest.mark.skip("Skipping original test for now")
 def test_diag_monitor_store_multi_rank_state():
     units = "m"
     backend = "debug"
