@@ -12,8 +12,7 @@ from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import determine_rank_is_compiling, set_distributed_caches
 from ndsl.comm.partitioner import Partitioner
-from ndsl.config import Backend, BackendTargetDevice
-from ndsl.config.backend import _BACKEND_PYTHON
+from ndsl.config import Backend, BackendTargetDevice, backend_python
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 
 
@@ -33,7 +32,7 @@ class RunMode(enum.Enum):
 class CompilationConfig:
     def __init__(
         self,
-        backend: Backend = _BACKEND_PYTHON,
+        backend: Backend = backend_python,
         rebuild: bool = True,
         validate_args: bool = True,
         format_source: bool = False,

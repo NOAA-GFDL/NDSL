@@ -85,7 +85,7 @@ def test_default_types_are_compiletime():
 
 def test_dace_call_argument_caching():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        5, 5, 2, 0, backend=Backend.performance_cpu()
+        5, 5, 2, 0, backend=Backend.cpu()
     )
     dconfig = stencil_factory.config.dace_config
 

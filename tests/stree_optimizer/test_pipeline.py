@@ -29,7 +29,7 @@ class TriviallyMergeableCode:
 def test_stree_roundtrip_no_opt():
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend=Backend.performance_cpu()
+        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
 
     code = TriviallyMergeableCode(stencil_factory)

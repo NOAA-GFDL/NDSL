@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import Any, Final
 
 import gt4py.cartesian.backend as gt_backend
 
@@ -45,15 +45,6 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
 }
 """Internal: match the NDSL backend names with the GT4Py names"""
 
-_NDSL_SHORT_TO_LONG_NAME = {
-    "numpy": "st:python:cpu:numpy",
-    "debug": "st:python:cpu:debug",
-    "performance_cpu": "orch:dace:cpu:IJK",
-    "hybrid_fortran_cpu": "orch:dace:cpu:KJI",
-    "performance_gpu": "orch:dace:gpu:KJI",
-}
-"""Internal: match short name to long name form"""
-
 
 class Backend:
     """Backend for NDSL.
@@ -65,15 +56,11 @@ class Backend:
     on the frontend code. Additionaly, it gives a hint toward the macro-strategy
     for loop ordering (IJK, KJI, etc.) or a more broad intent (debug, numpy).
 
-    For convenience, shorcuts are given to the most common needs (see internal
-    `_NDSL_SHORT_TO_LONG_NAME`).
+    For convenience, shorcuts are given to the most common needs (
+    `backend_python`, `backend_cpu`, `backend_gpu`).
     """
 
     def __init__(self, ndsl_backend: str) -> None:
-        # Swap short form to long form
-        if ndsl_backend in _NDSL_SHORT_TO_LONG_NAME.keys():
-            ndsl_backend = _NDSL_SHORT_TO_LONG_NAME[ndsl_backend]
-
         # Checks for existence and form
         if ndsl_backend not in _NDSL_TO_GT4PY_BACKEND_NAMING.keys():
             raise ValueError(
@@ -125,23 +112,18 @@ class Backend:
         return other + str(self)
 
     @staticmethod
-    def debug() -> Backend:
+    def python() -> Backend:
+        """Default backend for quick iterative work."""
         return Backend("debug")
 
     @staticmethod
-    def python() -> Backend:
-        return Backend("numpy")
-
-    @staticmethod
-    def performance_cpu() -> Backend:
+    def cpu() -> Backend:
+        """Default performance backend targeting CPU device"""
         return Backend("performance_cpu")
 
     @staticmethod
-    def hybrid_fortran_cpu() -> Backend:
-        return Backend("hybrid_fortran_cpu")
-
-    @staticmethod
-    def performance_gpu() -> Backend:
+    def gpu() -> Backend:
+        """Default performance backend targeting GPU device"""
         return Backend("performance_gpu")
 
     @property
@@ -176,9 +158,11 @@ class Backend:
         return self._device == BackendTargetDevice.GPU
 
 
-# Those two internal values are used for default parameters values in functions/methods
-# as it is bad practice to call a function in default argument value
-_BACKEND_PERFORMANCE_CPU = Backend.performance_cpu()
-"""Internal: cache performance CPU. Please use Backend.performance_cpu()."""
-_BACKEND_PYTHON = Backend.python()
-"""Internal: cache performance CPU. Please use Backend.python()."""
+backend_python: Final[Backend] = Backend("st:python:cpu:debug")
+"""Default backend for quick iterative work."""
+
+backend_cpu: Final[Backend] = Backend("orch:dace:cpu:IJK")
+"""Default performance backend targeting CPU device"""
+
+backend_gpu: Final[Backend] = Backend("orch:dace:gpu:KJI")
+"""Default performance backend targeting GPU device"""

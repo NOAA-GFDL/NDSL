@@ -504,4 +504,4 @@ def _resolve_backend(data: xr.DataArray, backend: Backend | None) -> Backend:
         return Backend(data.attrs["backend"])
 
     # else, fall back to assume python-based layout.
-    return Backend.debug()
+    return Backend.python()

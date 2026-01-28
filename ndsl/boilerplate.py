@@ -15,7 +15,7 @@ from ndsl import (
     TileCommunicator,
     TilePartitioner,
 )
-from ndsl.config.backend import _BACKEND_PERFORMANCE_CPU, _BACKEND_PYTHON
+from ndsl.config.backend import backend_cpu, backend_python
 
 
 def _get_factories(
@@ -93,7 +93,7 @@ def get_factories_single_tile_orchestrated(
     ny: int,
     nz: int,
     nhalo: int,
-    backend: Backend = _BACKEND_PERFORMANCE_CPU,
+    backend: Backend = backend_cpu,
     *,
     orchestration_mode: DaCeOrchestration | None = None,
 ) -> tuple[StencilFactory, QuantityFactory]:
@@ -114,7 +114,7 @@ def get_factories_single_tile_orchestrated(
 
 
 def get_factories_single_tile(
-    nx: int, ny: int, nz: int, nhalo: int, backend: Backend = _BACKEND_PYTHON
+    nx: int, ny: int, nz: int, nhalo: int, backend: Backend = backend_python
 ) -> tuple[StencilFactory, QuantityFactory]:
     """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
     return _get_factories(

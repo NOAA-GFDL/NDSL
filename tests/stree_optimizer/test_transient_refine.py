@@ -94,7 +94,7 @@ class TransientRefineableCode(NDSLRuntime):
 def test_stree_roundtrip_transient_is_refined() -> None:
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend=Backend.performance_cpu()
+        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
 
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")

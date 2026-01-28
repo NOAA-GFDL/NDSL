@@ -73,7 +73,7 @@ class OrchestratedProgram:
 )
 def test_relocatability_orchestration() -> None:
     # Compile on default
-    p0 = OrchestratedProgram(Backend.performance_cpu(), DaCeOrchestration.BuildAndRun)
+    p0 = OrchestratedProgram(Backend.cpu(), DaCeOrchestration.BuildAndRun)
     p0()
 
     expected_cache_dir = (
@@ -92,7 +92,7 @@ def test_relocatability_orchestration_tmpdir(tmpdir) -> None:
     gt_config.cache_settings["root_path"] = tmpdir
 
     # Compile in temporary directory that is only available in this test session.
-    p1 = OrchestratedProgram(Backend.performance_cpu(), DaCeOrchestration.BuildAndRun)
+    p1 = OrchestratedProgram(Backend.cpu(), DaCeOrchestration.BuildAndRun)
     p1()
 
     expected_cache_dir = (
@@ -108,14 +108,14 @@ def test_relocatability_orchestration_tmpdir(tmpdir) -> None:
     relocated_path = tmpdir / ".my_relocated_cache_path"
     shutil.copytree(tmpdir, relocated_path, dirs_exist_ok=False)
     gt_config.cache_settings["root_path"] = relocated_path
-    p2 = OrchestratedProgram(Backend.performance_cpu(), DaCeOrchestration.Run)
+    p2 = OrchestratedProgram(Backend.cpu(), DaCeOrchestration.Run)
     p2()
 
     # Generate a file exists error to check for bad path
     bogus_path = "./nope/not_at_all/not_happening"
     gt_config.cache_settings["root_path"] = bogus_path
     with pytest.raises(RuntimeError):
-        OrchestratedProgram(Backend.performance_cpu(), DaCeOrchestration.Run)
+        OrchestratedProgram(Backend.cpu(), DaCeOrchestration.Run)
 
 
 @pytest.mark.skipif(
