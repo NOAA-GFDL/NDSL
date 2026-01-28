@@ -457,30 +457,14 @@ def is_gpu_backend(backend: Backend) -> bool:
     return backend.is_gpu_backend()
 
 
-_FORTRAN_LOOP_LAYOUT = (2, 1, 0)
-"""Fortran is a column-first (or stride-first) memory system,
-which in the internal gt4py loop layout means I (or axis[0]) has
-the higher value, e.g. "higher importance to run first":
-
-for k # Layout=0
-    for j # Layout=1
-        for i # Layout=2
-
-"""
-
-
-def backend_is_fortran_aligned(backend: Backend | None) -> bool:
-    """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran
-    striding."""
-
-    # Dev NOTE: this is used in interfacing with NDSL (e.g. GEOS.)
-
-    if not backend:
-        return False
-
-    return _FORTRAN_LOOP_LAYOUT == gt_backend.from_name(
-        backend.as_gt4py()
-    ).storage_info["layout_map"](("I", "J", "K"))
+def backend_is_fortran_aligned(backend: Backend) -> bool:
+    warnings.warn(
+        "Function `gt4py_utils.backend_is_fortran_aligned` is deprecated "
+        "please use `Backend.backend_is_fortran_aligned()`",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+    return backend.is_fortran_aligned()
 
 
 def zeros(shape, dtype=Float, *, backend: Backend):

@@ -45,6 +45,17 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
 }
 """Internal: match the NDSL backend names with the GT4Py names"""
 
+_FORTRAN_LOOP_LAYOUT = (2, 1, 0)
+"""Fortran is a column-first (or stride-first) memory system,
+which in the internal gt4py loop layout means I (or axis[0]) has
+the higher value, e.g. "higher importance to run first":
+
+for k # Layout=0
+    for j # Layout=1
+        for i # Layout=2
+
+"""
+
 
 class Backend:
     """Backend for NDSL.
@@ -52,8 +63,8 @@ class Backend:
     The backend is a string concatenating information on the intent of the user
     for a given execution seperated by a ':'.
 
-    It describes to NDSL the strategy, device and framwork to be used
-    on the frontend code. Additionaly, it gives a hint toward the macro-strategy
+    It describes to NDSL the strategy, device and framework to be used
+    on the frontend code. Additionally, it gives a hint toward the macro-strategy
     for loop ordering (IJK, KJI, etc.) or a more broad intent (debug, numpy).
 
     For convenience, shorcuts are given to the most common needs (
@@ -62,7 +73,7 @@ class Backend:
 
     def __init__(self, ndsl_backend: str) -> None:
         # Checks for existence and form
-        if ndsl_backend not in _NDSL_TO_GT4PY_BACKEND_NAMING.keys():
+        if ndsl_backend not in _NDSL_TO_GT4PY_BACKEND_NAMING:
             raise ValueError(
                 f"Unknown {ndsl_backend}, options are {list(_NDSL_TO_GT4PY_BACKEND_NAMING.keys())}"
             )
@@ -83,8 +94,8 @@ class Backend:
             and gt_backend.from_name(self.as_gt4py()).storage_info["device"] != "gpu"
         ):
             raise ValueError(
-                f"Coding error: NDSL backend requested {self._humanly_readable} "
-                f"translate to non-GPU {self.as_gt4py()} GT4Py backend"
+                f"NDSL backend requested ({self._humanly_readable}) tagets GPU,"
+                f"but requests a non-GPU backend from GT4Py ({self.as_gt4py()})."
             )
 
     def __str__(self) -> str:
@@ -135,12 +146,8 @@ class Backend:
         return self._framework
 
     def as_gt4py(self) -> str:
-        """Given a NDSL backend, give back a GT4Py equivalent"""
-        if self._humanly_readable in _NDSL_TO_GT4PY_BACKEND_NAMING.keys():
-            return _NDSL_TO_GT4PY_BACKEND_NAMING[self._humanly_readable]
-        raise ValueError(
-            f"Backend {self._humanly_readable} cannot be translate to GT4Py"
-        )
+        """Given an NDSL backend, give back a GT4Py equivalent"""
+        return _NDSL_TO_GT4PY_BACKEND_NAMING[self._humanly_readable]
 
     def as_humanly_readable(self) -> str:
         return self._humanly_readable
@@ -156,6 +163,13 @@ class Backend:
 
     def is_gpu_backend(self) -> bool:
         return self._device == BackendTargetDevice.GPU
+
+    def is_fortran_aligned(self) -> bool:
+        """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran
+        striding."""
+        return _FORTRAN_LOOP_LAYOUT == gt_backend.from_name(
+            self.as_gt4py()
+        ).storage_info["layout_map"](("I", "J", "K"))
 
 
 backend_python: Final[Backend] = Backend("st:python:cpu:debug")
