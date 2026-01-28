@@ -1002,7 +1002,6 @@ class StencilFactory:
             func: stencil definition function
             origin: gt4py origin to use at call time
             domain: gt4py domain to use at call time
-            stencil_config: container for stencil configuration
             externals: compile-time external variables required by stencil
             skip_passes: compiler passes to skip when building stencil
         """

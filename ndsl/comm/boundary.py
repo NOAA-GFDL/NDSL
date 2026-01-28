@@ -41,7 +41,7 @@ class Boundary:
 
         Args:
             specification: data specifications for the halo. Including shape
-            and number of halo points.
+                and number of halo points.
 
         Returns:
             A tuple of slices (one per dimensions)
@@ -52,8 +52,8 @@ class Boundary:
         """Return the index slices which should be received at this boundary.
 
         Args:
-            quantity: quantity for which to return slices
-            n_points: the width of boundary to include
+            specification: data specifications for the halo. Including shape
+                and number of halo points.
 
         Returns:
             A tuple of slices (one per dimensions)

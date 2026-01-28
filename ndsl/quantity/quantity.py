@@ -155,10 +155,10 @@ class Quantity:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Initialize a Quantity from an xarray.DataArray.
+        Initialize a Quantity from an `xarray.DataArray`.
 
         Args:
-            data_array
+            data_array: `xarray.DataArray` to initialize from
             origin: first point in data within the computational domain
             extent: number of points along each axis within the computational domain
             allow_mismatch_float_precision: allow for precision that is

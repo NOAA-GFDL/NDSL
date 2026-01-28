@@ -225,7 +225,6 @@ class QuantityFactory:
             dims: dimensionality of the data
             n_halo: number of halo points to update, defaults to self.n_halo
             dtype: data type of the data
-            backend: gt4py backend to use
         """
 
         # TEMPORARY: we do a nasty temporary allocation here to read in the hardware
