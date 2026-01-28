@@ -345,7 +345,10 @@ def test_backend_options(
 
 def test_illegal_backend_options():
     with pytest.raises(ValueError):
-        get_stencil_config(backend=Backend("bad:back:end:now"))
+        get_stencil_config(
+            backend=Backend("bad:back:end:now"),
+            match="Backend bad:back:end:now is not registered. Valid options are:*",
+        )
 
 
 def get_mock_quantity():
