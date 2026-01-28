@@ -17,7 +17,7 @@ class SubtileGridSizer(GridSizer):
         nz: int,
         n_halo: int,
         data_dimensions: dict[str, int],
-        backend: Backend | None = None,
+        backend: Backend,
     ) -> None:
         super().__init__(nx, ny, nz, n_halo, data_dimensions)
 
@@ -33,7 +33,7 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         layout: tuple[int, int],
         *,
-        backend: Backend | None,
+        backend: Backend,
         data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
@@ -86,7 +86,7 @@ class SubtileGridSizer(GridSizer):
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
         *,
-        backend: Backend | None = None,
+        backend: Backend,
     ) -> Self:
         """Create a SubtileGridSizer from a Fortran namelist.
 

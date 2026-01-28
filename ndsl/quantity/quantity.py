@@ -165,7 +165,7 @@ class Quantity:
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
-            backend: GT4Py backend name. If given, we allocate data in a performance
+            backend: NDSL backend name. If given, we allocate data in a performance
                 optimal way for this backend. Overrides any potentially saved `backend`
                 in `data.attrs["backend"]`.
         """

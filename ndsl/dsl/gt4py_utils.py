@@ -6,7 +6,6 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 from gt4py import storage as gt_storage
-from gt4py.cartesian import backend as gt_backend
 
 from ndsl.config.backend import Backend
 from ndsl.constants import N_HALO_DEFAULT
