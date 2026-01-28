@@ -143,6 +143,12 @@ plugins:
         python:
           paths: [./ndsl]  # Adjust this path to where your Python modules are
           options:
+            filters:
+              - "!^_"
+              - "^__init__$"
+            group_by_category: true
+            members_order: source
+            show_if_no_docstring: true
             show_source: false
   - exclude:
       glob:
