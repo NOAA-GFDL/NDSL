@@ -12,7 +12,7 @@ from ndsl import (
     Quantity,
     StencilConfig,
 )
-from ndsl.config.backend import _BACKEND_PYTHON, Backend
+from ndsl.config.backend import backend_python, Backend
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
@@ -156,7 +156,7 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):
 @pytest.mark.parametrize("validate_args", [True, False])
 def test_copy_frozen_stencil(
     validate_args: bool,
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = False,
     format_source: bool = False,
     device_sync: bool = False,
@@ -184,7 +184,7 @@ def test_copy_frozen_stencil(
 
 
 def test_frozen_stencil_raises_if_given_origin(
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = False,
     format_source: bool = False,
     device_sync: bool = False,
@@ -211,7 +211,7 @@ def test_frozen_stencil_raises_if_given_origin(
 
 
 def test_frozen_stencil_raises_if_given_domain(
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = False,
     format_source: bool = False,
     device_sync: bool = False,
@@ -246,7 +246,7 @@ def test_frozen_stencil_kwargs_passed_to_init(
     validate_args: bool,
     format_source: bool,
     device_sync: bool,
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
 ):
     config = get_stencil_config(
         backend=backend,
@@ -322,7 +322,7 @@ def test_backend_options(
 ) -> None:
     expected_options = {
         Backend.python(): {
-            "backend": "numpy",
+            "backend": "debug",
             "rebuild": True,
             "format_source": False,
             "name": "tests.dsl.test_stencil_wrapper.copy_stencil",

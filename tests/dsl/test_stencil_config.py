@@ -1,7 +1,7 @@
 import pytest
 
 from ndsl import CompilationConfig, DaceConfig, StencilConfig
-from ndsl.config.backend import _BACKEND_PYTHON, Backend
+from ndsl.config.backend import backend_python, Backend
 
 
 @pytest.mark.parametrize("validate_args", [True, False])
@@ -47,7 +47,7 @@ def test_same_config_equal(
 
 
 def test_different_backend_not_equal(
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = True,
     validate_args: bool = True,
     format_source: bool = True,
@@ -72,7 +72,7 @@ def test_different_backend_not_equal(
 
     different_config = StencilConfig(
         compilation_config=CompilationConfig(
-            Backend.python(),
+            Backend("st:python:cpu:numpy"),
             rebuild=rebuild,
             validate_args=validate_args,
             format_source=format_source,
@@ -85,7 +85,7 @@ def test_different_backend_not_equal(
 
 
 def test_different_rebuild_not_equal(
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = True,
     validate_args: bool = True,
     format_source: bool = True,
@@ -160,7 +160,7 @@ def test_different_device_sync_not_equal(
 
 
 def test_different_validate_args_not_equal(
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = True,
     validate_args: bool = True,
     format_source: bool = True,
@@ -198,7 +198,7 @@ def test_different_validate_args_not_equal(
 
 
 def test_different_format_source_not_equal(
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     rebuild: bool = True,
     validate_args: bool = True,
     format_source: bool = True,
@@ -235,7 +235,7 @@ def test_different_format_source_not_equal(
 @pytest.mark.parametrize("compare_to_numpy", [True, False])
 def test_different_compare_to_numpy_not_equal(
     compare_to_numpy: bool,
-    backend: Backend = _BACKEND_PYTHON,
+    backend: Backend = backend_python,
     device_sync: bool = False,
     format_source: bool = True,
     rebuild: bool = True,
