@@ -2,6 +2,7 @@ import dataclasses
 
 from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
@@ -84,7 +85,7 @@ def test_default_types_are_compiletime():
 
 def test_dace_call_argument_caching():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        5, 5, 2, 0, backend="dace:cpu_kfirst"
+        5, 5, 2, 0, backend=Backend.cpu()
     )
     dconfig = stencil_factory.config.dace_config
 

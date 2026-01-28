@@ -1,5 +1,5 @@
+import gt4py.storage as gt_storage
 import numpy as np
-from gt4py.storage import ones, zeros
 
 from ndsl import (
     CompilationConfig,
@@ -11,6 +11,7 @@ from ndsl import (
     StencilFactory,
     orchestrate,
 )
+from ndsl.config import Backend
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, GlobalTable, computation, interval
 from ndsl.dsl.stencil import CompareToNumpyStencil
 from tests.dsl import utils
@@ -24,7 +25,7 @@ def _stencil(inp: GlobalTable[np.int32, (5,)], out: Field[np.float64]) -> None:
 
 
 def _build_stencil(
-    backend: str, orchestrated: DaCeOrchestration
+    backend: Backend, orchestrated: DaCeOrchestration
 ) -> tuple[FrozenStencil | CompareToNumpyStencil, GridIndexing, StencilConfig]:
     # Make stencil and verify it ran
     grid_indexing = GridIndexing(
@@ -51,15 +52,19 @@ def _build_stencil(
 
 
 class OrchestratedProgram:
-    def __init__(self, backend, orchestration: DaCeOrchestration):
+    def __init__(self, backend: Backend, orchestration: DaCeOrchestration):
         self.stencil, grid_indexing, stencil_config = _build_stencil(
             backend, orchestration
         )
         orchestrate(obj=self, config=stencil_config.dace_config)
 
-        self.inp = ones(shape=(5,), dtype=np.int32, backend=backend)
+        self.inp = gt_storage.ones(
+            shape=(5,), dtype=np.int32, backend=backend.as_gt4py()
+        )
         self.inp[1] = 42
-        self.out = utils.make_storage(zeros, grid_indexing, stencil_config, dtype=float)
+        self.out = utils.make_storage(
+            gt_storage.zeros, grid_indexing, stencil_config, dtype=float
+        )
 
     def __call__(self):
         self.stencil(self.inp, self.out)
@@ -67,7 +72,7 @@ class OrchestratedProgram:
 
 def test_stecil_with_table_orchestrated() -> None:
     program = OrchestratedProgram(
-        backend="dace:cpu", orchestration=DaCeOrchestration.BuildAndRun
+        Backend("st:dace:cpu:KIJ"), orchestration=DaCeOrchestration.BuildAndRun
     )
 
     # run the orchestrated stencil

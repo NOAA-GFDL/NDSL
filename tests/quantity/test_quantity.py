@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from ndsl import Quantity
+from ndsl.config import Backend
 from ndsl.quantity.bounds import _shift_slice
 
 
@@ -62,7 +63,12 @@ def data(n_halo, extent_1d, n_dims, numpy, dtype):
 @pytest.fixture
 def quantity(data, origin, extent, dims, units):
     return Quantity(
-        data, origin=origin, extent=extent, dims=dims, units=units, backend="debug"
+        data,
+        origin=origin,
+        extent=extent,
+        dims=dims,
+        units=units,
+        backend=Backend.python(),
     )
 
 
@@ -82,7 +88,7 @@ def test_smaller_data_raises(data, origin, extent, dims, units):
                     extent=extent,
                     dims=dims,
                     units=units,
-                    backend="debug",
+                    backend=Backend.python(),
                 )
 
 
@@ -96,7 +102,7 @@ def test_smaller_dims_raises(data, origin, extent, dims, units):
             extent=extent,
             dims=dims[:-1],
             units=units,
-            backend="debug",
+            backend=Backend.python(),
         )
 
 
@@ -108,7 +114,7 @@ def test_smaller_origin_raises(data, origin, extent, dims, units):
             extent=extent,
             dims=dims,
             units=units,
-            backend="debug",
+            backend=Backend.python(),
         )
 
 
@@ -120,7 +126,7 @@ def test_smaller_extent_raises(data, origin, extent, dims, units):
             extent=extent[:-1],
             dims=dims,
             units=units,
-            backend="debug",
+            backend=Backend.python(),
         )
 
 
@@ -265,15 +271,18 @@ def test_shift_slice(
 @pytest.mark.parametrize(
     "quantity",
     [
-        Quantity(np.array(5), dims=[], units="", backend="debug"),
+        Quantity(np.array(5), dims=[], units="", backend=Backend.python()),
         Quantity(
-            np.array([1, 2, 3]), dims=["dimension"], units="degK", backend="debug"
+            np.array([1, 2, 3]),
+            dims=["dimension"],
+            units="degK",
+            backend=Backend.python(),
         ),
         Quantity(
             np.random.randn(3, 2, 4),
             dims=["dim1", "dim_2", "dimension_3"],
             units="m",
-            backend="debug",
+            backend=Backend.python(),
         ),
         Quantity(
             np.random.randn(8, 6, 6),
@@ -281,7 +290,7 @@ def test_shift_slice(
             units="km",
             origin=(2, 2, 2),
             extent=(4, 2, 2),
-            backend="debug",
+            backend=Backend.python(),
         ),
     ],
 )
@@ -297,7 +306,9 @@ def test_to_data_array(quantity):
 
 
 def test_data_setter():
-    quantity = Quantity(np.ones((5,)), dims=["dim1"], units="", backend="debug")
+    quantity = Quantity(
+        np.ones((5,)), dims=["dim1"], units="", backend=Backend.python()
+    )
 
     # After allocation - field and data are the same (origin is 0)
     assert quantity.data.shape == quantity.field.shape

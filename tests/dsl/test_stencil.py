@@ -11,6 +11,7 @@ from ndsl import (
     StencilConfig,
     StencilFactory,
 )
+from ndsl.config import Backend
 from ndsl.constants import (
     I_DIM,
     I_INTERFACE_DIM,
@@ -44,7 +45,7 @@ def test_timing_collector() -> None:
         east_edge=True,
     )
     stencil_config = StencilConfig(
-        compilation_config=CompilationConfig(backend="numpy", rebuild=True)
+        compilation_config=CompilationConfig(Backend.python(), rebuild=True)
     )
 
     stencil_factory = StencilFactory(stencil_config, grid_indexing)
@@ -117,7 +118,7 @@ def test_domain_size_comparison(
     call_count: int,
 ):
     quantity = Quantity(
-        np.zeros(extent), dimensions, "n/a", extent=extent, backend="debug"
+        np.zeros(extent), dimensions, "n/a", extent=extent, backend=Backend.python()
     )
     stencil = FrozenStencil(
         copy_stencil,
@@ -158,7 +159,11 @@ def two_dim_temporaries_stencil(q_out: FloatField) -> None:
 def test_stencil_2D_temporaries() -> None:
     domain = (2, 2, 5)
     quantity = Quantity(
-        np.zeros(domain), [I_DIM, J_DIM, K_DIM], "n/a", extent=domain, backend="debug"
+        np.zeros(domain),
+        [I_DIM, J_DIM, K_DIM],
+        "n/a",
+        extent=domain,
+        backend=Backend.python(),
     )
     stencil = FrozenStencil(
         two_dim_temporaries_stencil,
@@ -177,10 +182,14 @@ def test_stencil_2D_temporaries() -> None:
 def test_validation_call_count(iterations: tuple[int]):
     domain = (2, 2, 5)
     quantity = Quantity(
-        np.zeros(domain), [I_DIM, J_DIM, K_DIM], "n/a", extent=domain, backend="debug"
+        np.zeros(domain),
+        [I_DIM, J_DIM, K_DIM],
+        "n/a",
+        extent=domain,
+        backend=Backend.python(),
     )
     stencil_config = StencilConfig(
-        compilation_config=CompilationConfig(backend="numpy", rebuild=True)
+        compilation_config=CompilationConfig(Backend.python(), rebuild=True)
     )
     stencil = FrozenStencil(
         copy_stencil,

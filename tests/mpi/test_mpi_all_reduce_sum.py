@@ -9,6 +9,7 @@ from ndsl import (
 )
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.mpi import MPIComm
+from ndsl.config import Backend
 from ndsl.dsl.typing import Float
 from tests.mpi import MPI
 
@@ -49,7 +50,11 @@ def communicator(cube_partitioner):
 
 @pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
 def test_all_reduce(communicator):
-    backends = ["dace:cpu", "gt:cpu_kfirst", "numpy"]
+    backends = [
+        Backend("st:dace:cpu:KIJ"),
+        Backend("st:gt:cpu:IJK"),
+        Backend.python(),
+    ]
 
     for backend in backends:
         base_array = np.array([i for i in range(5)], dtype=Float)

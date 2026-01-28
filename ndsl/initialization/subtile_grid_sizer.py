@@ -3,6 +3,7 @@ from typing import Self
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
+from ndsl.config import Backend
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.gt4py_utils import backend_is_fortran_aligned
 from ndsl.initialization.grid_sizer import GridSizer
@@ -16,7 +17,7 @@ class SubtileGridSizer(GridSizer):
         nz: int,
         n_halo: int,
         data_dimensions: dict[str, int],
-        backend: str,
+        backend: Backend,
     ) -> None:
         super().__init__(nx, ny, nz, n_halo, data_dimensions)
 
@@ -32,7 +33,7 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         layout: tuple[int, int],
         *,
-        backend: str,
+        backend: Backend,
         data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
@@ -85,7 +86,7 @@ class SubtileGridSizer(GridSizer):
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
         *,
-        backend: str,
+        backend: Backend,
     ) -> Self:
         """Create a SubtileGridSizer from a Fortran namelist.
 

@@ -6,14 +6,14 @@ import hashlib
 from collections.abc import Callable, Hashable, Iterable, Sequence
 from typing import Any, Self
 
-from gt4py.cartesian.backend import from_name as check_backend_existence
+import gt4py.cartesian.backend as gt_backend
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import determine_rank_is_compiling, set_distributed_caches
 from ndsl.comm.partitioner import Partitioner
+from ndsl.config import Backend, BackendTargetDevice, backend_python
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
-from ndsl.dsl.gt4py_utils import is_gpu_backend
 
 
 class RunMode(enum.Enum):
@@ -32,7 +32,7 @@ class RunMode(enum.Enum):
 class CompilationConfig:
     def __init__(
         self,
-        backend: str = "numpy",
+        backend: Backend = backend_python,
         rebuild: bool = True,
         validate_args: bool = True,
         format_source: bool = False,
@@ -41,10 +41,10 @@ class CompilationConfig:
         use_minimal_caching: bool = False,
         communicator: Communicator | None = None,
     ) -> None:
-        if "gpu" not in backend and device_sync is True:
+        if backend.device is BackendTargetDevice.CPU and device_sync is True:
             raise RuntimeError("Device sync is true on a CPU based backend")
-        # GT4Py backend args
-        check_backend_existence(backend)
+        # GT4Py backend check - expect GT4Py to raise if the backend doesn't exist
+        gt_backend.from_name(backend.as_gt4py())
         self.backend = backend
         self.rebuild = rebuild
         self.validate_args = validate_args
@@ -157,7 +157,7 @@ class CompilationConfig:
     @classmethod
     def from_dict(cls, data: dict) -> Self:
         instance = cls(
-            backend=data.get("backend", "numpy"),
+            backend=data.get("backend", Backend.python()),
             rebuild=data.get("rebuild", False),
             validate_args=data.get("validate_args", True),
             format_source=data.get("format_source", False),
@@ -196,7 +196,7 @@ class StencilConfig(Hashable):
             else DaceConfig(
                 communicator=None,
                 backend=self.compilation_config.backend,
-                orchestration=DaCeOrchestration.Python,
+                orchestration=DaCeOrchestration.Run,
             )
         )
         self.backend_opts = {
@@ -206,12 +206,12 @@ class StencilConfig(Hashable):
         self._hash = self._compute_hash()
 
     @property
-    def backend(self) -> str:
+    def backend(self) -> Backend:
         return self.compilation_config.backend
 
     def _compute_hash(self) -> int:
         md5 = hashlib.md5()
-        md5.update(self.compilation_config.backend.encode())
+        md5.update(self.compilation_config.backend.as_gt4py().encode())
         for attr in (
             self.compilation_config.rebuild,
             self.compilation_config.validate_args,
@@ -239,7 +239,7 @@ class StencilConfig(Hashable):
         self, *, func: Callable[..., None], skip_passes: Iterable[str] = ()
     ) -> dict:
         kwargs = {
-            "backend": self.compilation_config.backend,
+            "backend": self.compilation_config.backend.as_gt4py(),
             "rebuild": self.compilation_config.rebuild,
             "name": func.__module__ + "." + func.__name__,
             **self.backend_opts,
@@ -254,7 +254,7 @@ class StencilConfig(Hashable):
 
     @property
     def is_gpu_backend(self) -> bool:
-        return is_gpu_backend(self.compilation_config.backend)
+        return self.compilation_config.backend.is_gpu_backend()
 
     @classmethod
     def _get_oir_pipeline(cls, skip_passes: Sequence[str]) -> OirPipeline:

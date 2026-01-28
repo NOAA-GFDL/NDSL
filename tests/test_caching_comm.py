@@ -12,6 +12,7 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.comm import CachingCommReader, CachingCommWriter
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM
 
 
@@ -29,7 +30,7 @@ def test_halo_update_integration():
             units="",
             origin=origin,
             extent=extent,
-            backend="debug",
+            backend=Backend.python(),
         )
         for _ in range(n_ranks)
     ]

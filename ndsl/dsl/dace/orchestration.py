@@ -19,7 +19,7 @@ from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapExpansion
 from dace.transformation.helpers import get_parent_map
 from dace.transformation.passes.simplify import SimplifyPass
-from gt4py import storage
+from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
@@ -83,7 +83,10 @@ def _download_results_from_dace(
         return None
 
     backend = config.get_backend()
-    return [storage.from_array(result, backend=backend) for result in dace_result]
+    return [
+        gt_storage.from_array(result, backend=backend.as_gt4py())
+        for result in dace_result
+    ]
 
 
 def _to_gpu(sdfg: SDFG) -> None:
@@ -173,7 +176,7 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
-                if backend_name == "dace:cpu_kfirst":
+                if backend_name.as_humanly_readable() == "orch:dace:cpu:IJK":
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
@@ -183,7 +186,10 @@ def _build_sdfg(
                             CartesianRefineTransients(backend_name),
                         ]
                     )
-                elif backend_name in ["dace:cpu_KJI", "dace:gpu"]:
+                elif backend_name.as_humanly_readable() in [
+                    "orch:dace:cpu:KJI",
+                    "orch:dace:gpu:KJI",
+                ]:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),

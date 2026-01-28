@@ -7,6 +7,7 @@ from ndsl.boilerplate import (
     get_factories_single_tile,
     get_factories_single_tile_orchestrated,
 )
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -51,9 +52,7 @@ class Code_NoCall(NDSLRuntime):
 
 
 def test_runtime_make_local() -> None:
-    stencil_factory, quantity_factory = get_factories_single_tile(
-        5, 5, 3, 0, backend="numpy"
-    )
+    stencil_factory, quantity_factory = get_factories_single_tile(5, 5, 3, 0)
     A_ = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
     B_ = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
 
@@ -73,7 +72,7 @@ def test_runtime_make_local() -> None:
 
 def test_runtime_has_orchestracted_call() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        5, 5, 3, 0, backend="dace:cpu_kfirst"
+        5, 5, 3, 0, backend=Backend.cpu()
     )
     A_ = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
     B_ = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
@@ -89,7 +88,7 @@ def test_runtime_has_orchestracted_call() -> None:
 
 def test_runtime_does_not_orchestrate_when_call_is_not_present() -> None:
     stencil_factory, _ = get_factories_single_tile_orchestrated(
-        5, 5, 3, 0, backend="dace:cpu_kfirst"
+        5, 5, 3, 0, backend=Backend.cpu()
     )
     code = Code_NoCall(stencil_factory)
 

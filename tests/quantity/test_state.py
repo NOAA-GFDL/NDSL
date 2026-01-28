@@ -5,6 +5,7 @@ import numpy as np
 
 from ndsl import Quantity, State
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM, Float
 
 
@@ -59,7 +60,7 @@ class CodeState(State):
 def test_basic_state(tmpdir):
     K_size = 3
     _, quantity_factory = get_factories_single_tile(
-        5, 5, K_size, 0, backend="dace:cpu_KJI"
+        5, 5, K_size, 0, Backend("st:dace:cpu:KJI")
     )
 
     # Test allocator
@@ -140,7 +141,7 @@ class CodeStateWithDDim(State):
 
 def test_state_ddim():
     _, quantity_factory = get_factories_single_tile(
-        5, 5, 3, 0, backend="dace:cpu_kfirst"
+        5, 5, 3, 0, backend=Backend("st:dace:cpu:IJK")
     )
 
     # Test allocator

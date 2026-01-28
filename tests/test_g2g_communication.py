@@ -16,6 +16,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance import Timer
@@ -35,11 +36,6 @@ def ranks_per_tile(layout):
 
 
 @pytest.fixture
-def total_ranks(ranks_per_tile):
-    return 6 * ranks_per_tile
-
-
-@pytest.fixture
 def tile_partitioner(layout):
     return TilePartitioner(layout)
 
@@ -50,14 +46,16 @@ def cube_partitioner(tile_partitioner):
 
 
 @pytest.fixture
-def cpu_communicators(cube_partitioner):
+def cpu_communicators(cube_partitioner: CubedSpherePartitioner):
     shared_buffer = {}
     return_list = []
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
                 comm=LocalComm(
-                    rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
+                    rank=rank,
+                    total_ranks=cube_partitioner.total_ranks,
+                    buffer_dict=shared_buffer,
                 ),
                 force_cpu=True,
                 partitioner=cube_partitioner,
@@ -68,14 +66,16 @@ def cpu_communicators(cube_partitioner):
 
 
 @pytest.fixture
-def gpu_communicators(cube_partitioner):
+def gpu_communicators(cube_partitioner: CubedSpherePartitioner):
     shared_buffer = {}
     return_list = []
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
                 comm=LocalComm(
-                    rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
+                    rank=rank,
+                    total_ranks=cube_partitioner.total_ranks,
+                    buffer_dict=shared_buffer,
                 ),
                 partitioner=cube_partitioner,
                 force_cpu=False,
@@ -127,6 +127,7 @@ def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
             units="m",
             origin=(3, 3, 1),
             extent=(3, 3, 1),
+            backend=Backend("st:gt:gpu:KJI"),
         )
         halo_updater_list = []
         for communicator in gpu_communicators:
@@ -156,6 +157,7 @@ def test_halo_update_communicate_though_cpu(backend, cpu_communicators):
             units="m",
             origin=(3, 3, 0),
             extent=(3, 3, 0),
+            backend=Backend("st:gt:gpu:KJI"),
         )
         halo_updater_list = []
         for communicator in cpu_communicators:

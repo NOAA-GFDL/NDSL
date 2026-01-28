@@ -8,11 +8,12 @@ import numpy as np
 from dace.transformation.helpers import get_parent_map
 from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
+import ndsl.xumpy as xp
+from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, FrozenStencil, StencilConfig
 from ndsl.dsl.typing import Float, FloatField
 from ndsl.logging import ndsl_log
-from ndsl.optional_imports import cupy as cp
 
 
 class DaCeProgress:
@@ -187,7 +188,7 @@ def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:
 
 
 class MaxBandwidthBenchmarkProgram:
-    def __init__(self, size: Any, backend: str) -> None:
+    def __init__(self, size: Any, backend: Backend) -> None:
         from ndsl.dsl.dace.orchestration import DaCeOrchestration, orchestrate
 
         dace_config = DaceConfig(
@@ -211,7 +212,7 @@ class MaxBandwidthBenchmarkProgram:
 def kernel_theoretical_timing(
     sdfg: dace.sdfg.SDFG,
     *,
-    backend: str,
+    backend: Backend,
     hardware_bw_in_GB_s: float | None = None,
 ) -> dict[str, float]:
     """Compute a lower timing bound for kernels with the following hypothesis:
@@ -229,12 +230,8 @@ def kernel_theoretical_timing(
             f" arrays at {Float} precision..."
         )
         bench = MaxBandwidthBenchmarkProgram(size, backend)
-        if backend == "dace:gpu":
-            A = cp.ones(size, dtype=Float)
-            B = cp.ones(size, dtype=Float)
-        else:
-            A = np.ones(size, dtype=Float)
-            B = np.ones(size, dtype=Float)
+        A = xp.ones(size, backend, dtype=Float)
+        B = xp.ones(size, backend, dtype=Float)
         n = 1000
         m = 4
         dt = []
@@ -259,7 +256,7 @@ def kernel_theoretical_timing(
         if hardware_bw_in_GB_s
         else "Given hardware bandwidth"
     )
-    print(f"{label}: {bandwidth_in_bytes_s/(1024*1024*1024)} GB/s")
+    print(f"{label}: {bandwidth_in_bytes_s / (1024 * 1024 * 1024)} GB/s")
 
     allmaps = [
         (me, state)
@@ -342,7 +339,7 @@ def report_kernel_theoretical_timing(
 
 def kernel_theoretical_timing_from_path(
     sdfg_path: str,
-    backend: str,
+    backend: Backend,
     hardware_bw_in_GB_s: float | None = None,
     output_format: str | None = None,
 ) -> str:

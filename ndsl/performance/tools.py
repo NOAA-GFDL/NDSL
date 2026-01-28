@@ -1,5 +1,6 @@
 import click
 
+from ndsl.config import Backend
 from ndsl.dsl.dace.utils import (
     kernel_theoretical_timing_from_path,
     memory_static_analysis_from_path,
@@ -41,7 +42,7 @@ ACTION_SDFG_KERNEL_THEORETICAL_TIMING = "sdfg_kernel_theoretical_timing"
     "--backend",
     required=False,
     type=click.STRING,
-    default="dace:gpu",
+    default="st:dace:gpu:KJI",
 )
 def command_line(
     action: str,
@@ -60,7 +61,7 @@ def command_line(
         print(
             kernel_theoretical_timing_from_path(
                 sdfg_path,
-                backend=backend,
+                backend=Backend(backend),
                 hardware_bw_in_GB_s=(
                     None if hardware_bw_in_gb_s == 0 else hardware_bw_in_gb_s
                 ),

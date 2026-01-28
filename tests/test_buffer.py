@@ -5,7 +5,7 @@ from ndsl.utils import is_c_contiguous, is_contiguous
 
 
 @pytest.fixture
-def contiguous_array(numpy, backend):
+def contiguous_array(numpy, backend: str):
     if backend == "gt4py_cupy":
         pytest.skip("gt4py gpu backend cannot produce contiguous arrays")
     array = numpy.empty([3, 4, 5])
@@ -65,7 +65,7 @@ def test_recvbuf_no_buffer(allocator, contiguous_array):
         assert recvbuf is contiguous_array
 
 
-def test_buffer_cache_appends(allocator, backend):
+def test_buffer_cache_appends(allocator, backend: str):
     """
     Test buffer with the same key are appended while not in use for potential reuse
     """
@@ -91,7 +91,7 @@ def test_buffer_cache_appends(allocator, backend):
     assert len(BUFFER_CACHE[first_buffer._key]) == 2
 
 
-def test_buffer_reuse(allocator, backend):
+def test_buffer_reuse(allocator, backend: str):
     """Test we reuse the buffer when available instead of reallocating one"""
     if backend == "gt4py_cupy":
         pytest.skip("gt4py gpu backend cannot produce contiguous arrays")
@@ -119,7 +119,7 @@ def test_buffer_reuse(allocator, backend):
     Buffer.push_to_cache(repop_buffer)
 
 
-def test_cacheline_differentiation(allocator, backend):
+def test_cacheline_differentiation(allocator, backend: str):
     """Test allocation with different keys creates different cache lines"""
     if backend == "gt4py_cupy":
         pytest.skip("gt4py gpu backend cannot produce contiguous arrays")
@@ -169,7 +169,9 @@ def test_cacheline_differentiation(allocator, backend):
         pytest.param(((10, 10, 10), float), ((10, 10, 5), float), id="different_shape"),
     ],
 )
-def test_new_args_gives_different_buffer(allocator, backend, first_args, second_args):
+def test_new_args_gives_different_buffer(
+    allocator, backend: str, first_args, second_args
+):
     if backend == "gt4py_cupy":
         pytest.skip("gt4py gpu backend cannot produce contiguous arrays")
     BUFFER_CACHE.clear()

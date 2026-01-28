@@ -11,13 +11,18 @@ from ndsl import (
     RunMode,
     TilePartitioner,
 )
+from ndsl.config import Backend
 
 
 def test_safety_checks():
-    with pytest.raises(RuntimeError):
-        CompilationConfig(backend="numpy", device_sync=True)
-    with pytest.raises(RuntimeError):
-        CompilationConfig(backend="gt:cpu_ifirst", device_sync=True)
+    with pytest.raises(
+        RuntimeError, match="Device sync is true on a CPU based backend"
+    ):
+        CompilationConfig(Backend.python(), device_sync=True)
+    with pytest.raises(
+        RuntimeError, match="Device sync is true on a CPU based backend"
+    ):
+        CompilationConfig(Backend("st:gt:cpu:KJI"), device_sync=True)
 
 
 @pytest.mark.parametrize(
@@ -162,9 +167,9 @@ def test_from_dict() -> None:
     assert config.run_mode == RunMode.BuildAndRun
     assert config.use_minimal_caching is False
 
-    specification_dict["backend"] = "gt:gpu"
+    specification_dict["backend"] = Backend("st:gt:gpu:KJI")
     config = CompilationConfig.from_dict(specification_dict)
-    assert config.backend == "gt:gpu"
+    assert config.backend == Backend("st:gt:gpu:KJI")
 
     specification_dict["rebuild"] = True
     config = CompilationConfig.from_dict(specification_dict)

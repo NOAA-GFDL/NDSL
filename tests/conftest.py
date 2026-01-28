@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from ndsl.config import Backend
 from ndsl.optional_imports import cupy
 
 
@@ -17,14 +18,14 @@ def backend(request):
 
 
 @pytest.fixture
-def gt4py_backend(backend):
+def ndsl_backend(backend: str) -> Backend:
     if backend in ("numpy"):
-        return "numpy"
+        return Backend.python()
 
     if backend in ("cupy"):
-        return "gt:gpu"
+        return Backend("st:dace:gpu:KJI")
 
-    return None
+    raise ValueError(f"Test backend {backend} cannot be translated into Backend")
 
 
 @pytest.fixture
@@ -33,7 +34,7 @@ def fast(pytestconfig):
 
 
 @pytest.fixture
-def numpy(backend):
+def numpy(backend: str):
     if backend == "numpy":
         return np
     elif backend == "cupy":

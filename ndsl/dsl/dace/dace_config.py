@@ -10,9 +10,9 @@ from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
+from ndsl.config import Backend
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
-from ndsl.dsl.gt4py_utils import is_gpu_backend
 from ndsl.dsl.typing import get_precision
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
@@ -131,23 +131,21 @@ class DaCeOrchestration(enum.Enum):
     """
     Orchestration mode for DaCe
 
-        Python: python orchestration
-        Build: compile & save SDFG only
         BuildAndRun: compile & save SDFG, then run
+        Build: compile & save SDFG only
         Run: load from .so and run, will fail if .so is not available
     """
 
-    Python = 0
+    BuildAndRun = 0
     Build = 1
-    BuildAndRun = 2
-    Run = 3
+    Run = 2
 
 
 class DaceConfig:
     def __init__(
         self,
         communicator: Communicator | None,
-        backend: str,
+        backend: Backend,
         tile_nx: int = 0,
         tile_nz: int = 0,
         orchestration: DaCeOrchestration | None = None,
@@ -173,6 +171,7 @@ class DaceConfig:
                 of column-physics) and therefore can be compiled once
         """
 
+        self._backend = backend
         self._single_code_path = single_code_path
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
@@ -193,11 +192,11 @@ class DaceConfig:
         # We should refactor the architecture to allow for a `gtc:orchestrated:dace:X`
         # backend that would signify both the `CPU|GPU` split and the orchestration mode
         if orchestration is None:
-            fv3_dacemode_env_var = os.getenv("FV3_DACEMODE", "Python")
+            fv3_dacemode_env_var = os.getenv("FV3_DACEMODE", "BuildAndRun")
             # The below condition guards against defining empty FV3_DACEMODE and
             # awkward behavior of os.getenv returning "" even when not defined
             if fv3_dacemode_env_var is None or fv3_dacemode_env_var == "":
-                fv3_dacemode_env_var = "Python"
+                fv3_dacemode_env_var = "BuildAndRun"
             self._orchestrate = DaCeOrchestration[fv3_dacemode_env_var]
         else:
             self._orchestrate = orchestration
@@ -332,7 +331,6 @@ class DaceConfig:
             except OSError:
                 pass
 
-        self._backend = backend
         self.tile_resolution = [tile_nx, tile_nx, tile_nz]
         from ndsl.dsl.dace.build import set_distributed_caches
 
@@ -359,19 +357,13 @@ class DaceConfig:
 
         set_distributed_caches(self)
 
-        if self.is_dace_orchestrated() and "dace" not in self._backend:
-            raise RuntimeError(
-                "DaceConfig: orchestration can only be leveraged "
-                f"with the `dace:*` backends, not with {self._backend}."
-            )
-
     def is_dace_orchestrated(self) -> bool:
-        return self._orchestrate != DaCeOrchestration.Python
+        return self._backend.is_orchestrated()
 
     def is_gpu_backend(self) -> bool:
-        return is_gpu_backend(self._backend)
+        return self._backend.is_gpu_backend()
 
-    def get_backend(self) -> str:
+    def get_backend(self) -> Backend:
         return self._backend
 
     def get_orchestrate(self) -> DaCeOrchestration:

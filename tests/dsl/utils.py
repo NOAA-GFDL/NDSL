@@ -10,7 +10,7 @@ def make_storage(
     aligned_index=(0, 0, 0),
 ):
     return func(
-        backend=stencil_config.compilation_config.backend,
+        backend=stencil_config.compilation_config.backend.as_gt4py(),
         shape=grid_indexing.domain,
         dtype=dtype,
         aligned_index=aligned_index,

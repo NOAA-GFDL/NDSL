@@ -12,6 +12,7 @@ from ndsl import (
     TilePartitioner,
     ZarrMonitor,
 )
+from ndsl.config import backend_python
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 
 
@@ -20,9 +21,9 @@ OUTPUT_PATH = "output/zarr_monitor.zarr"
 
 def get_example_state(time):
     sizer = SubtileGridSizer(
-        nx=48, ny=48, nz=70, n_halo=3, data_dimensions={}, backend="debug"
+        nx=48, ny=48, nz=70, n_halo=3, data_dimensions={}, backend=backend_python
     )
-    allocator = QuantityFactory(sizer, np)
+    allocator = QuantityFactory(sizer, backend=backend_python)
     air_temperature = allocator.zeros([I_DIM, J_DIM, K_DIM], units="degK")
     air_temperature.view[:] = np.random.randn(*air_temperature.extent)
     return {"time": time, "air_temperature": air_temperature}

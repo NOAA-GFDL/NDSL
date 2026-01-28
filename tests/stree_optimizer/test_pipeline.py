@@ -1,5 +1,6 @@
 from ndsl import StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -28,7 +29,7 @@ class TriviallyMergeableCode:
 def test_stree_roundtrip_no_opt():
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend="dace:cpu_kfirst"
+        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
 
     code = TriviallyMergeableCode(stencil_factory)

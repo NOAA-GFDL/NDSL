@@ -1,5 +1,6 @@
 from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
 from ndsl.dsl.typing import Float, FloatField
@@ -93,7 +94,7 @@ class TransientRefineableCode(NDSLRuntime):
 def test_stree_roundtrip_transient_is_refined() -> None:
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend="dace:cpu_kfirst"
+        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
 
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")

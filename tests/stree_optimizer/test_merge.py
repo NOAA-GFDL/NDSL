@@ -2,6 +2,7 @@ import dace
 
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -127,7 +128,7 @@ class OrchestratedCode:
 def test_stree_merge_maps_IJK() -> None:
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend="dace:cpu_kfirst"
+        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
 
     code = OrchestratedCode(stencil_factory, quantity_factory)
@@ -206,7 +207,7 @@ def test_stree_merge_maps_IJK() -> None:
 def test_stree_merge_maps_KJI() -> None:
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend="dace:cpu_KJI"
+        domain[0], domain[1], domain[2], 0, Backend("orch:dace:cpu:KJI")
     )
 
     code = OrchestratedCode(stencil_factory, quantity_factory)

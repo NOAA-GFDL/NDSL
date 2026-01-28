@@ -12,6 +12,7 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.boilerplate import get_factories_single_tile
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float
 
@@ -25,7 +26,7 @@ def test_dace_data_descriptor_is_transient() -> None:
         extent=(nx,),
         dims=("dim_X",),
         units="n/a",
-        backend="debug",
+        backend=Backend.python(),
     )
     array = local.__descriptor__()
     assert array.transient
@@ -88,7 +89,7 @@ class TheCode(NDSLRuntime):
 
 def test_proper_initialization() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
-        3, 3, 5, 0, backend="debug"
+        3, 3, 5, 0, Backend.python()
     )
     the_code = TheCode(stencil_factory, quantity_factory)
     assert the_code.check_local_right_after_init()
@@ -96,7 +97,7 @@ def test_proper_initialization() -> None:
 
 def test_forbidden_access_to_locals() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
-        3, 3, 5, 0, backend="debug"
+        3, 3, 5, 0, Backend.python()
     )
     the_code = TheCode(stencil_factory, quantity_factory)
 
@@ -128,7 +129,7 @@ def test_forbidden_access_to_locals() -> None:
 
 
 def test_local_state_as_regular_state() -> None:
-    _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, backend="debug")
+    _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, Backend.python())
     with pytest.raises(
         RuntimeError,
         match="LocalState allocated outside of NDSLRuntime: forbidden",
