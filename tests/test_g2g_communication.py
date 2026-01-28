@@ -36,11 +36,6 @@ def ranks_per_tile(layout):
 
 
 @pytest.fixture
-def total_ranks(ranks_per_tile) -> int:
-    return 6 * ranks_per_tile
-
-
-@pytest.fixture
 def tile_partitioner(layout):
     return TilePartitioner(layout)
 
@@ -51,14 +46,16 @@ def cube_partitioner(tile_partitioner):
 
 
 @pytest.fixture
-def cpu_communicators(cube_partitioner, total_ranks):
+def cpu_communicators(cube_partitioner: CubedSpherePartitioner):
     shared_buffer = {}
     return_list = []
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
                 comm=LocalComm(
-                    rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
+                    rank=rank,
+                    total_ranks=cube_partitioner.total_ranks,
+                    buffer_dict=shared_buffer,
                 ),
                 force_cpu=True,
                 partitioner=cube_partitioner,
@@ -69,14 +66,16 @@ def cpu_communicators(cube_partitioner, total_ranks):
 
 
 @pytest.fixture
-def gpu_communicators(cube_partitioner, total_ranks):
+def gpu_communicators(cube_partitioner: CubedSpherePartitioner):
     shared_buffer = {}
     return_list = []
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
                 comm=LocalComm(
-                    rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
+                    rank=rank,
+                    total_ranks=cube_partitioner.total_ranks,
+                    buffer_dict=shared_buffer,
                 ),
                 partitioner=cube_partitioner,
                 force_cpu=False,
