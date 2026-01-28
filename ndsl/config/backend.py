@@ -61,7 +61,7 @@ class Backend:
     """Backend for NDSL.
 
     The backend is a string concatenating information on the intent of the user
-    for a given execution seperated by a ':'.
+    for a given execution separated by a ':'.
 
     It describes to NDSL the strategy, device and framework to be used
     on the frontend code. Additionally, it gives a hint toward the macro-strategy

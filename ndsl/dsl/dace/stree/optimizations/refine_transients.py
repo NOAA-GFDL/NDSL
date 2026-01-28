@@ -5,7 +5,8 @@ import warnings
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
-from ndsl import Backend, ndsl_log
+from ndsl import ndsl_log
+from ndsl.config import Backend
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
 
 

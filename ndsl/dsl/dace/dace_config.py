@@ -7,9 +7,10 @@ from typing import TYPE_CHECKING, Any, Self
 import dace.config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 
-from ndsl import Backend, LocalComm
+from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
+from ndsl.config import Backend
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.dsl.typing import get_precision
