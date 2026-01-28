@@ -30,7 +30,7 @@ def test_halo_update_integration():
             units="",
             origin=origin,
             extent=extent,
-            backend=Backend.debug(),
+            backend=Backend.python(),
         )
         for _ in range(n_ranks)
     ]

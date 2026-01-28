@@ -151,7 +151,7 @@ def get_quantity(dims, units, extent, n_halo, numpy):
         units,
         origin=tuple(origin),
         extent=tuple(extent),
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
 
 

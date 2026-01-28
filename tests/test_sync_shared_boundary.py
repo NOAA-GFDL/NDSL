@@ -82,7 +82,7 @@ def rank_quantity_list(total_ranks, numpy, dtype, units=units):
             units=units,
             origin=(0, 0),
             extent=(3, 2),
-            backend=Backend.debug(),
+            backend=Backend.python(),
         )
         y_data = numpy.empty((2, 3), dtype=dtype)
         y_data[:] = rank
@@ -92,7 +92,7 @@ def rank_quantity_list(total_ranks, numpy, dtype, units=units):
             units=units,
             origin=(0, 0),
             extent=(2, 3),
-            backend=Backend.debug(),
+            backend=Backend.python(),
         )
         quantity_list.append((x_quantity, y_quantity))
     return quantity_list
@@ -150,7 +150,7 @@ def counting_quantity_list(total_ranks, numpy, dtype, units=units):
             units=units,
             origin=(0, 0),
             extent=(3, 2),
-            backend=Backend.debug(),
+            backend=Backend.python(),
         )
         y_data = 6 * total_ranks + numpy.array([[0, 1, 2], [3, 4, 5]]) + 6 * rank
         y_quantity = Quantity(
@@ -159,7 +159,7 @@ def counting_quantity_list(total_ranks, numpy, dtype, units=units):
             units=units,
             origin=(0, 0),
             extent=(2, 3),
-            backend=Backend.debug(),
+            backend=Backend.python(),
         )
         quantity_list.append((x_quantity, y_quantity))
     return quantity_list

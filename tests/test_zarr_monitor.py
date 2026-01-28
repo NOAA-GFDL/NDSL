@@ -104,7 +104,7 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
                 numpy.ones([ny, nx]),
                 dims=(J_DIM, X_DIM),
                 units="m",
-                backend=Backend.debug(),
+                backend=Backend.python(),
             )
         }
 
@@ -114,7 +114,7 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
                 numpy.ones([nz, ny, nx]),
                 dims=(K_DIM, J_DIM, I_DIM),
                 units="m",
-                backend=Backend.debug(),
+                backend=Backend.python(),
             )
         }
 
@@ -124,13 +124,13 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
                 numpy.ones([ny, nx]),
                 dims=(J_DIM, I_DIM),
                 units="m",
-                backend=Backend.debug(),
+                backend=Backend.python(),
             ),
             "var2": Quantity(
                 numpy.ones([nz, ny, nx]),
                 dims=(K_DIM, J_DIM, I_DIM),
                 units="degK",
-                backend=Backend.debug(),
+                backend=Backend.python(),
             ),
         }
 
@@ -263,7 +263,7 @@ def test_monitor_file_store_multi_rank_state(
                     numpy.ones([nz, ny_rank, nx_rank]),
                     dims=dims,
                     units=units,
-                    backend=Backend.debug(),
+                    backend=Backend.python(),
                 ),
             }
             monitor_list[rank].store(state)
@@ -339,9 +339,9 @@ def _assert_no_nulls(dataset: xr.Dataset):
     number_of_null = dataset["var"].isnull().sum().item()
     total_size = dataset["var"].size
 
-    assert (
-        number_of_null == 0
-    ), f"Number of nulls {number_of_null}. Size of data {total_size}"
+    assert number_of_null == 0, (
+        f"Number of nulls {number_of_null}. Size of data {total_size}"
+    )
 
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
@@ -356,7 +356,7 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale
         numpy.zeros([10, 10]),
         dims=(J_DIM, I_DIM),
         units="m",
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
     monitor.store({"var": zero_quantity})
 
@@ -381,7 +381,7 @@ def test_values_preserved(cube_partitioner, numpy):
         numpy.random.uniform(size=(10, 10)),
         dims=dims,
         units=units,
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
     monitor.store({"var": quantity})
 
@@ -435,7 +435,7 @@ def diag(request, numpy):
         numpy.ones([size + 2 for size in range(len(dims))]),
         dims=dims,
         units="m",
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
 
 
@@ -509,7 +509,7 @@ def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
         numpy.ones([size + 2 for size in range(len(diag.dims))]),
         dims=new_dims,
         units="m",
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
     with pytest.raises(ValueError) as excinfo:
         zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
@@ -526,7 +526,7 @@ def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_ra
     diag_2._attrs.update({"some_non_units_attrs": 9.0})
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
     diag_3 = Quantity(
-        data=diag.view[:], dims=diag.dims, units="not_m", backend=Backend.debug()
+        data=diag.view[:], dims=diag.dims, units="not_m", backend=Backend.python()
     )
     with pytest.raises(ValueError):
         zarr_monitor_single_rank.store({"time": time_3, "a": diag_3})

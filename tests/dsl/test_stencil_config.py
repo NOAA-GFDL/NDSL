@@ -72,7 +72,7 @@ def test_different_backend_not_equal(
 
     different_config = StencilConfig(
         compilation_config=CompilationConfig(
-            Backend.debug(),
+            Backend.python(),
             rebuild=rebuild,
             validate_args=validate_args,
             format_source=format_source,

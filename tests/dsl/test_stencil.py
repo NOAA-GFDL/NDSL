@@ -118,7 +118,7 @@ def test_domain_size_comparison(
     call_count: int,
 ):
     quantity = Quantity(
-        np.zeros(extent), dimensions, "n/a", extent=extent, backend=Backend.debug()
+        np.zeros(extent), dimensions, "n/a", extent=extent, backend=Backend.python()
     )
     stencil = FrozenStencil(
         copy_stencil,
@@ -163,7 +163,7 @@ def test_stencil_2D_temporaries() -> None:
         [I_DIM, J_DIM, K_DIM],
         "n/a",
         extent=domain,
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
     stencil = FrozenStencil(
         two_dim_temporaries_stencil,
@@ -186,7 +186,7 @@ def test_validation_call_count(iterations: tuple[int]):
         [I_DIM, J_DIM, K_DIM],
         "n/a",
         extent=domain,
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(Backend.python(), rebuild=True)

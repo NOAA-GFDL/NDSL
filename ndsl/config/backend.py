@@ -125,17 +125,17 @@ class Backend:
     @staticmethod
     def python() -> Backend:
         """Default backend for quick iterative work."""
-        return Backend("debug")
+        return backend_python
 
     @staticmethod
     def cpu() -> Backend:
         """Default performance backend targeting CPU device"""
-        return Backend("performance_cpu")
+        return backend_cpu
 
     @staticmethod
     def gpu() -> Backend:
         """Default performance backend targeting GPU device"""
-        return Backend("performance_gpu")
+        return backend_gpu
 
     @property
     def device(self) -> BackendTargetDevice:

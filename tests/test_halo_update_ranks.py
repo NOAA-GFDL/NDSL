@@ -127,7 +127,7 @@ def rank_quantity_list(total_ranks, numpy, dtype):
             units="m",
             origin=(1, 1),
             extent=(1, 1),
-            backend=Backend.debug(),
+            backend=Backend.python(),
         )
         quantity_list.append(quantity)
     return quantity_list

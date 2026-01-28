@@ -989,7 +989,7 @@ def test_subtile_extent_with_tile_dimensions(
         array_dims,
         "dimensionless",
         origin=[0, 0, 0, 0],
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
 
     tile_partitioner = TilePartitioner(layout, edge_interior_ratio)

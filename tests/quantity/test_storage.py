@@ -60,7 +60,7 @@ def quantity(data, origin, extent, dims, units):
         extent=extent,
         dims=dims,
         units=units,
-        backend=Backend.debug(),
+        backend=Backend.python(),
     )
 
 

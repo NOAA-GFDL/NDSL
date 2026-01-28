@@ -41,7 +41,7 @@ def test_monitor_store_multi_rank_state(
     layout, nt, time_chunk_size, tmpdir, shape, ny_rank_add, nx_rank_add, dims, numpy
 ):
     units = "m"
-    backend = Backend.debug()
+    backend = Backend.python()
     nz, ny, nx = shape
     ny_rank = int(ny / layout[0] + ny_rank_add)
     nx_rank = int(nx / layout[1] + nx_rank_add)
