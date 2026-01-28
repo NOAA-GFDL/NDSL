@@ -143,6 +143,12 @@ plugins:
         python:
           paths: [./ndsl]  # Adjust this path to where your Python modules are
           options:
+            # Filter out anything that starts with an underscore.
+            # Exceptions for `__init__(...)` and `__call__(...)` methods.
+            filters: ["!^_", "^__init__$", "^__call__$"]
+            group_by_category: true
+            members_order: source
+            show_if_no_docstring: true
             show_source: false
   - exclude:
       glob:

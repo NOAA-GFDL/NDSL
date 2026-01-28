@@ -374,8 +374,8 @@ class VectorInterfaceHaloUpdater:
         """Initialize a CubedSphereCommunicator.
 
         Args:
-            comm: mpi4py.Comm object
-            partitioner: cubed sphere partitioner
+            comm: ndsl.Comm object
+            boundaries: ?
             force_cpu: Force all communication to go through central memory. Optional.
             timer: Time communication operations. Optional.
         """

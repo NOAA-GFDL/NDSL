@@ -69,7 +69,7 @@ class Partitioner(abc.ABC):
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full tile representation
@@ -166,7 +166,7 @@ class TilePartitioner(Partitioner):
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full tile representation
@@ -608,7 +608,7 @@ class CubedSpherePartitioner(Partitioner):
         """Return the shape of a full cube representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full cube representation
@@ -625,7 +625,7 @@ class CubedSpherePartitioner(Partitioner):
         """Return the shape of a single rank representation for the given dimensions.
 
         Args:
-            global_metadata: quantity metadata.
+            cube_metadata: quantity metadata.
             rank: rank of the process.
 
         Returns:

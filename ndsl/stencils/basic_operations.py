@@ -66,7 +66,7 @@ def set_IJ_mask_value(mask_out: BoolFieldIJ, value: Bool) -> None:
     Sets every element of buffer to the value specified by value argument.
 
     Args:
-        buffer: output field
+        mask_out: output field
         value: value of Bool type
     """
     with computation(FORWARD), interval(0, 1):
