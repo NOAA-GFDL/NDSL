@@ -8,8 +8,7 @@ from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
-
-from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
 
 
 def stencil(in_field: FloatField, out_field: FloatField) -> None:
