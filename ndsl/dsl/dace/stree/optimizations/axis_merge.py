@@ -198,18 +198,20 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         if isinstance(node, tn.MapScope):
             return self._map_overcompute_merge(node, nodes)
-        elif PUSH_IFSCOPE_DOWNWARD and isinstance(node, tn.IfScope):
+
+        if PUSH_IFSCOPE_DOWNWARD and isinstance(node, tn.IfScope):
             return self._push_ifelse_down(node, nodes)
-        elif isinstance(node, tn.ForScope):
+
+        if isinstance(node, tn.ForScope):
             return self._for_merge(node, nodes)
-        elif isinstance(node, tn.TaskletNode):
+
+        if isinstance(node, tn.TaskletNode):
             return self._push_tasklet_down(node, nodes)
-        elif isinstance(node, tn.ControlFlowScope):
+
+        if isinstance(node, tn.ControlFlowScope):
             return self._default_control_flow(node)
-        else:
-            ndsl_log.debug(
-                f"  (╯°□°)╯︵ ┻━┻: can't merge {type(node)}. Recursion ends."
-            )
+
+        ndsl_log.debug(f"  (╯°□°)╯︵ ┻━┻: can't merge {type(node)}. Recursion ends.")
         return 0
 
     def _for_merge(
@@ -477,5 +479,5 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             passes_apply += 1
 
         ndsl_log.debug(
-            f"🚀 Cartesian Axis Merge ({self.axis.name}): {overall_merged} map merged in {passes_apply} passes"
+            f"🚀 {self}: {overall_merged} maps merged in {passes_apply} passes"
         )

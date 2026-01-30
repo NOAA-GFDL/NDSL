@@ -171,17 +171,17 @@ class TestStreeMergeMapsIJK:
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            map_entry
+            for map_entry, _ in sdfg.all_nodes_recursive()
+            if isinstance(map_entry, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 4  # 2 IJ + 2 Ks
-        all_loop_guard_state = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        all_loops = [
+            loop
+            for loop, _ in sdfg.all_nodes_recursive()
+            if isinstance(loop, dace.sdfg.state.LoopRegion)
         ]
-        assert len(all_loop_guard_state) == 1  # 1 For loop
+        assert len(all_loops) == 1  # 1 For loop
 
     def test_overcompute_merge(
         self, code: OrchestratedCode, factories: Factories
@@ -286,23 +286,26 @@ class TestStreeMergeMapsKJI:
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
+        code.missing_merge_of_forscope_and_map(in_qty, out_qty)
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+
         with StreeOptimization():
             # K iterative loop - blocks all merges
             code.missing_merge_of_forscope_and_map(in_qty, out_qty)
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            map_entry
+            for map_entry, _ in sdfg.all_nodes_recursive()
+            if isinstance(map_entry, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 8  # 2 KJI (all maps) + 1 for scope
-        all_loop_guard_state = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        all_loops = [
+            loop
+            for loop, _ in sdfg.all_nodes_recursive()
+            if isinstance(loop, dace.sdfg.state.LoopRegion)
         ]
-        assert len(all_loop_guard_state) == 1  # 1 For loop
+        assert len(all_loops) == 1  # 1 For loop
 
     def test_overcompute_merge(
         self, code: OrchestratedCode, factories: Factories
