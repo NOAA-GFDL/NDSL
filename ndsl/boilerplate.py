@@ -117,6 +117,8 @@ def get_factories_single_tile(
     nx: int, ny: int, nz: int, nhalo: int, backend: Backend = backend_python
 ) -> tuple[StencilFactory, QuantityFactory]:
     """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
+    if not isinstance(backend, Backend):
+        raise RuntimeError(f"Backend {backend} is not of class Backend")
     return _get_factories(
         nx=nx,
         ny=ny,
