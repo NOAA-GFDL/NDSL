@@ -12,25 +12,35 @@ def reset_mask(dp1: FloatField, pe1: FloatField, mask: IntFieldIJ):
         mask = 0
 
 
+def conditional_copy(dp1: FloatField, pe1: FloatField, mask: IntFieldIJ):
+    with computation(PARALLEL), interval(0, 1):
+        if mask == 1:
+            dp1 = pe1
+
+
 class OrchestratedProgramm(NDSLRuntime):
     def __init__(
         self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     ):
         super().__init__(stencil_factory)
 
-        self._set_dp = self._stencil_factory.from_dims_halo(
+        self._reset_mask = self._stencil_factory.from_dims_halo(
             reset_mask, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self._mask = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
+        self._conditional_copy = self._stencil_factory.from_dims_halo(
+            conditional_copy, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
+        self._mask = self.make_local(quantity_factory, [I_DIM, J_DIM])
 
     def __call__(self, dp1: FloatField, pe1: FloatField) -> None:
-        self._set_dp(dp1, pe1, self._mask)
+        self._reset_mask(dp1, pe1, self._mask)
+        self._conditional_copy(dp1, pe1, self._mask)
 
     def mask_has_been_reset(self) -> bool:
         return (self._mask.field[:] == 0).all()
 
 
-def test_set_dp_function():
+def test_conditional_copy_with_mask():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         nx=4, ny=5, nz=6, nhalo=1
     )
