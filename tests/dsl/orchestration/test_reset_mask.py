@@ -2,7 +2,7 @@ from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
-from ndsl.dsl.typing import FloatField, IntFieldIJ
+from ndsl.dsl.typing import FloatField, Int, IntFieldIJ
 
 
 def reset_mask(dp1: FloatField, pe1: FloatField, mask: IntFieldIJ):
@@ -30,7 +30,9 @@ class OrchestratedProgramm(NDSLRuntime):
         self._conditional_copy = self._stencil_factory.from_dims_halo(
             conditional_copy, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self._mask = self.make_local(quantity_factory, [I_DIM, J_DIM])
+        # can't be Local - otherwise we can't get the data out of stencil land for
+        # checking that the mask has been properly reset.
+        self._mask = quantity_factory.empty([I_DIM, J_DIM], units="n/a", dtype=Int)
 
     def __call__(self, dp1: FloatField, pe1: FloatField) -> None:
         self._reset_mask(dp1, pe1, self._mask)
