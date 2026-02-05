@@ -13,4 +13,4 @@ jobs:
     uses: romanc/pyFV3/.github/workflows/translate.yaml@romanc/gha-translate-test-python-version
     with:
       component_name: NDSL
-      python_version: '3.12'
+      # python_version: '3.12'
