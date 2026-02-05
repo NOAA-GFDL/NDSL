@@ -100,8 +100,8 @@ class DiagManagerMonitor(NetCDFMonitor):
                 diag_manager.advance_field_time(field_id)
                 print(f"sending data for {field_name} id: {field_id}\ntime: {state['time']}\nquantity value: {field_quantity}")
                 # TODO data conversion may not be correct here
-                diag_manager.send_data(diag_field_id=field_id, field=np.ascontiguousarray(field_quantity.view[:]), convert_cf_order=True)
-                diag_manager.send_complete(field_id)
+                diag_manager.send_data(diag_field_id=field_id, field=np.ascontiguousarray(field_quantity.view[:]), convert_cf_order=False)
+            diag_manager.send_complete(field_id)
 
 
     def cleanup(self):
@@ -169,6 +169,8 @@ class DiagManagerMonitor(NetCDFMonitor):
             realm = None,
             multiple_send_data = None
         )
+        if field_id < 0:
+            raise RuntimeError(f"Failed to register field {field_name} in diag_manager, got field_id={field_id}")
         self.fields[field_name] = field_id 
         if timestep is not None:
             self._set_field_timestep(field_id=field_id, timestep=timestep, ticks_per_second=ticks_per_seconds)
@@ -179,16 +181,17 @@ class DiagManagerMonitor(NetCDFMonitor):
     # registers a axis in diag_manager, adds name:axis_id to self.axes 
     # TODO: might be able to make this private, intialize from quantity dims when registering field
     def register_axis(self, name: str, axis_data: np.ndarray, cart_name: str = None,
-                      long_name: str = None, not_xy: bool = False, units: str = None):
+                      long_name: str = None, not_xy: bool = False, units: str = None,
+                      domain_id: int = None, set_name: str = "atm"):
         self.axes[name] = diag_manager.axis_init(
             name=name,
             long_name=long_name,
             axis_data=axis_data,
             cart_name=cart_name,
-            domain_id=self.domain_id,
-            set_name="atm",
+            domain_id=domain_id,
+            set_name=set_name,
             not_xy=not_xy,
-            units="radians"
+            units=units,
         )
 
         
