@@ -10,7 +10,7 @@ on:
 
 jobs:
   fv3_translate_tests:
-    uses: NOAA-GFDL/pyFV3/.github/workflows/translate.yaml@develop
+    uses: romanc/pyFV3/.github/workflows/translate.yaml@romanc/gha-translate-test-python-version
     with:
-      component_trigger: true
       component_name: NDSL
+      python_version: '3.12'
