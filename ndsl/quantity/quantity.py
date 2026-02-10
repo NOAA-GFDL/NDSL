@@ -198,15 +198,14 @@ class Quantity:
                 )
 
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
-        # This is a preliminary check to see if this is ever triggered.
-        # If not, we can remove it down the line and change the call signature.
-        if n_halo != self._metadata.n_halo:
-            warnings.warn(
-                "Found inconsistency with number of halo points in Quantity:"
-                + f"{n_halo} vs {self._metadata.n_halo}",
-                UserWarning,
-                stacklevel=2,
+        # We allow number of exchange point to differ from the Quantity halos
+        # but we do check that we are not asking for an OOB
+        if n_halo > self._metadata.n_halo:
+            raise ValueError(
+                "Halo specification requires a higher number of halo points exchanged :"
+                f"{n_halo} than available on the Quantity {self._metadata.n_halo}"
             )
+
         return QuantityHaloSpec(
             n_halo,
             self.data.strides,
