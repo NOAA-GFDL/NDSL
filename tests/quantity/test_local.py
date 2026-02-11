@@ -162,8 +162,10 @@ def test_local_state_as_regular_state() -> None:
     ):
         _ = GoodLocals.make_locals(quantity_factory)
 
-    B = GoodLocals.make_as_state(quantity_factory)
-    assert type(B.my_local) is Quantity
+    with pytest.warns(UserWarning, match="LocalState is allocated as a regular State"):
+        B = GoodLocals.make_as_state(quantity_factory)
+        assert type(B.my_local) is Quantity
+
     # Ensure that local have been correctly reset
     GoodLocals._check_only_locals()
 
@@ -177,9 +179,10 @@ def test_local_state_as_regular_state() -> None:
 def test_nested_local_state_as_regular_state() -> None:
     _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, backend="debug")
 
-    nested = NestedLocals.make_as_state(quantity_factory)
-    assert type(nested.my_local) is Quantity
-    assert type(nested.nested_locals.my_local) is Quantity
+    with pytest.warns(UserWarning, match="LocalState is allocated as a regular State"):
+        nested = NestedLocals.make_as_state(quantity_factory)
+        assert type(nested.my_local) is Quantity
+        assert type(nested.nested_locals.my_local) is Quantity
 
     # Ensure that locals have been correctly reset
     NestedLocals._check_only_locals()
