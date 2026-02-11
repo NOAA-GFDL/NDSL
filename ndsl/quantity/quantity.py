@@ -202,8 +202,8 @@ class Quantity:
         # but we do check that we are not asking for an OOB
         if n_halo > self._metadata.n_halo:
             raise ValueError(
-                "Halo specification requires a higher number of halo points exchanged :"
-                f"{n_halo} than available on the Quantity {self._metadata.n_halo}"
+                f"Halo specification requires exchange of more halo points ({n_halo}) "
+                f"than available on this Quantity ({self._metadata.n_halo})."
             )
 
         return QuantityHaloSpec(
