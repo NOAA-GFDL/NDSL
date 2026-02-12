@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 nx = 16
 ny = 16
 nz = 10
-nhalo = 1
-backend = "debug" # ?
+nhalo = 0
+backend = "debug"
 ntimesteps = 3
 
 
@@ -86,6 +86,13 @@ def _create_input(reduction: str = "none"):
                         "long_name": "variable_number_one",
                         "reduction": reduction,
                         "kind": "r8"
+                    },
+                    {
+                        "module": "atm_mod",
+                        "var_name": "var2",
+                        "long_name": "variable_number_one",
+                        "reduction": reduction,
+                        "kind": "r8"
                     }
                 ]
             }
@@ -100,7 +107,7 @@ def _create_input(reduction: str = "none"):
 
 # Simple test, uses single tile partitioner and communicator and then stores
 # a faux state dict via DiagManagerMonitor 
-def test_dm_monitor():
+def test_dm_monitor_single_tile():
 
     npes = MPIComm()._comm.Get_size()
     pe = MPIComm()._comm.Get_rank()
@@ -150,7 +157,10 @@ def test_dm_monitor():
     start = datetime(1, 1, 1, 0, 0, second=0)
     end = datetime(1, 1, 1, 0, 0, second=45)
     step = timedelta(seconds=15)
-    monitor.set_model_times(init_time=start, end_time=end) 
+
+    monitor.set_timestep(step)
+    monitor.set_end_time(end)
+
     monitor.register_axis(
         name="x",
         axis_data=np.arange(nx, dtype=np.float64),
@@ -171,7 +181,7 @@ def test_dm_monitor():
     )
     monitor.register_axis(
         name="z",
-        axis_data=np.arange(ny, dtype=np.float64),
+        axis_data=np.arange(nz, dtype=np.float64),
         cart_name='z',
         long_name="vertical level",
         units="m",
@@ -182,24 +192,37 @@ def test_dm_monitor():
     monitor.register_field(
         module_name="atm_mod",
         field_name="var1",
-        dims=["x","y"],
+        dims=["y","x"],
         units="m",
-        long_name="variable one",
-        timestep=step,
+        init_time=start,
+    )
+    monitor.register_field(
+        module_name="atm_mod",
+        field_name="var2",
+        dims=["z","y","x"],
+        units="m",
+        init_time=start,
     )
     assert "x" in monitor.axes
     assert "y" in monitor.axes
+    assert "z" in monitor.axes
     assert "var1" in monitor.fields
+    assert "var2" in monitor.fields
 
     # pace driver will call store for each timestep to send the data
-    # store also currently advances the time in diag_manager and calls diag_send_complete
+    current_time = start
     for t in range(ntimesteps):
-        current_time = start + t * step
-        field_q1 = quantity_factory.full( dims=("x","y"), units="m", value=t, dtype=np.float64 )
-        #field_q2 = quantity_factory.full( dims=("x","y","z"), units="m", value=t*2, dtype=np.float64 )
+        current_time = current_time + step
+        field_q1 = quantity_factory.full( dims=("y","x"), units="m", value=t, dtype=np.float64 )
+        field_q2 = quantity_factory.zeros( dims=("z","y","x"), units="m", dtype=np.float64 )
+        np_tmp = np.zeros( (nz,ny,nx))
+        for (z,y,x), val in np.ndenumerate(np_tmp): # theres probably much better ways to do this..
+            np_tmp.data[z,y,x] = x * 1000 + y + z*0.001
+        field_q2.data = np_tmp
         state = {
             "time": current_time,
             "var1": field_q1,
+            "var2": field_q2,
         }
         monitor.store(state)
 
@@ -213,8 +236,10 @@ def test_dm_monitor():
     np.testing.assert_array_equal(
         ds["var1"].shape, (ntimesteps, nx, ny)
     )
-    assert ds["var1"].dims == ("time", "y", "x")
+    assert ds["var1"].dims == ("time", "x", "y")
     assert ds["var1"].attrs["units"] == "m"
+    assert ds["var2"].dims == ("time", "x", "y", "z")
+    assert ds["var2"].attrs["units"] == "m"
     assert ds["time"].shape == (ntimesteps,)
     assert ds["time"].dims == ("time",)
     assert ds["time"].values[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=15)
@@ -223,3 +248,7 @@ def test_dm_monitor():
     np.testing.assert_array_equal(ds["var1"].values[0,:,:], 0.0)
     np.testing.assert_array_equal(ds["var1"].values[1,:,:], 1.0)
     np.testing.assert_array_equal(ds["var1"].values[2,:,:], 2.0)
+    # data needs to get transposed when passed into fortran
+    np.testing.assert_array_equal(ds["var2"].values[0,:,:,:], np_tmp.transpose())
+    np.testing.assert_array_equal(ds["var2"].values[1,:,:,:], np_tmp.transpose())
+    np.testing.assert_array_equal(ds["var2"].values[2,:,:,:], np_tmp.transpose())

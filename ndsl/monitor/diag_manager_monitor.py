@@ -42,14 +42,14 @@ class DiagManagerMonitor(NetCDFMonitor):
         time_chunk_size: int = 1,
         precision=Float,
     ) -> None:
-        """Create a DiagManagerMonitor. Generates its own namelist that requires  
+        """Create a DiagManagerMonitor.
 
         Args:
             path: directory in which to store data
             communicator: provides global communication to gather state
             time_chunk_size: number of times per file
         """
-        # then initialize diag_manager and this object, mpp domain should be created prior to this
+        # initialize diag_manager and this object, mpp domain should be created prior to this
         mpp_domains.set_current_domain(domain_id=domain_id)
         if not DiagManagerMonitor._diag_initialized:
             diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
@@ -57,22 +57,14 @@ class DiagManagerMonitor(NetCDFMonitor):
         self.domain_id = domain_id
         self.fields = {}
         self.axes = {}
+        self.diag_end_time = None
         self.precision = precision
         super().__init__(path, communicator, time_chunk_size, precision)
 
 
     def store(self, state: dict) -> None:
-        """Append the model state dictionary to the netcdf files.
-
-        Will only write to disk when a full time chunk has been accumulated,
-        or when .cleanup() is called.
-
-        Requires the state contain the same quantities with the same metadata as the
-        first time this is called. Dimension order metadata may change between calls
-        so long as the set of dimensions is the same. Quantities are stored with
-        dimensions [time, tile] followed by the dimensions included in the first
-        state snapshot. The one exception is "time" which is stored with dimensions
-        [time].
+        """
+        Send the data to the diag manager. Sends data for each field in the state. 
         """
         if self._expected_vars is None:
             self._expected_vars = set(state.keys())
@@ -94,60 +86,47 @@ class DiagManagerMonitor(NetCDFMonitor):
 
         # get the associated quantities/axis for each field that has been registered
         if state is not None:
+            time = state["time"]
             for field_name, field_id in self.fields.items():
-                field_quantity = state[field_name] # this may not work
-                # TODO: this step may need to be skipped in certain scenarios, will jump off that bridge when we get there
-                diag_manager.advance_field_time(field_id)
+                field_quantity = state[field_name]
                 print(f"sending data for {field_name} id: {field_id}\ntime: {state['time']}\nquantity value: {field_quantity}")
                 # TODO data conversion may not be correct here
-                diag_manager.send_data(diag_field_id=field_id, field=np.ascontiguousarray(field_quantity.view[:]), convert_cf_order=False)
-            diag_manager.send_complete(field_id)
+                diag_manager.send_data(
+                    diag_field_id=field_id,
+                    field=np.ascontiguousarray(field_quantity.view[:]),
+                    convert_cf_order=True,
+                    time=time,
+                )
+            # TODO: need some way to get the timestep for this, potentially save the last time that was passed in
+            try:
+                diag_manager.send_complete( timestep=self.timestep)
+            except:
+                raise NameError("no timestep set via set_timestep")
 
-
+    # close the file
     def cleanup(self):
-        diag_manager.end()
+        if self.diag_end_time is None:
+            raise RuntimeError("End time was not set via set_end_time prior to cleanup call")
+        diag_manager.end(end_time=self.diag_end_time)
 
-    # sets the end/initial times that the run is using in the diag manager 
-    def set_model_times(self, init_time: datetime, end_time: datetime):
-        print(f"setting model times in diag_manager: init_time={init_time}, end_time={end_time}")
-        diag_manager.set_field_init_time(
-            year=init_time.year,
-            month=init_time.month,
-            day=init_time.day,
-            hour=init_time.hour,
-            minute=init_time.minute,
-            second=init_time.second,
-        )
-        diag_manager.set_time_end(
-            year=end_time.year,
-            month=end_time.month,
-            day=end_time.day,
-            hour=end_time.hour,
-            minute=end_time.minute,
-            second=end_time.second,
-        )
+    # sets the end time to stop recieving data. Must be called prior to cleanup/diag_manager.end()
+    def set_end_time(self, end_time: datetime):
+        diag_manager.set_time_end(end_time)
+        self.diag_end_time = end_time
 
-    # sets the timestep for a given diag_manager field/variable
-    # TODO would be nice to check the diag_table.yaml for the file freq and ensure the timestep is valid 
-    def _set_field_timestep(self, field_id: int, timestep: timedelta, ticks_per_second: int = 1):
-        print(f"setting field timestep in diag_manager: field_id={field_id}, timestep= days={timestep.days}, seconds={timestep.seconds}, ticks_per_second={ticks_per_second}")
-        diag_manager.set_field_timestep(
-            diag_field_id=field_id,
-            ddays=timestep.days,
-            dseconds=timestep.seconds,
-            dticks=ticks_per_second,
-        )
+    def set_timestep(self, timestep: timedelta):
+        self.timestep = timestep
 
     # registers a diag_manager field/variable for a given Quantity, adds name:field_id to self.fields
-    # TODO: 
-    def register_field(self, module_name: str, field_name: str, dims: list[str], units: str, timestep: timedelta = None,
-                       long_name: str = None, ticks_per_seconds: int = 1):
+    # TODO: add args
+    def register_field(self, module_name: str, field_name: str, dims: list[str], units: str, init_time: datetime,
+                       long_name: str = None, ticks: int = 0):
 
         field_axes = [self.axes[dim] for dim in dims]
         if any(field_axes) is None:
             raise ValueError(f"All axes for field {field_name} must be registered before registering the field.")
 
-        print(f"registering field {field_name} with axes {field_axes}, timestep {timestep}")
+        print(f"registering field {field_name} with axes {field_axes}, init time: {init_time}")
         # putting all the arguments here for now, only module_name, field_name, precision are required
         field_id = diag_manager.register_field_array(
             module_name=module_name,
@@ -167,16 +146,14 @@ class DiagManagerMonitor(NetCDFMonitor):
             area = None,
             volume = None, 
             realm = None,
-            multiple_send_data = None
+            multiple_send_data = None,
+            init_time = init_time,
+            ticks_per_second = ticks, 
         )
         if field_id < 0:
             raise RuntimeError(f"Failed to register field {field_name} in diag_manager, got field_id={field_id}")
         self.fields[field_name] = field_id 
-        if timestep is not None:
-            self._set_field_timestep(field_id=field_id, timestep=timestep, ticks_per_second=ticks_per_seconds)
-        else:
-            raise NotImplementedError("Static fields not yet implemented.")
-        
+
 
     # registers a axis in diag_manager, adds name:axis_id to self.axes 
     # TODO: might be able to make this private, intialize from quantity dims when registering field
@@ -193,38 +170,3 @@ class DiagManagerMonitor(NetCDFMonitor):
             not_xy=not_xy,
             units=units,
         )
-
-        
-# this is a copy of the _TimeChunkedVariable from netcdf_monitor.py for now, intent is to modify for fms/fortran formatting later as needed 
-class _FortranFormattedVariable:
-    '''
-    Handles adjusting variable data from a Quantity to be passed into Fortran routines for pyFMS
-    '''
-    def __init__(self, initial: Quantity, time_chunk_size: int):
-        self._data = np.zeros(
-            (time_chunk_size, *initial.extent), dtype=initial.data.dtype
-        )
-        self._data[0, ...] = to_numpy(initial.view[:])
-        self._dims = initial.dims
-        self._units = initial.units
-        self._i_time = 1
-        self._backend = initial.backend
-
-    def append(self, quantity: Quantity) -> None:
-        # Allow mismatch precision here since this is I/O
-        self._data[self._i_time, ...] = to_numpy(
-            quantity.transpose(self._dims, allow_mismatch_float_precision=True).view[:]
-        )
-        self._i_time += 1
-
-    @property
-    def data(self) -> Quantity:
-        # Allow mismatch precision here since this is I/O
-        return Quantity(
-            data=self._data[: self._i_time, ...],
-            dims=("time",) + tuple(self._dims),
-            units=self._units,
-            allow_mismatch_float_precision=True,
-            backend=self._backend,
-        )
-
