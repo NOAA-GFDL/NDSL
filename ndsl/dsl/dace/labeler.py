@@ -37,8 +37,8 @@ def set_label(
     """Surround the SDFG with two state/library node combo labelling
     the code for future reference in further optimization.
 
-    WARNING: The Label are passthrough, any use of `simplify` _will remove
-    them from the SDFG_ and this is on purpose so there's no tracers of them
+    WARNING: The Label are passthrough, any use of `simplify()` _will remove
+    them from the SDFG_ and this is on purpose so there's no traces of them
     in runtime.
     """
     # Cannot be applied to already compiled SDFG
