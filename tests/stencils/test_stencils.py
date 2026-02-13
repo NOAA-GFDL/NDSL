@@ -92,7 +92,7 @@ class ColumnOperations:
         self._column_min_ddim_stencil(data_ddim, min_value_ddim, min_index_ddim)
 
 
-def test_column_operations(boilerplate):
+def test_column_operations(boilerplate: tuple[StencilFactory, QuantityFactory]):
     stencil_factory, quantity_factory = boilerplate
     quantity_factory.add_data_dimensions({"ddim": 2})
     data = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "n/a")
