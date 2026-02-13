@@ -386,7 +386,7 @@ class Quantity:
             >>> quantity = Quantity(
             ...     data=np.zeros([2, 3, 4]),
             ...     dims=[I_DIM, J_DIM, K_DIM],
-            ...             units="m",
+            ...     units="m",
             ... )
 
             If you know you are working with cell-centered variables, you can do:

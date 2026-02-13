@@ -26,7 +26,6 @@ nav:
           - "constants": docstrings/top/constants.md
           - "io": docstrings/top/io.md
           - "logging": docstrings/top/logging.md
-          - "namelist": docstrings/top/namelist.md
           - "optional_imports": docstrings/top/optional_imports.md
           - "types": docstrings/top/types.md
           - "typing": docstrings/top/typing.md
