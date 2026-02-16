@@ -67,9 +67,6 @@ class OrchestratedProgram:
         self.stencil(self.inp, self.out)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1, reason="Relocatability checked with a one-rank setup"
-)
 def test_relocatability_orchestration() -> None:
     # Compile on default
     p0 = OrchestratedProgram("dace:cpu", DaCeOrchestration.BuildAndRun)
@@ -84,9 +81,6 @@ def test_relocatability_orchestration() -> None:
     assert expected_cache_dir.exists()
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1, reason="Relocatability checked with a one-rank setup"
-)
 def test_relocatability_orchestration_tmpdir(tmpdir) -> None:
     gt_config.cache_settings["root_path"] = tmpdir
 
@@ -118,9 +112,6 @@ def test_relocatability_orchestration_tmpdir(tmpdir) -> None:
         OrchestratedProgram(backend, DaCeOrchestration.Run)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1, reason="Relocatability checked with a one-rank setup"
-)
 def test_relocatability() -> None:
     gt_config.cache_settings["dir_name"] = os.environ.get(
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"
@@ -147,9 +138,6 @@ def test_relocatability() -> None:
     assert expected_cache_path.exists()
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1, reason="Relocatability checked with a one-rank setup"
-)
 def test_relocatability_tmpdir(tmpdir) -> None:
     gt_config.cache_settings["dir_name"] = os.environ.get(
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"

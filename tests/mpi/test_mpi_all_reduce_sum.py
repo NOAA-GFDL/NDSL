@@ -8,16 +8,11 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.comm.comm_abc import ReductionOperator
-from ndsl.comm.mpi import MPIComm
+from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.dsl.typing import Float
-from tests.mpi import MPI
 
 
-@pytest.fixture
-def layout():
-    if MPI is None:
-        return (1, 1)
-
+def layout() -> tuple[int, int]:
     size = MPI.COMM_WORLD.Get_size()
     ranks_per_tile = size // 6
     ranks_per_edge = int(ranks_per_tile**0.5)
@@ -25,30 +20,30 @@ def layout():
 
 
 @pytest.fixture(params=[0.1, 1.0])
-def edge_interior_ratio(request):
+def edge_interior_ratio(request) -> float:
     return request.param
 
 
 @pytest.fixture
-def tile_partitioner(layout, edge_interior_ratio: float):
-    return TilePartitioner(layout, edge_interior_ratio=edge_interior_ratio)
+def tile_partitioner(edge_interior_ratio: float) -> TilePartitioner:
+    return TilePartitioner(layout(), edge_interior_ratio=edge_interior_ratio)
 
 
 @pytest.fixture
-def cube_partitioner(tile_partitioner):
+def cube_partitioner(tile_partitioner: TilePartitioner) -> CubedSpherePartitioner:
     return CubedSpherePartitioner(tile_partitioner)
 
 
 @pytest.fixture()
-def communicator(cube_partitioner):
+def communicator(cube_partitioner: CubedSpherePartitioner) -> CubedSphereCommunicator:
     return CubedSphereCommunicator(
         comm=MPIComm(),
         partitioner=cube_partitioner,
     )
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
-def test_all_reduce(communicator):
+@pytest.mark.parallel
+def test_all_reduce(communicator: CubedSphereCommunicator) -> None:
     backends = ["dace:cpu", "gt:cpu_kfirst", "numpy"]
 
     for backend in backends:

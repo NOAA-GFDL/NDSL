@@ -105,6 +105,8 @@ module = [
 
 [tool.pytest]
 markers = [
+  # tests relying on at least two MPI processes
+  "parallel",
   # tests relying on the optional zarr dependency
   "zarr"
 ]
