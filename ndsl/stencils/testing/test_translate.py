@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
-from ndsl.comm.mpi import MPIComm
+from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
@@ -138,6 +138,11 @@ def _get_thresholds(compute_function, input_data) -> None:
             )
 
 
+@pytest.mark.sequential
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="Running in parallel with mpi",
+)
 def test_sequential_savepoint(
     case: SavepointCase,
     backend,
@@ -319,6 +324,10 @@ def get_tile_communicator(comm, layout):
 
 
 @pytest.mark.parallel
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() == 1,
+    reason="Not running in parallel with mpi",
+)
 def test_parallel_savepoint(
     case: SavepointCase,
     backend,
