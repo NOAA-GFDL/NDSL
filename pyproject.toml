@@ -103,6 +103,12 @@ module = [
   "ndsl.stencils.testing.serialbox_to_netcdf"
 ]
 
+[tool.pytest]
+markers = [
+  # tests relying on the optional zarr dependency
+  "zarr"
+]
+
 [tool.setuptools]
 include-package-data = true
 
