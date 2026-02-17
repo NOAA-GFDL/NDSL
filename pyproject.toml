@@ -105,6 +105,8 @@ module = [
 
 [tool.pytest]
 markers = [
+  # tests running on a cpu (e.g. with cupy)
+  "gpu",
   # tests relying on at least two MPI processes
   "parallel",
   # tests relying on the optional zarr dependency

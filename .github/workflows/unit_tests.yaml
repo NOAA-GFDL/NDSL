@@ -38,10 +38,10 @@ jobs:
         run: pip3 install .[test,zarr]
 
       - name: Run serial-cpu tests
-        run: coverage run --rcfile=pyproject.toml -m pytest tests -m "not parallel"
+        run: coverage run --rcfile=pyproject.toml -m pytest tests -m "not parallel and not gpu"
 
       - name: Run parallel-cpu tests
-        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest tests/mpi -m "parallel"
+        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest tests/mpi -m "parallel and not gpu"
 
       - name: Output code coverage
         run: |
