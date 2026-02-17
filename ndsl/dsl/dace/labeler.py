@@ -45,7 +45,7 @@ def set_label(
     if isinstance(sdfg, dace.CompiledSDFG):
         return
 
-    for state in sdfg.states():
+    for state in sdfg.nodes():
         if sdfg.in_edges(state) == []:
             # With the topmost SDFG we have to skip over the
             # "init" state

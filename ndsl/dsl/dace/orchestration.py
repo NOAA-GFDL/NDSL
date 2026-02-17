@@ -18,7 +18,6 @@ from dace.frontend.python.parser import DaceProgram
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapExpansion
 from dace.transformation.helpers import get_parent_map
-from dace.transformation.passes.simplify import SimplifyPass
 from gt4py import storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
@@ -122,11 +121,8 @@ def _simplify(
     validate: bool = True,
     validate_all: bool = False,
     verbose: bool = False,
-) -> None:
-    """Override of sdfg.simplify to skip failing transformation
-    per https://github.com/spcl/dace/issues/1328
-    """
-    SimplifyPass(
+) -> dict | None:
+    return sdfg.simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
@@ -134,7 +130,7 @@ def _simplify(
         # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
         # calls or (complicated) field accesses.
         skip={"ScalarToSymbolPromotion"},
-    ).apply_pass(sdfg, {})
+    )
 
 
 def _build_sdfg(
