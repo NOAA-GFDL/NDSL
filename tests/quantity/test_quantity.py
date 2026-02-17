@@ -187,7 +187,7 @@ def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
 
 def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
     if extent_1d == 0:
-        return  # cannot edit an empty domain"
+        return  # cannot edit an empty domain
 
     quantity.data[:] = 0.0
     quantity.view[:] = 1
