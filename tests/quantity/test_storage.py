@@ -115,7 +115,6 @@ def test_data_and_field_access_right_full_array_and_compute_domain():
     assert np.all(quantity.field == 11.11)
 
 
-@pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_data_exists(quantity, backend):
     if "numpy" in backend:
         assert isinstance(quantity.data, np.ndarray)
@@ -123,7 +122,6 @@ def test_data_exists(quantity, backend):
         assert isinstance(quantity.data, cp.ndarray)
 
 
-@pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_field_exists(quantity, backend):
     if "numpy" in backend:
         assert isinstance(quantity.field, np.ndarray)
@@ -131,7 +129,6 @@ def test_field_exists(quantity, backend):
         assert isinstance(quantity.field, cp.ndarray)
 
 
-@pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_accessing_data_does_not_break_view(
     data, origin, extent, dims, units, gt4py_backend
 ):
@@ -148,11 +145,8 @@ def test_accessing_data_does_not_break_view(
     assert quantity.data[origin] == quantity.field[tuple(0 for _ in origin)]
 
 
-# run using cupy backend even though unused, to mark this as a "gpu" test
-@pytest.mark.parametrize("backend", ["cupy"], indirect=True)
-def test_numpy_data_becomes_cupy_with_gpu_backend(
-    data, origin, extent, dims, units, gt4py_backend
-):
+@pytest.mark.gpu
+def test_numpy_data_becomes_cupy_with_gpu_backend(data, origin, extent, dims, units):
     cpu_data = np.zeros(data.shape)
     quantity = Quantity(
         cpu_data,
@@ -160,6 +154,6 @@ def test_numpy_data_becomes_cupy_with_gpu_backend(
         extent=extent,
         dims=dims,
         units=units,
-        backend=gt4py_backend,
+        backend="gt:gpu",
     )
     assert isinstance(quantity.data, cp.ndarray)

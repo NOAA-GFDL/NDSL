@@ -55,12 +55,12 @@ class Buffer:
         key = (allocator, shape, dtype)
         if key in BUFFER_CACHE and len(BUFFER_CACHE[key]) > 0:
             return BUFFER_CACHE[key].pop()
-        else:
-            if key not in BUFFER_CACHE:
-                BUFFER_CACHE[key] = []
-            array = safe_mpi_allocate(allocator, shape, dtype=dtype)
-            assert is_c_contiguous(array)
-            return cls(key, array)
+
+        if key not in BUFFER_CACHE:
+            BUFFER_CACHE[key] = []
+        array = safe_mpi_allocate(allocator, shape, dtype=dtype)
+        assert is_c_contiguous(array)
+        return cls(key, array)
 
     @staticmethod
     def push_to_cache(buffer: Buffer) -> None:

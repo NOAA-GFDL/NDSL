@@ -184,8 +184,8 @@ def test_new_args_gives_different_buffer(allocator, backend, first_args, second_
     assert (second_buffer.array == 1.0).all()
 
 
-@pytest.mark.parametrize("allocator, backend", [["ones", "cupy"]], indirect=True)
-def test_mpi_unsafe_allocator_exception(backend, allocator):
+@pytest.mark.gpu
+def test_mpi_unsafe_allocator_exception(allocator):
     BUFFER_CACHE.clear()
     with pytest.raises(RuntimeError):
         Buffer.pop_from_cache(allocator, shape=(10, 10, 10), dtype=float)
