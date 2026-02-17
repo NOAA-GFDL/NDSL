@@ -39,24 +39,18 @@ def n_tile_halo(request):
 
 
 @pytest.fixture(params=["x,y", "y,x", "xi,y", "x,y,z", "z,y,x", "y,z,x"])
-def dims(request, fast):
+def dims(request):
     if request.param == "x,y":
         return [I_DIM, J_DIM]
-    elif request.param == "y,x":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return [J_DIM, I_DIM]
-    elif request.param == "xi,y":
+    if request.param == "y,x":
+        return [J_DIM, I_DIM]
+    if request.param == "xi,y":
         return [I_INTERFACE_DIM, J_DIM]
-    elif request.param == "x,y,z":
+    if request.param == "x,y,z":
         return [I_DIM, J_DIM, K_DIM]
-    elif request.param == "z,y,x":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return [K_DIM, J_DIM, I_DIM]
-    elif request.param == "y,z,x":
+    if request.param == "z,y,x":
+        return [K_DIM, J_DIM, I_DIM]
+    if request.param == "y,z,x":
         return [J_DIM, K_DIM, I_DIM]
     else:
         raise NotImplementedError()

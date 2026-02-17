@@ -20,16 +20,12 @@ def nx_tile(request):
 
 
 @pytest.fixture(params=[48, 96])
-def ny_tile(request, fast):
-    if fast and request.param == 96:
-        pytest.skip("running in fast mode")
+def ny_tile(request):
     return request.param
 
 
 @pytest.fixture(params=[60, 80])
-def nz(request, fast):
-    if fast and request.param == 80:
-        pytest.skip("running in fast mode")
+def nz(request):
     return request.param
 
 

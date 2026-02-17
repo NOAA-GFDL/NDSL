@@ -41,11 +41,8 @@ def dtype(numpy):
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
-def layout(request, fast):
-    if fast and request.param == (1, 1):
-        pytest.skip("running in fast mode")
-    else:
-        return request.param
+def layout(request):
+    return request.param
 
 
 @pytest.fixture
@@ -74,16 +71,12 @@ def nx(nx_rank, layout):
 
 
 @pytest.fixture(params=[1, 3])
-def n_points(request, fast):
-    if fast and request.param == 1:
-        pytest.skip("running in fast mode")
+def n_points(request):
     return request.param
 
 
 @pytest.fixture(params=["fewer", "more", "same"])
-def n_points_update(request, n_points, fast):
-    if fast and request.param == "same":
-        pytest.skip("running in fast mode")
+def n_points_update(request, n_points):
     return n_points + {"fewer": -1, "more": 1, "same": 0}[request.param]
 
 
@@ -110,16 +103,7 @@ def n_points_update(request, n_points, fast):
         ),
     ]
 )
-def dims(request, fast):
-    if fast and request.param in (
-        (I_DIM, J_DIM, K_DIM),
-        (
-            K_INTERFACE_DIM,
-            J_INTERFACE_DIM,
-            I_INTERFACE_DIM,
-        ),
-    ):
-        pytest.skip("running in fast mode")
+def dims(request):
     return request.param
 
 

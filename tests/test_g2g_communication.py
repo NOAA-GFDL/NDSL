@@ -22,11 +22,8 @@ from ndsl.performance import Timer
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
-def layout(request, fast):
-    if fast and request.param == (1, 1):
-        pytest.skip("running in fast mode")
-    else:
-        return request.param
+def layout(request):
+    return request.param
 
 
 @pytest.fixture

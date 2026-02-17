@@ -30,13 +30,10 @@ ALL_K_DIMS = ("k", "k_interface", "k_soil")
 
 
 @pytest.fixture(params=["one_step", "three_steps"])
-def n_times(request, fast):
+def n_times(request):
     if request.param == "one_step":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return 1
-    elif request.param == "three_steps":
+        return 1
+    if request.param == "three_steps":
         return 3
 
 

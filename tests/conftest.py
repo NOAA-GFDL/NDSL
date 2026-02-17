@@ -28,11 +28,6 @@ def gt4py_backend(backend):
 
 
 @pytest.fixture
-def fast(pytestconfig):
-    return pytestconfig.getoption("--fast")
-
-
-@pytest.fixture
 def numpy(backend):
     if backend == "numpy":
         return np
@@ -45,10 +40,4 @@ def numpy(backend):
 def pytest_addoption(parser):
     parser.addoption(
         "--gpu-only", action="store_true", default=False, help="only run gpu tests"
-    )
-    parser.addoption(
-        "--fast",
-        action="store_true",
-        default=False,
-        help="run a limited suite of tests which completes quickly",
     )
