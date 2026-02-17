@@ -112,8 +112,9 @@ def module_count_calls_to_zeros(module):
         module.zeros = original
 
 
-@pytest.mark.parametrize("backend", ["cupy", "gt4py_cupy"], indirect=True)
-def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
+@pytest.mark.gpu
+@pytest.mark.parallel
+def test_halo_update_only_communicate_on_gpu(gpu_communicators):
     with module_count_calls_to_zeros(np), module_count_calls_to_zeros(cp):
         shape = (10, 10, 79)
         dims = (I_DIM, J_DIM, K_DIM)
@@ -138,8 +139,8 @@ def test_halo_update_only_communicate_on_gpu(backend, gpu_communicators):
     assert N_ZEROS_CALLS[np.zeros] == 0
 
 
-@pytest.mark.parametrize("backend", ["cupy", "gt4py_cupy"], indirect=True)
-def test_halo_update_communicate_though_cpu(backend, cpu_communicators):
+@pytest.mark.parallel
+def test_halo_update_communicate_though_cpu(cpu_communicators):
     with module_count_calls_to_zeros(np), module_count_calls_to_zeros(cp):
         shape = (10, 10, 79)
         data = cp.ones(shape, dtype=float)
