@@ -184,19 +184,16 @@ def dim_case(request, nx, ny, nz) -> DimCase:
     raise NotImplementedError()
 
 
-@pytest.mark.cpu_only
 def test_subtile_dimension_sizer_origin(sizer, dim_case):
     result = sizer.get_origin(dim_case.dims)
     assert result == dim_case.origin
 
 
-@pytest.mark.cpu_only
 def test_subtile_dimension_sizer_extent(sizer, dim_case):
     result = sizer.get_extent(dim_case.dims)
     assert result == dim_case.extent
 
 
-@pytest.mark.cpu_only
 def test_subtile_dimension_sizer_shape(sizer, dim_case):
     result = sizer.get_shape(dim_case.dims)
     assert result == dim_case.shape

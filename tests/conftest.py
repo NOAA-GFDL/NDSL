@@ -52,15 +52,3 @@ def pytest_addoption(parser):
         default=False,
         help="run a limited suite of tests which completes quickly",
     )
-
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "cpu_only: mark test as not using a gpu")
-
-
-def pytest_collection_modifyitems(config, items):
-    if config.getoption("--gpu-only"):
-        skip_cpu_only = pytest.mark.skip(reason="running gpu tests only")
-        for item in items:
-            if "cpu_only" in item.keywords:
-                item.add_marker(skip_cpu_only)
