@@ -155,7 +155,7 @@ def get_quantity(dims, units, extent, n_halo, numpy):
 
 
 def test_tile_gather_state(
-    tile_quantity, scattered_quantities, communicator_list, time, backend
+    tile_quantity, scattered_quantities, communicator_list, time
 ):
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))

@@ -174,7 +174,7 @@ def get_quantity(dims, units, extent, n_halo, numpy):
 
 
 def test_cube_gather_state(
-    cube_quantity, scattered_quantities, communicator_list, time, backend
+    cube_quantity, scattered_quantities, communicator_list, time
 ):
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))

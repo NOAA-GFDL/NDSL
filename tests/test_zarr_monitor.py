@@ -335,7 +335,7 @@ def _assert_no_nulls(dataset: xr.Dataset):
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
 @pytest.mark.zarr
-def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale):
+def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale):
     store = {}
     buffer = {}
 
