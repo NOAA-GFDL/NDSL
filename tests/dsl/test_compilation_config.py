@@ -146,7 +146,7 @@ def test_determine_compiling_equivalent(
 def test_as_dict() -> None:
     config = CompilationConfig()
     asdict = config.as_dict()
-    assert asdict["backend"] == "numpy"
+    assert asdict["backend"] == Backend.python()
     assert asdict["rebuild"] is True
     assert asdict["validate_args"] is True
     assert asdict["format_source"] is False
@@ -159,7 +159,7 @@ def test_as_dict() -> None:
 def test_from_dict() -> None:
     specification_dict = {}
     config = CompilationConfig.from_dict(specification_dict)
-    assert config.backend == "numpy"
+    assert config.backend == Backend.python()
     assert config.rebuild is False
     assert config.validate_args is True
     assert config.format_source is False

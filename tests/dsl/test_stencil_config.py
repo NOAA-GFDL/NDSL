@@ -72,7 +72,7 @@ def test_different_backend_not_equal(
 
     different_config = StencilConfig(
         compilation_config=CompilationConfig(
-            Backend("st:python:cpu:numpy"),
+            Backend("st:numpy:cpu:IJK"),
             rebuild=rebuild,
             validate_args=validate_args,
             format_source=format_source,

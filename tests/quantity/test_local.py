@@ -178,7 +178,9 @@ def test_local_state_as_regular_state() -> None:
 
 
 def test_nested_local_state_as_regular_state() -> None:
-    _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, backend="debug")
+    _, quantity_factory = get_factories_single_tile(
+        3, 3, 5, 0, backend=Backend.python()
+    )
 
     with pytest.warns(UserWarning, match="LocalState is allocated as a regular State"):
         nested = NestedLocals.make_as_state(quantity_factory)

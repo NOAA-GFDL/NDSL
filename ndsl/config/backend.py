@@ -26,6 +26,7 @@ class BackendFramework(Enum):
     GRIDTOOLS = "gt"
     DACE = "dace"
     PYTHON = "python"
+    NUMPY = "numpy"
 
 
 _NDSL_TO_GT4PY_BACKEND_NAMING = {
@@ -105,6 +106,8 @@ class Backend:
         return self.as_humanly_readable()
 
     def __eq__(self, other: object) -> bool:
+        if isinstance(other, str):
+            other = Backend(other)
         if not isinstance(other, Backend):
             raise NotImplementedError(
                 f"Backend equality operator for {type(other)} is not implemented"

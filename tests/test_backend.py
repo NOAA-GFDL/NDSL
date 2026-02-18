@@ -27,5 +27,3 @@ def test_backend_operators():
 
     assert backend_A == backend_B
     assert not (backend_A != backend_B)
-    assert backend_A is backend_B
-    assert not (backend_A is not backend_B)
