@@ -5,9 +5,9 @@ import warnings
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
+from ndsl.config import Backend
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
 from ndsl.logging import ndsl_log
-from ndsl.config import Backend
 
 
 def _change_index_of_tuple(
@@ -250,15 +250,13 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
             stacklevel=2,
         )
 
-        if backend.as_humanly_readable() in ["orch:dace:cpu:IJK"]:
-            self.ijk_order = (2, 1, 0)
-        elif backend.as_humanly_readable() in [
+        if backend.as_humanly_readable() in [
+            "orch:dace:cpu:IJK",
             "orch:dace:gpu:KJI",
             "orch:dace:cpu:KJI",
+            "orch:dace:cpu:KIJ",
         ]:
-            self.ijk_order = (0, 1, 2)
-        elif backend.as_humanly_readable() in ["orch:dace:cpu:KIJ"]:
-            self.ijk_order = (1, 2, 0)
+            self.ijk_order = backend.as_layout_map()
         else:
             raise NotImplementedError(
                 f"[Schedule Tree Opt] CartesianRefineTransient not implemented for backend {backend}"

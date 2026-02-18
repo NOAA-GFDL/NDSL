@@ -31,7 +31,7 @@ class QuantityMetadata:
     dtype: type
     "dtype of the data in the ndarray-like object."
     backend: Backend
-    "NDSL backend name. Used for performance optimal data allocation."
+    "NDSL backend. Used for performance optimal data allocation."
 
     @property
     def dim_lengths(self) -> dict[str, int]:

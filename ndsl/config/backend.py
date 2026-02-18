@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Final
+from typing import Final
 
 import gt4py.cartesian.backend as gt_backend
 
@@ -29,8 +29,8 @@ class BackendFramework(Enum):
 
 
 _NDSL_TO_GT4PY_BACKEND_NAMING = {
-    "st:python:cpu:debug": "debug",
-    "st:python:cpu:numpy": "numpy",
+    "st:python:cpu:IJK": "debug",
+    "st:numpy:cpu:IJK": "numpy",
     "st:gt:cpu:IJK": "gt:cpu_kfirst",
     "st:gt:cpu:KJI": "gt:cpu_ifirst",
     "st:gt:gpu:KJI": "gt:gpu",
@@ -86,7 +86,7 @@ class Backend:
         self._strategy = BackendStrategy(parts[0].lower())
         self._framework = BackendFramework(parts[1].lower())
         self._device = BackendTargetDevice(parts[2].lower())
-        self._loop_order = parts[3]
+        self._loop_order = parts[3].upper()
 
         # Check GPU capacity
         if (
@@ -105,22 +105,14 @@ class Backend:
         return self.as_humanly_readable()
 
     def __eq__(self, other: object) -> bool:
-        return self._humanly_readable == self._humanly_readable
+        if not isinstance(other, Backend):
+            raise NotImplementedError(
+                f"Backend equality operator for {type(other)} is not implemented"
+            )
+        return self._humanly_readable == other._humanly_readable
 
     def __hash__(self) -> int:
         return hash(self._humanly_readable)
-
-    def __add__(self, other: str) -> Any:
-        """Concatenation operators"""
-        if isinstance(other, Backend):
-            raise TypeError("OperationError: Backend cannot add to another Backend")
-        return str(self) + other
-
-    def __radd__(self, other: str) -> Any:
-        """Concatenation operators"""
-        if isinstance(other, Backend):
-            raise TypeError("OperationError: Backend cannot add to another Backend")
-        return other + str(self)
 
     @staticmethod
     def python() -> Backend:
@@ -145,6 +137,10 @@ class Backend:
     def framework(self) -> BackendFramework:
         return self._framework
 
+    @property
+    def loop_order(self) -> str:
+        return self._loop_order
+
     def as_gt4py(self) -> str:
         """Given an NDSL backend, give back a GT4Py equivalent"""
         return _NDSL_TO_GT4PY_BACKEND_NAMING[self._humanly_readable]
@@ -154,6 +150,13 @@ class Backend:
 
     def as_safe_for_path(self) -> str:
         return self._humanly_readable.replace(":", "_")
+
+    def as_layout_map(self) -> tuple[int, ...]:
+        if self._loop_order in ["numpy", "debug"]:
+            return (0, 1, 2)
+        return tuple(
+            len(self._loop_order) - 1 - self._loop_order.index(axis) for axis in "IJK"
+        )
 
     def is_orchestrated(self) -> bool:
         return self._strategy == BackendStrategy.ORCHESTRATION
@@ -167,12 +170,15 @@ class Backend:
     def is_fortran_aligned(self) -> bool:
         """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran
         striding."""
+
+        # Dev NOTE: this probably should live as an accessor directly on the
+        # storage_info or layout_info of GT4Py, rather than stacked up on NDSL
         return _FORTRAN_LOOP_LAYOUT == gt_backend.from_name(
             self.as_gt4py()
         ).storage_info["layout_map"](("I", "J", "K"))
 
 
-backend_python: Final[Backend] = Backend("st:python:cpu:debug")
+backend_python: Final[Backend] = Backend("st:python:cpu:IJK")
 """Default backend for quick iterative work."""
 
 backend_cpu: Final[Backend] = Backend("orch:dace:cpu:IJK")

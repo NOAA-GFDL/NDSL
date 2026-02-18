@@ -10,7 +10,7 @@ shape = (2, 2, 5)
 def test_xumpy_alloc():
     rand_array = xp.random(shape, Backend.python())
     assert rand_array.shape == shape
-    (rand_array != xp.random(shape, Backend.python())).all()
+    assert (rand_array != xp.random(shape, Backend.python())).all()
 
     assert (np.ones(shape) == xp.ones(shape, Backend.python())).all()
     assert (np.zeros(shape) == xp.zeros(shape, Backend.python())).all()

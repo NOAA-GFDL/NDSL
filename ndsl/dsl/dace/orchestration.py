@@ -172,7 +172,7 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
-                if backend_name.as_humanly_readable() == "orch:dace:cpu:IJK":
+                if backend_name.loop_order == "IJK":
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
@@ -182,28 +182,29 @@ def _build_sdfg(
                             CartesianRefineTransients(backend_name),
                         ]
                     )
-                elif backend_name.as_humanly_readable() in [
-                    "orch:dace:cpu:KJI",
-                    "orch:dace:gpu:KJI",
-                ]:
+                elif backend_name.loop_order in "KJI":
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
                             CartesianAxisMerge(AxisIterator._K),
                             CartesianAxisMerge(AxisIterator._J),
                             CartesianAxisMerge(AxisIterator._I),
+                            CartesianRefineTransients(backend_name),
+                        ]
+                    )
+                elif backend_name.loop_order in "KIJ":
+                    passes.extend(
+                        [
+                            CleanUpScheduleTree(),
+                            CartesianAxisMerge(AxisIterator._K),
+                            CartesianAxisMerge(AxisIterator._I),
+                            CartesianAxisMerge(AxisIterator._J),
                             CartesianRefineTransients(backend_name),
                         ]
                     )
                 else:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianRefineTransients(backend_name),
-                        ]
+                    raise NotImplementedError(
+                        f"Loop order {backend_name.loop_order()} has no schedule tree pipeline"
                     )
                 CPUPipeline(passes=passes).run(stree, verbose=True)
 

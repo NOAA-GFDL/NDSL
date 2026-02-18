@@ -128,11 +128,11 @@ def test_relocatability() -> None:
     gt_config.cache_settings["root_path"] = Path.cwd()
 
     # Compile on default
-    backend = "dace:cpu"
-    p0 = OrchestratedProgram(Backend("st:dace:cpu:KIJ"), None)
+    backend = Backend("st:dace:cpu:KIJ")
+    p0 = OrchestratedProgram(backend, None)
     p0()
 
-    backend_sanitized = backend.replace(":", "")
+    backend_sanitized = backend.as_humanly_readable().replace(":", "")
     python_version = f"py{sys.version_info[0]}{sys.version_info[1]}"
     expected_cache_path = (
         Path.cwd()
