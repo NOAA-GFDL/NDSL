@@ -132,7 +132,7 @@ def test_relocatability() -> None:
     p0 = OrchestratedProgram(backend, None)
     p0()
 
-    backend_sanitized = backend.as_humanly_readable().replace(":", "")
+    backend_sanitized = backend.as_gt4py().replace(":", "")
     python_version = f"py{sys.version_info[0]}{sys.version_info[1]}"
     expected_cache_path = (
         Path.cwd()
