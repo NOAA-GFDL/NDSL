@@ -16,10 +16,11 @@ def gnomonic_grid(grid_type: int, lon, lat, np):
     """
     Apply gnomonic grid to lon and lat arrays for all tiles. Tiles must then be rotated
     and mirrored to the correct orientations before use.
+
     This global mesh generation is the way the Fortran code initializes the lon/lat
     grids and is reproduced here for testing purposes.
 
-    args:
+    Args:
         grid_type: type of grid to apply
         lon: longitude array with dimensions [x, y]
         lat: latitude array with dimensions [x, y]

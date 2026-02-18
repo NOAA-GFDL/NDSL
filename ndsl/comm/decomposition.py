@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 
 def determine_rank_is_compiling(rank: int, size: int) -> bool:
-    """Determines if a rank needs to be a compiling one
+    """Determines if a rank needs to be a compiling one.
 
     Args:
-        rank (int): current rank
-        size (int): size of the communicator
+        rank: current rank
+        size: size of the communicator
 
     Returns:
         bool: True if the rank is a compiling one
@@ -27,11 +27,11 @@ def determine_rank_is_compiling(rank: int, size: int) -> bool:
 def block_waiting_for_compilation(
     comm: MPI.Comm, compilation_config: CompilationConfig
 ) -> None:
-    """block moving on until an ok is received from the compiling rank
+    """Block moving on until an ok is received from the compiling rank.
 
     Args:
-        comm (MPI.Comm): communicator over which the ok is sent
-        stencil_config (CompilationConfig): holding communicator and rank information
+        comm: communicator over which the ok is sent
+        compilation_config: holding communicator and rank information
     """
     if comm and comm.Get_size() > 1:
         compiling_rank = compilation_config.compiling_equivalent
@@ -39,10 +39,10 @@ def block_waiting_for_compilation(
 
 
 def unblock_waiting_tiles(comm: MPI.Comm) -> None:
-    """sends a message to all the ranks waiting for compilation to finish
+    """Sends a message to all the ranks waiting for compilation to finish.
 
     Args:
-        comm (MPI.Comm): communicator over which the ok is sent
+        comm: communicator over which the ok is sent
     """
     rank = comm.Get_rank()
     size = comm.Get_size()
@@ -59,10 +59,10 @@ def check_cached_path_exists(cache_filepath: str) -> None:
 
 
 def build_cache_path(config: CompilationConfig) -> tuple[str, str]:
-    """generate the GT-Cache path from the config
+    """Generate the GT-Cache path from the config.
 
     Args:
-        config (CompilationConfig): stencil-config object at post-init state
+        config: stencil-config object at post-init state
 
     Returns:
         tuple[str, str]: path and individual rank string
@@ -80,7 +80,7 @@ def build_cache_path(config: CompilationConfig) -> tuple[str, str]:
 
 
 def set_distributed_caches(config: CompilationConfig) -> None:
-    """In Run mode, check required file then point current rank cache to source cache"""
+    """In Run mode, check required file then point current rank cache to source cache."""
 
     # Check that we have all the file we need to early out in case
     # of issues.

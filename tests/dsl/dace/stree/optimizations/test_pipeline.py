@@ -4,6 +4,7 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
+from tests.dsl.dace.stree import StreeOptimization
 
 
 def double_map(in_field: FloatField, out_field: FloatField):
@@ -36,14 +37,7 @@ def test_stree_roundtrip_no_opt():
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
     out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-    # Temporarily flip the internal switch
-    import ndsl.dsl.dace.orchestration as orch
-
-    orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
-    orch._INTERNAL__SCHEDULE_TREE_PASSES = []
-
-    code(in_qty, out_qty)
+    with StreeOptimization():
+        code(in_qty, out_qty)
 
     assert (out_qty.field[:] == 4).all()
-
-    orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False

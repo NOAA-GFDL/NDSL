@@ -9,48 +9,54 @@ from ndsl.utils import GPU_AVAILABLE
 class Timer:
     """Class to accumulate timings for named operations."""
 
-    def __init__(self) -> None:
+    def __init__(self, enabled: bool = True) -> None:
         self._clock_starts: dict = {}
         self._accumulated_time: dict = {}
         self._hit_count: dict = {}
-        self._enabled: bool = True
+        self._enabled = enabled
         # Check if we have CUDA device and it's ready to
         # perform tasks
         self._can_time_CUDA: bool = GPU_AVAILABLE
 
     def start(self, name: str) -> None:
         """Start timing a given named operation."""
+        if not self.enabled:
+            return
+
         if self._can_time_CUDA:
             cp.cuda.Device(0).synchronize()
             cp.cuda.nvtx.RangePush(name)
-        if self._enabled:
-            if name in self._clock_starts:
-                raise ValueError(f"clock already started for '{name}'")
-            else:
-                self._clock_starts[name] = time()
+
+        if name in self._clock_starts:
+            raise ValueError(f"Clock already started for '{name}'")
+        self._clock_starts[name] = time()
 
     def stop(self, name: str) -> None:
         """Stop timing a given named operation, add the time elapsed to
         accumulated timing and increase the hit count.
         """
+        if not self.enabled:
+            return
+
         if self._can_time_CUDA:
             cp.cuda.Device(0).synchronize()
             cp.cuda.nvtx.RangePop()
-        if self._enabled:
-            if name not in self._accumulated_time:
-                self._accumulated_time[name] = time() - self._clock_starts.pop(name)
-            else:
-                self._accumulated_time[name] += time() - self._clock_starts.pop(name)
-            if name not in self._hit_count:
-                self._hit_count[name] = 1
-            else:
-                self._hit_count[name] += 1
+
+        if name not in self._accumulated_time:
+            self._accumulated_time[name] = time() - self._clock_starts.pop(name)
+        else:
+            self._accumulated_time[name] += time() - self._clock_starts.pop(name)
+
+        if name not in self._hit_count:
+            self._hit_count[name] = 1
+        else:
+            self._hit_count[name] += 1
 
     def clock(self, name: str):  # type: ignore
         """Context manager to produce timings of operations.
 
         Args:
-            name: the name of the operation being timed
+            name: The name of the operation being timed.
 
         Example:
             The context manager times operations that happen within its context. The
@@ -90,7 +96,7 @@ class Timer:
 
     @property
     def times(self) -> Mapping[str, float]:
-        """accumulated timings for each operation name"""
+        """Accumulated timings for each operation name."""
         if len(self._clock_starts) > 0:
             warnings.warn(
                 "Retrieved times while clocks are still going, "
@@ -99,11 +105,12 @@ class Timer:
                 RuntimeWarning,
                 stacklevel=2,
             )
+
         return self._accumulated_time.copy()
 
     @property
     def hits(self) -> Mapping[str, int]:
-        """accumulated hit counts for each operation name"""
+        """Accumulated hit counts for each operation name."""
         if len(self._clock_starts) > 0:
             warnings.warn(
                 "Retrieved hit counts while clocks are still going, "
@@ -112,6 +119,7 @@ class Timer:
                 RuntimeWarning,
                 stacklevel=2,
             )
+
         return self._hit_count.copy()
 
     def reset(self) -> None:
@@ -145,17 +153,10 @@ class NullTimer(Timer):
     """
 
     def __init__(self) -> None:
-        super().__init__()
-        self._enabled: bool = False
+        super().__init__(enabled=False)
 
     def enable(self) -> None:
         """Enable the Timer."""
         raise NotImplementedError(
-            "NullTimer cannot be enabled, maybe create a Timer and "
-            "disable it instead of using NullTimer"
+            "`NullTimer` cannot be enabled. Create a `Timer` instance instead."
         )
-
-    @property
-    def enabled(self) -> bool:
-        """Indicates whether the timer is currently enabled."""
-        return False

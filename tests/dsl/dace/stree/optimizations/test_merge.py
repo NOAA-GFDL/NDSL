@@ -1,4 +1,7 @@
+from typing import TypeAlias
+
 import dace
+import pytest
 
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
@@ -6,8 +9,7 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
-
-from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
 
 
 def stencil(in_field: FloatField, out_field: FloatField) -> None:
@@ -53,7 +55,7 @@ class OrchestratedCode:
             "trivial_merge",
             "missing_merge_of_forscope_and_map",
             "overcompute_merge",
-            "block_merge_when_depandencies_is_found",
+            "block_merge_when_dependencies_are_found",
             "push_non_cartesian_for",
         ]
         for method in orchestratable_methods:
@@ -99,7 +101,7 @@ class OrchestratedCode:
         self.stencil_with_forward_K(in_field, out_field)
         self.stencil(in_field, out_field)
 
-    def block_merge_when_depandencies_is_found(
+    def block_merge_when_dependencies_are_found(
         self,
         in_field: FloatField,
         out_field: FloatField,
@@ -125,19 +127,29 @@ class OrchestratedCode:
             self.stencil(in_field, out_field)
 
 
-def test_stree_merge_maps_IJK() -> None:
-    domain = (3, 3, 4)
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
-    )
+Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
 
-    code = OrchestratedCode(stencil_factory, quantity_factory)
-    in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-    with StreeOptimization():
-        # Trivial merge
-        code.trivial_merge(in_qty, out_qty)
+class TestStreeMergeMapsIJK:
+    @pytest.fixture
+    def factories(self) -> Factories:
+        domain = (3, 3, 4)
+        return get_factories_single_tile_orchestrated(
+            domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
+        )
+
+    @pytest.fixture
+    def code(self, factories: Factories) -> OrchestratedCode:
+        return OrchestratedCode(*factories)
+
+    def test_trivial_merge(self, code: OrchestratedCode, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            code.trivial_merge(in_qty, out_qty)
+
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
         all_maps = [
             (me, state)
@@ -148,24 +160,40 @@ def test_stree_merge_maps_IJK() -> None:
         assert len(all_maps) == 3
         assert (out_qty.field[:] == 2).all()
 
-        # Merge IJ - but do not merge K map & for (missing feature)
-        code.missing_merge_of_forscope_and_map(in_qty, out_qty)
+    def test_missing_merge_of_forscope_and_map(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            code.missing_merge_of_forscope_and_map(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            map_entry
+            for map_entry, _ in sdfg.all_nodes_recursive()
+            if isinstance(map_entry, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 4  # 2 IJ + 2 Ks
-        all_loop_guard_state = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        all_loops = [
+            loop
+            for loop, _ in sdfg.all_nodes_recursive()
+            if isinstance(loop, dace.sdfg.state.LoopRegion)
         ]
-        assert len(all_loop_guard_state) == 1  # 1 For loop
+        assert len(all_loops) == 1  # 1 For loop
 
-        # Overcompute merge in K - we merge and introduce an If guard
-        code.overcompute_merge(in_qty, out_qty)
+    def test_overcompute_merge(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            code.overcompute_merge(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
@@ -175,8 +203,17 @@ def test_stree_merge_maps_IJK() -> None:
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 4  # Should be all dmerged = 3
 
-        # Forbid merging when data dependancy is detected
-        code.block_merge_when_depandencies_is_found(in_qty, out_qty)
+    def test_block_merge_when_dependencies_are_found(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            # Forbid merging when data dependencies are detected
+            code.block_merge_when_dependencies_are_found(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             me.params[0]
@@ -186,9 +223,21 @@ def test_stree_merge_maps_IJK() -> None:
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 5  # Should be 4 = 2 IJ + 2 Ks (un-merged)
 
-        # Push non-cartesian ForScope inwward, which allow to potentially
-        # merge cartesian maps
-        code.push_non_cartesian_for(in_qty, out_qty)
+    @pytest.mark.skip(
+        "Optimization broken by DaCe v2 update: https://github.com/NOAA-GFDL/NDSL/issues/375"
+    )
+    def test_push_non_cartesian_for(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            # Push non-cartesian ForScope inwards, which allow to potentially
+            # merge cartesian maps
+            code.push_non_cartesian_for(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
@@ -204,19 +253,26 @@ def test_stree_merge_maps_IJK() -> None:
         assert len(all_loop_guard_state) == 1  # 1 For loop
 
 
-def test_stree_merge_maps_KJI() -> None:
-    domain = (3, 3, 4)
-    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, Backend("orch:dace:cpu:KJI")
-    )
+class TestStreeMergeMapsKJI:
+    @pytest.fixture
+    def factories(self) -> Factories:
+        domain = (3, 3, 4)
+        return get_factories_single_tile_orchestrated(
+            domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
+        )
 
-    code = OrchestratedCode(stencil_factory, quantity_factory)
-    in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+    @pytest.fixture
+    def code(self, factories: Factories) -> OrchestratedCode:
+        return OrchestratedCode(*factories)
 
-    with StreeOptimization():
-        # Trivial merge
-        code.trivial_merge(in_qty, out_qty)
+    def test_trivial_merge(self, code: OrchestratedCode, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            code.trivial_merge(in_qty, out_qty)
+
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
         all_maps = [
             (me, state)
@@ -227,24 +283,48 @@ def test_stree_merge_maps_KJI() -> None:
         assert len(all_maps) == 3
         assert (out_qty.field[:] == 2).all()
 
-        # K iterative loop - blocks all merges
+    @pytest.mark.skip(
+        "Optimization broken by DaCe v2 update: https://github.com/NOAA-GFDL/NDSL/issues/375"
+    )
+    def test_missing_merge_of_forscope_and_map(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
         code.missing_merge_of_forscope_and_map(in_qty, out_qty)
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+
+        with StreeOptimization():
+            # K iterative loop - blocks all merges
+            code.missing_merge_of_forscope_and_map(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            map_entry
+            for map_entry, _ in sdfg.all_nodes_recursive()
+            if isinstance(map_entry, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 8  # 2 KJI (all maps) + 1 for scope
-        all_loop_guard_state = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        all_loops = [
+            loop
+            for loop, _ in sdfg.all_nodes_recursive()
+            if isinstance(loop, dace.sdfg.state.LoopRegion)
         ]
-        assert len(all_loop_guard_state) == 1  # 1 For loop
+        assert len(all_loops) == 1  # 1 For loop
 
-        # Overcompute merge in K - we merge and introduce an If guard
-        code.overcompute_merge(in_qty, out_qty)
+    def test_overcompute_merge(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            # Overcompute merge in K - we merge and introduce an If guard
+            code.overcompute_merge(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
@@ -254,8 +334,17 @@ def test_stree_merge_maps_KJI() -> None:
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 6
 
-        # Forbid merging when data dependancy is detected
-        code.block_merge_when_depandencies_is_found(in_qty, out_qty)
+    def test_block_merge_when_dependencies_are_found(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            # Forbid merging when data dependencies are detected
+            code.block_merge_when_dependencies_are_found(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)
@@ -265,9 +354,21 @@ def test_stree_merge_maps_KJI() -> None:
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 9
 
-        # Push non-cartesian ForScope inwward, which allow to potentially
-        # merge cartesian maps
-        code.push_non_cartesian_for(in_qty, out_qty)
+    @pytest.mark.skip(
+        "Optimization broken by DaCe v2 update: https://github.com/NOAA-GFDL/NDSL/issues/375"
+    )
+    def test_push_non_cartesian_for(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            # Push non-cartesian ForScope inwards, which allow to potentially
+            # merge cartesian maps
+            code.push_non_cartesian_for(in_qty, out_qty)
+
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
             (me, state)

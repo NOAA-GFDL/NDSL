@@ -5,9 +5,9 @@ import warnings
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
-from ndsl import ndsl_log
-from ndsl.config import Backend
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
+from ndsl.logging import ndsl_log
+from ndsl.config import Backend
 
 
 def _change_index_of_tuple(

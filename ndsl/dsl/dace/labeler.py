@@ -37,15 +37,15 @@ def set_label(
     """Surround the SDFG with two state/library node combo labelling
     the code for future reference in further optimization.
 
-    WARNING: The Label are passthrough, any use of `simplify` _will remove
-    them from the SDFG_ and this is on purpose so there's no tracers of them
+    WARNING: The Label are passthrough, any use of `simplify()` _will remove
+    them from the SDFG_ and this is on purpose so there's no traces of them
     in runtime.
     """
     # Cannot be applied to already compiled SDFG
     if isinstance(sdfg, dace.CompiledSDFG):
         return
 
-    for state in sdfg.states():
+    for state in sdfg.nodes():
         if sdfg.in_edges(state) == []:
             # With the topmost SDFG we have to skip over the
             # "init" state

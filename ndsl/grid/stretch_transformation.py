@@ -26,17 +26,16 @@ def direct_transform(
     centered on lon_target, lat_target.
 
     Args:
-        lon (in) in radians
-        lat (in) in radians
-        stretch_factor (in) stretch_factor (e.g. 3.0 means that the resolution
+        lon: longitude in radians
+        lat: latitude in radians
+        stretch_factor: stretch_factor (e.g. 3.0 means that the resolution
             on tile 6 becomes 3 times as fine)
-        lon_target (in) in degrees (from namelist)
-        lat_target (in) in degrees (from namelist)
+        lon_target: in degrees (from namelist)
+        lat_target: in degrees (from namelist)
         np: numpy or cupy module
 
     Returns:
-        lon_transform (out) in radians
-        lat_transform (out) in radians
+        (lon_transform, lat_transform): in radians
     """
 
     if isinstance(lon, Quantity):

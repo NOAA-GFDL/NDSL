@@ -232,7 +232,7 @@ class QuantityFactory:
         # memory layout. Further work in GT4PY will allow for deferred allocation
         # which will give access to those information while making sure
         # we don't allocate
-        # Refactor is filed in ticket DSL-820
+        # Refactor is filed in ticket https://github.com/NOAA-GFDL/NDSL/issues/378
 
         temp_quantity = self.zeros(dims=dims, units="", dtype=dtype)
 

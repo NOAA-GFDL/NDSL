@@ -1,6 +1,6 @@
 import dataclasses
 
-from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
+from ndsl import NDSLRuntime, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
@@ -15,11 +15,7 @@ def _stencil(out: Field[float]):
 
 
 class OrchestratedProgram:
-    def __init__(
-        self,
-        stencil_factory: StencilFactory,
-        quantity_factory: QuantityFactory,
-    ):
+    def __init__(self, stencil_factory: StencilFactory):
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
@@ -31,7 +27,7 @@ def test_memory_reallocation():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
-    code = OrchestratedProgram(stencil_factory, quantity_factory)
+    code = OrchestratedProgram(stencil_factory)
     qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
     qty_B = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "B")
 
@@ -60,11 +56,7 @@ class AState(State):
 
 
 class DefaultTypeProgram(NDSLRuntime):
-    def __init__(
-        self,
-        stencil_factory: StencilFactory,
-        quantity_factory: QuantityFactory,
-    ):
+    def __init__(self, stencil_factory: StencilFactory):
         super().__init__(stencil_factory)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
@@ -79,7 +71,7 @@ def test_default_types_are_compiletime():
     )
     qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
     state_A = AState.zeros(quantity_factory)
-    code = DefaultTypeProgram(stencil_factory, quantity_factory)
+    code = DefaultTypeProgram(stencil_factory)
     code(qty_A, state_A)
 
 
@@ -91,7 +83,7 @@ def test_dace_call_argument_caching():
 
     quantity_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
     state_A = AState.zeros(quantity_factory)
-    code = DefaultTypeProgram(stencil_factory, quantity_factory)
+    code = DefaultTypeProgram(stencil_factory)
     code(quantity_A, state_A)
 
     assert len(dconfig.loaded_dace_executables.values()) == 1

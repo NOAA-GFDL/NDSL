@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
 
 import dace.config
@@ -325,11 +326,9 @@ class DaceConfig:
                 )
 
         # Attempt to kill the dace.conf to avoid confusion
-        if dace.config.Config._cfg_filename:
-            try:
-                os.remove(dace.config.Config._cfg_filename)
-            except OSError:
-                pass
+        dace_conf_to_kill = dace.config.Config.cfg_filename()
+        if dace_conf_to_kill is not None:
+            Path(dace_conf_to_kill).unlink(missing_ok=True)
 
         self.tile_resolution = [tile_nx, tile_nx, tile_nz]
         from ndsl.dsl.dace.build import set_distributed_caches

@@ -156,10 +156,10 @@ class Quantity:
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Initialize a Quantity from an xarray.DataArray.
+        Initialize a Quantity from an `xarray.DataArray`.
 
         Args:
-            data_array
+            data_array: `xarray.DataArray` to initialize from
             origin: first point in data within the computational domain
             extent: number of points along each axis within the computational domain
             allow_mismatch_float_precision: allow for precision that is
@@ -199,15 +199,14 @@ class Quantity:
                 )
 
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
-        # This is a preliminary check to see if this is ever triggered.
-        # If not, we can remove it down the line and change the call signature.
-        if n_halo != self._metadata.n_halo:
-            warnings.warn(
-                "Found inconsistency with number of halo points in Quantity:"
-                + f"{n_halo} vs {self._metadata.n_halo}",
-                UserWarning,
-                stacklevel=2,
+        # We allow number of exchange point to differ from the Quantity halos
+        # but we do check that we are not asking for an OOB
+        if n_halo > self._metadata.n_halo:
+            raise ValueError(
+                f"Halo specification requires exchange of more halo points ({n_halo}) "
+                f"than available on this Quantity ({self._metadata.n_halo})."
             )
+
         return QuantityHaloSpec(
             n_halo,
             self.data.strides,
@@ -390,7 +389,7 @@ class Quantity:
             >>> quantity = Quantity(
             ...     data=np.zeros([2, 3, 4]),
             ...     dims=[I_DIM, J_DIM, K_DIM],
-            ...             units="m",
+            ...     units="m",
             ... )
 
             If you know you are working with cell-centered variables, you can do:

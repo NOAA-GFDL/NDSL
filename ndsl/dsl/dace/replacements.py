@@ -5,11 +5,8 @@ allows custom NDSL syntax, objects and symbols to be natively orchestratable."""
 from dace import SDFG, SDFGState, dtypes
 from dace.frontend.common import op_repository as oprepo
 from dace.frontend.python.newast import ProgramVisitor
-from dace.frontend.python.replacements import (
-    UfuncInput,
-    UfuncOutput,
-    _datatype_converter,
-)
+from dace.frontend.python.replacements import UfuncInput, UfuncOutput
+from dace.frontend.python.replacements.array_manipulation import _datatype_converter
 
 from ndsl.dsl.typing import Float, Int
 

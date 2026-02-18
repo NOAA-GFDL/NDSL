@@ -4,8 +4,7 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
 from ndsl.dsl.typing import Float, FloatField
-
-from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
 
 
 DATADIM_SIZE = 8

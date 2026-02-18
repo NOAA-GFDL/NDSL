@@ -18,7 +18,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.11,<3.13"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
