@@ -11,7 +11,7 @@ Historically, NDSL was developed to port the FV3 dynamical core on the cubed-sph
 
 ## Quickstart
 
-Currently, NDSL requires Python version `3.11.x`, a GNU compiler and MPI installed. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
+Currently, NDSL requires Python version `3.11` or `3.12`, a GNU compiler and MPI installed. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
 
 ```shell
 # We have submodules for GT4Py and DaCe. Don't forget to pull them
@@ -27,7 +27,7 @@ source ./venv/bin/activate
 pip install .[demos]
 ```
 
-Now, checkout [examples/NDSL](./examples/NDSL/) and ran through the Jupyter notebooks. Note that you have to install NDSL locally, as it is not available on `pypi`.
+Now, checkout [examples/NDSL](./examples/NDSL/) and run through the Jupyter notebooks. Note that you have to install NDSL from GitHub, as it is not available on `pypi`.
 
 ## The slightly longer version
 
@@ -37,13 +37,13 @@ NDSL is under active development and may only work with specific setups. This is
 
 The run the CPU backends you will need:
 
-- Python: 3.11.x
+- Python: 3.11 or 3.12
 - CXX compiler:  GNU 11.2+
 - Libraries: MPI
 
 To run the GPU backends, you'll need:
 
-- Python: 3.11.x
+- Python: 3.11 or 3.12
 - CXX compiler:  GNU 11.2+
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+
@@ -79,13 +79,13 @@ Tests are available via `pytest` (don't forget to install the `test` or `dev` ex
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
 ```bash
-pytest tests/
+pytest -m "not parallel and not gpu" tests/
 ```
 
 To run parallel tests on CPU (GPU tests also run if `cupy` is available)
 
 ```bash
-mpirun -np 6 pytest tests/mpi
+mpirun -np 6 pytest -m "parallel and not gpu" tests/
 ```
 
 ## Development
@@ -98,9 +98,9 @@ mpirun -np 6 pytest tests/mpi
 
 ### Documentation
 
-We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and optionally serve it as a static site.
+Documentation is available [online](https://noaa-gfdl.github.io/NDSL/). We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and serve it as a static site.
 
-To view the documentation, install NDSL with the `docs` or `dev` extras. Then  run the following:
+To view the documentation locally, install NDSL with the `docs` or `dev` extras. Then  run the following:
 
 ```bash
 mkdocs serve
