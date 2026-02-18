@@ -30,7 +30,7 @@ def _reduce_cartesian_axis_size_to_1(
     transient_map_reads: dace.subsets.Range | None,
     transient_map_writes: dace.subsets.Range | None,
     transient_data: dace.data.Data,
-    ijk_order: tuple[int, int, int],
+    ijk_order: tuple[int, ...],
 ) -> bool:
     """Reduce dimension size of transient to 1 if all access (reads and writes)
     are atomic"""

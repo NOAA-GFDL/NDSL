@@ -204,7 +204,7 @@ def _build_sdfg(
                     )
                 else:
                     raise NotImplementedError(
-                        f"Loop order {backend_name.loop_order()} has no schedule tree pipeline"
+                        f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
                     )
                 CPUPipeline(passes=passes).run(stree, verbose=True)
 
