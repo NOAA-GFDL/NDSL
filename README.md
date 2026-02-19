@@ -79,7 +79,7 @@ Tests are available via `pytest` (don't forget to install the `test` or `dev` ex
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
 ```bash
-pytest -m "not parallel and not gpu" tests/
+pytest -m "not parallel and not gpu and not zarr" tests/
 ```
 
 To run parallel tests on CPU (GPU tests also run if `cupy` is available)

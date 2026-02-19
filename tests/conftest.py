@@ -31,4 +31,4 @@ def numpy(backend):
     if backend == "cupy":
         return cupy
 
-    raise NotImplementedError()
+    raise NotImplementedError(f"Unsupported backend {backend} found in test setup.")
