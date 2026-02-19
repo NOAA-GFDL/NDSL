@@ -21,12 +21,8 @@ from ndsl.constants import (
     X_DIM,
 )
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
-from ndsl.optional_imports import RaiseWhenAccessed, zarr
+from ndsl.optional_imports import zarr
 
-
-requires_zarr = pytest.mark.skipif(
-    isinstance(zarr, RaiseWhenAccessed), reason="zarr is not installed"
-)
 
 logger = logging.getLogger("test_zarr_monitor")
 
@@ -35,13 +31,10 @@ ALL_K_DIMS = ("k", "k_interface", "k_soil")
 
 
 @pytest.fixture(params=["one_step", "three_steps"])
-def n_times(request, fast):
+def n_times(request):
     if request.param == "one_step":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return 1
-    elif request.param == "three_steps":
+        return 1
+    if request.param == "three_steps":
         return 3
 
 
@@ -149,7 +142,7 @@ def state_list(base_state, n_times, start_time, time_step, numpy):
     return state_list
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
     with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
         monitor = ZarrMonitor(tempdir, cube_partitioner, mpi_comm=MPIComm())
@@ -159,13 +152,13 @@ def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
         validate_xarray_can_open(tempdir)
 
 
-@requires_zarr
+@pytest.mark.zarr
 def validate_xarray_can_open(dirname):
     # just checking there are no crashes, validate_group checks data
     xr.open_zarr(dirname, consolidated=False)
 
 
-@requires_zarr
+@pytest.mark.zarr
 def validate_store(states, filename, numpy, start_time):
     nt = len(states)
     calendar = get_calendar(start_time)
@@ -227,7 +220,7 @@ def validate_store(states, filename, numpy, start_time):
         ((5, 4, 4), 0, 1, (K_DIM, J_DIM, I_INTERFACE_DIM)),
     ],
 )
-@requires_zarr
+@pytest.mark.zarr
 def test_monitor_file_store_multi_rank_state(
     layout, nt, tmpdir_factory, shape, ny_rank_add, nx_rank_add, dims, numpy
 ):
@@ -329,7 +322,7 @@ def test_monitor_file_store_multi_rank_state(
         ),
     ],
 )
-@requires_zarr
+@pytest.mark.zarr
 def test_array_chunks(layout, tile_array_shape, array_dims, target):
     result = array_chunks(layout, tile_array_shape, array_dims)
     assert result == target
@@ -345,8 +338,8 @@ def _assert_no_nulls(dataset: xr.Dataset):
 
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
-@requires_zarr
-def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale):
+@pytest.mark.zarr
+def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale):
     store = {}
     buffer = {}
 
@@ -367,7 +360,7 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale
     _assert_no_nulls(dataset.sel(tile=0))
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_values_preserved(cube_partitioner, numpy):
     dims = (J_DIM, I_DIM)
     units = "m"
@@ -408,7 +401,7 @@ def state_list_with_inconsistent_calendars(base_state, numpy):
     return state_list
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_monitor_file_store_inconsistent_calendars(
     state_list_with_inconsistent_calendars, cube_partitioner, numpy
 ):
@@ -458,7 +451,7 @@ def zarr_monitor_single_rank(zarr_store, cube_partitioner):
     return ZarrMonitor(zarr_store, cube_partitioner, mpi_comm=MPIComm())
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store):
     layout = (1, 1)
     total_ranks = 6 * layout[0] * layout[1]
@@ -483,7 +476,7 @@ def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store)
         monitor.store({"a": diag_to_store})
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank):
     # verify that we can store transposed diags across time
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
@@ -498,7 +491,7 @@ def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank)
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
@@ -516,7 +509,7 @@ def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
     assert "Attempting to append a quantity" in str(excinfo.value)
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_rank):
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)

@@ -122,13 +122,13 @@ def test_different_rebuild_not_equal(
     assert config != different_config
 
 
-def test_different_device_sync_not_equal(
-    rebuild: bool = True,
-    validate_args: bool = True,
-    format_source: bool = True,
-    device_sync: bool = False,
-    compare_to_numpy: bool = True,
-) -> None:
+def test_different_device_sync_not_equal() -> None:
+    rebuild: bool = True
+    validate_args: bool = True
+    format_source: bool = True
+    device_sync: bool = False
+    compare_to_numpy: bool = True
+
     dace_config = DaceConfig(
         communicator=None,
         backend=Backend("st:gt:gpu:KJI"),

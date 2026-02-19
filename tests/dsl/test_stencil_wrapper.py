@@ -215,7 +215,7 @@ def test_frozen_stencil_raises_if_given_domain(
     rebuild: bool = False,
     format_source: bool = False,
     device_sync: bool = False,
-):
+) -> None:
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -247,7 +247,7 @@ def test_frozen_stencil_kwargs_passed_to_init(
     format_source: bool,
     device_sync: bool,
     backend: Backend = backend_python,
-):
+) -> None:
     config = get_stencil_config(
         backend=backend,
         rebuild=rebuild,

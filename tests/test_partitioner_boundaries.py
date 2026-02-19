@@ -73,7 +73,6 @@ def partitioner_3_by_3():
         (23, 22, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_left_edge(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -97,7 +96,6 @@ def test_2_by_2_left_edge(
         (8, 7, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_left_edge(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -111,7 +109,6 @@ def test_single_3_by_3_left_edge(
     "from_rank, to_rank, n_clockwise_rotations",
     [(0, 4, 1), (1, 0, 0), (2, 0, 1), (3, 2, 0), (4, 2, 1), (5, 4, 0)],
 )
-@pytest.mark.cpu_only
 def test_1_by_1_left_edge(
     partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -131,7 +128,6 @@ def test_1_by_1_left_edge(
         (2, (2, 2), 1, 3),
     ],
 )
-@pytest.mark.cpu_only
 def test_rotate_subtile_rank(rank, layout, n_clockwise_rotations, new_rank):
     result = rotate_subtile_rank(rank, layout, n_clockwise_rotations)
     assert result == new_rank
@@ -166,7 +162,6 @@ def test_rotate_subtile_rank(rank, layout, n_clockwise_rotations, new_rank):
         (23, 1, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_top_edge(partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations):
     edge = partitioner_2_by_2.boundary(NORTH, from_rank)
     assert edge.from_rank == from_rank
@@ -188,7 +183,6 @@ def test_2_by_2_top_edge(partitioner_2_by_2, from_rank, to_rank, n_clockwise_rot
         (8, 2, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_top_edge(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -202,7 +196,6 @@ def test_single_3_by_3_top_edge(
     "from_rank, to_rank, n_clockwise_rotations",
     [(0, 2, 3), (1, 2, 0), (2, 4, 3), (3, 4, 0), (4, 0, 3), (5, 0, 0)],
 )
-@pytest.mark.cpu_only
 def test_1_by_1_top_edge(partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations):
     edge = partitioner_1_by_1.boundary(NORTH, from_rank)
     assert edge.from_rank == from_rank
@@ -239,7 +232,6 @@ def test_1_by_1_top_edge(partitioner_1_by_1, from_rank, to_rank, n_clockwise_rot
         (23, 21, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_bottom_edge(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -263,7 +255,6 @@ def test_2_by_2_bottom_edge(
         (8, 5, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_bottom_edge(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -277,7 +268,6 @@ def test_single_3_by_3_bottom_edge(
     "from_rank, to_rank, n_clockwise_rotations",
     [(0, 5, 0), (1, 5, 3), (2, 1, 0), (3, 1, 3), (4, 3, 0), (5, 3, 3)],
 )
-@pytest.mark.cpu_only
 def test_1_by_1_bottom_edge(
     partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -316,7 +306,6 @@ def test_1_by_1_bottom_edge(
         (23, 4, 1),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_right_edge(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -340,7 +329,6 @@ def test_2_by_2_right_edge(
         (8, 6, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_right_edge(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -354,7 +342,6 @@ def test_single_3_by_3_right_edge(
     "from_rank, to_rank, n_clockwise_rotations",
     [(0, 1, 0), (1, 3, 1), (2, 3, 0), (3, 5, 1), (4, 5, 0), (5, 1, 1)],
 )
-@pytest.mark.cpu_only
 def test_1_by_1_right_edge(
     partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -365,28 +352,24 @@ def test_1_by_1_right_edge(
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-@pytest.mark.cpu_only
 def test_1_by_1_top_left_corner(partitioner_1_by_1, from_rank):
     corner = partitioner_1_by_1.boundary(NORTHWEST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-@pytest.mark.cpu_only
 def test_1_by_1_top_right_corner(partitioner_1_by_1, from_rank):
     corner = partitioner_1_by_1.boundary(NORTHEAST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-@pytest.mark.cpu_only
 def test_1_by_1_bottom_left_corner(partitioner_1_by_1, from_rank):
     corner = partitioner_1_by_1.boundary(SOUTHWEST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-@pytest.mark.cpu_only
 def test_1_by_1_bottom_right_corner(partitioner_1_by_1, from_rank):
     corner = partitioner_1_by_1.boundary(SOUTHEAST, from_rank)
     assert corner is None
@@ -421,7 +404,6 @@ def test_1_by_1_bottom_right_corner(partitioner_1_by_1, from_rank):
         (23, 0, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_top_left_corner(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -448,7 +430,6 @@ def test_2_by_2_top_left_corner(
         (8, 1, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_top_left_corner(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -475,7 +456,6 @@ def test_single_3_by_3_top_left_corner(
         ((2, 2), SOUTH, 3, 1),
     ),
 )
-@pytest.mark.cpu_only
 def test_tile_boundary(layout, boundary_type, from_rank, to_rank):
     tile = TilePartitioner(layout)
     boundary = tile.boundary(boundary_type, from_rank)
@@ -513,7 +493,6 @@ def test_tile_boundary(layout, boundary_type, from_rank, to_rank):
         (23, None, None),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_top_right_corner(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -540,7 +519,6 @@ def test_2_by_2_top_right_corner(
         (8, 0, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_top_right_corner(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -579,7 +557,6 @@ def test_single_3_by_3_top_right_corner(
         (23, 20, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_bottom_left_corner(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -606,7 +583,6 @@ def test_2_by_2_bottom_left_corner(
         (8, 4, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_bottom_left_corner(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -645,7 +621,6 @@ def test_single_3_by_3_bottom_left_corner(
         (23, 5, 1),
     ],
 )
-@pytest.mark.cpu_only
 def test_2_by_2_bottom_right_corner(
     partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -672,7 +647,6 @@ def test_2_by_2_bottom_right_corner(
         (8, 3, 0),
     ],
 )
-@pytest.mark.cpu_only
 def test_single_3_by_3_bottom_right_corner(
     tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -704,7 +678,6 @@ def test_boundary_returns_correct_boundary_type():
         (NORTH, 42, 6, 3),
     ],
 )
-@pytest.mark.cpu_only
 def test_3_by_3_difficult_cases(
     partitioner_3_by_3, boundary_type, from_rank, to_rank, n_clockwise_rotations
 ):
@@ -718,7 +691,6 @@ def test_3_by_3_difficult_cases(
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (2, 2), (4, 4)])
-@pytest.mark.cpu_only
 def test_edge_boundaries_pair(layout, subtests):
     order = [WEST, NORTH, EAST, SOUTH]
     tile = TilePartitioner(layout)
@@ -742,7 +714,6 @@ def test_edge_boundaries_pair(layout, subtests):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (2, 2), (4, 4)])
-@pytest.mark.cpu_only
 def test_corner_boundaries_pair(layout, subtests):
     order = [
         NORTHWEST,

@@ -165,7 +165,6 @@ def param_product(*param_lists):
     ],
     indirect=True,
 )
-@pytest.mark.parametrize("backend", ["numpy", "cupy"], indirect=True)
 def test_transpose(
     quantity: Quantity,
     target_dims,

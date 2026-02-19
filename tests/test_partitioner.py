@@ -37,7 +37,6 @@ for ranks_per_tile in (1, 4):
 @pytest.mark.parametrize(
     "rank, total_ranks, tile_index", zip(rank_list, total_rank_list, tile_index_list)
 )
-@pytest.mark.cpu_only
 def test_get_tile_index(rank, total_ranks, tile_index):
     tile = get_tile_index(rank, total_ranks)
     assert tile == tile_index
@@ -66,7 +65,6 @@ for layout in ((1, 1), (1, 2), (2, 2), (2, 3)):
 @pytest.mark.parametrize(
     "rank, layout, subtile_index", zip(rank_list, layout_list, subtile_index_list)
 )
-@pytest.mark.cpu_only
 def test_subtile_index(rank, layout, subtile_index):
     partitioner = TilePartitioner(layout)
     assert partitioner.subtile_index(rank) == subtile_index
@@ -105,7 +103,6 @@ def test_subtile_index(rank, layout, subtile_index):
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_extent):
     result = tile_extent_from_rank_metadata(array_dims, array_extent, layout)
     assert result == tile_extent
@@ -612,7 +609,6 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_subtile_slice(
     array_dims, tile_extent, layout, rank, subtile_slice, overlap, edge_interior_ratio
 ):
@@ -729,7 +725,6 @@ def test_subtile_slice(
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_subtile_slice_even_grid_odd_layout(
     array_dims, tile_extent, layout, rank, subtile_slice, overlap, edge_interior_ratio
 ):
@@ -772,7 +767,6 @@ def test_subtile_slice_even_grid_odd_layout(
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_subtile_slice_odd_grid_even_layout_no_interface(
     array_dims,
     tile_extent,
@@ -853,7 +847,6 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_subtile_extents_from_tile_metadata(
     array_dims, tile_extent, layout, edge_interior_ratio, rank_extent
 ):
@@ -893,7 +886,6 @@ def test_subtile_extents_from_tile_metadata(
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_tile_extent_from_metadata(
     array_dims,
     tile_extent,

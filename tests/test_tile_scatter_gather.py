@@ -32,23 +32,17 @@ def n_tile_halo(request):
 
 
 @pytest.fixture(params=["i,j", "j,i", "i_interface,j", "i,j,k", "i,j,k", "j,k,i"])
-def dims(request, fast):
+def dims(request):
     if request.param == "i,j":
         return [I_DIM, J_DIM]
     elif request.param == "j,i":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return [J_DIM, I_DIM]
+        return [J_DIM, I_DIM]
     elif request.param == "i_interface,j":
         return [I_INTERFACE_DIM, J_DIM]
     elif request.param == "i,j,k":
         return [I_DIM, J_DIM, K_DIM]
     elif request.param == "i,j,k":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return [K_DIM, J_DIM, I_DIM]
+        return [K_DIM, J_DIM, I_DIM]
     elif request.param == "j,k,i":
         return [J_DIM, K_DIM, I_DIM]
     else:
@@ -156,7 +150,7 @@ def get_quantity(dims, units, extent, n_halo, numpy):
 
 
 def test_tile_gather_state(
-    tile_quantity, scattered_quantities, communicator_list, time, backend
+    tile_quantity, scattered_quantities, communicator_list, time
 ):
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))

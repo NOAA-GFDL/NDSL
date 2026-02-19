@@ -14,10 +14,9 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.grid import MetricTerms
-from tests.mpi import MPI
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
+@pytest.mark.parallel
 @pytest.mark.parametrize("levels", [79, 91])
 def test_set_hybrid_pressure_coefficients_correct(levels):
     """

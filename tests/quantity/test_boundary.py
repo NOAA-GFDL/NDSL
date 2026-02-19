@@ -29,7 +29,6 @@ def boundary_data(quantity, boundary_type, n_points, interior=True):
     return quantity.data[tuple(boundary_slice)]
 
 
-@pytest.mark.cpu_only
 def test_boundary_data_1_by_1_array_1_halo():
     quantity = Quantity(
         np.random.randn(3, 3),
@@ -104,7 +103,6 @@ def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy):
     )
 
 
-@pytest.mark.cpu_only
 def test_boundary_data_2_by_2_array_2_halo():
     quantity = Quantity(
         np.random.randn(6, 6),
@@ -261,7 +259,6 @@ def test_boundary_data_2_by_2_array_2_halo():
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_shift_boundary_slice(
     dim, origin, extent, boundary_type, slice_object, reference
 ):
