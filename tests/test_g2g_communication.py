@@ -175,6 +175,6 @@ def test_halo_update_communicate_though_cpu(
     # We expect several np calls and several cp calls
     global N_ZEROS_CALLS  # noqa: F824 global ... is unused
     assert N_ZEROS_CALLS[np.zeros] > 0
-    assert len(N_ZEROS_CALLS) == 1 or N_ZEROS_CALLS[cp.zeros] == 0, (
-        "no calls to cupy.zeros logged"
-    )
+    assert (
+        len(N_ZEROS_CALLS) == 1 or N_ZEROS_CALLS[cp.zeros] == 0
+    ), "no calls to cupy.zeros logged"
