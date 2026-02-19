@@ -153,13 +153,12 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):
 
 
 @pytest.mark.parametrize("validate_args", [True, False])
-def test_copy_frozen_stencil(
-    validate_args: bool,
-    backend: str = "numpy",
-    rebuild: bool = False,
-    format_source: bool = False,
-    device_sync: bool = False,
-) -> None:
+def test_copy_frozen_stencil(validate_args: bool) -> None:
+    backend: str = "numpy"
+    rebuild: bool = False
+    format_source: bool = False
+    device_sync: bool = False
+
     config = get_stencil_config(
         backend=backend,
         rebuild=rebuild,
@@ -182,12 +181,12 @@ def test_copy_frozen_stencil(
     np.testing.assert_array_equal(q_in, q_out)
 
 
-def test_frozen_stencil_raises_if_given_origin(
-    backend: str = "numpy",
-    rebuild: bool = False,
-    format_source: bool = False,
-    device_sync: bool = False,
-) -> None:
+def test_frozen_stencil_raises_if_given_origin() -> None:
+    backend: str = "numpy"
+    rebuild: bool = False
+    format_source: bool = False
+    device_sync: bool = False
+
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -209,12 +208,12 @@ def test_frozen_stencil_raises_if_given_origin(
         stencil(q_in, q_out, origin=(0, 0, 0))
 
 
-def test_frozen_stencil_raises_if_given_domain(
-    backend: str = "numpy",
-    rebuild: bool = False,
-    format_source: bool = False,
-    device_sync: bool = False,
-):
+def test_frozen_stencil_raises_if_given_domain() -> None:
+    backend: str = "numpy"
+    rebuild: bool = False
+    format_source: bool = False
+    device_sync: bool = False
+
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -245,10 +244,9 @@ def test_frozen_stencil_kwargs_passed_to_init(
     validate_args: bool,
     format_source: bool,
     device_sync: bool,
-    backend: str = "numpy",
-):
+) -> None:
     config = get_stencil_config(
-        backend=backend,
+        backend="numpy",
         rebuild=rebuild,
         validate_args=validate_args,
         format_source=format_source,

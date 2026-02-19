@@ -37,11 +37,11 @@ jobs:
       - name: Install Python packages
         run: pip3 install .[test,zarr]
 
-      - name: Run serial-cpu tests
-        run: coverage run --rcfile=pyproject.toml -m pytest tests
+      - name: Run serial cpu tests
+        run: coverage run --rcfile=pyproject.toml -m pytest -m "not parallel and not gpu" tests
 
-      - name: Run parallel-cpu tests
-        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest tests/mpi
+      - name: Run parallel cpu tests
+        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "parallel and not gpu" tests
 
       - name: Output code coverage
         run: |

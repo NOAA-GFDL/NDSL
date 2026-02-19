@@ -4,63 +4,31 @@ import pytest
 from ndsl.optional_imports import cupy
 
 
-@pytest.fixture(params=["numpy", "cupy"])
+@pytest.fixture(params=["numpy", pytest.param("cupy", marks=pytest.mark.gpu)])
 def backend(request):
-    if cupy is None and request.param.endswith("cupy"):
-        if request.config.getoption("--gpu-only"):
-            raise ModuleNotFoundError("cupy must be installed to run gpu tests")
-        pytest.skip("cupy is not available for GPU backend")
-    elif request.config.getoption("--gpu-only") and not request.param.endswith("cupy"):
-        pytest.skip("running gpu tests only")
-    else:
-        return request.param
+    if request.param == "cupy" and cupy is None:
+        raise ModuleNotFoundError("cupy must be installed to run gpu tests")
+
+    return request.param
 
 
 @pytest.fixture
 def gt4py_backend(backend):
-    if backend in ("numpy"):
+    if backend == "numpy":
         return "numpy"
 
-    if backend in ("cupy"):
+    if backend == "cupy":
         return "gt:gpu"
 
     return None
 
 
 @pytest.fixture
-def fast(pytestconfig):
-    return pytestconfig.getoption("--fast")
-
-
-@pytest.fixture
 def numpy(backend):
     if backend == "numpy":
         return np
-    elif backend == "cupy":
+
+    if backend == "cupy":
         return cupy
-    else:
-        raise NotImplementedError()
 
-
-def pytest_addoption(parser):
-    parser.addoption(
-        "--gpu-only", action="store_true", default=False, help="only run gpu tests"
-    )
-    parser.addoption(
-        "--fast",
-        action="store_true",
-        default=False,
-        help="run a limited suite of tests which completes quickly",
-    )
-
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "cpu_only: mark test as not using a gpu")
-
-
-def pytest_collection_modifyitems(config, items):
-    if config.getoption("--gpu-only"):
-        skip_cpu_only = pytest.mark.skip(reason="running gpu tests only")
-        for item in items:
-            if "cpu_only" in item.keywords:
-                item.add_marker(skip_cpu_only)
+    raise NotImplementedError(f"Unsupported backend {backend} found in test setup.")

@@ -6,12 +6,9 @@ from ndsl.quantity.bounds import _shift_slice
 
 
 @pytest.fixture(params=["empty", "one", "five"])
-def extent_1d(request, backend, n_halo):
+def extent_1d(request):
     if request.param == "empty":
-        if "gt4py" in backend and n_halo == 0:
-            pytest.skip("gt4py does not support length-zero dimensions")
-        else:
-            return 0
+        return 0
     elif request.param == "one":
         return 1
     elif request.param == "five":
@@ -180,7 +177,8 @@ def test_compute_view_edit_end_halo(quantity, extent_1d, n_halo, n_dims):
 
 def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
     if extent_1d == 0:
-        pytest.skip("cannot edit an empty domain")
+        return  # cannot edit an empty domain
+
     quantity.data[:] = 0.0
     quantity.view[(0,) * n_dims] = 1
     assert quantity.data[(n_halo,) * n_dims] == 1
@@ -189,7 +187,8 @@ def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
 
 def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
     if extent_1d == 0:
-        pytest.skip("cannot edit an empty domain")
+        return  # cannot edit an empty domain
+
     quantity.data[:] = 0.0
     quantity.view[:] = 1
     assert quantity.np.sum(quantity.data) == extent_1d**n_dims

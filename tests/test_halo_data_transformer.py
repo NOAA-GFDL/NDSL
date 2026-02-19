@@ -107,16 +107,7 @@ def origin(n_halos, dims, n_buffer):
         ),
     ]
 )
-def dims(request, fast):
-    if fast and request.param in (
-        (I_DIM, J_DIM, K_DIM),
-        (
-            K_INTERFACE_DIM,
-            J_INTERFACE_DIM,
-            I_INTERFACE_DIM,
-        ),
-    ):
-        pytest.skip("running in fast mode")
+def dims(request):
     return request.param
 
 
