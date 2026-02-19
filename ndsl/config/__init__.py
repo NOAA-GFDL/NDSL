@@ -1,6 +1,7 @@
 from .backend import (
     Backend,
     BackendFramework,
+    BackendLoopOrder,
     BackendStrategy,
     BackendTargetDevice,
     backend_cpu,
@@ -14,6 +15,7 @@ __all__ = [
     "BackendFramework",
     "BackendStrategy",
     "BackendTargetDevice",
+    "BackendLoopOrder",
     "backend_python",
     "backend_cpu",
     "backend_gpu",

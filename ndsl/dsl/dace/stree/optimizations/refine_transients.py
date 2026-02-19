@@ -1,11 +1,9 @@
-from __future__ import annotations
-
 import warnings
 
 import dace.data
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
-from ndsl.config import Backend
+from ndsl.config import Backend, BackendFramework
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
 from ndsl.logging import ndsl_log
 
@@ -30,7 +28,7 @@ def _reduce_cartesian_axis_size_to_1(
     transient_map_reads: dace.subsets.Range | None,
     transient_map_writes: dace.subsets.Range | None,
     transient_data: dace.data.Data,
-    ijk_order: tuple[int, ...],
+    layout_map: tuple[int, ...],
 ) -> bool:
     """Reduce dimension size of transient to 1 if all access (reads and writes)
     are atomic"""
@@ -68,10 +66,10 @@ def _reduce_cartesian_axis_size_to_1(
     )
 
     if len(transient_data.shape) == 3:
-        layout = [*ijk_order]
+        layout = [*layout_map]
     else:
         data_dim_count = len(transient_data.shape) - 3
-        layout = [dim + data_dim_count for dim in ijk_order] + [
+        layout = [dim + data_dim_count for dim in layout_map] + [
             i - 1 for i in range(data_dim_count, 0, -1)
         ]
 
@@ -250,18 +248,11 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
             stacklevel=2,
         )
 
-        if backend.as_humanly_readable() in [
-            "orch:dace:cpu:IJK",
-            "orch:dace:gpu:KJI",
-            "orch:dace:cpu:KJI",
-            "orch:dace:cpu:KIJ",
-        ]:
-            self.ijk_order = backend.as_layout_map()
-        else:
+        if not backend.is_orchestrated() or backend.framework != BackendFramework.DACE:
             raise NotImplementedError(
                 f"[Schedule Tree Opt] CartesianRefineTransient not implemented for backend {backend}"
             )
-
+        self.layout_map = backend.as_layout_map()
         self.refined_array: set[str] = set()
 
     def __str__(self) -> str:
@@ -294,7 +285,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
                     collect_map.transients_range_reads[name],
                     collect_map.transients_range_writes[name],
                     data,
-                    self.ijk_order,
+                    self.layout_map,
                 )
 
             refined_transient += 1 if refined else 0

@@ -46,7 +46,7 @@ class Quantity:
             data: ndarray-like object containing the underlying data
             dims: dimension names for each axis
             units: units of the quantity
-            backend: GT4Py backend name. We ensure that the data is allocated in a
+            backend: current backend in use. We ensure that the data is allocated in a
                 performance optimal way for that backend and copy if necessary.
             origin: first point in data within the
                 computational domain. Defaults to None.
@@ -165,7 +165,7 @@ class Quantity:
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
-            backend: NDSL backend name. If given, we allocate data in a performance
+            backend: current backend in use. If given, we allocate data in a performance
                 optimal way for this backend. Overrides any potentially saved `backend`
                 in `data.attrs["backend"]`.
         """

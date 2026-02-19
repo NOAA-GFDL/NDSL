@@ -232,8 +232,7 @@ class VerticalGridData:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
         if self.ak.backend is not None and self.ak.backend.is_gpu_backend():
             return Float(self.ak.view[0].get())
-        else:
-            return Float(self.ak.view[0])
+        return Float(self.ak.view[0])
 
 
 @dataclasses.dataclass(frozen=True)

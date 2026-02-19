@@ -22,6 +22,7 @@ from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
+from ndsl.config import BackendLoopOrder
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
@@ -172,7 +173,7 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
-                if backend_name.loop_order == "IJK":
+                if backend_name.loop_order == BackendLoopOrder.IJK:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
@@ -182,7 +183,7 @@ def _build_sdfg(
                             CartesianRefineTransients(backend_name),
                         ]
                     )
-                elif backend_name.loop_order in "KJI":
+                elif backend_name.loop_order == BackendLoopOrder.KJI:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
@@ -192,7 +193,7 @@ def _build_sdfg(
                             CartesianRefineTransients(backend_name),
                         ]
                     )
-                elif backend_name.loop_order in "KIJ":
+                elif backend_name.loop_order == BackendLoopOrder.KIJ:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),

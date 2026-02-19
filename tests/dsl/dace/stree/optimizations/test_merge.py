@@ -135,7 +135,7 @@ class TestStreeMergeMapsIJK:
     def factories(self) -> Factories:
         domain = (3, 3, 4)
         return get_factories_single_tile_orchestrated(
-            domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
+            domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
         )
 
     @pytest.fixture
@@ -258,7 +258,7 @@ class TestStreeMergeMapsKJI:
     def factories(self) -> Factories:
         domain = (3, 3, 4)
         return get_factories_single_tile_orchestrated(
-            domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
+            domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:KJI")
         )
 
     @pytest.fixture

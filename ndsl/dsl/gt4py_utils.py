@@ -108,7 +108,7 @@ def make_storage_data(
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        backend: gt4py backend to use
+        backend: current backend in use
 
     Returns:
         Field[..., dtype]: New storage

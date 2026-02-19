@@ -5,7 +5,6 @@ import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
 from ndsl.config import Backend
 from ndsl.constants import N_HALO_DEFAULT
-from ndsl.dsl.gt4py_utils import backend_is_fortran_aligned
 from ndsl.initialization.grid_sizer import GridSizer
 
 
@@ -21,7 +20,7 @@ class SubtileGridSizer(GridSizer):
     ) -> None:
         super().__init__(nx, ny, nz, n_halo, data_dimensions)
 
-        fortran_style_memory = backend_is_fortran_aligned(backend)
+        fortran_style_memory = backend.is_fortran_aligned()
         self._pad_non_interface_dimensions = not fortran_style_memory
 
     @classmethod
@@ -46,12 +45,12 @@ class SubtileGridSizer(GridSizer):
             nz: number of vertical levels
             n_halo: number of halo points
             layout: (y, x) number of ranks along tile edges
-            backend: backend name
+            backend: current backend in use
             data_dimensions: lengths of any non-x/y/z dimensions,
                 such as land or radiation dimensions
             tile_partitioner (optional): partitioner object for the tile. By default, a
                 TilePartitioner is created with the given layout
-            tile_rank (optional): rank of this subtile.
+            tile_rank (optional): rank of this subtile
         """
         if data_dimensions is None:
             data_dimensions = {}
@@ -93,11 +92,11 @@ class SubtileGridSizer(GridSizer):
         Args:
             namelist: A namelist for the fv3gfs fortran model
             tile_partitioner (optional): a partitioner to use for segmenting the tile.
-                By default, a TilePartitioner is used.
+                By default, a TilePartitioner is used
             tile_rank (optional): current rank on tile. Default is 0. Only matters if
                 different ranks have different domain shapes. If tile_partitioner
-                is a TilePartitioner, this argument does not matter.
-            backend: backend name
+                is a TilePartitioner, this argument does not matter
+            backend: current backend in use
         """
         if "fv_core_nml" in namelist.keys():
             layout = namelist["fv_core_nml"]["layout"]

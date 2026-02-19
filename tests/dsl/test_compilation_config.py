@@ -14,15 +14,12 @@ from ndsl import (
 from ndsl.config import Backend
 
 
-def test_safety_checks():
+@pytest.mark.parametrize("backend", (Backend.python(), Backend("st:gt:cpu:KJI")))
+def test_safety_checks(backend: Backend) -> None:
     with pytest.raises(
         RuntimeError, match="Device sync is true on a CPU based backend"
     ):
-        CompilationConfig(Backend.python(), device_sync=True)
-    with pytest.raises(
-        RuntimeError, match="Device sync is true on a CPU based backend"
-    ):
-        CompilationConfig(Backend("st:gt:cpu:KJI"), device_sync=True)
+        CompilationConfig(backend=backend, device_sync=True)
 
 
 @pytest.mark.parametrize(
