@@ -204,7 +204,7 @@ backend_python: Final[Backend] = Backend("st:python:cpu:IJK")
 """Default backend for quick iterative work."""
 
 backend_cpu: Final[Backend] = Backend("orch:dace:cpu:IJK")
-"""Default performance backend targeting CPU device"""
+"""Default performance backend targeting CPU device."""
 
 backend_gpu: Final[Backend] = Backend("orch:dace:gpu:KJI")
-"""Default performance backend targeting GPU device"""
+"""Default performance backend targeting GPU device."""

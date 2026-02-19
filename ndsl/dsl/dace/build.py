@@ -110,17 +110,20 @@ def get_sdfg_path(
     return sdfg_dir_path
 
 
-def set_distributed_caches(config: DaceConfig) -> None:
-    """In Run mode, check required file then point current rank cache to source cache"""
+def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> None:
+    """In Run mode, check required file then point current rank cache to source cache.
+
+    Optional: force build irregardless of backend or orchestration mode.
+    """
 
     # Execute specific initialization per orchestration state
-    if not config.get_backend().is_orchestrated():
+    if not config.get_backend().is_orchestrated() and not force_build:
         return
 
     # Check that we have all the file we need to early out in case
     # of issues.
     orchestration_mode = config.get_orchestrate()
-    if orchestration_mode == DaCeOrchestration.Run:
+    if orchestration_mode == DaCeOrchestration.Run and not force_build:
         import os
 
         cache_directory = get_cache_fullpath(config.code_path)
