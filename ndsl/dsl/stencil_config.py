@@ -142,7 +142,7 @@ class CompilationConfig:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "backend": self.backend,
+            "backend": self.backend.as_humanly_readable,
             "rebuild": self.rebuild,
             "validate_args": self.validate_args,
             "format_source": self.format_source,
@@ -154,7 +154,9 @@ class CompilationConfig:
     @classmethod
     def from_dict(cls, data: dict) -> Self:
         instance = cls(
-            backend=data.get("backend", Backend.python()),
+            backend=Backend(
+                data.get("backend", Backend.python().as_humanly_readable())
+            ),
             rebuild=data.get("rebuild", False),
             validate_args=data.get("validate_args", True),
             format_source=data.get("format_source", False),
