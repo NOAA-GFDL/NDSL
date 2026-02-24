@@ -374,7 +374,7 @@ class DaceConfig:
     def as_dict(self) -> dict[str, Any]:
         return {
             "_orchestrate": str(self._orchestrate.name),
-            "_backend": self._backend,
+            "_backend": self._backend.as_humanly_readable(),
             "my_rank": self.my_rank,
             "rank_size": self.rank_size,
             "layout": self.layout,
