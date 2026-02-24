@@ -142,7 +142,7 @@ class CompilationConfig:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "backend": self.backend.as_humanly_readable,
+            "backend": self.backend.as_humanly_readable(),
             "rebuild": self.rebuild,
             "validate_args": self.validate_args,
             "format_source": self.format_source,
