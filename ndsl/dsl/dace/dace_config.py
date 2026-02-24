@@ -385,7 +385,7 @@ class DaceConfig:
     def from_dict(cls, data: dict) -> Self:
         config = cls(
             None,
-            backend=data["_backend"],
+            backend=Backend(data["_backend"]),
             orchestration=DaCeOrchestration[data["_orchestrate"]],
         )
         config.my_rank = data["my_rank"]
