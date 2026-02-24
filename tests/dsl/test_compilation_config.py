@@ -164,7 +164,7 @@ def test_from_dict() -> None:
     assert config.run_mode == RunMode.BuildAndRun
     assert config.use_minimal_caching is False
 
-    specification_dict["backend"] = Backend("st:gt:gpu:KJI")
+    specification_dict["backend"] = "st:gt:gpu:KJI"
     config = CompilationConfig.from_dict(specification_dict)
     assert config.backend == Backend("st:gt:gpu:KJI")
 
