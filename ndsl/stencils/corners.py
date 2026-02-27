@@ -1,4 +1,3 @@
-import warnings
 from typing import Literal, TypeAlias, no_type_check
 
 from gt4py.cartesian import gtscript
@@ -10,17 +9,8 @@ from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
 
-FillCornersDirection: TypeAlias = Literal["i", "x", "j", "y"]
+FillCornersDirection: TypeAlias = Literal["i", "j"]
 GridType: TypeAlias = Literal["A", "B"]  # Arakawa grid type
-
-
-def _check_for_deprecation(axis: str) -> None:
-    if axis in ["x", "y"]:
-        warnings.warn(
-            f"Corners direction {axis} is deprecated use 'i' or 'j'",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
 
 
 def kslice_from_inputs(
@@ -365,10 +355,9 @@ class FillCornersBGrid:
             domain = default_domain
         """The full domain required to do corner computation everywhere"""
 
-        _check_for_deprecation(direction)
-        if direction in ["x", "i"]:
+        if direction in ["i"]:
             defn = fill_corners_bgrid_x_defn
-        elif direction in ["y", "j"]:
+        elif direction in ["j"]:
             defn = fill_corners_bgrid_y_defn
         else:
             raise ValueError("Direction must be either 'x' or 'y'")
@@ -519,7 +508,6 @@ def fill_sw_corner_2d_bgrid(
     direction: FillCornersDirection,
     grid_indexer: GridIndexing,
 ) -> None:
-    _check_for_deprecation(direction)
     if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jsc - j, :] = q[
             grid_indexer.isc - j, grid_indexer.jsc + i, :
@@ -537,7 +525,6 @@ def fill_nw_corner_2d_bgrid(
     direction: FillCornersDirection,
     grid_indexer: GridIndexing,
 ) -> None:
-    _check_for_deprecation(direction)
     if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jec + 1 + j, :] = q[
             grid_indexer.isc - j, grid_indexer.jec + 1 - i, :
@@ -555,7 +542,6 @@ def fill_se_corner_2d_bgrid(
     direction: FillCornersDirection,
     grid_indexer: GridIndexing,
 ) -> None:
-    _check_for_deprecation(direction)
     if direction in ["x", "i"]:
         q[grid_indexer.iec + 1 + i, grid_indexer.jsc - j, :] = q[
             grid_indexer.iec + 1 + j, grid_indexer.jsc + i, :
@@ -573,7 +559,6 @@ def fill_ne_corner_2d_bgrid(
     direction: FillCornersDirection,
     grid_indexer: GridIndexing,
 ) -> None:
-    _check_for_deprecation(direction)
     if direction in ["x", "i"]:
         q[grid_indexer.iec + 1 + i, grid_indexer.jec + 1 + j :] = q[
             grid_indexer.iec + 1 + j, grid_indexer.jec + 1 - i, :
@@ -593,7 +578,6 @@ def fill_sw_corner_2d_agrid(
     kstart: int = 0,
     nk: int | None = None,
 ) -> None:
-    _check_for_deprecation(direction)
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jsc - j, kslice] = q[
@@ -614,7 +598,6 @@ def fill_nw_corner_2d_agrid(
     kstart: int = 0,
     nk: int | None = None,
 ) -> None:
-    _check_for_deprecation(direction)
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction in ["x", "i"]:
         q[grid_indexer.isc - i, grid_indexer.jec + j, kslice] = q[
@@ -635,7 +618,6 @@ def fill_se_corner_2d_agrid(
     kstart: int = 0,
     nk: int | None = None,
 ) -> None:
-    _check_for_deprecation(direction)
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction in ["x", "i"]:
         q[grid_indexer.iec + i, grid_indexer.jsc - j, kslice] = q[
@@ -656,7 +638,6 @@ def fill_ne_corner_2d_agrid(
     kstart: int = 0,
     nk: int | None = None,
 ) -> None:
-    _check_for_deprecation(direction)
     kslice, nk = kslice_from_inputs(kstart, nk, grid_indexer)
     if direction in ["x", "i"]:
         q[grid_indexer.iec + i, grid_indexer.jec + j, kslice] = q[
