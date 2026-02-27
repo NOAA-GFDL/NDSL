@@ -16,6 +16,7 @@ from ndsl import (
     Quantity,
     TilePartitioner,
 )
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance import Timer
@@ -130,7 +131,7 @@ def test_halo_update_only_communicate_on_gpu(
             units="m",
             origin=(3, 3, 1),
             extent=(3, 3, 1),
-            backend="gt:gpu",
+            backend=Backend("st:gt:gpu:KJI"),
         )
         halo_updater_list = []
         for communicator in gpu_communicators:
@@ -162,7 +163,7 @@ def test_halo_update_communicate_though_cpu(
             units="m",
             origin=(3, 3, 0),
             extent=(3, 3, 0),
-            backend="numpy",
+            backend=Backend("st:numpy:cpu:IJK"),
         )
         halo_updater_list = []
         for communicator in cpu_communicators:

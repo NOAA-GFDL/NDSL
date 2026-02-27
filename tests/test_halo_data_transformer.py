@@ -7,6 +7,7 @@ import pytest
 from ndsl import HaloExchangeSpec, Quantity
 from ndsl.buffer import Buffer
 from ndsl.comm import _boundary_utils
+from ndsl.config import Backend
 from ndsl.constants import (
     EAST,
     I_DIM,
@@ -152,7 +153,7 @@ def _shape_length(shape: Tuple[int]) -> int:
 
 
 @pytest.fixture
-def quantity(dims, units, origin, extent, shape, dtype, gt4py_backend):
+def quantity(dims, units, origin, extent, shape, dtype, ndsl_backend: Backend):
     """A list of quantities whose values are 42.42 in the computational domain and 1
     outside of it."""
     sz = _shape_length(shape)
@@ -164,7 +165,7 @@ def quantity(dims, units, origin, extent, shape, dtype, gt4py_backend):
         units=units,
         origin=origin,
         extent=extent,
-        backend=gt4py_backend,
+        backend=ndsl_backend,
     )
 
 

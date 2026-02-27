@@ -4,6 +4,7 @@ import datetime
 import pytest
 
 from ndsl import LocalComm, Quantity, TileCommunicator, TilePartitioner
+from ndsl.config import Backend
 from ndsl.constants import (
     HORIZONTAL_DIMS,
     I_DIM,
@@ -144,7 +145,7 @@ def get_quantity(dims, units, extent, n_halo, numpy):
         units,
         origin=tuple(origin),
         extent=tuple(extent),
-        backend="debug",
+        backend=Backend.python(),
     )
 
 

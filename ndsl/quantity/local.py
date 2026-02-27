@@ -4,6 +4,7 @@ from typing import Any
 import dace
 import numpy as np
 
+from ndsl.config import Backend
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 
@@ -22,7 +23,7 @@ class Local(Quantity):
         dims: Sequence[str],
         units: str,
         *,
-        backend: str,
+        backend: Backend,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         allow_mismatch_float_precision: bool = False,
