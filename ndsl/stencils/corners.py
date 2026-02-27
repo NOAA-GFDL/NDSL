@@ -360,7 +360,7 @@ class FillCornersBGrid:
         elif direction in ["j"]:
             defn = fill_corners_bgrid_y_defn
         else:
-            raise ValueError("Direction must be either 'x' or 'y'")
+            raise ValueError("Direction must be either 'i' or 'j'")
         externals = stencil_factory.grid_indexing.axis_offsets(
             origin=origin, domain=domain
         )
