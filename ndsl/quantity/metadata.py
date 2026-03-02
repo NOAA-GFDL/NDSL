@@ -5,6 +5,7 @@ from types import ModuleType
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 from ndsl.optional_imports import cupy
 
@@ -27,7 +28,7 @@ class QuantityMetadata:
     "Units of the quantity."
     data_type: type
     "ndarray-like type used to store the data."
-    dtype: type
+    dtype: npt.DTypeLike
     "dtype of the data in the ndarray-like object."
     backend: str
     "GT4Py backend name. Used for performance optimal data allocation."

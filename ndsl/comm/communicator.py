@@ -223,7 +223,7 @@ class Communicator(abc.ABC):
     ) -> Quantity:
         """Initialize a Quantity for use when receiving global data during gather"""
         recv_quantity = Quantity(
-            send_metadata.np.zeros(global_extent, dtype=send_metadata.dtype),  # type: ignore
+            send_metadata.np.zeros(global_extent, dtype=send_metadata.dtype),
             dims=send_metadata.dims,
             units=send_metadata.units,
             origin=tuple([0 for dim in send_metadata.dims]),
@@ -238,7 +238,7 @@ class Communicator(abc.ABC):
     ) -> Quantity:
         """Initialize a Quantity for use when receiving subtile data during scatter"""
         recv_quantity = Quantity(
-            send_metadata.np.zeros(shape, dtype=send_metadata.dtype),  # type: ignore
+            send_metadata.np.zeros(shape, dtype=send_metadata.dtype),
             dims=send_metadata.dims,
             units=send_metadata.units,
             backend=send_metadata.backend,
@@ -837,7 +837,7 @@ class CubedSphereCommunicator(Communicator):
         # needs to change the quantity dimensions since we add a "tile" dimension,
         # unlike for tile scatter/gather which retains the same dimensions
         recv_quantity = Quantity(
-            metadata.np.zeros(global_extent, dtype=metadata.dtype),  # type: ignore
+            metadata.np.zeros(global_extent, dtype=metadata.dtype),
             dims=(constants.TILE_DIM,) + metadata.dims,
             units=metadata.units,
             origin=(0,) + tuple([0 for dim in metadata.dims]),
@@ -859,7 +859,7 @@ class CubedSphereCommunicator(Communicator):
         # needs to change the quantity dimensions since we remove a "tile" dimension,
         # unlike for tile scatter/gather which retains the same dimensions
         recv_quantity = Quantity(
-            metadata.np.zeros(shape, dtype=metadata.dtype),  # type: ignore
+            metadata.np.zeros(shape, dtype=metadata.dtype),
             dims=metadata.dims[1:],
             units=metadata.units,
             backend=metadata.backend,

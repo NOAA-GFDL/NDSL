@@ -1,4 +1,3 @@
-import functools
 from collections.abc import Iterable
 from typing import TypeAlias
 
