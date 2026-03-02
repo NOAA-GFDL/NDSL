@@ -16,7 +16,7 @@ from ndsl.utils import (
 )
 
 
-BufferKey = tuple[Callable, Iterable[int], type]
+BufferKey = tuple[Callable, Iterable[int], np.dtype[Any]]
 BUFFER_CACHE: dict[BufferKey, list["Buffer"]] = {}
 
 
@@ -41,7 +41,7 @@ class Buffer:
 
     @classmethod
     def pop_from_cache(
-        cls, allocator: Allocator, shape: Iterable[int], dtype: type
+        cls, allocator: Allocator, shape: Iterable[int], dtype: np.dtype[Any]
     ) -> Buffer:
         """Retrieve or insert then retrieve of buffer from cache.
 
@@ -107,7 +107,7 @@ class Buffer:
 
 @contextlib.contextmanager
 def array_buffer(
-    allocator: Allocator, shape: Iterable[int], dtype: type
+    allocator: Allocator, shape: Iterable[int], dtype: np.dtype[Any]
 ) -> Generator[Buffer, Buffer, None]:
     """
     A context manager providing a contiguous array, which may be re-used between calls.
@@ -132,7 +132,7 @@ def send_buffer(
     allocator: Callable,
     array: np.ndarray,
     timer: Timer | None = None,
-) -> np.ndarray:
+) -> Generator[np.ndarray]:
     """A context manager ensuring that `array` is contiguous in a context where it is
     being sent as data, copying into a recycled buffer array if necessary.
 
@@ -166,7 +166,7 @@ def recv_buffer(
     allocator: Callable,
     array: np.ndarray,
     timer: Timer | None = None,
-) -> np.ndarray:
+) -> Generator[np.ndarray]:
     """A context manager ensuring that array is contiguous in a context where it is
     being used to receive data, using a recycled buffer array and then copying the
     result into array if necessary.
