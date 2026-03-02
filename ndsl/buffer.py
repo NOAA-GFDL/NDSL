@@ -5,6 +5,7 @@ from collections.abc import Callable, Generator, Iterable
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.types import Allocator
@@ -16,7 +17,7 @@ from ndsl.utils import (
 )
 
 
-BufferKey = tuple[Callable, Iterable[int], np.dtype[Any]]
+BufferKey = tuple[Callable, Iterable[int], npt.DTypeLike]
 BUFFER_CACHE: dict[BufferKey, list["Buffer"]] = {}
 
 
@@ -41,7 +42,7 @@ class Buffer:
 
     @classmethod
     def pop_from_cache(
-        cls, allocator: Allocator, shape: Iterable[int], dtype: np.dtype[Any]
+        cls, allocator: Allocator, shape: Iterable[int], dtype: npt.DTypeLike
     ) -> Buffer:
         """Retrieve or insert then retrieve of buffer from cache.
 
@@ -107,7 +108,7 @@ class Buffer:
 
 @contextlib.contextmanager
 def array_buffer(
-    allocator: Allocator, shape: Iterable[int], dtype: np.dtype[Any]
+    allocator: Allocator, shape: Iterable[int], dtype: npt.DTypeLike
 ) -> Generator[Buffer, Buffer, None]:
     """
     A context manager providing a contiguous array, which may be re-used between calls.
