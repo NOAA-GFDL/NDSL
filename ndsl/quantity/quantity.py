@@ -405,7 +405,7 @@ class Quantity:
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]
         transposed = Quantity(
-            self.np.transpose(self.data, transpose_order),  # type: ignore[attr-defined]
+            self.np.transpose(self.data, transpose_order),
             dims=_transpose_sequence(self.dims, transpose_order),
             units=self.units,
             origin=_transpose_sequence(self.origin, transpose_order),
