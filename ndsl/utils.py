@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Sequence
 from enum import EnumMeta
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import f90nml
 import numpy as np
@@ -88,7 +88,7 @@ def device_synchronize() -> None:
 
 
 def safe_mpi_allocate(
-    allocator: Allocator, shape: Iterable[int], dtype: type
+    allocator: Allocator, shape: Iterable[int], dtype: np.dtype[Any]
 ) -> np.ndarray:
     """Make sure the allocation use an allocator that works with MPI
 
