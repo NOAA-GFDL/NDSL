@@ -308,7 +308,7 @@ class HaloDataTransformer(abc.ABC):
 
         # Compute required size
         buffer_size = 0
-        dtype = None
+        dtype = np.float32  # default that will be overriden or not used
         for edge_x in self._infos_x:
             buffer_size += edge_x.pack_buffer_size
             dtype = edge_x.specification.dtype
@@ -320,12 +320,12 @@ class HaloDataTransformer(abc.ABC):
         self._pack_buffer = Buffer.pop_from_cache(
             self._np_module.zeros,
             (buffer_size,),
-            dtype,  # type: ignore[arg-type]
+            dtype,
         )
         self._unpack_buffer = Buffer.pop_from_cache(
             self._np_module.zeros,
             (buffer_size,),
-            dtype,  # type: ignore[arg-type]
+            dtype,
         )
 
     def ready(self) -> bool:
