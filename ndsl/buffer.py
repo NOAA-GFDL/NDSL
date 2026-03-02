@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Callable, Generator, Iterable
+from typing import Any
 
 import numpy as np
-from numpy.lib.index_tricks import IndexExpression
 
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.types import Allocator
@@ -78,8 +78,8 @@ class Buffer:
     def assign_to(
         self,
         destination_array: np.ndarray,
-        buffer_slice: IndexExpression = np.index_exp[:],
-        buffer_reshape: IndexExpression = None,
+        buffer_slice: Any = np.index_exp[:],
+        buffer_reshape: Any | None = None,
     ) -> None:
         """Assign internal array to destination_array.
 
@@ -95,7 +95,7 @@ class Buffer:
             )
 
     def assign_from(
-        self, source_array: np.ndarray, buffer_slice: IndexExpression = np.index_exp[:]
+        self, source_array: np.ndarray, buffer_slice: Any = np.index_exp[:]
     ) -> None:
         """Assign source_array to internal array.
 
