@@ -84,12 +84,13 @@ def _build_flatten_indices(  # type: ignore[no-untyped-def]
     with np.nditer(
         arr_indices,
         flags=["multi_index"],
-        op_flags=["writeonly"],
+        op_flags=[["writeonly"]],
         order="K",
     ) as it:
         for array_value in it:
             offset = sum(np.array(it.multi_index) * strides) // itemsize
-            array_value[...] = offset_to_slice + offset
+            # mypy doesn't understand the 0-dim array target
+            array_value[...] = offset_to_slice + offset # type: ignore
 
     if rotate:
         # sending data across the boundary will rotate the data

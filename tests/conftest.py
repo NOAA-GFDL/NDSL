@@ -18,7 +18,7 @@ def gt4py_backend(backend):
         return "numpy"
 
     if backend == "cupy":
-        return "gt:gpu"
+        return "dace:gpu"
 
     return None
 

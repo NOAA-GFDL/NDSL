@@ -245,7 +245,7 @@ def boundary_dict(ranks_per_tile):
 
 @pytest.fixture
 def depth_quantity(
-    dims, units, origin, extent, shape, numpy, dtype, n_points, n_buffer
+    dims, units, origin, extent, shape, numpy, dtype, n_points, n_buffer, gt4py_backend
 ):
     """A quantity whose value indicates the distance from the computational
     domain boundary."""
@@ -268,7 +268,12 @@ def depth_quantity(
                 pos[i] = origin[i] + extent[i] + n_outside - 1
                 data[tuple(pos)] = numpy.nan
     return Quantity(
-        data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
+        data,
+        dims=dims,
+        units=units,
+        origin=origin,
+        extent=extent,
+        backend=gt4py_backend,
     )
 
 
