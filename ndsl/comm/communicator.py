@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Mapping, Sequence
+from types import ModuleType
 from typing import Any, Self, cast
 
 import numpy as np
@@ -16,7 +17,6 @@ from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHal
 from ndsl.optional_imports import cupy
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec, QuantityMetadata
-from ndsl.types import NumpyModule
 
 
 def to_numpy(array, dtype=None) -> np.ndarray:  # type: ignore[no-untyped-def]
@@ -83,7 +83,7 @@ class Communicator(abc.ABC):
         """Total number of ranks in this communicator"""
         return self.comm.Get_size()
 
-    def _maybe_force_cpu(self, module: NumpyModule) -> NumpyModule:
+    def _maybe_force_cpu(self, module: ModuleType) -> ModuleType:
         """
         Get a numpy-like module depending on configuration and
         Quantity original allocator.

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import dataclasses
+from types import ModuleType
 from typing import Any
 
 import numpy as np
 
 from ndsl.optional_imports import cupy
-from ndsl.types import NumpyModule
 
 
 if cupy is None:
@@ -38,7 +38,7 @@ class QuantityMetadata:
         return dict(zip(self.dims, self.extent))
 
     @property
-    def np(self) -> NumpyModule:
+    def np(self) -> ModuleType:
         """numpy-like module used to interact with the data."""
         if issubclass(self.data_type, cupy.ndarray):
             return cupy
@@ -71,5 +71,5 @@ class QuantityHaloSpec:
     origin: tuple[int, ...]
     extent: tuple[int, ...]
     dims: tuple[str, ...]
-    numpy_module: NumpyModule
+    numpy_module: ModuleType
     dtype: Any

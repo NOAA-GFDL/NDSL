@@ -4,6 +4,7 @@ import abc
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
+from types import ModuleType
 from uuid import UUID, uuid1
 
 import numpy as np
@@ -22,7 +23,6 @@ from ndsl.halo.cuda_kernels import (
 from ndsl.halo.rotate import rotate_scalar_data, rotate_vector_data
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, QuantityHaloSpec
-from ndsl.types import NumpyModule
 from ndsl.utils import device_synchronize
 
 
@@ -186,7 +186,7 @@ class HaloDataTransformer(abc.ABC):
 
     def __init__(
         self,
-        np_module: NumpyModule,
+        np_module: ModuleType,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> None:
@@ -237,7 +237,7 @@ class HaloDataTransformer(abc.ABC):
 
     @staticmethod
     def get(
-        np_module: NumpyModule,
+        np_module: ModuleType,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> HaloDataTransformer:
@@ -589,7 +589,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
 
     def __init__(
         self,
-        np_module: NumpyModule,
+        np_module: ModuleType,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> None:
