@@ -26,7 +26,6 @@ dev = [
   "flake8-pyproject",
   "ndsl[demos]",
   "ndsl[docs]",
-  "ndsl[serialbox]",
   "ndsl[test]",
   "pre-commit"
 ]
