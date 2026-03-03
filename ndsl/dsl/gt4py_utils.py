@@ -59,9 +59,8 @@ def _mask_to_dimensions(mask: tuple[bool, ...], shape: Sequence[int]) -> list[st
             dimensions.append(axis)
     if len(mask) > 3:
         for i in range(3, len(mask)):
-            dimensions.append(str(shape[i]))
-    offset = int(sum(mask))
-    dimensions.extend(str(shape[offset:]))
+            if mask[i]:
+                dimensions.append(str(shape[i]))
     return dimensions
 
 
@@ -333,12 +332,16 @@ def make_storage_from_shape(
            )
         3) q_out = utils.make_storage_from_shape(q_in.shape, origin,)
     """
-    if not mask:
+    if mask is None:
         n_dims = len(shape)
         if n_dims == 1:
             mask = (False, False, True)  # Assume 1D is a k-field
+        elif n_dims == 2:
+            mask = (True, True, False)  # Assume 2D is an ij-field
+        elif n_dims < 3:
+            raise NotImplementedError(f"Unexpected number of dimensions {n_dims}.")
         else:
-            mask = (n_dims * (True,)) + ((3 - n_dims) * (False,))
+            mask = n_dims * (True,)
     storage = gt_storage.zeros(
         shape,
         dtype,
