@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
 from types import ModuleType
+from typing import no_type_check
 from uuid import UUID, uuid1
 
 import numpy as np
@@ -53,7 +54,11 @@ def _push_stream(stream: "cp.cuda.Stream") -> None:
 INDICES_CACHE: dict[str, "cp.ndarray"] = {}
 
 
-def _build_flatten_indices(  # type: ignore[no-untyped-def]
+# `array_value[...] = xxx` is failing mypy because of bad inference
+# of the type. We can't type ignore, because mypy also thinks that it
+# no needed (but if removed, it will fail...)
+@no_type_check
+def _build_flatten_indices(
     key,
     shape,
     slices: tuple[slice, ...],
@@ -89,7 +94,6 @@ def _build_flatten_indices(  # type: ignore[no-untyped-def]
     ) as it:
         for array_value in it:
             offset = sum(np.array(it.multi_index) * strides) // itemsize
-            # mypy doesn't understand the 0-dim array target
             array_value[...] = offset_to_slice + offset
 
     if rotate:
