@@ -90,7 +90,7 @@ def _build_flatten_indices(  # type: ignore[no-untyped-def]
         for array_value in it:
             offset = sum(np.array(it.multi_index) * strides) // itemsize
             # mypy doesn't understand the 0-dim array target
-            array_value[...] = offset_to_slice + offset  # type: ignore[index]
+            array_value[...] = offset_to_slice + offset
 
     if rotate:
         # sending data across the boundary will rotate the data
