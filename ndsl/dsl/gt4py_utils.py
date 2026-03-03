@@ -1,3 +1,4 @@
+import warnings
 from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any
@@ -5,10 +6,11 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 from gt4py import storage as gt_storage
-from gt4py.cartesian import backend as gt_backend
 
+from ndsl import xumpy
+from ndsl.config.backend import Backend
 from ndsl.constants import N_HALO_DEFAULT
-from ndsl.dsl.typing import DTypes, Float
+from ndsl.dsl.typing import Float
 from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
@@ -49,19 +51,16 @@ def mark_untested(msg="This is not tested"):
     return inner
 
 
-def _mask_to_dimensions(
-    mask: tuple[bool, ...], shape: Sequence[int]
-) -> list[str | int]:
+def _mask_to_dimensions(mask: tuple[bool, ...], shape: Sequence[int]) -> list[str]:
     assert len(mask) >= 3
-    dimensions: list[str | int] = []
+    dimensions: list[str] = []
     for i, axis in enumerate(("I", "J", "K")):
         if mask[i]:
             dimensions.append(axis)
     if len(mask) > 3:
         for i in range(3, len(mask)):
-            dimensions.append(str(shape[i]))
-    offset = int(sum(mask))
-    dimensions.extend(shape[offset:])
+            if mask[i]:
+                dimensions.append(str(shape[i]))
     return dimensions
 
 
@@ -85,8 +84,8 @@ def make_storage_data(
     shape: tuple[int, ...] | None = None,
     origin: tuple[int, ...] = origin,
     *,
-    backend: str,
-    dtype: DTypes = Float,
+    backend: Backend,
+    dtype: npt.DTypeLike = Float,
     mask: tuple[bool, ...] | None = None,
     start: tuple[int, ...] = (0, 0, 0),
     dummy: tuple[int, ...] | None = None,
@@ -107,7 +106,7 @@ def make_storage_data(
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        backend: gt4py backend to use
+        backend: current backend in use
 
     Returns:
         Field[..., dtype]: New storage
@@ -190,7 +189,7 @@ def make_storage_data(
     storage = gt_storage.from_array(
         data,
         dtype,
-        backend=backend,
+        backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, data.shape),
     )
@@ -205,12 +204,12 @@ def _make_storage_data_1d(
     axis: int = 2,
     read_only: bool = True,
     *,
-    dtype: DTypes = Float,
-    backend: str,
+    dtype: npt.DTypeLike = Float,
+    backend: Backend,
 ) -> npt.NDArray:
     # axis refers to a repeated axis, dummy refers to a singleton axis
     axis = min(axis, len(shape) - 1)
-    buffer = zeros(shape[axis], dtype=dtype, backend=backend)
+    buffer = xumpy.zeros(shape[axis], backend, dtype)
     if dummy:
         axis = list(set((0, 1, 2)).difference(dummy))[0]
 
@@ -242,8 +241,8 @@ def _make_storage_data_2d(
     axis: int = 2,
     read_only: bool = True,
     *,
-    dtype: DTypes = Float,
-    backend: str,
+    dtype: npt.DTypeLike = Float,
+    backend: Backend,
 ) -> npt.NDArray:
     # axis refers to which axis should be repeated (when making a full 3d data),
     # dummy refers to a singleton axis
@@ -256,7 +255,7 @@ def _make_storage_data_2d(
 
     start1, start2 = start[0:2]
     size1, size2 = data.shape
-    buffer = zeros(shape2d, dtype=dtype, backend=backend)
+    buffer = xumpy.zeros(shape2d, backend, dtype)
     buffer[start1 : start1 + size1, start2 : start2 + size2] = asarray(
         data, type(buffer)
     )
@@ -276,12 +275,12 @@ def _make_storage_data_3d(
     shape: tuple[int, ...],
     start: tuple[int, ...] = (0, 0, 0),
     *,
-    dtype: DTypes = Float,
-    backend: str,
+    dtype: npt.DTypeLike = Float,
+    backend: Backend,
 ) -> npt.NDArray:
     istart, jstart, kstart = start
     isize, jsize, ksize = data.shape
-    buffer = zeros(shape, dtype=dtype, backend=backend)
+    buffer = xumpy.zeros(shape, backend, dtype)
     buffer[
         istart : istart + isize,
         jstart : jstart + jsize,
@@ -295,12 +294,12 @@ def _make_storage_data_Nd(
     shape: tuple[int, ...],
     start: tuple[int, ...] | None = None,
     *,
-    dtype: DTypes = Float,
-    backend: str,
+    dtype: npt.DTypeLike = Float,
+    backend: Backend,
 ) -> npt.NDArray:
     if start is None:
         start = tuple([0] * data.ndim)
-    buffer = zeros(shape, dtype=dtype, backend=backend)
+    buffer = xumpy.zeros(shape, backend, dtype)
     idx = tuple([slice(start[i], start[i] + data.shape[i]) for i in range(len(start))])
     buffer[idx] = asarray(data, type(buffer))
     return buffer
@@ -310,8 +309,8 @@ def make_storage_from_shape(
     shape: tuple[int, ...],
     origin: tuple[int, ...] = origin,
     *,
-    backend: str,
-    dtype: DTypes = Float,
+    backend: Backend,
+    dtype: npt.DTypeLike = Float,
     mask: tuple[bool, ...] | None = None,
 ) -> npt.NDArray:
     """Create a new gt4py storage of a given shape filled with zeros.
@@ -333,16 +332,20 @@ def make_storage_from_shape(
            )
         3) q_out = utils.make_storage_from_shape(q_in.shape, origin,)
     """
-    if not mask:
+    if mask is None:
         n_dims = len(shape)
         if n_dims == 1:
             mask = (False, False, True)  # Assume 1D is a k-field
+        elif n_dims == 2:
+            mask = (True, True, False)  # Assume 2D is an ij-field
+        elif n_dims < 3:
+            raise NotImplementedError(f"Unexpected number of dimensions {n_dims}.")
         else:
-            mask = (n_dims * (True,)) + ((3 - n_dims) * (False,))
+            mask = n_dims * (True,)
     storage = gt_storage.zeros(
         shape,
         dtype,
-        backend=backend,
+        backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, shape),
     )
@@ -358,8 +361,8 @@ def make_storage_dict(
     names: list[str] | None = None,
     axis: int = 2,
     *,
-    backend: str,
-    dtype: DTypes = Float,
+    backend: Backend,
+    dtype: npt.DTypeLike = Float,
 ) -> dict[str, npt.NDArray]:
     assert names is not None, "for 4d variable storages, specify a list of names"
     if shape is None:
@@ -379,7 +382,7 @@ def make_storage_dict(
     return data_dict
 
 
-def storage_dict(st_dict, names, shape, origin, *, backend: str):
+def storage_dict(st_dict, names, shape, origin, *, backend: Backend):
     for name in names:
         st_dict[name] = make_storage_from_shape(shape, origin, backend=backend)
 
@@ -446,37 +449,13 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
             return cp.asarray(array, dtype, order)
 
 
-def is_gpu_backend(backend: str) -> bool:
-    return gt_backend.from_name(backend).storage_info["device"] == "gpu"
-
-
-_FORTRAN_LOOP_LAYOUT = (2, 1, 0)
-"""Fortran is a column-first (or stride-first) memory system,
-which in the internal gt4py loop layout means I (or axis[0]) has
-the higher value, e.g. "higher importance to run first":
-
-for k # Layout=0
-    for j # Layout=1
-        for i # Layout=2
-
-"""
-
-
-def backend_is_fortran_aligned(backend: str) -> bool:
-    """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran
-    striding."""
-
-    # Dev NOTE: this is used in interfacing with NDSL (e.g. GEOS.)
-
-    return _FORTRAN_LOOP_LAYOUT == gt_backend.from_name(backend).storage_info[
-        "layout_map"
-    ](("I", "J", "K"))
-
-
-def zeros(shape, dtype=Float, *, backend: str):
-    storage_type = cp.ndarray if is_gpu_backend(backend) else np.ndarray
-    xp = cp if cp and storage_type is cp.ndarray else np
-    return xp.zeros(shape, dtype=dtype)
+def zeros(shape, dtype=Float, *, backend: Backend):
+    warnings.warn(
+        "gt4py_utils.zeros() is deprecated. Use `zeros()` from `ndsl.xumpy` instead.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+    return xumpy.zeros(shape, backend, dtype)
 
 
 def sum(array, axis=None, dtype=Float, out=None, keepdims=False):
@@ -543,8 +522,8 @@ def stack(tup, axis: int = 0, out=None):
     return xp.stack(array_tup, axis, out)
 
 
-def device_sync(backend: str) -> None:
-    if cp and is_gpu_backend(backend):
+def device_sync(backend: Backend) -> None:
+    if cp and backend.is_gpu_backend():
         cp.cuda.Device(0).synchronize()
 
 
