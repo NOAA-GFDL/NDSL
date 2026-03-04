@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
+from ndsl.config.backend import Backend
 from ndsl.optional_imports import cupy
 
 
@@ -30,8 +31,8 @@ class QuantityMetadata:
     "ndarray-like type used to store the data."
     dtype: npt.DTypeLike
     "dtype of the data in the ndarray-like object."
-    backend: str
-    "GT4Py backend name. Used for performance optimal data allocation."
+    backend: Backend
+    "NDSL backend. Used for performance optimal data allocation."
 
     @property
     def dim_lengths(self) -> dict[str, int]:

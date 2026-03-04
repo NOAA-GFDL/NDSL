@@ -10,6 +10,7 @@ from ndsl import (
 )
 from ndsl.comm._boundary_utils import get_boundary_slice
 from ndsl.comm.mpi import MPI, MPIComm
+from ndsl.config import Backend
 from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
@@ -273,7 +274,7 @@ def depth_quantity(
         units=units,
         origin=origin,
         extent=extent,
-        backend=gt4py_backend,
+        backend=Backend.python(),
     )
 
 
@@ -316,7 +317,12 @@ def zeros_quantity(dims, units, origin, extent, shape, numpy, dtype):
     outside of it."""
     data = numpy.ones(shape, dtype=dtype)
     quantity = Quantity(
-        data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
+        data,
+        dims=dims,
+        units=units,
+        origin=origin,
+        extent=extent,
+        backend=Backend.python(),
     )
     quantity.view[:] = 0.0
     return quantity

@@ -9,6 +9,7 @@ from ndsl import (
 )
 from ndsl.comm.comm_abc import ReductionOperator
 from ndsl.comm.mpi import MPI, MPIComm
+from ndsl.config import Backend
 from ndsl.dsl.typing import Float
 
 
@@ -46,8 +47,10 @@ def communicator(cube_partitioner: CubedSpherePartitioner) -> CubedSphereCommuni
 
 
 @pytest.mark.parallel
-@pytest.mark.parametrize("backend", ["dace:cpu", "gt:cpu_kfirst", "numpy"])
-def test_all_reduce(backend: str, communicator: CubedSphereCommunicator) -> None:
+@pytest.mark.parametrize(
+    "backend", [Backend("st:dace:cpu:KIJ"), Backend("st:gt:cpu:IJK"), Backend.python()]
+)
+def test_all_reduce(backend: Backend, communicator: CubedSphereCommunicator) -> None:
     base_array = np.array([i for i in range(5)], dtype=Float)
 
     testQuantity_1D = Quantity(
