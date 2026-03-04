@@ -22,9 +22,16 @@ requires-python = ">=3.11,<3.13"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
-dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject", "build"]
+dev = [
+  "flake8-pyproject",
+  "ndsl[demos]",
+  "ndsl[docs]",
+  "ndsl[test]",
+  "pre-commit"
+]
 docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-exclude"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
+serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
 test = ["pytest", "coverage"]
 zarr = ["zarr<3"]
 

@@ -63,6 +63,8 @@ pip install openmpi
 
 A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` version 14 from homebrew works.
 
+Porting workflows might depend on [serialbox](https://github.com/FlorianDeconinck/serialbox/), e.g. the script `ndsl-serialbox_to_netcdf` depends on it. Serialbox is an optional dependency. If you install the serialbox extra, you'll need the Boost library and development headers.
+
 ### Installation options
 
 See [quickstart](#quickstart) above on how to pull and setup a virtual environment. The packages has a few options:
@@ -71,6 +73,7 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 - `ndsl[demos]`: extra dependencies to run [NDSL examples](./examples/NDSL/)
 - `ndsl[docs]`: extra dependencies to build the docs
 - `ndsl[dev]`: installs tools for development, docs, and tests.
+- `ndsl[serialbox]`: installs serialbox, which is used in porting workflows
 
 ### Running tests
 
