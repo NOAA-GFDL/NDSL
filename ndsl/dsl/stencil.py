@@ -4,7 +4,6 @@ import copy
 import dataclasses
 import inspect
 import numbers
-import warnings
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
@@ -21,7 +20,18 @@ from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
 from ndsl.comm.mpi import MPI
-from ndsl.constants import X_DIM, X_DIMS, Y_DIM, Y_DIMS, Z_DIM, Z_DIMS
+from ndsl.config.backend import Backend, BackendFramework
+from ndsl.constants import (
+    I_DIM,
+    I_DIMS,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_DIMS,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_DIMS,
+    K_INTERFACE_DIM,
+)
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
@@ -38,7 +48,7 @@ from ndsl.dsl.typing import (
     IntFieldIJ64,
     cast_to_index3d,
 )
-from ndsl.initialization import GridSizer, SubtileGridSizer
+from ndsl.initialization import GridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
@@ -173,7 +183,7 @@ class CompareToNumpyStencil:
             comm=comm,
         )
         compilation_config = CompilationConfig(
-            backend="numpy",
+            backend=Backend.python(),
             rebuild=stencil_config.compilation_config.rebuild,
             validate_args=stencil_config.compilation_config.validate_args,
             format_source=True,
@@ -278,22 +288,6 @@ class FrozenStencil(SDFGConvertible):
             comm: if given, inputs and outputs will be compared to the "twin"
                 rank of this rank
         """
-        deprecated_basic_operations = [
-            "copy_defn",
-            "set_value_defn",
-            "adjustmentfactor_stencil_defn",
-        ]
-        if (
-            func.__module__ == "ndsl.stencils.basic_operations"
-            and func.__name__ in deprecated_basic_operations
-        ):
-            warnings.warn(
-                f"{func.__name__}(...) is deprecated and will be removed with the next "
-                f"version of NDSL. Use {func.__name__.removesuffix('_defn')}(...) instead.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
-
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
         self.origin = origin
@@ -323,7 +317,10 @@ class FrozenStencil(SDFGConvertible):
         # NOTE: this is also down in `dace/build.py` for orchestration
         # This is still needed for non-orchestrated used of DaCe.
         # A better build system would take care of BOTH of those at the same time
-        if "dace" in self.stencil_config.compilation_config.backend:
+        if (
+            BackendFramework.DACE
+            == self.stencil_config.compilation_config.backend.framework
+        ):
             dace.Config.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
@@ -589,7 +586,7 @@ class FrozenStencil(SDFGConvertible):
 
         domain_sizes = {
             axis_name: axis_size
-            for axis_names, axis_size in zip([X_DIMS, Y_DIMS, Z_DIMS], self.domain)
+            for axis_names, axis_size in zip([I_DIMS, J_DIMS, K_DIMS], self.domain)
             for axis_name in axis_names
         }
 
@@ -597,10 +594,10 @@ class FrozenStencil(SDFGConvertible):
             if isinstance(argument, Quantity):
                 for axis, quantity_size in zip(argument.dims, argument.extent):
                     full_size = quantity_size
-                    if axis in (X_DIMS + Y_DIMS):
+                    if axis in (I_DIMS + J_DIMS):
                         full_size += 2 * argument.metadata.n_halo
                     if (
-                        axis in (X_DIMS + Y_DIMS + Z_DIMS)
+                        axis in (I_DIMS + J_DIMS + K_DIMS)
                         and full_size < domain_sizes[axis]
                     ):
                         ndsl_log.warning(
@@ -650,6 +647,8 @@ class GridIndexing:
         north_edge: bool,
         west_edge: bool,
         east_edge: bool,
+        *,
+        k_start: int = 0,
     ):
         """
         Initialize a grid indexing object.
@@ -662,28 +661,13 @@ class GridIndexing:
             west_edge: whether the current rank is on the west edge of a tile
             east_edge: whether the current rank is on the east edge of a tile
         """
-        self.origin = (n_halo, n_halo, 0)
+        self.origin = (n_halo, n_halo, k_start)
         self.n_halo = n_halo
         self.domain = domain
         self.south_edge = south_edge
         self.north_edge = north_edge
         self.west_edge = west_edge
         self.east_edge = east_edge
-
-    @property
-    def domain(self) -> Index3D:
-        return self._domain
-
-    @domain.setter
-    def domain(self, domain: Index3D) -> None:
-        self._domain = domain
-        self._sizer = SubtileGridSizer(
-            nx=domain[0],
-            ny=domain[1],
-            nz=domain[2],
-            n_halo=self.n_halo,
-            data_dimensions={},
-        )
 
     @classmethod
     def from_sizer_and_communicator(
@@ -693,19 +677,15 @@ class GridIndexing:
         # this init routine can be refactored to require only a GridSizer
         domain = cast(
             tuple[int, int, int],
-            sizer.get_extent([X_DIM, Y_DIM, Z_DIM]),
+            sizer.get_extent([I_DIM, J_DIM, K_DIM]),
         )
-        south_edge = comm.tile.partitioner.on_tile_bottom(comm.rank)
-        north_edge = comm.tile.partitioner.on_tile_top(comm.rank)
-        west_edge = comm.tile.partitioner.on_tile_left(comm.rank)
-        east_edge = comm.tile.partitioner.on_tile_right(comm.rank)
         return cls(
             domain=domain,
             n_halo=sizer.n_halo,
-            south_edge=south_edge,
-            north_edge=north_edge,
-            west_edge=west_edge,
-            east_edge=east_edge,
+            south_edge=comm.tile.partitioner.on_tile_bottom(comm.rank),
+            north_edge=comm.tile.partitioner.on_tile_top(comm.rank),
+            west_edge=comm.tile.partitioner.on_tile_left(comm.rank),
+            east_edge=comm.tile.partitioner.on_tile_right(comm.rank),
         )
 
     @property
@@ -870,7 +850,7 @@ class GridIndexing:
             domain: shape of the computation
         """
         origin = self._origin_from_dims(dims)
-        domain = list(self._sizer.get_extent(dims))
+        domain = self._domain_from_dims(dims)
         for i, n in enumerate(halos):
             origin[i] -= n
             domain[i] += 2 * n
@@ -898,13 +878,30 @@ class GridIndexing:
     def _origin_from_dims(self, dims: Iterable[str]) -> list[int]:
         return_origin = []
         for dim in dims:
-            if dim in X_DIMS:
+            if dim in I_DIMS:
                 return_origin.append(self.origin[0])
-            elif dim in Y_DIMS:
+            elif dim in J_DIMS:
                 return_origin.append(self.origin[1])
-            elif dim in Z_DIMS:
+            elif dim in K_DIMS:
                 return_origin.append(self.origin[2])
         return return_origin
+
+    def _domain_from_dims(self, dimensions: Iterable[str]) -> list[int]:
+        result = []
+        for dimension in dimensions:
+            if dimension == I_DIM:
+                result.append(self.domain[0])
+            if dimension == I_INTERFACE_DIM:
+                result.append(self.domain[0] + 1)
+            if dimension == J_DIM:
+                result.append(self.domain[1])
+            if dimension == J_INTERFACE_DIM:
+                result.append(self.domain[1] + 1)
+            if dimension == K_DIM:
+                result.append(self.domain[2])
+            if dimension == K_INTERFACE_DIM:
+                result.append(self.domain[2] + 1)
+        return result
 
     def get_shape(
         self, dims: Sequence[str], halos: Sequence[int] = tuple()
@@ -918,14 +915,13 @@ class GridIndexing:
             halos: number of halo points for each dimension, defaults to zero
 
         Returns:
-            origin: origin of the computation
-            domain: shape of the computation
+            shape: storage required for an array with the given dimensions
         """
-        shape = list(self._sizer.get_extent(dims))
+        shape = self._domain_from_dims(dims)
         for i, d in enumerate(dims):
             # need n_halo points at the start of the domain, regardless of whether
             # they are read, so that data is aligned in memory
-            if d in (X_DIMS + Y_DIMS):
+            if d in (I_DIMS + J_DIMS):
                 shape[i] += self.n_halo
         for i, n in enumerate(halos):
             shape[i] += n
@@ -960,16 +956,15 @@ class GridIndexing:
                 "nk can be at most the size of the vertical domain minus k_start"
             )
 
-        new = GridIndexing(
+        return GridIndexing(
             self.domain[:2] + (nk,),
             self.n_halo,
             self.south_edge,
             self.north_edge,
             self.west_edge,
             self.east_edge,
+            k_start=self.origin[2] + k_start,
         )
-        new.origin = self.origin[:2] + (self.origin[2] + k_start,)
-        return new
 
 
 class StencilFactory:
@@ -995,7 +990,7 @@ class StencilFactory:
         self.comm = comm
 
     @property
-    def backend(self) -> str:
+    def backend(self) -> Backend:
         return self.config.compilation_config.backend
 
     def from_origin_domain(
@@ -1011,7 +1006,6 @@ class StencilFactory:
             func: stencil definition function
             origin: gt4py origin to use at call time
             domain: gt4py domain to use at call time
-            stencil_config: container for stencil configuration
             externals: compile-time external variables required by stencil
             skip_passes: compiler passes to skip when building stencil
         """

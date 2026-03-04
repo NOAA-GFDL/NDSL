@@ -36,31 +36,33 @@ class Boundary:
         """
         return self._view(quantity, n_points, interior=False)
 
-    def send_slice(self, specification: QuantityHaloSpec) -> tuple[slice]:
+    def send_slice(self, specification: QuantityHaloSpec) -> tuple[slice, ...]:
         """Return the index slices which should be sent at this boundary.
 
         Args:
             specification: data specifications for the halo. Including shape
-            and number of halo points.
+                and number of halo points.
 
         Returns:
             A tuple of slices (one per dimensions)
         """
         return self._slice(specification, interior=True)
 
-    def recv_slice(self, specification: QuantityHaloSpec) -> tuple[slice]:
+    def recv_slice(self, specification: QuantityHaloSpec) -> tuple[slice, ...]:
         """Return the index slices which should be received at this boundary.
 
         Args:
-            quantity: quantity for which to return slices
-            n_points: the width of boundary to include
+            specification: data specifications for the halo. Including shape
+                and number of halo points.
 
         Returns:
             A tuple of slices (one per dimensions)
         """
         return self._slice(specification, interior=False)
 
-    def _slice(self, specification: QuantityHaloSpec, interior: bool) -> tuple[slice]:
+    def _slice(
+        self, specification: QuantityHaloSpec, interior: bool
+    ) -> tuple[slice, ...]:
         """Returns a tuple of slices (one per dimensions) indexing the data to be exchange.
 
         Args:
@@ -101,7 +103,9 @@ class SimpleBoundary(Boundary):
         )
         return quantity.data[tuple(boundary_slice)]
 
-    def _slice(self, specification: QuantityHaloSpec, interior: bool) -> tuple[slice]:
+    def _slice(
+        self, specification: QuantityHaloSpec, interior: bool
+    ) -> tuple[slice, ...]:
         return get_boundary_slice(
             specification.dims,
             specification.origin,

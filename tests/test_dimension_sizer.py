@@ -3,14 +3,15 @@ from collections import namedtuple
 import pytest
 
 from ndsl import GridSizer, QuantityFactory, SubtileGridSizer
+from ndsl.config import Backend
 from ndsl.constants import (
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     N_HALO_DEFAULT,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
 )
 
 
@@ -20,16 +21,12 @@ def nx_tile(request):
 
 
 @pytest.fixture(params=[48, 96])
-def ny_tile(request, fast):
-    if fast and request.param == 96:
-        pytest.skip("running in fast mode")
+def ny_tile(request):
     return request.param
 
 
 @pytest.fixture(params=[60, 80])
-def nz(request, fast):
-    if fast and request.param == 80:
-        pytest.skip("running in fast mode")
+def nz(request):
     return request.param
 
 
@@ -69,6 +66,7 @@ def namelist(nx_tile, ny_tile, nz, layout):
 def sizer(
     request, nx_tile, ny_tile, nz, layout, namelist, extra_dimension_lengths
 ) -> GridSizer:
+    backend = Backend.python()  # original utest case
     if request.param == "from_tile_params":
         return SubtileGridSizer.from_tile_params(
             nx_tile=nx_tile,
@@ -77,11 +75,11 @@ def sizer(
             n_halo=N_HALO_DEFAULT,
             layout=layout,
             data_dimensions=extra_dimension_lengths,
-            backend="numpy",  # original utest case
+            backend=backend,
         )
 
     if request.param == "from_namelist":
-        return SubtileGridSizer.from_namelist(namelist)
+        return SubtileGridSizer.from_namelist(namelist, backend=backend)
 
     raise NotImplementedError()
 
@@ -114,7 +112,7 @@ DimCase = namedtuple("DimCase", ["dims", "origin", "extent", "shape"])
 def dim_case(request, nx, ny, nz) -> DimCase:
     if request.param == "x_only":
         return DimCase(
-            (X_DIM,),
+            (I_DIM,),
             (N_HALO_DEFAULT,),
             (nx,),
             (2 * N_HALO_DEFAULT + nx + 1,),
@@ -122,7 +120,7 @@ def dim_case(request, nx, ny, nz) -> DimCase:
 
     if request.param == "x_interface_only":
         return DimCase(
-            (X_INTERFACE_DIM,),
+            (I_INTERFACE_DIM,),
             (N_HALO_DEFAULT,),
             (nx + 1,),
             (2 * N_HALO_DEFAULT + nx + 1,),
@@ -130,7 +128,7 @@ def dim_case(request, nx, ny, nz) -> DimCase:
 
     if request.param == "y_only":
         return DimCase(
-            (Y_DIM,),
+            (J_DIM,),
             (N_HALO_DEFAULT,),
             (ny,),
             (2 * N_HALO_DEFAULT + ny + 1,),
@@ -138,23 +136,23 @@ def dim_case(request, nx, ny, nz) -> DimCase:
 
     if request.param == "y_interface_only":
         return DimCase(
-            (Y_INTERFACE_DIM,),
+            (J_INTERFACE_DIM,),
             (N_HALO_DEFAULT,),
             (ny + 1,),
             (2 * N_HALO_DEFAULT + ny + 1,),
         )
 
     if request.param == "z_only":
-        return DimCase((Z_DIM,), (0,), (nz,), (nz + 1,))
+        return DimCase((K_DIM,), (0,), (nz,), (nz + 1,))
 
     if request.param == "z_interface_only":
-        return DimCase((Z_INTERFACE_DIM,), (0,), (nz + 1,), (nz + 1,))
+        return DimCase((K_INTERFACE_DIM,), (0,), (nz + 1,), (nz + 1,))
 
     if request.param == "x_y":
         return DimCase(
             (
-                X_DIM,
-                Y_DIM,
+                I_DIM,
+                J_DIM,
             ),
             (N_HALO_DEFAULT, N_HALO_DEFAULT),
             (nx, ny),
@@ -167,9 +165,9 @@ def dim_case(request, nx, ny, nz) -> DimCase:
     if request.param == "z_y_x":
         return DimCase(
             (
-                Z_DIM,
-                Y_DIM,
-                X_DIM,
+                K_DIM,
+                J_DIM,
+                I_DIM,
             ),
             (0, N_HALO_DEFAULT, N_HALO_DEFAULT),
             (nz, ny, nx),
@@ -183,26 +181,23 @@ def dim_case(request, nx, ny, nz) -> DimCase:
     raise NotImplementedError()
 
 
-@pytest.mark.cpu_only
 def test_subtile_dimension_sizer_origin(sizer, dim_case):
     result = sizer.get_origin(dim_case.dims)
     assert result == dim_case.origin
 
 
-@pytest.mark.cpu_only
 def test_subtile_dimension_sizer_extent(sizer, dim_case):
     result = sizer.get_extent(dim_case.dims)
     assert result == dim_case.extent
 
 
-@pytest.mark.cpu_only
 def test_subtile_dimension_sizer_shape(sizer, dim_case):
     result = sizer.get_shape(dim_case.dims)
     assert result == dim_case.shape
 
 
 def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, backend="numpy")
+    allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.zeros(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -213,7 +208,7 @@ def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
 
 
 def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, backend="numpy")
+    allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.ones(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -224,7 +219,7 @@ def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
 
 
 def test_allocator_empty(sizer, dim_case, units, dtype):
-    allocator = QuantityFactory(sizer, backend="numpy")
+    allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.empty(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
     assert quantity.dims == dim_case.dims
@@ -234,7 +229,7 @@ def test_allocator_empty(sizer, dim_case, units, dtype):
 
 
 def test_allocator_data_dimensions_operations(sizer):
-    quantity_factory = QuantityFactory(sizer, backend="numpy")
+    quantity_factory = QuantityFactory(sizer, backend=Backend.python())
     quantity_factory.add_data_dimensions({"D0": 11})
     assert "D0" in quantity_factory.sizer.data_dimensions.keys()
     assert quantity_factory.sizer.data_dimensions["D0"] == 11
@@ -260,9 +255,9 @@ def test_pad_non_interface_dimensions():
         n_halo=0,
         layout=(layout_xy, layout_xy),
         data_dimensions={"some_dim": dd},
-        backend="numpy",  # original utest case
+        backend=Backend.python(),  # original utest case
     )
-    padded_shape = padded_grid_sizer.get_shape([X_DIM, Y_DIM, Z_DIM, "some_dim"])
+    padded_shape = padded_grid_sizer.get_shape([I_DIM, J_DIM, K_DIM, "some_dim"])
     assert padded_shape[0] == nx // layout_xy + 1
     assert padded_shape[1] == ny // layout_xy + 1
     assert padded_shape[2] == nz + 1
@@ -275,10 +270,10 @@ def test_pad_non_interface_dimensions():
         n_halo=0,
         layout=(layout_xy, layout_xy),
         data_dimensions={"some_dim": dd},
-        backend="dace:cpu_KJI",  # Fortran-friendly backend
+        backend=Backend("st:dace:cpu:KJI"),  # Fortran-friendly backend
     )
     non_padded_shape = non_padded_grid_sizer.get_shape(
-        [X_DIM, Y_DIM, Z_DIM, "some_dim"]
+        [I_DIM, J_DIM, K_DIM, "some_dim"]
     )
     assert non_padded_shape[0] == nx // layout_xy
     assert non_padded_shape[1] == ny // layout_xy

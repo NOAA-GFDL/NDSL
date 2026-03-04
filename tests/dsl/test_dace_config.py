@@ -2,6 +2,7 @@ import unittest.mock
 
 from ndsl import CubedSpherePartitioner, DaceConfig, DaCeOrchestration, TilePartitioner
 from ndsl.comm.partitioner import Partitioner
+from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import _determine_compiling_ranks
 from ndsl.dsl.dace.orchestration import orchestrate, orchestrate_function
 
@@ -18,7 +19,7 @@ def test_orchestrate_function_calls_dace() -> None:
 
     dace_config = DaceConfig(
         communicator=None,
-        backend="gtc:dace",
+        backend=Backend("orch:dace:cpu:KIJ"),
         orchestration=DaCeOrchestration.BuildAndRun,
     )
     wrapped = orchestrate_function(config=dace_config)(foo)
@@ -36,8 +37,8 @@ def test_orchestrate_function_does_not_call_dace() -> None:
 
     dace_config = DaceConfig(
         communicator=None,
-        backend="gtc:dace",
-        orchestration=DaCeOrchestration.Python,
+        backend=Backend("st:dace:cpu:KIJ"),
+        orchestration=None,
     )
     wrapped = orchestrate_function(config=dace_config)(foo)
     with unittest.mock.patch(
@@ -50,7 +51,7 @@ def test_orchestrate_function_does_not_call_dace() -> None:
 def test_orchestrate_calls_dace() -> None:
     dace_config = DaceConfig(
         communicator=None,
-        backend="gtc:dace",
+        backend=Backend("orch:dace:cpu:KIJ"),
         orchestration=DaCeOrchestration.BuildAndRun,
     )
 
@@ -72,8 +73,8 @@ def test_orchestrate_calls_dace() -> None:
 def test_orchestrate_does_not_call_dace() -> None:
     dace_config = DaceConfig(
         communicator=None,
-        backend="gtc:dace",
-        orchestration=DaCeOrchestration.Python,
+        backend=Backend("st:dace:cpu:KIJ"),
+        orchestration=None,
     )
 
     class A:
@@ -94,7 +95,7 @@ def test_orchestrate_does_not_call_dace() -> None:
 def test_orchestrate_distributed_build() -> None:
     dummy_dace_config = DaceConfig(
         communicator=None,
-        backend="gtc:dace",
+        backend=Backend("orch:dace:cpu:KIJ"),
         orchestration=DaCeOrchestration.BuildAndRun,
     )
 

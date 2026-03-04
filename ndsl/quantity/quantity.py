@@ -13,6 +13,7 @@ from gt4py.cartesian import backend as gt_backend
 
 import ndsl.constants as constants
 from ndsl.comm.mpi import MPI
+from ndsl.config.backend import Backend
 from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
@@ -33,7 +34,7 @@ class Quantity:
         dims: Sequence[str],
         units: str,
         *,
-        backend: str,
+        backend: Backend,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         allow_mismatch_float_precision: bool = False,
@@ -45,7 +46,7 @@ class Quantity:
             data: ndarray-like object containing the underlying data
             dims: dimension names for each axis
             units: units of the quantity
-            backend: GT4Py backend name. We ensure that the data is allocated in a
+            backend: current backend in use. We ensure that the data is allocated in a
                 performance optimal way for that backend and copy if necessary.
             origin: first point in data within the
                 computational domain. Defaults to None.
@@ -86,7 +87,7 @@ class Quantity:
 
         _validate_quantity_property_lengths(data.shape, dims, origin, extent)
 
-        gt4py_backend_cls = gt_backend.from_name(backend)
+        gt4py_backend_cls = gt_backend.from_name(backend.as_gt4py())
         is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
         device = gt4py_backend_cls.storage_info["device"]
 
@@ -123,7 +124,7 @@ class Quantity:
             self._data = gt_storage.from_array(
                 data,
                 data.dtype,
-                backend=backend,
+                backend=backend.as_gt4py(),
                 aligned_index=origin,
                 dimensions=dimensions,
             )
@@ -151,20 +152,20 @@ class Quantity:
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
         number_of_halo_points: int = 0,
-        backend: str | None = None,
+        backend: Backend | None = None,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         """
-        Initialize a Quantity from an xarray.DataArray.
+        Initialize a Quantity from an `xarray.DataArray`.
 
         Args:
-            data_array
+            data_array: `xarray.DataArray` to initialize from
             origin: first point in data within the computational domain
             extent: number of points along each axis within the computational domain
             allow_mismatch_float_precision: allow for precision that is
                 not the simulation-wide default configuration. Defaults to False.
             number_of_halo_points: Number of halo points used. Defaults to 0.
-            backend: GT4Py backend name. If given, we allocate data in a performance
+            backend: current backend in use. If given, we allocate data in a performance
                 optimal way for this backend. Overrides any potentially saved `backend`
                 in `data.attrs["backend"]`.
         """
@@ -198,15 +199,14 @@ class Quantity:
                 )
 
     def halo_spec(self, n_halo: int) -> QuantityHaloSpec:
-        # This is a preliminary check to see if this is ever triggered.
-        # If not, we can remove it down the line and change the call signature.
-        if n_halo != self._metadata.n_halo:
-            warnings.warn(
-                "Found inconsistency with number of halo points in Quantity:"
-                + f"{n_halo} vs {self._metadata.n_halo}",
-                UserWarning,
-                stacklevel=2,
+        # We allow number of exchange point to differ from the Quantity halos
+        # but we do check that we are not asking for an OOB
+        if n_halo > self._metadata.n_halo:
+            raise ValueError(
+                f"Halo specification requires exchange of more halo points ({n_halo}) "
+                f"than available on this Quantity ({self._metadata.n_halo})."
             )
+
         return QuantityHaloSpec(
             n_halo,
             self.data.strides,
@@ -249,12 +249,14 @@ class Quantity:
         return self.metadata.units
 
     @property
-    def backend(self) -> str:
+    def backend(self) -> Backend:
         return self.metadata.backend
 
     @property
     def attrs(self) -> dict:
-        return dict(**self._attrs, units=self.units, backend=self.backend)
+        return dict(
+            **self._attrs, units=self.units, backend=self.backend.as_humanly_readable()
+        )
 
     @property
     def dims(self) -> tuple[str, ...]:
@@ -369,7 +371,7 @@ class Quantity:
         Args:
             target_dims: a list of output dimensions. Instead of a single dimension
                 name, an iterable of dimensions can be used instead for any entries.
-                For example, you may want to use X_DIMS to place an
+                For example, you may want to use I_DIMS to place an
                 x-dimension without knowing whether it is on cell centers or interfaces.
 
         Returns:
@@ -386,22 +388,22 @@ class Quantity:
             >>> import numpy as np
             >>> quantity = Quantity(
             ...     data=np.zeros([2, 3, 4]),
-            ...     dims=[X_DIM, Y_DIM, Z_DIM],
-            ...             units="m",
+            ...     dims=[I_DIM, J_DIM, K_DIM],
+            ...     units="m",
             ... )
 
             If you know you are working with cell-centered variables, you can do:
 
-            >>> from ndsl.constants import X_DIM, Y_DIM, Z_DIM
-            >>> transposed_quantity = quantity.transpose([X_DIM, Y_DIM, Z_DIM])
+            >>> from ndsl.constants import I_DIM, J_DIM, K_DIM
+            >>> transposed_quantity = quantity.transpose([I_DIM, J_DIM, K_DIM])
 
             To support re-ordering without checking whether quantities are on
             cell centers or interfaces, the API supports giving a list of dimension
             names for dimensions. For example, to re-order to X-Y-Z dimensions
             regardless of the grid the variable is on, one could do:
 
-            >>> from ndsl.constants import X_DIMS, Y_DIMS, Z_DIMS
-            >>> transposed_quantity = quantity.transpose([X_DIMS, Y_DIMS, Z_DIMS])
+            >>> from ndsl.constants import I_DIMS, J_DIMS, K_DIMS
+            >>> transposed_quantity = quantity.transpose([I_DIMS, J_DIMS, K_DIMS])
         """
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]
@@ -487,14 +489,18 @@ def _ensure_int_tuple(arg: Sequence, arg_name: str) -> tuple:
     return tuple(return_list)
 
 
-def _resolve_backend(data: xr.DataArray, backend: str | None) -> str:
+def _resolve_backend(data: xr.DataArray, backend: Backend | None) -> Backend:
     if backend is not None:
         # Forced backend name takes precedence
         return backend
 
     # If backend name was serialized with data, take this one
     if "backend" in data.attrs:
-        return data.attrs["backend"]
+        if not isinstance(data.attrs["backend"], str):
+            raise ValueError(
+                f"Quantity.attrs 'backend' must be a string, found {data.attrs['backend']}"
+            )
+        return Backend(data.attrs["backend"])
 
     # else, fall back to assume python-based layout.
-    return "debug"
+    return Backend.python()

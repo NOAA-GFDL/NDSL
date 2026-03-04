@@ -18,11 +18,11 @@ from dace.frontend.python.parser import DaceProgram
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapExpansion
 from dace.transformation.helpers import get_parent_map
-from dace.transformation.passes.simplify import SimplifyPass
-from gt4py import storage
+from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
+from ndsl.config import BackendLoopOrder
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
@@ -83,7 +83,10 @@ def _download_results_from_dace(
         return None
 
     backend = config.get_backend()
-    return [storage.from_array(result, backend=backend) for result in dace_result]
+    return [
+        gt_storage.from_array(result, backend=backend.as_gt4py())
+        for result in dace_result
+    ]
 
 
 def _to_gpu(sdfg: SDFG) -> None:
@@ -122,11 +125,8 @@ def _simplify(
     validate: bool = True,
     validate_all: bool = False,
     verbose: bool = False,
-) -> None:
-    """Override of sdfg.simplify to skip failing transformation
-    per https://github.com/spcl/dace/issues/1328
-    """
-    SimplifyPass(
+) -> dict | None:
+    return sdfg.simplify(
         validate=validate,
         validate_all=validate_all,
         verbose=verbose,
@@ -134,7 +134,7 @@ def _simplify(
         # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
         # calls or (complicated) field accesses.
         skip={"ScalarToSymbolPromotion"},
-    ).apply_pass(sdfg, {})
+    )
 
 
 def _build_sdfg(
@@ -173,7 +173,7 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
-                if backend_name == "dace:cpu_kfirst":
+                if backend_name.loop_order == BackendLoopOrder.IJK:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
@@ -183,25 +183,29 @@ def _build_sdfg(
                             CartesianRefineTransients(backend_name),
                         ]
                     )
-                elif backend_name in ["dace:cpu_KJI", "dace:gpu"]:
+                elif backend_name.loop_order == BackendLoopOrder.KJI:
                     passes.extend(
                         [
                             CleanUpScheduleTree(),
                             CartesianAxisMerge(AxisIterator._K),
                             CartesianAxisMerge(AxisIterator._J),
                             CartesianAxisMerge(AxisIterator._I),
+                            CartesianRefineTransients(backend_name),
+                        ]
+                    )
+                elif backend_name.loop_order == BackendLoopOrder.KIJ:
+                    passes.extend(
+                        [
+                            CleanUpScheduleTree(),
+                            CartesianAxisMerge(AxisIterator._K),
+                            CartesianAxisMerge(AxisIterator._I),
+                            CartesianAxisMerge(AxisIterator._J),
                             CartesianRefineTransients(backend_name),
                         ]
                     )
                 else:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianRefineTransients(backend_name),
-                        ]
+                    raise NotImplementedError(
+                        f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
                     )
                 CPUPipeline(passes=passes).run(stree, verbose=True)
 

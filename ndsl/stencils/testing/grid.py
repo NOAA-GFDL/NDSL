@@ -3,7 +3,8 @@
 import numpy as np
 
 from ndsl.comm.partitioner import TilePartitioner
-from ndsl.constants import N_HALO_DEFAULT, X_DIM, Y_DIM, Z_DIM
+from ndsl.config import Backend
+from ndsl.constants import I_DIM, J_DIM, K_DIM, N_HALO_DEFAULT
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.grid.generation import GridDefinitions
@@ -35,7 +36,7 @@ class Grid:
     # grid.ie == npx + halo - 2
 
     @classmethod
-    def _make(cls, npx, npy, npz, layout, rank, backend):
+    def _make(cls, npx, npy, npz, layout, rank, backend: Backend):
         shape_params = {
             "npx": npx,
             "npy": npy,
@@ -59,13 +60,13 @@ class Grid:
         return cls(indices, shape_params, rank, layout, backend, local_indices=True)
 
     @classmethod
-    def from_namelist(cls, namelist, rank, backend):
+    def from_namelist(cls, namelist, rank, backend: Backend):
         return cls._make(
             namelist.npx, namelist.npy, namelist.npz, namelist.layout, rank, backend
         )
 
     @classmethod
-    def with_data_from_namelist(cls, namelist, communicator, backend):
+    def with_data_from_namelist(cls, namelist, communicator, backend: Backend):
         grid = cls.from_namelist(namelist, communicator.rank, backend)
         grid.make_grid_data(
             npx=namelist.npx,
@@ -82,7 +83,7 @@ class Grid:
         shape_params,
         rank,
         layout,
-        backend,
+        backend: Backend,
         data_fields: dict | None = None,
         local_indices=False,
     ):
@@ -166,7 +167,7 @@ class Grid:
     def make_quantity(
         self,
         array,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
         units="Unknown",
         origin=None,
         extent=None,
@@ -181,7 +182,7 @@ class Grid:
         self,
         data_dict,
         varname,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
         units="Unknown",
     ):
         data_dict[varname + "_quantity"] = self.quantity_wrap(
@@ -191,7 +192,7 @@ class Grid:
     def quantity_wrap(
         self,
         data,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
         units="unknown",
     ):
         origin = self.sizer.get_origin(dims)
@@ -440,7 +441,7 @@ class Grid:
         shape,
         origin,
         halo_points,
-        dims=(X_DIM, Y_DIM, Z_DIM),
+        dims=(I_DIM, J_DIM, K_DIM),
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update."""
         return self.quantity_factory.get_quantity_halo_spec(
@@ -838,7 +839,7 @@ class Grid:
     def set_grid_data(self, grid_data: GridData):
         self._grid_data = grid_data
 
-    def make_grid_data(self, npx, npy, npz, communicator, backend):
+    def make_grid_data(self, npx, npy, npz, communicator, backend: Backend):
         metric_terms = MetricTerms.from_tile_sizing(
             npx=npx, npy=npy, npz=npz, communicator=communicator, backend=backend
         )

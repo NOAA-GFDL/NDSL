@@ -12,7 +12,8 @@ from ndsl import (
     StencilFactory,
 )
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.config import Backend
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float
 
 
@@ -25,7 +26,7 @@ def test_dace_data_descriptor_is_transient() -> None:
         extent=(nx,),
         dims=("dim_X",),
         units="n/a",
-        backend="debug",
+        backend=Backend.python(),
     )
     array = local.__descriptor__()
     assert array.transient
@@ -36,7 +37,7 @@ class GoodLocals(LocalState):
     my_local: Local = dataclasses.field(
         metadata={
             "name": "my_local",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "?",
             "intent": "?",
             "dtype": Float,
@@ -45,11 +46,38 @@ class GoodLocals(LocalState):
 
 
 @dataclasses.dataclass
+class NestedLocals(LocalState):
+    my_local: Local = dataclasses.field(
+        metadata={
+            "name": "my_local",
+            "dims": [I_DIM, J_DIM, K_DIM],
+            "units": "?",
+            "intent": "?",
+            "dtype": Float,
+        }
+    )
+
+    @dataclasses.dataclass
+    class MyNestedLocals(LocalState):
+        my_local: Local = dataclasses.field(
+            metadata={
+                "name": "my_local",
+                "dims": [I_DIM, J_DIM, K_DIM],
+                "units": "?",
+                "intent": "?",
+                "dtype": Float,
+            }
+        )
+
+    nested_locals: MyNestedLocals
+
+
+@dataclasses.dataclass
 class BadLocals(LocalState):
     my_local: Local = dataclasses.field(
         metadata={
             "name": "my_local",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "?",
             "intent": "?",
             "dtype": Float,
@@ -58,7 +86,7 @@ class BadLocals(LocalState):
     my_quantity: Quantity = dataclasses.field(
         metadata={
             "name": "my_local",
-            "dims": [X_DIM, Y_DIM, Z_DIM],
+            "dims": [I_DIM, J_DIM, K_DIM],
             "units": "?",
             "intent": "?",
             "dtype": Float,
@@ -73,7 +101,7 @@ class TheCode(NDSLRuntime):
         super().__init__(stencil_factory)
         self._quantity_factory = quantity_factory
         self._locals = GoodLocals.make_locals(quantity_factory)
-        self._a_local = self.make_local(quantity_factory, [X_DIM, Y_DIM, Z_DIM])
+        self._a_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
 
     def allocate_bad_locals(self) -> None:
         self._bad = BadLocals.make_locals(self._quantity_factory)
@@ -88,7 +116,7 @@ class TheCode(NDSLRuntime):
 
 def test_proper_initialization() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
-        3, 3, 5, 0, backend="debug"
+        3, 3, 5, 0, Backend.python()
     )
     the_code = TheCode(stencil_factory, quantity_factory)
     assert the_code.check_local_right_after_init()
@@ -96,7 +124,7 @@ def test_proper_initialization() -> None:
 
 def test_forbidden_access_to_locals() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
-        3, 3, 5, 0, backend="debug"
+        3, 3, 5, 0, Backend.python()
     )
     the_code = TheCode(stencil_factory, quantity_factory)
 
@@ -128,16 +156,36 @@ def test_forbidden_access_to_locals() -> None:
 
 
 def test_local_state_as_regular_state() -> None:
-    _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, backend="debug")
+    _, quantity_factory = get_factories_single_tile(3, 3, 5, 0, Backend.python())
     with pytest.raises(
         RuntimeError,
         match="LocalState allocated outside of NDSLRuntime: forbidden",
     ):
         _ = GoodLocals.make_locals(quantity_factory)
-    B = GoodLocals.make_as_state(quantity_factory)
-    assert type(B.my_local) is Quantity
+
+    with pytest.warns(UserWarning, match="LocalState is allocated as a regular State"):
+        B = GoodLocals.make_as_state(quantity_factory)
+        assert type(B.my_local) is Quantity
+
+    # Ensure that local have been correctly reset
+    GoodLocals._check_only_locals()
+
     with pytest.raises(
         RuntimeError,
         match="LocalState allocated outside of NDSLRuntime: forbidden",
     ):
         _ = GoodLocals.make_locals(quantity_factory)
+
+
+def test_nested_local_state_as_regular_state() -> None:
+    _, quantity_factory = get_factories_single_tile(
+        3, 3, 5, 0, backend=Backend.python()
+    )
+
+    with pytest.warns(UserWarning, match="LocalState is allocated as a regular State"):
+        nested = NestedLocals.make_as_state(quantity_factory)
+        assert type(nested.my_local) is Quantity
+        assert type(nested.nested_locals.my_local) is Quantity
+
+    # Ensure that locals have been correctly reset
+    NestedLocals._check_only_locals()

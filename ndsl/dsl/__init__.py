@@ -1,5 +1,6 @@
 # Literal precision for both GT4Py & NDSL
 import os
+import platform
 import sys
 from typing import Literal
 
@@ -14,6 +15,8 @@ if gt4py_config_module in sys.modules:
         " Please import `ndsl.dsl` or any `ndsl` module "
         " before any `gt4py` imports."
     )
+
+# Literal precision handling
 
 
 def _get_literal_precision(default: Literal["32", "64"] = "64") -> Literal["32", "64"]:
@@ -33,6 +36,15 @@ NDSL_GLOBAL_PRECISION = int(_get_literal_precision())
 os.environ["GT4PY_LITERAL_INT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 os.environ["GT4PY_LITERAL_FLOAT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 
+# OpenMP handling
+
+detected_macos = platform.system() == "Darwin"
+if detected_macos:
+    ndsl_log.warning(
+        "Multithreading is deactivated under MacOS due to apple-clang not handling OpenMP by default."
+    )
+os.environ["GT4PY_CARTESIAN_ENABLE_OPENMP"] = "False" if detected_macos else "True"
+
 
 # Set cache names for default gt backends workflow
 import gt4py.cartesian.config  # noqa: E402
@@ -44,3 +56,5 @@ if MPI is not None:
     gt4py.cartesian.config.cache_settings["dir_name"] = os.environ.get(
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"
     )
+
+ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")

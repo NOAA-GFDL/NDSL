@@ -4,7 +4,7 @@ import pytest
 from ndsl import LocalComm
 from ndsl.buffer import recv_buffer
 from ndsl.comm.local_comm import ConcurrencyError
-from tests.mpi import MPI
+from ndsl.comm.mpi import MPI
 
 
 worker_function_list = []
@@ -293,7 +293,7 @@ def dummy_results(worker_function, dummy_list, numpy):
     return result_list
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
+@pytest.mark.parallel
 def test_worker(comm, dummy_results, mpi_results, numpy):
     comm.barrier()  # synchronize the test "dots" across ranks
     if comm.Get_rank() == 0:

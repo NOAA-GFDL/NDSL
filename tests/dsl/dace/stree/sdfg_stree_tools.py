@@ -21,9 +21,6 @@ def get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
 
 
 class StreeOptimization:
-    def __init__(self) -> None:
-        pass
-
     def __enter__(self) -> None:
         orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
 

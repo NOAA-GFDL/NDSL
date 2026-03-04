@@ -9,25 +9,25 @@ from ndsl import (
     TilePartitioner,
 )
 from ndsl.comm._boundary_utils import get_boundary_slice
-from ndsl.comm.mpi import MPIComm
+from ndsl.comm.mpi import MPI, MPIComm
+from ndsl.config import Backend
 from ndsl.constants import (
     BOUNDARY_TYPES,
     EDGE_BOUNDARY_TYPES,
     HORIZONTAL_DIMS,
+    I_DIM,
+    I_DIMS,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_DIMS,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_INTERFACE_DIM,
     NORTHEAST,
     NORTHWEST,
     SOUTHEAST,
     SOUTHWEST,
-    X_DIM,
-    X_DIMS,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_DIMS,
-    Y_INTERFACE_DIM,
-    Z_DIM,
-    Z_INTERFACE_DIM,
 )
-from tests.mpi import MPI
 
 
 @pytest.fixture
@@ -37,9 +37,6 @@ def dtype(numpy):
 
 @pytest.fixture
 def layout():
-    if MPI is None:
-        return (1, 1)
-
     size = MPI.COMM_WORLD.Get_size()
     ranks_per_tile = size // 6
     ranks_per_edge = int(ranks_per_tile**0.5)
@@ -81,22 +78,22 @@ def n_points_update(request, n_points):
 
 @pytest.fixture(
     params=[
-        pytest.param((Y_DIM, X_DIM), id="center"),
-        pytest.param((Z_DIM, Y_DIM, X_DIM), id="center_3d"),
+        pytest.param((J_DIM, I_DIM), id="center"),
+        pytest.param((K_DIM, J_DIM, I_DIM), id="center_3d"),
         pytest.param(
-            (X_DIM, Y_DIM, Z_DIM),
+            (I_DIM, J_DIM, K_DIM),
             id="center_3d_reverse",
         ),
         pytest.param(
-            (X_DIM, Z_DIM, Y_DIM),
+            (I_DIM, K_DIM, J_DIM),
             id="center_3d_shuffle",
         ),
-        pytest.param((Y_INTERFACE_DIM, X_INTERFACE_DIM), id="interface"),
+        pytest.param((J_INTERFACE_DIM, I_INTERFACE_DIM), id="interface"),
         pytest.param(
             (
-                Z_INTERFACE_DIM,
-                Y_INTERFACE_DIM,
-                X_INTERFACE_DIM,
+                K_INTERFACE_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
             ),
             id="interface_3d",
         ),
@@ -130,12 +127,12 @@ def n_buffer(request):
 def shape(nz, ny, nx, dims, n_points, n_buffer):
     return_list = []
     length_dict = {
-        X_DIM: 2 * n_points + nx + n_buffer,
-        X_INTERFACE_DIM: 2 * n_points + nx + 1 + n_buffer,
-        Y_DIM: 2 * n_points + ny + n_buffer,
-        Y_INTERFACE_DIM: 2 * n_points + ny + 1 + n_buffer,
-        Z_DIM: nz + n_buffer,
-        Z_INTERFACE_DIM: nz + 1 + n_buffer,
+        I_DIM: 2 * n_points + nx + n_buffer,
+        I_INTERFACE_DIM: 2 * n_points + nx + 1 + n_buffer,
+        J_DIM: 2 * n_points + ny + n_buffer,
+        J_INTERFACE_DIM: 2 * n_points + ny + 1 + n_buffer,
+        K_DIM: nz + n_buffer,
+        K_INTERFACE_DIM: nz + 1 + n_buffer,
     }
     for dim in dims:
         return_list.append(length_dict[dim])
@@ -146,12 +143,12 @@ def shape(nz, ny, nx, dims, n_points, n_buffer):
 def origin(n_points, dims):
     return_list = []
     origin_dict = {
-        X_DIM: n_points,
-        X_INTERFACE_DIM: n_points,
-        Y_DIM: n_points,
-        Y_INTERFACE_DIM: n_points,
-        Z_DIM: 0,
-        Z_INTERFACE_DIM: 0,
+        I_DIM: n_points,
+        I_INTERFACE_DIM: n_points,
+        J_DIM: n_points,
+        J_INTERFACE_DIM: n_points,
+        K_DIM: 0,
+        K_INTERFACE_DIM: 0,
     }
     for dim in dims:
         return_list.append(origin_dict[dim])
@@ -162,12 +159,12 @@ def origin(n_points, dims):
 def extent(n_points, dims, nz, ny, nx):
     return_list = []
     extent_dict = {
-        X_DIM: nx,
-        X_INTERFACE_DIM: nx + 1,
-        Y_DIM: ny,
-        Y_INTERFACE_DIM: ny + 1,
-        Z_DIM: nz,
-        Z_INTERFACE_DIM: nz + 1,
+        I_DIM: nx,
+        I_INTERFACE_DIM: nx + 1,
+        J_DIM: ny,
+        J_INTERFACE_DIM: ny + 1,
+        K_DIM: nz,
+        K_INTERFACE_DIM: nz + 1,
     }
     for dim in dims:
         return_list.append(extent_dict[dim])
@@ -202,12 +199,12 @@ def updated_slice(ny, nx, dims, n_points, n_points_update):
     n_points_remain = n_points - n_points_update
     return_list = []
     length_dict = {
-        X_DIM: slice(n_points_remain, n_points + nx + n_points_update),
-        X_INTERFACE_DIM: slice(n_points_remain, n_points + nx + 1 + n_points_update),
-        Y_DIM: slice(n_points_remain, n_points + ny + n_points_update),
-        Y_INTERFACE_DIM: slice(n_points_remain, n_points + ny + 1 + n_points_update),
-        Z_DIM: slice(None, None),
-        Z_INTERFACE_DIM: slice(None, None),
+        I_DIM: slice(n_points_remain, n_points + nx + n_points_update),
+        I_INTERFACE_DIM: slice(n_points_remain, n_points + nx + 1 + n_points_update),
+        J_DIM: slice(n_points_remain, n_points + ny + n_points_update),
+        J_INTERFACE_DIM: slice(n_points_remain, n_points + ny + 1 + n_points_update),
+        K_DIM: slice(None, None),
+        K_INTERFACE_DIM: slice(None, None),
     }
     for dim in dims:
         return_list.append(length_dict[dim])
@@ -272,11 +269,16 @@ def depth_quantity(
                 pos[i] = origin[i] + extent[i] + n_outside - 1
                 data[tuple(pos)] = numpy.nan
     return Quantity(
-        data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
+        data,
+        dims=dims,
+        units=units,
+        origin=origin,
+        extent=extent,
+        backend=Backend.python(),
     )
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
+@pytest.mark.parallel
 def test_depth_halo_update(
     depth_quantity,
     communicator,
@@ -315,13 +317,18 @@ def zeros_quantity(dims, units, origin, extent, shape, numpy, dtype):
     outside of it."""
     data = numpy.ones(shape, dtype=dtype)
     quantity = Quantity(
-        data, dims=dims, units=units, origin=origin, extent=extent, backend="debug"
+        data,
+        dims=dims,
+        units=units,
+        origin=origin,
+        extent=extent,
+        backend=Backend.python(),
     )
     quantity.view[:] = 0.0
     return quantity
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
+@pytest.mark.parallel
 def test_zeros_halo_update(
     zeros_quantity,
     communicator,
@@ -358,7 +365,7 @@ def test_zeros_halo_update(
                 )
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
+@pytest.mark.parallel
 def test_zeros_vector_halo_update(
     zeros_quantity,
     communicator,
@@ -398,13 +405,13 @@ def test_zeros_vector_halo_update(
 
 
 def get_horizontal_dims(dims):
-    for dim in X_DIMS:
+    for dim in I_DIMS:
         if dim in dims:
             x_dim = dim
             break
     else:
         raise ValueError(f"no x dimension in {dims}")
-    for dim in Y_DIMS:
+    for dim in J_DIMS:
         if dim in dims:
             y_dim = dim
             break

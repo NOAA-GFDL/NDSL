@@ -8,37 +8,33 @@ import pytest
 import xarray as xr
 
 from ndsl import CubedSpherePartitioner, LocalComm, MPIComm, Quantity, TilePartitioner
+from ndsl.config import Backend
 from ndsl.constants import (
+    I_DIM,
+    I_DIMS,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_DIMS,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_SOIL_DIM,
     X_DIM,
-    X_DIMS,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Y_DIMS,
-    Y_INTERFACE_DIM,
-    Z_DIM,
 )
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
-from ndsl.optional_imports import RaiseWhenAccessed, zarr
+from ndsl.optional_imports import zarr
 
-
-requires_zarr = pytest.mark.skipif(
-    isinstance(zarr, RaiseWhenAccessed), reason="zarr is not installed"
-)
 
 logger = logging.getLogger("test_zarr_monitor")
 
-# pace's Z_DIMS doesn't check the soil dimension
-Z_DIMS = ("z", "z_interface", "z_soil")
+# pace's K_DIMS doesn't check the soil dimension
+ALL_K_DIMS = ("k", "k_interface", "k_soil")
 
 
 @pytest.fixture(params=["one_step", "three_steps"])
-def n_times(request, fast):
+def n_times(request):
     if request.param == "one_step":
-        if fast:
-            pytest.skip("running in fast mode")
-        else:
-            return 1
-    elif request.param == "three_steps":
+        return 1
+    if request.param == "three_steps":
         return 3
 
 
@@ -98,7 +94,10 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
     if request.param == "one_var_2d":
         return {
             "var1": Quantity(
-                numpy.ones([ny, nx]), dims=("y", "x"), units="m", backend="debug"
+                numpy.ones([ny, nx]),
+                dims=(J_DIM, X_DIM),
+                units="m",
+                backend=Backend.python(),
             )
         }
 
@@ -106,22 +105,25 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
         return {
             "var1": Quantity(
                 numpy.ones([nz, ny, nx]),
-                dims=("z", "y", "x"),
+                dims=(K_DIM, J_DIM, I_DIM),
                 units="m",
-                backend="debug",
+                backend=Backend.python(),
             )
         }
 
     if request.param == "two_vars":
         return {
             "var1": Quantity(
-                numpy.ones([ny, nx]), dims=("y", "x"), units="m", backend="debug"
+                numpy.ones([ny, nx]),
+                dims=(J_DIM, I_DIM),
+                units="m",
+                backend=Backend.python(),
             ),
             "var2": Quantity(
                 numpy.ones([nz, ny, nx]),
-                dims=("z", "y", "x"),
+                dims=(K_DIM, J_DIM, I_DIM),
                 units="degK",
-                backend="debug",
+                backend=Backend.python(),
             ),
         }
 
@@ -140,7 +142,7 @@ def state_list(base_state, n_times, start_time, time_step, numpy):
     return state_list
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
     with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
         monitor = ZarrMonitor(tempdir, cube_partitioner, mpi_comm=MPIComm())
@@ -150,13 +152,13 @@ def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
         validate_xarray_can_open(tempdir)
 
 
-@requires_zarr
+@pytest.mark.zarr
 def validate_xarray_can_open(dirname):
     # just checking there are no crashes, validate_group checks data
     xr.open_zarr(dirname, consolidated=False)
 
 
-@requires_zarr
+@pytest.mark.zarr
 def validate_store(states, filename, numpy, start_time):
     nt = len(states)
     calendar = get_calendar(start_time)
@@ -213,12 +215,12 @@ def validate_store(states, filename, numpy, start_time):
 @pytest.mark.parametrize(
     "shape, ny_rank_add, nx_rank_add, dims",
     [
-        ((5, 4, 4), 0, 0, ("z", "y", "x")),
-        ((5, 4, 4), 1, 1, ("z", "y_interface", "x_interface")),
-        ((5, 4, 4), 0, 1, ("z", "y", "x_interface")),
+        ((5, 4, 4), 0, 0, (K_DIM, J_DIM, I_DIM)),
+        ((5, 4, 4), 1, 1, (K_DIM, J_INTERFACE_DIM, I_INTERFACE_DIM)),
+        ((5, 4, 4), 0, 1, (K_DIM, J_DIM, I_INTERFACE_DIM)),
     ],
 )
-@requires_zarr
+@pytest.mark.zarr
 def test_monitor_file_store_multi_rank_state(
     layout, nt, tmpdir_factory, shape, ny_rank_add, nx_rank_add, dims, numpy
 ):
@@ -254,7 +256,7 @@ def test_monitor_file_store_multi_rank_state(
                     numpy.ones([nz, ny_rank, nx_rank]),
                     dims=dims,
                     units=units,
-                    backend="debug",
+                    backend=Backend.python(),
                 ),
             }
             monitor_list[rank].store(state)
@@ -270,25 +272,25 @@ def test_monitor_file_store_multi_rank_state(
         pytest.param(
             (1, 1),
             (7, 6, 6),
-            [Z_DIM, Y_DIM, X_DIM],
+            [K_DIM, J_DIM, I_DIM],
             (7, 6, 6),
             id="single_chunk_tile_3d",
         ),
         pytest.param(
             (1, 1),
             (6, 6),
-            [Y_DIM, X_DIM],
+            [J_DIM, I_DIM],
             (6, 6),
             id="single_chunk_tile_2d",
         ),
-        pytest.param((1, 1), (6,), [Y_DIM], (6,), id="single_chunk_tile_1d"),
+        pytest.param((1, 1), (6,), [J_DIM], (6,), id="single_chunk_tile_1d"),
         pytest.param(
             (1, 1),
             (7, 6, 6),
             [
-                Z_DIM,
-                Y_INTERFACE_DIM,
-                X_INTERFACE_DIM,
+                K_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
             ],
             (7, 5, 5),
             id="single_chunk_tile_3d_interfaces",
@@ -296,14 +298,14 @@ def test_monitor_file_store_multi_rank_state(
         pytest.param(
             (2, 2),
             (7, 6, 6),
-            [Z_DIM, Y_DIM, X_DIM],
+            [K_DIM, J_DIM, I_DIM],
             (7, 3, 3),
             id="2_by_2_tile_3d",
         ),
         pytest.param(
             (2, 2),
             (6, 16, 6),
-            [Y_DIM, Z_DIM, X_DIM],
+            [J_DIM, K_DIM, I_DIM],
             (3, 16, 3),
             id="2_by_2_tile_3d_odd_dim_order",
         ),
@@ -311,16 +313,16 @@ def test_monitor_file_store_multi_rank_state(
             (2, 2),
             (7, 7, 7),
             [
-                Z_DIM,
-                Y_INTERFACE_DIM,
-                X_INTERFACE_DIM,
+                K_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
             ],
             (7, 3, 3),
             id="2_by_2_tile_3d_interfaces",
         ),
     ],
 )
-@requires_zarr
+@pytest.mark.zarr
 def test_array_chunks(layout, tile_array_shape, array_dims, target):
     result = array_chunks(layout, tile_array_shape, array_dims)
     assert result == target
@@ -336,15 +338,18 @@ def _assert_no_nulls(dataset: xr.Dataset):
 
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
-@requires_zarr
-def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale):
+@pytest.mark.zarr
+def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale):
     store = {}
     buffer = {}
 
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     zero_quantity = Quantity(
-        numpy.zeros([10, 10]), dims=("y", "x"), units="m", backend="debug"
+        numpy.zeros([10, 10]),
+        dims=(J_DIM, I_DIM),
+        units="m",
+        backend=Backend.python(),
     )
     monitor.store({"var": zero_quantity})
 
@@ -355,9 +360,9 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, backend, mask_and_scale
     _assert_no_nulls(dataset.sel(tile=0))
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_values_preserved(cube_partitioner, numpy):
-    dims = ("y", "x")
+    dims = (J_DIM, I_DIM)
     units = "m"
 
     store = {}
@@ -366,7 +371,10 @@ def test_values_preserved(cube_partitioner, numpy):
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
     quantity = Quantity(
-        numpy.random.uniform(size=(10, 10)), dims=dims, units=units, backend="debug"
+        numpy.random.uniform(size=(10, 10)),
+        dims=dims,
+        units=units,
+        backend=Backend.python(),
     )
     monitor.store({"var": quantity})
 
@@ -393,7 +401,7 @@ def state_list_with_inconsistent_calendars(base_state, numpy):
     return state_list
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_monitor_file_store_inconsistent_calendars(
     state_list_with_inconsistent_calendars, cube_partitioner, numpy
 ):
@@ -407,11 +415,11 @@ def test_monitor_file_store_inconsistent_calendars(
 
 @pytest.fixture(
     params=[
-        ["x", "y"],
-        ["x", "y", "z"],
-        ["x_interface", "y", "z"],
-        ["x", "y_interface", "z"],
-        ["x", "y", "z_soil"],
+        [I_DIM, J_DIM],
+        [I_DIM, J_DIM, K_DIM],
+        [I_INTERFACE_DIM, J_DIM, K_DIM],
+        [I_DIM, J_INTERFACE_DIM, K_DIM],
+        [I_DIM, J_DIM, K_SOIL_DIM],
     ],
 )
 def diag(request, numpy):
@@ -420,7 +428,7 @@ def diag(request, numpy):
         numpy.ones([size + 2 for size in range(len(dims))]),
         dims=dims,
         units="m",
-        backend="debug",
+        backend=Backend.python(),
     )
 
 
@@ -443,7 +451,7 @@ def zarr_monitor_single_rank(zarr_store, cube_partitioner):
     return ZarrMonitor(zarr_store, cube_partitioner, mpi_comm=MPIComm())
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store):
     layout = (1, 1)
     total_ranks = 6 * layout[0] * layout[1]
@@ -458,32 +466,32 @@ def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store)
         )
         if rank % 2 == 0:
             diag_to_store = _transpose(
-                diag, dims_2d=[Y_DIMS, X_DIMS], dims_3d=[Z_DIMS, Y_DIMS, X_DIMS]
+                diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[ALL_K_DIMS, J_DIMS, I_DIMS]
             )
         else:
             diag_to_store = _transpose(
-                diag, dims_2d=[X_DIMS, Y_DIMS], dims_3d=[X_DIMS, Y_DIMS, Z_DIMS]
+                diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, ALL_K_DIMS]
             )
         # verify that we can store transposed diags across ranks
         monitor.store({"a": diag_to_store})
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank):
     # verify that we can store transposed diags across time
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     diag_1 = _transpose(
-        diag, dims_2d=[Y_DIMS, X_DIMS], dims_3d=[Z_DIMS, Y_DIMS, X_DIMS]
+        diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[ALL_K_DIMS, J_DIMS, I_DIMS]
     )
     zarr_monitor_single_rank.store({"time": time_1, "a": diag_1})
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
     diag_2 = _transpose(
-        diag, dims_2d=[X_DIMS, Y_DIMS], dims_3d=[X_DIMS, Y_DIMS, Z_DIMS]
+        diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, ALL_K_DIMS]
     )
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
@@ -494,14 +502,14 @@ def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
         numpy.ones([size + 2 for size in range(len(diag.dims))]),
         dims=new_dims,
         units="m",
-        backend="debug",
+        backend=Backend.python(),
     )
     with pytest.raises(ValueError) as excinfo:
         zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
     assert "Attempting to append a quantity" in str(excinfo.value)
 
 
-@requires_zarr
+@pytest.mark.zarr
 def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_rank):
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
@@ -510,6 +518,8 @@ def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_ra
     diag_2 = copy.deepcopy(diag)
     diag_2._attrs.update({"some_non_units_attrs": 9.0})
     zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
-    diag_3 = Quantity(data=diag.view[:], dims=diag.dims, units="not_m", backend="debug")
+    diag_3 = Quantity(
+        data=diag.view[:], dims=diag.dims, units="not_m", backend=Backend.python()
+    )
     with pytest.raises(ValueError):
         zarr_monitor_single_rank.store({"time": time_3, "a": diag_3})

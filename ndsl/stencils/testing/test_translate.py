@@ -9,6 +9,7 @@ import pytest
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from ndsl.config import Backend
 from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
@@ -31,7 +32,7 @@ def platform():
     return "docker" if in_docker else "metal"
 
 
-def process_override(threshold_overrides, testobj, test_name, backend):
+def process_override(threshold_overrides, testobj, test_name, backend: Backend):
     override = threshold_overrides.get(test_name, None)
     if override is not None:
         for spec in override:
@@ -145,7 +146,7 @@ def _get_thresholds(compute_function, input_data) -> None:
 )
 def test_sequential_savepoint(
     case: SavepointCase,
-    backend,
+    backend: str,
     print_failures,
     failure_stride,
     subtests,
@@ -158,11 +159,12 @@ def test_sequential_savepoint(
         raise ValueError(
             f"No translate object available for savepoint {case.savepoint_name}."
         )
+    ndsl_backend = Backend(backend)
     stencil_config = StencilConfig(
-        compilation_config=CompilationConfig(backend=backend),
+        compilation_config=CompilationConfig(backend=ndsl_backend),
         dace_config=DaceConfig(
             communicator=None,
-            backend=backend,
+            backend=ndsl_backend,
         ),
     )
     # Reduce error threshold for GPU
@@ -171,7 +173,7 @@ def test_sequential_savepoint(
         case.testobj.near_zero = max(case.testobj.near_zero, GPU_NEAR_ZERO)
     if threshold_overrides is not None:
         process_override(
-            threshold_overrides, case.testobj, case.savepoint_name, backend
+            threshold_overrides, case.testobj, case.savepoint_name, ndsl_backend
         )
     if case.testobj.skip_test:
         return
@@ -213,8 +215,10 @@ def test_sequential_savepoint(
     # give the user a chance to load data from other savepoints to allow
     # for gathering required data from multiple sources (constants, etc.)
     case.testobj.extra_data_load(DataLoader(case.grid.rank, case.data_dir))
+
     # run python version of functionality
     output = case.testobj.compute(input_data)
+
     failing_names: list[str] = []
     passing_names: list[str] = []
     if hasattr(case.testobj, "override_output_netcdf_name"):
@@ -328,7 +332,7 @@ def get_tile_communicator(comm, layout):
 )
 def test_parallel_savepoint(
     case: SavepointCase,
-    backend,
+    backend: str,
     print_failures,
     failure_stride,
     subtests,
@@ -338,6 +342,7 @@ def test_parallel_savepoint(
     multimodal_metric,
     xy_indices=True,
 ):
+    ndsl_backend = Backend(backend)
     mpi_comm = MPIComm()
     if mpi_comm.Get_size() % 6 != 0:
         layout = (
@@ -356,10 +361,10 @@ def test_parallel_savepoint(
             f"No translate object available for savepoint {case.savepoint_name}"
         )
     stencil_config = StencilConfig(
-        compilation_config=CompilationConfig(backend=backend),
+        compilation_config=CompilationConfig(backend=ndsl_backend),
         dace_config=DaceConfig(
             communicator=communicator,
-            backend=backend,
+            backend=ndsl_backend,
         ),
     )
     # Increase minimum error threshold for GPU
@@ -368,7 +373,7 @@ def test_parallel_savepoint(
         case.testobj.near_zero = max(case.testobj.near_zero, GPU_NEAR_ZERO)
     if threshold_overrides is not None:
         process_override(
-            threshold_overrides, case.testobj, case.savepoint_name, backend
+            threshold_overrides, case.testobj, case.savepoint_name, ndsl_backend
         )
     if case.testobj.skip_test:
         return

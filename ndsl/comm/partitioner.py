@@ -69,7 +69,7 @@ class Partitioner(abc.ABC):
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full tile representation
@@ -166,7 +166,7 @@ class TilePartitioner(Partitioner):
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full tile representation
@@ -608,7 +608,7 @@ class CubedSpherePartitioner(Partitioner):
         """Return the shape of a full cube representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full cube representation
@@ -625,7 +625,7 @@ class CubedSpherePartitioner(Partitioner):
         """Return the shape of a single rank representation for the given dimensions.
 
         Args:
-            global_metadata: quantity metadata.
+            cube_metadata: quantity metadata.
             rank: rank of the process.
 
         Returns:
@@ -830,7 +830,7 @@ def _rank_slice_from_tile_metadata_cached(
         cartesian_dims, interior_extents, edge_extents
     ):
         if dim in constants.HORIZONTAL_DIMS:
-            if dim in constants.Y_DIMS:
+            if dim in constants.J_DIMS:
                 index = subtile_index[0]
                 n_ranks = layout[0]
             else:

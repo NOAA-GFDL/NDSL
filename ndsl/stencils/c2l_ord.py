@@ -11,7 +11,7 @@ from gt4py.cartesian.gtscript import (
 
 import ndsl.dsl.gt4py_utils as utils
 from ndsl.comm.communicator import Communicator
-from ndsl.constants import X_DIM, X_INTERFACE_DIM, Y_DIM, Y_INTERFACE_DIM, Z_DIM
+from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.dsl.dace.wrapped_halo_exchange import WrappedHaloUpdater
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
@@ -212,18 +212,18 @@ class CubedToLatLon:
         self._compute_cubed_to_latlon = stencil_factory.from_dims_halo(
             func=func,
             externals={"grid_type": grid_type},
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
             compute_halos=halos,
         )
 
         if not self.one_rank:
             full_size_xyiz_halo_spec = quantity_factory.get_quantity_halo_spec(
-                dims=[X_DIM, Y_INTERFACE_DIM, Z_DIM],
+                dims=[I_DIM, J_INTERFACE_DIM, K_DIM],
                 n_halo=grid_indexing.n_halo,
                 dtype=Float,
             )
             full_size_xiyz_halo_spec = quantity_factory.get_quantity_halo_spec(
-                dims=[X_INTERFACE_DIM, Y_DIM, Z_DIM],
+                dims=[I_INTERFACE_DIM, J_DIM, K_DIM],
                 n_halo=grid_indexing.n_halo,
                 dtype=Float,
             )

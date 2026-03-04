@@ -663,7 +663,7 @@ class LocalState(State):
             data_dimensions = {}
 
         class _DeactivatePostInitMethod:
-            """[Here be 🐉] Temporily shadow the __post_init__ method to deactivate the guardrails
+            """[Here be 🐉] Temporarily shadow the __post_init__ method to deactivate the guardrails
             of the LocalState. DO NOT USE OUTSIDE OF THIS FUNCTION."""
 
             def __init__(self) -> None:
@@ -700,7 +700,7 @@ class LocalState(State):
             def _restore_local_recursive(cls: Any) -> None:
                 for _field in dataclasses.fields(cls):
                     if dataclasses.is_dataclass(_field.type):
-                        _swap_local_recursive(_field.type)
+                        _restore_local_recursive(_field.type)
                     elif _field.type is Quantity:
                         _field.type = Local
 

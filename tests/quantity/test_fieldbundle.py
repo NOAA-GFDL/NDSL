@@ -1,5 +1,5 @@
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 from ndsl.quantity.field_bundle import FieldBundle, FieldBundleType
@@ -30,18 +30,18 @@ def test_field_bundle():
     # Make stencils
     assign_4d_field = stencil_factory.from_dims_halo(
         func=assign_4d_field_stcl,
-        compute_dims=[X_DIM, Y_DIM, Z_DIM],
+        compute_dims=[I_DIM, J_DIM, K_DIM],
     )
     assign_3d_field = stencil_factory.from_dims_halo(
         func=assign_3d_field_stcl,
-        compute_dims=[X_DIM, Y_DIM, Z_DIM],
+        compute_dims=[I_DIM, J_DIM, K_DIM],
     )
 
     # "Input" data
     new_quantity_factory = FieldBundle.extend_3D_quantity_factory(
         quantity_factory, {"tracers": N4th}
     )
-    data = new_quantity_factory.ones([X_DIM, Y_DIM, Z_DIM, "tracers"], units="kg/g")
+    data = new_quantity_factory.ones([I_DIM, J_DIM, K_DIM, "tracers"], units="kg/g")
 
     # Build Bundle
     tracers = FieldBundle(

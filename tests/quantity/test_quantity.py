@@ -2,16 +2,14 @@ import numpy as np
 import pytest
 
 from ndsl import Quantity
+from ndsl.config import Backend
 from ndsl.quantity.bounds import _shift_slice
 
 
 @pytest.fixture(params=["empty", "one", "five"])
-def extent_1d(request, backend, n_halo):
+def extent_1d(request):
     if request.param == "empty":
-        if "gt4py" in backend and n_halo == 0:
-            pytest.skip("gt4py does not support length-zero dimensions")
-        else:
-            return 0
+        return 0
     elif request.param == "one":
         return 1
     elif request.param == "five":
@@ -62,7 +60,12 @@ def data(n_halo, extent_1d, n_dims, numpy, dtype):
 @pytest.fixture
 def quantity(data, origin, extent, dims, units):
     return Quantity(
-        data, origin=origin, extent=extent, dims=dims, units=units, backend="debug"
+        data,
+        origin=origin,
+        extent=extent,
+        dims=dims,
+        units=units,
+        backend=Backend.python(),
     )
 
 
@@ -82,7 +85,7 @@ def test_smaller_data_raises(data, origin, extent, dims, units):
                     extent=extent,
                     dims=dims,
                     units=units,
-                    backend="debug",
+                    backend=Backend.python(),
                 )
 
 
@@ -96,7 +99,7 @@ def test_smaller_dims_raises(data, origin, extent, dims, units):
             extent=extent,
             dims=dims[:-1],
             units=units,
-            backend="debug",
+            backend=Backend.python(),
         )
 
 
@@ -108,7 +111,7 @@ def test_smaller_origin_raises(data, origin, extent, dims, units):
             extent=extent,
             dims=dims,
             units=units,
-            backend="debug",
+            backend=Backend.python(),
         )
 
 
@@ -120,7 +123,7 @@ def test_smaller_extent_raises(data, origin, extent, dims, units):
             extent=extent[:-1],
             dims=dims,
             units=units,
-            backend="debug",
+            backend=Backend.python(),
         )
 
 
@@ -180,7 +183,8 @@ def test_compute_view_edit_end_halo(quantity, extent_1d, n_halo, n_dims):
 
 def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
     if extent_1d == 0:
-        pytest.skip("cannot edit an empty domain")
+        return  # cannot edit an empty domain
+
     quantity.data[:] = 0.0
     quantity.view[(0,) * n_dims] = 1
     assert quantity.data[(n_halo,) * n_dims] == 1
@@ -189,7 +193,8 @@ def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
 
 def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
     if extent_1d == 0:
-        pytest.skip("cannot edit an empty domain")
+        return  # cannot edit an empty domain
+
     quantity.data[:] = 0.0
     quantity.view[:] = 1
     assert quantity.np.sum(quantity.data) == extent_1d**n_dims
@@ -252,7 +257,12 @@ def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
         ),
     ],
 )
-def test_shift_slice(slice_in, shift, extent, slice_out):
+def test_shift_slice(
+    slice_in: slice,
+    shift: int,
+    extent: int,
+    slice_out: slice,
+) -> None:
     result = _shift_slice(slice_in, shift, extent)
     assert result == slice_out
 
@@ -260,15 +270,18 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
 @pytest.mark.parametrize(
     "quantity",
     [
-        Quantity(np.array(5), dims=[], units="", backend="debug"),
+        Quantity(np.array(5), dims=[], units="", backend=Backend.python()),
         Quantity(
-            np.array([1, 2, 3]), dims=["dimension"], units="degK", backend="debug"
+            np.array([1, 2, 3]),
+            dims=["dimension"],
+            units="degK",
+            backend=Backend.python(),
         ),
         Quantity(
             np.random.randn(3, 2, 4),
             dims=["dim1", "dim_2", "dimension_3"],
             units="m",
-            backend="debug",
+            backend=Backend.python(),
         ),
         Quantity(
             np.random.randn(8, 6, 6),
@@ -276,7 +289,7 @@ def test_shift_slice(slice_in, shift, extent, slice_out):
             units="km",
             origin=(2, 2, 2),
             extent=(4, 2, 2),
-            backend="debug",
+            backend=Backend.python(),
         ),
     ],
 )
@@ -292,7 +305,9 @@ def test_to_data_array(quantity):
 
 
 def test_data_setter():
-    quantity = Quantity(np.ones((5,)), dims=["dim1"], units="", backend="debug")
+    quantity = Quantity(
+        np.ones((5,)), dims=["dim1"], units="", backend=Backend.python()
+    )
 
     # After allocation - field and data are the same (origin is 0)
     assert quantity.data.shape == quantity.field.shape

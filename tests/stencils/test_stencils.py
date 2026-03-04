@@ -3,7 +3,8 @@ import pytest
 
 from ndsl import QuantityFactory, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl.config import Backend
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, set_4d_field_size
 from ndsl.stencils.column_operations import (
@@ -19,12 +20,17 @@ FloatField_ddim = set_4d_field_size(2, Float)
 
 @pytest.fixture
 def boilerplate() -> tuple[StencilFactory, QuantityFactory]:
-    return get_factories_single_tile(nx=1, ny=1, nz=10, nhalo=0, backend="dace:cpu")
+    return get_factories_single_tile(
+        nx=1,
+        ny=1,
+        nz=10,
+        nhalo=0,
+        backend=Backend("st:dace:cpu:KIJ"),
+    )
 
 
 class ColumnOperations:
     def __init__(self, stencil_factory: StencilFactory):
-
         def column_max_stencil(
             data: FloatField, max_value: FloatFieldIJ, max_index: FloatFieldIJ
         ):
@@ -59,19 +65,19 @@ class ColumnOperations:
 
         self._column_max_stencil = stencil_factory.from_dims_halo(
             func=column_max_stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._column_max_ddim_stencil = stencil_factory.from_dims_halo(
             func=column_max_ddim_stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._column_min_stencil = stencil_factory.from_dims_halo(
             func=column_min_stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self._column_min_ddim_stencil = stencil_factory.from_dims_halo(
             func=column_min_ddim_stencil,
-            compute_dims=[X_DIM, Y_DIM, Z_DIM],
+            compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
     def __call__(
@@ -93,10 +99,10 @@ class ColumnOperations:
         self._column_min_ddim_stencil(data_ddim, min_value_ddim, min_index_ddim)
 
 
-def test_column_operations(boilerplate):
+def test_column_operations(boilerplate: tuple[StencilFactory, QuantityFactory]):
     stencil_factory, quantity_factory = boilerplate
     quantity_factory.add_data_dimensions({"ddim": 2})
-    data = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "n/a")
+    data = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "n/a")
     data.field[:] = [
         47.3821,
         2.9157,
@@ -110,7 +116,7 @@ def test_column_operations(boilerplate):
         7.3504,
     ]
 
-    data_ddim = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM, "ddim"], "n/a")
+    data_ddim = quantity_factory.zeros([I_DIM, J_DIM, K_DIM, "ddim"], "n/a")
     data_ddim.field[:] = [
         [
             [
@@ -128,14 +134,14 @@ def test_column_operations(boilerplate):
         ]
     ]
 
-    max_value = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    max_index = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    min_value = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    min_index = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    max_value_ddim = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    max_index_ddim = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    min_value_ddim = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
-    min_index_ddim = quantity_factory.zeros([X_DIM, Y_DIM], "n/a")
+    max_value = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    max_index = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    min_value = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    min_index = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    max_value_ddim = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    max_index_ddim = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    min_value_ddim = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
+    min_index_ddim = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
 
     code = ColumnOperations(stencil_factory)
     code(
