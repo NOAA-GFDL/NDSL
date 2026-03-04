@@ -10,7 +10,10 @@ on:
 
 jobs:
   pace_main_tests:
-    uses: floriandeconinck/pace/.github/workflows/main_unit_tests.yaml@update/2026.02.00
+    # TODO
+    # restore once NDSL 2026.02.00 is released and pace is updated.
+    # uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
+    uses: romanc/pace/.github/workflows/main_unit_tests.yaml@noop
     with:
       component_trigger: true
       component_name: NDSL
