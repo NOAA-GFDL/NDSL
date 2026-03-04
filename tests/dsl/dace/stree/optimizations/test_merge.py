@@ -5,6 +5,7 @@ import pytest
 
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
+from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
@@ -134,7 +135,7 @@ class TestStreeMergeMapsIJK:
     def factories(self) -> Factories:
         domain = (3, 3, 4)
         return get_factories_single_tile_orchestrated(
-            domain[0], domain[1], domain[2], 0, backend="dace:cpu_kfirst"
+            domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
         )
 
     @pytest.fixture
@@ -257,7 +258,7 @@ class TestStreeMergeMapsKJI:
     def factories(self) -> Factories:
         domain = (3, 3, 4)
         return get_factories_single_tile_orchestrated(
-            domain[0], domain[1], domain[2], 0, backend="dace:cpu_KJI"
+            domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:KJI")
         )
 
     @pytest.fixture
