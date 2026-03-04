@@ -18,8 +18,9 @@ def test_backend_building():
     Backend("st:dace:gpu:KJI")
     Backend("orch:dace:gpu:KJI")
 
-    with pytest.raises(ValueError):
-        Backend("bad:name:good:number")
+    unknown_backend = "bad:name:good:number"
+    with pytest.raises(ValueError, match=f"Unknown {unknown_backend}, options are .*"):
+        Backend(unknown_backend)
 
 
 def test_backend_operators():
