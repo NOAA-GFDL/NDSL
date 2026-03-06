@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any
@@ -445,25 +444,6 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
             return np.asarray(array, dtype, order)
         else:
             return cp.asarray(array, dtype, order)
-
-
-def is_gpu_backend(backend: Backend) -> bool:
-    warnings.warn(
-        "Function `gt4py_utils.is_gpu_backend` is deprecated, please use `Backend.is_gpu_backend()`",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return backend.is_gpu_backend()
-
-
-def backend_is_fortran_aligned(backend: Backend) -> bool:
-    warnings.warn(
-        "Function `gt4py_utils.backend_is_fortran_aligned` is deprecated "
-        "please use `Backend.backend_is_fortran_aligned()`",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return backend.is_fortran_aligned()
 
 
 def zeros(shape, dtype=Float, *, backend: Backend):
