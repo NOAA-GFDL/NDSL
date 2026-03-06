@@ -146,9 +146,6 @@ def _build_sdfg(
     backend_name = config.get_backend()
 
     if is_compiling:
-        with DaCeProgress(config, "Validate original SDFG"):
-            sdfg.validate()
-
         # Fully specialize all known symbols and then propagate these changes in the simplify
         # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
         # the schedule tree (optimization) roundtrip.
@@ -271,12 +268,9 @@ def _build_sdfg(
                 negative_delp_checker(sdfg)
                 negative_qtracers_checker(sdfg)
 
-        with DaCeProgress(config, "Validate before compile"):
-            sdfg.validate()
-
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
-            sdfg.compile()
+            sdfg.compile(validate=False)
         write_build_info(sdfg, config.layout, config.tile_resolution, backend_name)
 
         # Printing analysis of the compiled SDFG
@@ -414,6 +408,7 @@ def _parse_sdfg(
                 *args,
                 **dace_program.__sdfg_closure__(),
                 **kwargs,
+                use_cache=True,
                 save=False,
                 simplify=False,
                 validate=False,  # TODO: should we have a "debug flag" to turn this on?
