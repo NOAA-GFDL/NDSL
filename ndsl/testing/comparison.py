@@ -260,11 +260,11 @@ class MultiModalFloatMetric(BaseMetric):
         # We might have sliced outputs in the translate test. Rather than funnel the slicing
         # all the way down, we bail out if we can measure input vs reference
         if input_values is not None and input_values.shape == reference_values.shape:
-            self.number_changing_values = (
-                (input_values != reference_values).sum()
-            )
+            self.number_changing_values = (input_values != reference_values).sum()
             if len(input_values.shape) == 3:
-                self.changing_column_map = (input_values != reference_values).any(axis=2)
+                self.changing_column_map = (input_values != reference_values).any(
+                    axis=2
+                )
             else:
                 self.changing_column_map = np.nan
         else:
@@ -343,9 +343,11 @@ class MultiModalFloatMetric(BaseMetric):
         # List all errors to terminal and file
         bad_indices_count = len(failed_indices[0])
         if self.success.ndim == 3:
-            bad_column_count = (np.logical_not(self.success).any(axis=2) & self.changing_column_map).sum()
+            bad_column_count = (
+                np.logical_not(self.success).any(axis=2) & self.changing_column_map
+            ).sum()
             total_column_count = self.changing_column_map.sum()
-            bad_column_pct = round(bad_column_count/total_column_count * 100, 2)
+            bad_column_pct = round(bad_column_count / total_column_count * 100, 2)
         else:
             bad_column_count = np.nan
             total_column_count = np.nan
