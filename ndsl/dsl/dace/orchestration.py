@@ -270,7 +270,7 @@ def _build_sdfg(
 
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
-            sdfg.compile(validate=False)
+            sdfg.compile()
         write_build_info(sdfg, config.layout, config.tile_resolution, backend_name)
 
         # Printing analysis of the compiled SDFG
