@@ -269,6 +269,7 @@ class MultiModalFloatMetric(BaseMetric):
                 self.changing_column_map = np.nan
         else:
             self.number_changing_values = None
+            self.changing_column_map = None
 
     def _compute_all_metrics(
         self,
@@ -342,12 +343,17 @@ class MultiModalFloatMetric(BaseMetric):
         failed_indices = np.logical_not(self.success).nonzero()
         # List all errors to terminal and file
         bad_indices_count = len(failed_indices[0])
-        if self.success.ndim == 3:
-            bad_column_count = (
-                np.logical_not(self.success).any(axis=2) & self.changing_column_map
-            ).sum()
-            total_column_count = self.changing_column_map.sum()
-            bad_column_pct = round(bad_column_count / total_column_count * 100, 2)
+        if self.changing_column_map is not None:
+            if self.success.ndim == 3:
+                bad_column_count = (
+                    np.logical_not(self.success).any(axis=2) & self.changing_column_map
+                ).sum()
+                total_column_count = self.changing_column_map.sum()
+                bad_column_pct = round(bad_column_count / total_column_count * 100, 2)
+            else:
+                bad_column_count = np.nan
+                total_column_count = np.nan
+                bad_column_pct = np.nan
         else:
             bad_column_count = np.nan
             total_column_count = np.nan
@@ -362,7 +368,7 @@ class MultiModalFloatMetric(BaseMetric):
             )
             report_local_failures = f"changing grid points: {bad_indices_count}/{self.number_changing_values} - {failures_of_changing_gridpoint_pct}%; changing columns: {bad_column_count}/{total_column_count} - {bad_column_pct}%; all grid points: {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         else:
-            report_local_failures = ""
+            report_local_failures = "Something went wrong when calculating statistics one line print, see log for raw data.\n"
         report = [
             f"{report_local_failures}"
             f"Index   Computed   Reference   "
