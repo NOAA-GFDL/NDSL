@@ -122,7 +122,7 @@ def _to_gpu(sdfg: SDFG) -> None:
 def _simplify(
     sdfg: SDFG,
     *,
-    validate: bool = True,
+    validate: bool = False,
     validate_all: bool = False,
     verbose: bool = False,
 ) -> dict | None:
@@ -146,9 +146,6 @@ def _build_sdfg(
     backend_name = config.get_backend()
 
     if is_compiling:
-        with DaCeProgress(config, "Validate original SDFG"):
-            sdfg.validate()
-
         # Fully specialize all known symbols and then propagate these changes in the simplify
         # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
         # the schedule tree (optimization) roundtrip.
@@ -270,9 +267,6 @@ def _build_sdfg(
                 sdfg_nan_checker(sdfg)
                 negative_delp_checker(sdfg)
                 negative_qtracers_checker(sdfg)
-
-        with DaCeProgress(config, "Validate before compile"):
-            sdfg.validate()
 
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
@@ -646,9 +640,7 @@ def orchestrate(
                 return wrapped(*arg, **kwarg)
 
             def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-                sdfg = wrapped.__sdfg__(*args, **kwargs)
-                sdfg.validate()
-                return sdfg
+                return wrapped.__sdfg__(*args, **kwargs)
 
             def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
                 return wrapped.__sdfg_closure__(reevaluate)
