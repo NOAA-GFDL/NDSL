@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Callable, Generator, Iterable
+from typing import Any
 
 import numpy as np
-from numpy.lib.index_tricks import IndexExpression
+import numpy.typing as npt
 
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.types import Allocator
@@ -16,7 +17,7 @@ from ndsl.utils import (
 )
 
 
-BufferKey = tuple[Callable, Iterable[int], type]
+BufferKey = tuple[Callable, Iterable[int], npt.DTypeLike]
 BUFFER_CACHE: dict[BufferKey, list["Buffer"]] = {}
 
 
@@ -41,7 +42,7 @@ class Buffer:
 
     @classmethod
     def pop_from_cache(
-        cls, allocator: Allocator, shape: Iterable[int], dtype: type
+        cls, allocator: Allocator, shape: Iterable[int], dtype: npt.DTypeLike
     ) -> Buffer:
         """Retrieve or insert then retrieve of buffer from cache.
 
@@ -78,8 +79,8 @@ class Buffer:
     def assign_to(
         self,
         destination_array: np.ndarray,
-        buffer_slice: IndexExpression = np.index_exp[:],
-        buffer_reshape: IndexExpression = None,
+        buffer_slice: Any = np.index_exp[:],
+        buffer_reshape: Any | None = None,
     ) -> None:
         """Assign internal array to destination_array.
 
@@ -95,7 +96,7 @@ class Buffer:
             )
 
     def assign_from(
-        self, source_array: np.ndarray, buffer_slice: IndexExpression = np.index_exp[:]
+        self, source_array: np.ndarray, buffer_slice: Any = np.index_exp[:]
     ) -> None:
         """Assign source_array to internal array.
 
@@ -107,7 +108,7 @@ class Buffer:
 
 @contextlib.contextmanager
 def array_buffer(
-    allocator: Allocator, shape: Iterable[int], dtype: type
+    allocator: Allocator, shape: Iterable[int], dtype: npt.DTypeLike
 ) -> Generator[Buffer, Buffer, None]:
     """
     A context manager providing a contiguous array, which may be re-used between calls.
@@ -132,7 +133,7 @@ def send_buffer(
     allocator: Callable,
     array: np.ndarray,
     timer: Timer | None = None,
-) -> np.ndarray:
+) -> Generator[np.ndarray]:
     """A context manager ensuring that `array` is contiguous in a context where it is
     being sent as data, copying into a recycled buffer array if necessary.
 
@@ -166,7 +167,7 @@ def recv_buffer(
     allocator: Callable,
     array: np.ndarray,
     timer: Timer | None = None,
-) -> np.ndarray:
+) -> Generator[np.ndarray]:
     """A context manager ensuring that array is contiguous in a context where it is
     being used to receive data, using a recycled buffer array and then copying the
     result into array if necessary.
