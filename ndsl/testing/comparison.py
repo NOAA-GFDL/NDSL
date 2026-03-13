@@ -368,7 +368,7 @@ class MultiModalFloatMetric(BaseMetric):
             )
             report_local_failures = f"changing grid points: {bad_indices_count}/{self.number_changing_values} - {failures_of_changing_gridpoint_pct}%; changing columns: {bad_column_count}/{total_column_count} - {bad_column_pct}%; all grid points: {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         else:
-            report_local_failures = "Something went wrong when calculating statistics one line print, see log for raw data.\n"
+            report_local_failures = f"all grid points: {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         report = [
             f"{report_local_failures}"
             f"Index   Computed   Reference   "
