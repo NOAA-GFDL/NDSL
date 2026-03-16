@@ -29,4 +29,4 @@ What to do to actually release:
 What to do after a release:
 
 - [ ] update the pace PR from the pre-commit checklist to include the released version of NDSL and merge it.
-- [ ] in NDSL, merge `main` back into `develop` (potentially adding a commit to fix the issue "properly")
+- [ ] in NDSL, merge `main` back into `develop` (potentially adding a commit to fix the issue "properly") to have all changes in develop and ensure `setuptools_scm` finds the latest release tag
