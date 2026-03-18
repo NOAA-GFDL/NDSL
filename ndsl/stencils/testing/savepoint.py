@@ -22,9 +22,10 @@ def _process_if_scalar(value: np.ndarray) -> np.ndarray | float | int:
 
 
 class DataLoader:
-    def __init__(self, rank: int, data_path: Path) -> None:
+    def __init__(self, rank: int, data_path: Path, i_call: int) -> None:
         self._data_path = data_path
         self._rank = rank
+        self.i_call = i_call
 
     def load(
         self,
