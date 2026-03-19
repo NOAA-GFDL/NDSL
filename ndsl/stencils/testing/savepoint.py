@@ -25,19 +25,19 @@ class DataLoader:
     def __init__(self, rank: int, data_path: Path, i_call: int) -> None:
         self._data_path = data_path
         self._rank = rank
-        self.i_call = i_call
+        self._i_call = i_call
 
     def load(
         self,
         name: str,
         postfix: str = "",
-        i_call: int = 0,
+        use_dynamic_i_call: bool = False,
     ) -> dict[str, np.ndarray | float | int]:
+        call_index = self._i_call if use_dynamic_i_call else 0
         return dataset_to_dict(
             xr.open_dataset(self._data_path / f"{name}{postfix}.nc")
             .isel(rank=self._rank)
-            .isel(savepoint=i_call)
-        )
+            .isel(savepoint=call_index))
 
 
 class Translate(Protocol):
