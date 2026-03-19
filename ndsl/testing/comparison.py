@@ -266,7 +266,7 @@ class MultiModalFloatMetric(BaseMetric):
                     axis=2
                 )
             else:
-                self.changing_column_map = np.nan
+                self.changing_column_map = None
         else:
             self.number_changing_values = None
             self.changing_column_map = None
@@ -351,13 +351,13 @@ class MultiModalFloatMetric(BaseMetric):
                 total_column_count = self.changing_column_map.sum()
                 bad_column_pct = round(bad_column_count / total_column_count * 100, 2)
             else:
-                bad_column_count = np.nan
-                total_column_count = np.nan
-                bad_column_pct = np.nan
+                bad_column_count = None
+                total_column_count = None
+                bad_column_pct = None
         else:
-            bad_column_count = np.nan
-            total_column_count = np.nan
-            bad_column_pct = np.nan
+            bad_column_count = None
+            total_column_count = None
+            bad_column_pct = None
         full_count = len(self.references.flatten())
         failures_of_all_grid_points_pct = round(
             100.0 * (bad_indices_count / full_count), 2
@@ -366,7 +366,7 @@ class MultiModalFloatMetric(BaseMetric):
             failures_of_changing_gridpoint_pct = round(
                 100.0 * (bad_indices_count / self.number_changing_values), 2
             )
-            report_local_failures = f"changing grid points: {bad_indices_count}/{self.number_changing_values} - {failures_of_changing_gridpoint_pct}%; changing columns: {bad_column_count}/{total_column_count} - {bad_column_pct}%; all grid points: {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
+            report_local_failures = f"Failures: (changing columns, chainging points, all points) | {bad_column_count}/{total_column_count} - {bad_column_pct}%, {bad_indices_count}/{self.number_changing_values} - {failures_of_changing_gridpoint_pct}%, {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         else:
             report_local_failures = f"all grid points: {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         report = [
