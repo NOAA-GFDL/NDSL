@@ -362,7 +362,7 @@ class MultiModalFloatMetric(BaseMetric):
         failures_of_all_grid_points_pct = round(
             100.0 * (bad_indices_count / full_count), 2
         )
-        if self.number_changing_values is not None:
+        if self.number_changing_values is not None and bad_indices_count is not None and bad_column_count is not None:
             failures_of_changing_gridpoint_pct = round(
                 100.0 * (bad_indices_count / self.number_changing_values), 2
             )
