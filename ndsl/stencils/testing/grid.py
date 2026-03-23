@@ -164,41 +164,6 @@ class Grid:
             self._quantity_factory = QuantityFactory(self.sizer, backend=self.backend)
         return self._quantity_factory
 
-    def make_quantity(
-        self,
-        array,
-        dims=(I_DIM, J_DIM, K_DIM),
-        units="Unknown",
-        origin=None,
-        extent=None,
-    ):
-        if origin is None:
-            origin = self.compute_origin()
-        if extent is None:
-            extent = self.domain_shape_compute()
-        return Quantity(array, dims=dims, units=units, origin=origin, extent=extent)
-
-    def quantity_dict_update(
-        self,
-        data_dict,
-        varname,
-        dims=(I_DIM, J_DIM, K_DIM),
-        units="Unknown",
-    ):
-        data_dict[varname + "_quantity"] = self.quantity_wrap(
-            data_dict[varname], dims=dims, units=units
-        )
-
-    def quantity_wrap(
-        self,
-        data,
-        dims=(I_DIM, J_DIM, K_DIM),
-        units="unknown",
-    ):
-        origin = self.sizer.get_origin(dims)
-        extent = self.sizer.get_extent(dims)
-        return Quantity(data, dims=dims, units=units, origin=origin, extent=extent)
-
     def global_to_local_1d(self, global_value, subtile_index, subtile_length):
         return int(global_value - subtile_index * subtile_length)
 
