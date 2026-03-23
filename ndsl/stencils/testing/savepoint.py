@@ -5,7 +5,7 @@ from typing import Any, Protocol
 import numpy as np
 import xarray as xr
 
-from ndsl.stencils.testing.grid import Grid  # type: ignore
+from ndsl.stencils.testing.grid import Grid
 
 
 def dataset_to_dict(ds: xr.Dataset) -> dict[str, np.ndarray | float | int]:
