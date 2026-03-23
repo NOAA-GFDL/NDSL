@@ -152,9 +152,8 @@ def get_test_class(test_name: str) -> type | None:
         return_class = getattr(translate, translate_class_name)  # type: ignore[name-defined] # noqa: F821
     except AttributeError as err:
         if translate_class_name in err.args[0]:
-            return_class = None
-        else:
-            raise err
+            return None
+        raise err
     return return_class
 
 
