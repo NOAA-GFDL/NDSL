@@ -180,7 +180,9 @@ def _all_savepoint_names(
 ) -> list[str]:
     only_names = metafunc.config.getoption("which_modules")
     if only_names is None:
-        savepoint_names = set(str(fname)[:-6] for fname in data_path.glob("*-In.nc"))
+        savepoint_names = set(
+            str(fname.name)[:-6] for fname in data_path.glob("*-In.nc")
+        )
     else:
         savepoint_names = set(only_names.split(","))
         savepoint_names.discard("")
