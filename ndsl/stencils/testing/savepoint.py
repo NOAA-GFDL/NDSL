@@ -37,7 +37,8 @@ class DataLoader:
         return dataset_to_dict(
             xr.open_dataset(self._data_path / f"{name}{postfix}.nc")
             .isel(rank=self._rank)
-            .isel(savepoint=call_index))
+            .isel(savepoint=call_index)
+        )
 
 
 class Translate(Protocol):
