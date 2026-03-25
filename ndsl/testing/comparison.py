@@ -261,6 +261,7 @@ class MultiModalFloatMetric(BaseMetric):
         # all the way down, we bail out if we can measure input vs reference
         if input_values is not None and input_values.shape == reference_values.shape:
             self.number_changing_values = (input_values != reference_values).sum()
+            # column information is only relevant if data is three-dimensional
             if len(input_values.shape) == 3:
                 self.changing_column_map = (input_values != reference_values).any(
                     axis=2
@@ -362,7 +363,11 @@ class MultiModalFloatMetric(BaseMetric):
         failures_of_all_grid_points_pct = round(
             100.0 * (bad_indices_count / full_count), 2
         )
-        if self.number_changing_values is not None and bad_indices_count is not None and bad_column_count is not None:
+        if (
+            self.number_changing_values is not None
+            and bad_indices_count is not None
+            and bad_column_count is not None
+        ):
             failures_of_changing_gridpoint_pct = round(
                 100.0 * (bad_indices_count / self.number_changing_values), 2
             )
