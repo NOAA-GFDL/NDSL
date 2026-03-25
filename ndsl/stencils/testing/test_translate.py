@@ -214,7 +214,7 @@ def test_sequential_savepoint(
     original_input_data = copy.deepcopy(input_data)
     # give the user a chance to load data from other savepoints to allow
     # for gathering required data from multiple sources (constants, etc.)
-    case.testobj.extra_data_load(DataLoader(case.grid.rank, case.data_dir))
+    case.testobj.extra_data_load(DataLoader(case.grid.rank, case.data_dir, case.i_call))
 
     # run python version of functionality
     output = case.testobj.compute(input_data)
