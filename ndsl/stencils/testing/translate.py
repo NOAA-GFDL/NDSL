@@ -162,7 +162,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 names=names_4d,
                 backend=self.stencil_factory.backend,
-                dtype=array.dtype,  # type: ignore[arg-type]
+                dtype=array.dtype,
             )
         else:
             if len(array.shape) == 4:
