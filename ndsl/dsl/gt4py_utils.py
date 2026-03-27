@@ -86,7 +86,7 @@ def make_storage_data(
     origin: tuple[int, ...] = origin,
     *,
     backend: Backend,
-    dtype: DTypes = Float,
+    dtype: Any = Float,
     mask: tuple[bool, ...] | None = None,
     start: tuple[int, ...] = (0, 0, 0),
     dummy: tuple[int, ...] | None = None,
