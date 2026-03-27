@@ -177,7 +177,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 read_only=read_only,
                 backend=self.stencil_factory.backend,
-                dtype=array.dtype,  # type: ignore[arg-type]
+                dtype=array.dtype,
             )
 
     def storage_vars(self):

@@ -359,7 +359,7 @@ def make_storage_dict(
     axis: int = 2,
     *,
     backend: Backend,
-    dtype: DTypes = Float,
+    dtype: Any = Float,
 ) -> dict[str, npt.NDArray]:
     assert names is not None, "for 4d variable storages, specify a list of names"
     if shape is None:
