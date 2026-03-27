@@ -77,6 +77,10 @@ class TranslateFortranData2Py:
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
+        if self.stencil_factory.backend.is_fortran_aligned():
+            self.maxshape = self.grid.domain_shape_full()
+        else:
+            self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
 
     def extra_data_load(self, data_loader: DataLoader):
         pass
@@ -142,10 +146,7 @@ class TranslateFortranData2Py:
 
         Return: Array in the form of a dict[str, gt4py.storages]
         """
-        if self.stencil_factory.backend.is_fortran_aligned():
-            use_shape = list(self.grid.domain_shape_full())
-        else:
-            use_shape = list(self.grid.domain_shape_full(add=(1, 1, 1)))
+        use_shape = list(self.maxshape)
         if dummy_axes:
             for axis in dummy_axes:
                 use_shape[axis] = 1
