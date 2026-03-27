@@ -33,7 +33,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--backend",
         action="store",
-        default="st:python:cpu:numpy",
+        default="st:numpy:cpu:IJK",
         help="Backend to execute the test with, can only be one.",
     )
     parser.addoption(
