@@ -32,7 +32,7 @@ def pad_field_in_j(field, nj: int, backend: Backend):
 def as_numpy(
     value: dict[str, Any] | Quantity | np.ndarray,
 ) -> np.ndarray | dict[str, np.ndarray]:
-    def _convert(value: Quantity | np.ndarray) -> np.ndarray:
+    def _convert(value: Any) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
         elif isinstance(value, np.ndarray):
@@ -74,7 +74,6 @@ class TranslateFortranData2Py:
         self.out_vars: dict[str, Any] = {}
         self.write_vars: list = []
         self.grid = grid
-        self.maxshape: tuple[int, ...] = grid.domain_shape_full(add=(1, 1, 1))
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
@@ -143,7 +142,10 @@ class TranslateFortranData2Py:
 
         Return: Array in the form of a dict[str, gt4py.storages]
         """
-        use_shape = list(self.maxshape)
+        if self.stencil_factory.backend.is_fortran_aligned():
+            use_shape = list(self.grid.domain_shape_full())
+        else:
+            use_shape = list(self.grid.domain_shape_full(add=(1, 1, 1)))
         if dummy_axes:
             for axis in dummy_axes:
                 use_shape[axis] = 1
@@ -160,7 +162,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 names=names_4d,
                 backend=self.stencil_factory.backend,
-                dtype=array.dtype,
+                dtype=array.dtype,  # type: ignore[arg-type]
             )
         else:
             if len(array.shape) == 4:
@@ -175,7 +177,7 @@ class TranslateFortranData2Py:
                 axis=axis,
                 read_only=read_only,
                 backend=self.stencil_factory.backend,
-                dtype=array.dtype,
+                dtype=array.dtype,  # type: ignore[arg-type]
             )
 
     def storage_vars(self):
