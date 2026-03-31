@@ -302,7 +302,7 @@ class DaceConfig:
             dace.config.Config.set(
                 "frontend",
                 "unroll_threshold",
-                value=False,
+                value=-1,
             )
             # Allow for a longer stack dump when parsing fails
             dace.config.Config.set(
