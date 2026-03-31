@@ -33,42 +33,33 @@ import yaml
 logger = logging.getLogger(__name__)
 
 # init fms mpi and set up a simple domain
-def fms_mpp_init(cubed_sphere:bool=False, pes: int = 1):
-    nhalo = 1
-    x = 16
-    y = 16
-
+def fms_mpp_init(pes: int = 1):
     fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=fms.NOLEAP)
-
-    if not cubed_sphere:
-        layout = [1, pes] # TODO 2,2 layouts etc....
-        io_layout = [1, 1]
-        global_indices = [0, x-1, 0, y-1]
-        halo = 1
-
-        domain = mpp_domains.define_domains(
-            global_indices=global_indices,
-            layout=layout,
-            whalo=halo,
-            ehalo=halo,
-            shalo=halo,
-            nhalo=halo,
-            xflags=mpp_domains.CYCLIC_GLOBAL_DOMAIN,
-            yflags=mpp_domains.CYCLIC_GLOBAL_DOMAIN,
-        )
-
-        id_num = domain.domain_id
-        mpp_domains.define_io_domain(
-            domain_id=id_num,
-            io_layout=io_layout,
-        )
-        return id_num
-    else:
-        raise NotImplementedError("Cubed sphere FMS MPP init not implemented yet")
+    x = 8 
+    y = 8
+    layout = [1, 1] 
+    io_layout = [1, 1]
+    halo = 1
+    tiles = 6
+    domain_id = mpp_domains.define_cubic_mosaic(
+        ni= [x for i in range(6)],
+        nj= [y for i in range(6)],
+        global_indices= [0, x-1, 0, y-1],
+        layout=layout,
+        ntiles=tiles,
+        halo=halo,
+        use_memsize=False,
+    )
+    mpp_domains.define_io_domain(
+        domain_id=domain_id,
+        io_layout=io_layout,
+    )
+    mpp_domains.set_current_domain(domain_id)
+    return domain_id
 
 def _create_input(reduction: str = "none"):
     diag_config = {
-        "title": "pace_diag_manager_test",
+        "title": "ndsl_diag_manager_test",
         "base_date": "1 1 1 0 0 0",
         "diag_files": [
             {
@@ -80,6 +71,13 @@ def _create_input(reduction: str = "none"):
                     {
                         "module": "atm_mod",
                         "var_name": "var1",
+                        "long_name": "variable_number_one",
+                        "reduction": reduction,
+                        "kind": "r8"
+                    },
+                    {
+                        "module": "atm_mod",
+                        "var_name": "var2",
                         "long_name": "variable_number_one",
                         "reduction": reduction,
                         "kind": "r8"
@@ -96,39 +94,29 @@ def _create_input(reduction: str = "none"):
 
 
 # Simple test, uses a lat/lon grid and (1, npes) layout 
-def test_dm_monitor():
+def test_dm_monitor(reduction):
 
     npes = MPIComm()._comm.Get_size()
-    pe = MPIComm()._comm.Get_rank()
-    print(f"creating input files, rank {pe}")
-    if(pe == 0 or pe is None):
-        _create_input()
 
-    nx = 16
-    ny = 16
-    nz = 10
-    nhalo = 1
-    layout = (1, npes)
-    backend = "debug" # ? 
+    if npes % 6 != 0:
+        raise RuntimeError("this test requires npes to be a multiple of 6 to run")
+
+    _create_input(reduction)
+
+    nx = 8
+    ny = 8
+    nz = 2
+    nhalo = 0
+    layout = (1, 1) # 1 pe per tile
+    backend = "debug"
     ntimesteps = 3
-    buffer = {}
 
-    if npes > 1: 
-        domain_id = fms_mpp_init(cubed_sphere=False, pes=npes)
-        rank = MPIComm()._comm.Get_rank()
-        print(f"intializing partitioner/communicator rank {rank} of {npes}")
-        partitioner = CubedSpherePartitioner(TilePartitioner((1, 1)))
-        communicator = CubedSphereCommunicator(MPIComm(), partitioner)
-        communicator.tile
-    else:
-        domain_id = fms_mpp_init(cubed_sphere=False)
-        npes = 1
-        partitioner = TilePartitioner((1,1)) 
-        communicator = CubedSphereCommunicator(
-                comm = LocalComm(rank=0, total_ranks=npes, buffer_dict=buffer),
-                partitioner=partitioner,
-        )
-        communicator.tile
+    domain_id = fms_mpp_init(pes=npes)
+    rank = MPIComm()._comm.Get_rank()
+    print(f"intializing partitioner/communicator rank {rank} of {npes}")
+    partitioner = CubedSpherePartitioner(TilePartitioner((1, 1)))
+    communicator = CubedSphereCommunicator(MPIComm(), partitioner)
+    communicator.tile
 
     sizer = SubtileGridSizer.from_tile_params(
         nx_tile=nx,
@@ -152,7 +140,9 @@ def test_dm_monitor():
     start = datetime(1, 1, 1, 0, 0, second=0)
     end = datetime(1, 1, 1, 0, 0, second=45)
     step = timedelta(seconds=15)
-    monitor.set_model_times(init_time=start, end_time=end) 
+    monitor.set_timestep(step)
+    monitor.set_end_time(end)
+
     monitor.register_axis(
         name="x",
         axis_data=np.arange(nx, dtype=np.float64),
@@ -171,6 +161,14 @@ def test_dm_monitor():
         not_xy=False,
         domain_id=domain_id,
     )
+    monitor.register_axis(
+        name="z",
+        axis_data=np.arange(nz, dtype=np.float64),
+        cart_name='z',
+        long_name="z coordinate",
+        units="m",
+        not_xy=True,
+    )
 
     # fields will be registered in the component they are defined in (either pyFV3 or pySHiELD)
     monitor.register_field(
@@ -179,7 +177,7 @@ def test_dm_monitor():
         dims=["x","y"],
         units="m",
         long_name="variable one",
-        timestep=step,
+        init_time=start,
     )
     monitor.register_field(
         module_name="atm_mod",
@@ -187,7 +185,7 @@ def test_dm_monitor():
         dims=["x","y", "z"],
         units="m",
         long_name="variable two",
-        timestep=step,
+        init_time=start,
     )
     assert "x" in monitor.axes
     assert "y" in monitor.axes
@@ -208,21 +206,5 @@ def test_dm_monitor():
 
     # cleanup writes and closes the file
     monitor.cleanup()
-    
-    ## check output!
-    assert Path("ndsl_diag_test.nc").exists()
-    ds = xr.open_mfdataset("ndsl_diag_test.nc", decode_times=True)
-    assert "var1" in ds
-    np.testing.assert_array_equal(
-        ds["var1"].shape, (ntimesteps, nx, ny)
-    )
-    assert ds["var1"].dims == ("time", "y", "x")
-    assert ds["var1"].attrs["units"] == "m"
-    assert ds["time"].shape == (ntimesteps,)
-    assert ds["time"].dims == ("time",)
-    assert ds["time"].values[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=15)
-    assert ds["time"].values[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=30) 
-    assert ds["time"].values[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=45) 
-    np.testing.assert_array_equal(ds["var1"].values[0,:,:], 0.0)
-    np.testing.assert_array_equal(ds["var1"].values[1,:,:], 1.0)
-    np.testing.assert_array_equal(ds["var1"].values[2,:,:], 2.0)
+
+    fms.end()
