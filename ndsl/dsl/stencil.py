@@ -51,6 +51,7 @@ from ndsl.dsl.typing import (
 from ndsl.initialization import GridSizer
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
+from ndsl.internal.deferred_type import StencilDeferredType
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
@@ -329,9 +330,9 @@ class FrozenStencil(SDFGConvertible):
                 ),
             )
 
-        assert (
-            len(self._argument_names) > 0
-        ), "A stencil with no arguments? You may be double decorating"
+        assert len(self._argument_names) > 0, (
+            "A stencil with no arguments? You may be double decorating"
+        )
 
         # Overloading `dtypes` to allow parsing of NDSL concepts
         ndsl_dtypes = {
@@ -347,6 +348,15 @@ class FrozenStencil(SDFGConvertible):
             "IntFieldIJ64": IntFieldIJ64,
             "BoolFieldIJ": BoolFieldIJ,
         }
+
+        # Deal with placeholder/markup type by resolving their true types
+        for name, type_ in func.__annotations__.items():
+            if isinstance(type_, MarkupFieldBundleType):
+                func.__annotations__[name] = FieldBundleType.T(
+                    type_.name, do_markup=False
+                )
+            elif isinstance(type_, StencilDeferredType):
+                func.__annotations__[name] = type_.resolve().get(type_.name)
 
         # Keep compilation at __init__ if we are not orchestrated.
         # If we orchestrate, move the compilation at call time to make sure
@@ -368,14 +378,6 @@ class FrozenStencil(SDFGConvertible):
                 and compilation_config.run_mode != RunMode.Run
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
-
-            # Field Bundle might have dropped a placeholder type that we now
-            # have to resolve to the proper type.
-            for name, types in func.__annotations__.items():
-                if isinstance(types, MarkupFieldBundleType):
-                    func.__annotations__[name] = FieldBundleType.T(
-                        types.name, do_markup=False
-                    )
 
             self.stencil_object = gtscript.stencil(
                 definition=func,
