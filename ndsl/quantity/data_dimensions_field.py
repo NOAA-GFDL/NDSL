@@ -1,11 +1,16 @@
-from ndsl import QuantityFactory
+import collections
 import inspect
-from dace.frontend.python.common import StringLiteral
-from gt4py.cartesian.gtscript import _FieldDescriptorMaker
 from dataclasses import dataclass
+from typing import Type
 
-from gt4py.cartesian import gtscript
+import dace
+import numpy.typing as npt
+from dace import SDFG, SDFGState
+from dace.frontend.common import op_repository as oprepo
+from dace.frontend.python.common import StringLiteral
+from dace.frontend.python.newast import ProgramVisitor
 
+from ndsl import QuantityFactory
 from ndsl.dsl.typing import Float
 from ndsl.internal.deferred_type import (
     StencilDeferredType,
@@ -13,11 +18,10 @@ from ndsl.internal.deferred_type import (
     get_lhs_name,
 )
 
-import dace
-from dace import SDFG, SDFGState
-from dace.frontend.common import op_repository as oprepo
-from dace.frontend.python.newast import ProgramVisitor
-from typing import Type
+
+from gt4py.cartesian import gtscript  # isort: skip
+from gt4py.cartesian.gtscript import _FieldDescriptorMaker  # isort: skip
+
 
 DataDimensionIndex = int
 SparseNameMapping = dict[str, DataDimensionIndex]
@@ -28,14 +32,19 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
     named indexed data dimensions.
     """
 
-    def __init__(self, dtype, axes, data_dims=tuple()):
+    def __init__(
+        self,
+        dtype: npt.DTypeLike,
+        axes: gtscript.Axis | collections.abc.Collection,
+        data_dims: tuple[int] | collections.abc.Collection = tuple(),
+    ) -> None:
         super().__init__(dtype, axes, data_dims)
-        self._mapping = {}
+        self._mapping: SparseNameMapping = {}
 
     def range(self, dimension_index: DataDimensionIndex) -> range:
         return range(self.data_dims[dimension_index])
 
-    def set_mapping(self, mapping: SparseNameMapping):
+    def set_mapping(self, mapping: SparseNameMapping) -> None:
         self._mapping = mapping
 
     @property
@@ -52,7 +61,9 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
 class _DataDimensionFieldMaker(_FieldDescriptorMaker):
     """Factory for DataDimensionsField"""
 
-    def __getitem__(self, field_spec):
+    def __getitem__(
+        self, field_spec: gtscript.Axis | collections.abc.Collection
+    ) -> _DataDimensionsFieldDescriptor:
         field_descriptor = super().__getitem__(field_spec)
         return _DataDimensionsFieldDescriptor(
             field_descriptor.dtype,
@@ -81,7 +92,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
-        dtype=Float,
+        dtype: npt.DTypeLike = Float,
     ) -> _DataDimensionsFieldDescriptor:
         """Register a type by name by giving the size of its data dimensions and
         optionally a sparse mapping of name/index.
@@ -123,7 +134,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             sdfg: SDFG,
             state: SDFGState,
             index_name: StringLiteral,
-        ):
+        ) -> slice:
             # breakpoint()
             index = cls._type_registrar[name].index(str(index_name))
 
@@ -143,7 +154,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             sdfg: SDFG,
             state: SDFGState,
             data_dim_index: int,
-        ):
+        ) -> dace.int32:
             size = cls._type_registrar[name].size(data_dim_index)
             return dace.int32(size)
 
@@ -169,7 +180,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
-        dtype=Float,
+        dtype: npt.DTypeLike = Float,
     ) -> "DataDimensionsMarkupType":
         """Declare a data dimension field and register it's size
 

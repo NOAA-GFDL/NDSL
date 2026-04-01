@@ -1,8 +1,8 @@
 import abc
-from typing import Any, Type
-from types import FrameType
 import ast
 import inspect
+from types import FrameType
+from typing import Any, Type
 
 
 def get_lhs_name(frame: FrameType | None) -> str:
@@ -57,7 +57,7 @@ class StencilDeferredType:
     def __init__(self, name: str) -> None:
         self.name = name
 
-    def __descriptor__(self):
+    def __descriptor__(self) -> None:
         # Ignore, use JIT
         return None
 

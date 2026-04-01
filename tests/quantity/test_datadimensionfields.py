@@ -1,25 +1,15 @@
 import re
+
 import pytest
-import dace
-from ndsl.dsl.gt4py import (
-    computation,
-    interval,
-    PARALLEL,
-)
+
+from ndsl import Backend, NDSLRuntime, Quantity, QuantityFactory, StencilFactory
 from ndsl.boilerplate import (
     get_factories_single_tile,
     get_factories_single_tile_orchestrated,
 )
 from ndsl.constants import I_DIM, J_DIM, K_DIM
+from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-from ndsl import (
-    StencilFactory,
-    NDSLRuntime,
-    QuantityFactory,
-    Backend,
-    Quantity,
-)
-
 from ndsl.quantity.data_dimensions_field import DataDimensionsField
 
 
@@ -162,7 +152,7 @@ def test_data_dimensions_fields_with_stencil_backend():
 
 
 def test_data_dimensions_fields_with_orchestrated_backend():
-    stcil_fctry, qty_factry = get_factories_single_tile(
+    stcil_fctry, qty_factry = get_factories_single_tile_orchestrated(
         _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("orch:dace:cpu:IJK")
     )
 

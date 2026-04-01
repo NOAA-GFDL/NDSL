@@ -49,9 +49,9 @@ from ndsl.dsl.typing import (
     cast_to_index3d,
 )
 from ndsl.initialization import GridSizer
+from ndsl.internal.deferred_type import StencilDeferredType
 from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
-from ndsl.internal.deferred_type import StencilDeferredType
 from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
@@ -330,9 +330,9 @@ class FrozenStencil(SDFGConvertible):
                 ),
             )
 
-        assert len(self._argument_names) > 0, (
-            "A stencil with no arguments? You may be double decorating"
-        )
+        assert (
+            len(self._argument_names) > 0
+        ), "A stencil with no arguments? You may be double decorating"
 
         # Overloading `dtypes` to allow parsing of NDSL concepts
         ndsl_dtypes = {
