@@ -5,6 +5,7 @@ from typing import TypeVar
 
 import f90nml
 import numpy as np
+import numpy.typing as npt
 
 import ndsl.constants as constants
 from ndsl.optional_imports import cupy as cp
@@ -88,7 +89,7 @@ def device_synchronize() -> None:
 
 
 def safe_mpi_allocate(
-    allocator: Allocator, shape: Iterable[int], dtype: type
+    allocator: Allocator, shape: Iterable[int], dtype: npt.DTypeLike
 ) -> np.ndarray:
     """Make sure the allocation use an allocator that works with MPI
 
