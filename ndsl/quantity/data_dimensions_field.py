@@ -52,6 +52,8 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
         return self._mapping
 
     def index(self, name: str) -> int:
+        if len(self.data_dims) != 1:
+            raise NotImplementedError("Unimplemtened index on a multiple data dims")
         return self._mapping[name]
 
     def size(self, data_dim_index: int) -> int:
@@ -135,15 +137,9 @@ class DataDimensionsField(StencilTypeRegistrar):
             state: SDFGState,
             index_name: StringLiteral,
         ) -> slice:
-            # breakpoint()
+            if len(cls._type_registrar[name].data_dims) != 1:
+                raise NotImplementedError("Unimplemented index on a multiple data dims")
             index = cls._type_registrar[name].index(str(index_name))
-
-            # constant_name = f"{name}_{index_name}"
-            # if constant_name not in sdfg.symbols:
-            #     sdfg.add_symbol(constant_name, dace.int32)
-            # sdfg.add_constant(constant_name, dace.int32(index))
-            # return constant_name
-
             return slice(index, index, 1)
 
         # Dynamic op replacement for Type.size() function
