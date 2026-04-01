@@ -10,7 +10,7 @@ on:
 
 jobs:
   fv3_translate_tests:
-    uses: floriandeconinck/pyFV3/.github/workflows/translate.yaml@update/numpy_2x
+    uses: twicki/pyFV3/.github/workflows/translate.yaml@update/numpy_2x
     with:
       component_trigger: true
       component_name: NDSL
