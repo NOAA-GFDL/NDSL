@@ -9,7 +9,7 @@ from ndsl.config import Backend
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
-from ndsl.stencils.testing.grid import Grid  # type: ignore
+from ndsl.stencils.testing.grid import Grid
 from ndsl.stencils.testing.savepoint import DataLoader
 
 
