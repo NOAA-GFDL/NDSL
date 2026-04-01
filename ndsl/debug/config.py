@@ -7,11 +7,11 @@ When loading, the configuration will be searched in the global environment varia
 Configuration is a yaml file of the shape
 ```yaml
 stencils_or_class:
-  - copy_corners_x_nord
-  - copy_corners_y_nord
-  - DGridShallowWaterLagrangianDynamics.__call__
+    - copy_corners_x_nord
+    - copy_corners_y_nord
+    - DGridShallowWaterLagrangianDynamics.__call__
 track_parameter_by_name:
-  - fy
+    - fy
 ```
 
 Global variable:
@@ -28,10 +28,7 @@ from ndsl.debug.debugger import Debugger
 from ndsl.logging import ndsl_log
 
 
-ndsl_debugger = None
-
-
-def _set_debugger() -> None:
+def _set_debugger() -> Debugger | None:
     config = os.getenv("NDSL_DEBUG_CONFIG", "")
     if not os.path.exists(config):
         if config != "":
@@ -39,13 +36,15 @@ def _set_debugger() -> None:
                 f"NDSL_DEBUG_CONFIG set but path {config} does not exists."
             )
         else:
-            return
+            return None
     with open(config) as file:
         config_dict = yaml.load(file.read(), Loader=yaml.SafeLoader)
-    global ndsl_debugger
-    ndsl_debugger = Debugger(rank=MPIComm().Get_rank(), **config_dict)
+    debugger = Debugger(rank=MPIComm().Get_rank(), **config_dict)
     ndsl_log.info("[NDSL Debugger] On")
     ndsl_log.debug(f"[NDSL Debugger] Config:\n{config_dict}")
 
+    return debugger
 
-_set_debugger()
+
+ndsl_debugger = _set_debugger()
+"""Global NDSL debugger"""
