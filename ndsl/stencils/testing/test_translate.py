@@ -315,14 +315,12 @@ def test_sequential_savepoint(
 
 def get_communicator(comm, layout):
     partitioner = CubedSpherePartitioner(TilePartitioner(layout))
-    communicator = CubedSphereCommunicator(comm, partitioner)
-    return communicator
+    return CubedSphereCommunicator(comm, partitioner)
 
 
 def get_tile_communicator(comm, layout):
     partitioner = TilePartitioner(layout)
-    communicator = TileCommunicator(comm, partitioner)
-    return communicator
+    return TileCommunicator(comm, partitioner)
 
 
 @pytest.mark.parallel

@@ -379,7 +379,7 @@ def _segment_plot_inputs(x, y, masked_array):
     """
     is_nan = np.isnan(masked_array)
     if np.sum(is_nan) == 0:  # contiguous section, just plot it
-        if np.product(masked_array.shape) > 0:
+        if np.prod(masked_array.shape) > 0:
             yield (x, y, masked_array)
     else:
         x_nans = np.sum(is_nan, axis=1) / is_nan.shape[1]
