@@ -43,21 +43,6 @@ def get_tile_index(rank: int, total_ranks: int) -> int:
     return rank // ranks_per_tile
 
 
-def get_tile_number(tile_rank: int, total_ranks: int) -> int:
-    """Deprecated: use get_tile_index.
-
-    Returns the tile number for a given rank and total number of ranks.
-    """
-    FutureWarning(
-        "get_tile_number will be removed in a later version, "
-        "use get_tile_index(rank, total_ranks) + 1 instead"
-    )
-    if total_ranks % 6 != 0:
-        raise ValueError(f"total_ranks {total_ranks} is not evenly divisible by 6")
-    ranks_per_tile = total_ranks // 6
-    return tile_rank // ranks_per_tile + 1
-
-
 class Partitioner(abc.ABC):
     tile: TilePartitioner
     layout: tuple[int, int]
@@ -84,7 +69,7 @@ class Partitioner(abc.ABC):
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full tile representation
@@ -181,7 +166,7 @@ class TilePartitioner(Partitioner):
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full tile representation
@@ -623,7 +608,7 @@ class CubedSpherePartitioner(Partitioner):
         """Return the shape of a full cube representation for the given dimensions.
 
         Args:
-            metadata: quantity metadata
+            rank_metadata: quantity metadata
 
         Returns:
             extent: shape of full cube representation
@@ -640,7 +625,7 @@ class CubedSpherePartitioner(Partitioner):
         """Return the shape of a single rank representation for the given dimensions.
 
         Args:
-            global_metadata: quantity metadata.
+            cube_metadata: quantity metadata.
             rank: rank of the process.
 
         Returns:
@@ -845,7 +830,7 @@ def _rank_slice_from_tile_metadata_cached(
         cartesian_dims, interior_extents, edge_extents
     ):
         if dim in constants.HORIZONTAL_DIMS:
-            if dim in constants.Y_DIMS:
+            if dim in constants.J_DIMS:
                 index = subtile_index[0]
                 n_ranks = layout[0]
             else:

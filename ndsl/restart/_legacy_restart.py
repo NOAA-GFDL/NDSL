@@ -27,7 +27,7 @@ def open_restart(
     only_names: Iterable[str] | None = None,
     to_state: dict | None = None,
     tracer_properties: RestartProperties | None = None,
-):
+) -> dict:
     """Load restart files output by the Fortran model into a state dictionary.
 
     Args:

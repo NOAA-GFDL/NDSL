@@ -18,13 +18,20 @@ license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.11,<3.13"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
-dev = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "pre-commit", "flake8-pyproject", "build"]
+dev = [
+  "flake8-pyproject",
+  "ndsl[demos]",
+  "ndsl[docs]",
+  "ndsl[test]",
+  "pre-commit"
+]
 docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-exclude"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
+serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
 test = ["pytest", "coverage"]
 zarr = ["zarr<3"]
 
@@ -90,10 +97,6 @@ module = [
   "ndsl.dsl.gt4py_utils",
   # We don't fix legacy (unless we really need it)
   "ndsl.restart._legacy_restart",
-  # These files are deprecated
-  "ndsl.exceptions",
-  "ndsl.stencils.corners",
-  "ndsl.units",
   # translate test system is "beyond repair"
   "ndsl.stencils.testing.translate",
   "ndsl.stencils.testing.parallel_translate"
@@ -104,13 +107,17 @@ disallow_untyped_defs = false
 module = [
   # Unclear what the state of these modules is
   "ndsl.monitor.*",
-  "ndsl.stencils.testing.serialbox_to_netcdf",
-  # deprecated
-  "ndsl.filesystem",
-  # TODO: fix issue and remove this override
-  "ndsl.types",
-  "ndsl.comm._boundary_utils",
-  "ndsl.quantity.bounds"
+  "ndsl.stencils.testing.serialbox_to_netcdf"
+]
+
+[tool.pytest]
+markers = [
+  # tests running on a cpu (e.g. with cupy)
+  "gpu",
+  # tests relying on at least two MPI processes
+  "parallel",
+  # tests relying on the optional zarr dependency
+  "zarr"
 ]
 
 [tool.setuptools]

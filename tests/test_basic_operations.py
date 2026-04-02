@@ -1,72 +1,25 @@
-import numpy as np
-
-from ndsl import (
-    CompilationConfig,
-    DaceConfig,
-    DaCeOrchestration,
-    GridIndexing,
-    Quantity,
-    RunMode,
-    StencilConfig,
-    StencilFactory,
-)
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM
+from ndsl import StencilFactory
+from ndsl.boilerplate import get_factories_single_tile
+from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
-from ndsl.stencils import basic_operations as basic
-
-
-nx = 20
-ny = 20
-nz = 79
-nhalo = 0
-backend = "numpy"
-
-dace_config = DaceConfig(
-    communicator=None, backend=backend, orchestration=DaCeOrchestration.Python
+from ndsl.stencils import (
+    adjust_divide_stencil,
+    adjustmentfactor_stencil,
+    copy,
+    set_value,
 )
-
-compilation_config = CompilationConfig(
-    backend=backend,
-    rebuild=True,
-    validate_args=True,
-    format_source=False,
-    device_sync=False,
-    run_mode=RunMode.BuildAndRun,
-    use_minimal_caching=False,
-)
-
-stencil_config = StencilConfig(
-    compare_to_numpy=False,
-    compilation_config=compilation_config,
-    dace_config=dace_config,
-)
-
-grid_indexing = GridIndexing(
-    domain=(nx, ny, nz),
-    n_halo=nhalo,
-    south_edge=True,
-    north_edge=True,
-    west_edge=True,
-    east_edge=True,
-)
-
-stencil_factory = StencilFactory(config=stencil_config, grid_indexing=grid_indexing)
 
 
 class Copy:
     def __init__(self, stencil_factory: StencilFactory):
         grid_indexing = stencil_factory.grid_indexing
         self._copy_stencil = stencil_factory.from_origin_domain(
-            basic.copy_defn,
+            copy,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
 
-    def __call__(
-        self,
-        f_in: FloatField,
-        f_out: FloatField,
-    ):
+    def __call__(self, f_in: FloatField, f_out: FloatField):
         self._copy_stencil(f_in, f_out)
 
 
@@ -74,7 +27,7 @@ class AdjustmentFactor:
     def __init__(self, stencil_factory: StencilFactory):
         grid_indexing = stencil_factory.grid_indexing
         self._adjustmentfactor_stencil = stencil_factory.from_origin_domain(
-            basic.adjustmentfactor_stencil_defn,
+            adjustmentfactor_stencil,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -91,7 +44,7 @@ class SetValue:
     def __init__(self, stencil_factory: StencilFactory):
         grid_indexing = stencil_factory.grid_indexing
         self._set_value_stencil = stencil_factory.from_origin_domain(
-            basic.set_value_defn,
+            set_value,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -108,7 +61,7 @@ class AdjustDivide:
     def __init__(self, stencil_factory: StencilFactory):
         grid_indexing = stencil_factory.grid_indexing
         self._adjust_divide_stencil = stencil_factory.from_origin_domain(
-            basic.adjust_divide_stencil,
+            adjust_divide_stencil,
             origin=grid_indexing.origin_compute(),
             domain=grid_indexing.domain_compute(),
         )
@@ -122,101 +75,64 @@ class AdjustDivide:
 
 
 def test_copy():
-    copy = Copy(stencil_factory)
-
-    infield = Quantity(
-        data=np.zeros([20, 20, 79]),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=20, ny=20, nz=79, nhalo=0
     )
 
-    outfield = Quantity(
-        data=np.ones([20, 20, 79]),
-        dims=[X_DIM, Y_DIM, Z_DIM],
+    infield = quantity_factory.zeros(
+        dims=[I_DIM, J_DIM, K_DIM],
         units="m",
-        backend=backend,
+    )
+    outfield = quantity_factory.ones(
+        dims=[I_DIM, J_DIM, K_DIM],
+        units="m",
     )
 
-    copy(f_in=infield.data, f_out=outfield.data)
+    stencil = Copy(stencil_factory)
+    stencil(f_in=infield, f_out=outfield)
 
-    assert (infield.data == outfield.data).all()
+    assert (infield.field == outfield.field).all()
 
 
-def test_adjustmentfactor():
-    adfact = AdjustmentFactor(stencil_factory)
-
-    factorfield = Quantity(
-        data=np.full(shape=[20, 20], fill_value=2.0),
-        dims=[X_DIM, Y_DIM],
-        units="m",
-        backend=backend,
+def test_adjustment_factor():
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=20, ny=20, nz=79, nhalo=0
     )
 
-    outfield = Quantity(
-        data=np.full(shape=[20, 20, 79], fill_value=2.0),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
-    )
+    factor = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
+    outfield = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
 
-    testfield = Quantity(
-        data=np.full(shape=[20, 20, 79], fill_value=4.0),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
-    )
-
-    adfact(factor=factorfield.data, f_out=outfield.data)
-    assert (outfield.data == testfield.data).all()
+    stencil = AdjustmentFactor(stencil_factory)
+    stencil(factor=factor, f_out=outfield)
+    assert (outfield.field == 4.0).all()
 
 
 def test_setvalue():
-    setvalue = SetValue(stencil_factory)
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=20, ny=20, nz=79, nhalo=0
+    )
+    fill_value = 2.0
 
-    outfield = Quantity(
-        data=np.zeros(shape=[20, 20, 79]),
-        dims=[X_DIM, Y_DIM, Z_DIM],
+    outfield = quantity_factory.zeros(
+        dims=[I_DIM, J_DIM, K_DIM],
         units="m",
-        backend=backend,
     )
 
-    testfield = Quantity(
-        data=np.full(shape=[20, 20, 79], fill_value=2.0),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
+    stencil = SetValue(stencil_factory)
+    stencil(f_out=outfield, value=fill_value)
+
+    assert (outfield.field == fill_value).all()
+
+
+def test_adjust_divide():
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=20, ny=20, nz=79, nhalo=0
     )
 
-    setvalue(f_out=outfield.data, value=2.0)
+    factor = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
+    outfield = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
 
-    assert (outfield.data == testfield.data).all()
+    stencil = AdjustDivide(stencil_factory)
+    stencil(factor=factor, f_out=outfield)
 
-
-def test_adjustdivide():
-    addiv = AdjustDivide(stencil_factory)
-
-    factorfield = Quantity(
-        data=np.full(shape=[20, 20, 79], fill_value=2.0),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
-    )
-
-    outfield = Quantity(
-        data=np.full(shape=[20, 20, 79], fill_value=2.0),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
-    )
-
-    testfield = Quantity(
-        data=np.full(shape=[20, 20, 79], fill_value=1.0),
-        dims=[X_DIM, Y_DIM, Z_DIM],
-        units="m",
-        backend=backend,
-    )
-
-    addiv(factor=factorfield.data, f_out=outfield.data)
-
-    assert (outfield.data == testfield.data).all()
+    assert (outfield.field == 1.0).all()

@@ -1,8 +1,18 @@
+import typing
+
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
+from ndsl.dsl.typing import (
+    Bool,
+    BoolFieldIJ,
+    Float,
+    FloatField,
+    FloatFieldIJ,
+    IntField,
+    IntFieldIJ,
+)
 
 
-def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
+def copy(q_in: FloatField, q_out: FloatField) -> None:
     """
     Copy q_in to q_out.
 
@@ -14,7 +24,7 @@ def copy_defn(q_in: FloatField, q_out: FloatField) -> None:
         q_out = q_in
 
 
-def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
+def adjustmentfactor_stencil(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
     """
     Multiplies every element of q_out by every element of the adjustment field over the
     interval, replacing the elements of q_out by the result of the multiplication.
@@ -27,7 +37,7 @@ def adjustmentfactor_stencil_defn(adjustment: FloatFieldIJ, q_out: FloatField) -
         q_out = q_out * adjustment
 
 
-def set_value_defn(q_out: FloatField, value: Float) -> None:
+def set_value(q_out: FloatField, value: Float) -> None:
     """
     Sets every element of q_out to the value specified by value argument.
 
@@ -39,10 +49,34 @@ def set_value_defn(q_out: FloatField, value: Float) -> None:
         q_out = value
 
 
+def set_value_2D(buffer: FloatFieldIJ, value: Float) -> None:
+    """
+    Sets every element of buffer to the value specified by value argument.
+
+    Args:
+        buffer: output field
+        value: value of Float type
+    """
+    with computation(FORWARD), interval(0, 1):
+        buffer = value
+
+
+def set_IJ_mask_value(mask_out: BoolFieldIJ, value: Bool) -> None:
+    """
+    Sets every element of buffer to the value specified by value argument.
+
+    Args:
+        mask_out: output field
+        value: value of Bool type
+    """
+    with computation(FORWARD), interval(0, 1):
+        mask_out = value
+
+
 def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField) -> None:
     """
     Divides every element of q_out by every element of the adjustment field over the
-    interval, replacing the elements of q_out by the result of the multiplication.
+    interval, replacing the elements of q_out by the result of the division.
 
     Args:
         adjustment: adjustment field
@@ -90,8 +124,9 @@ def average_in(
         q_out = (q_out + adjustment) * 0.5
 
 
+@typing.no_type_check
 @function
-def sign(a, b):  # type: ignore[no-untyped-def]
+def sign(a, b):
     """
     Defines a_sign_b as the absolute value of a, and checks if b is positive or
     negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
@@ -104,8 +139,9 @@ def sign(a, b):  # type: ignore[no-untyped-def]
     return a_sign_b if b > 0 else -a_sign_b
 
 
+@typing.no_type_check
 @function
-def dim(a, b):  # type: ignore[no-untyped-def]
+def dim(a, b):
     """
     Calculates a - b, camped to 0, i.e. max(a - b, 0).
     """

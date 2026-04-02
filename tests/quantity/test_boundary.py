@@ -3,15 +3,16 @@ import pytest
 
 from ndsl import Quantity
 from ndsl.comm._boundary_utils import _shift_boundary_slice, get_boundary_slice
+from ndsl.config import Backend
 from ndsl.constants import (
     EAST,
+    I_DIM,
+    I_INTERFACE_DIM,
+    J_DIM,
+    K_DIM,
     NORTH,
     SOUTH,
     WEST,
-    X_DIM,
-    X_INTERFACE_DIM,
-    Y_DIM,
-    Z_DIM,
 )
 
 
@@ -28,15 +29,14 @@ def boundary_data(quantity, boundary_type, n_points, interior=True):
     return quantity.data[tuple(boundary_slice)]
 
 
-@pytest.mark.cpu_only
 def test_boundary_data_1_by_1_array_1_halo():
     quantity = Quantity(
         np.random.randn(3, 3),
-        dims=[Y_DIM, X_DIM],
+        dims=[J_DIM, I_DIM],
         units="m",
         origin=(1, 1),
         extent=(1, 1),
-        backend="debug",
+        backend=Backend.python(),
     )
     for side in (
         WEST,
@@ -68,11 +68,11 @@ def test_boundary_data_1_by_1_array_1_halo():
 def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy):
     quantity = Quantity(
         numpy.random.randn(2, 3, 3),
-        dims=[Z_DIM, Y_DIM, X_DIM],
+        dims=[K_DIM, J_DIM, I_DIM],
         units="m",
         origin=(1, 1, 1),
         extent=(1, 1, 1),
-        backend="debug",
+        backend=Backend.python(),
     )
     for side in (
         WEST,
@@ -103,15 +103,14 @@ def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy):
     )
 
 
-@pytest.mark.cpu_only
 def test_boundary_data_2_by_2_array_2_halo():
     quantity = Quantity(
         np.random.randn(6, 6),
-        dims=[Y_DIM, X_DIM],
+        dims=[J_DIM, I_DIM],
         units="m",
         origin=(2, 2),
         extent=(2, 2),
-        backend="debug",
+        backend=Backend.python(),
     )
     for side in (
         WEST,
@@ -178,7 +177,7 @@ def test_boundary_data_2_by_2_array_2_halo():
     "dim, origin, extent, boundary_type, slice_object, reference",
     [
         pytest.param(
-            X_DIM,
+            I_DIM,
             1,
             3,
             WEST,
@@ -187,7 +186,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="none_is_changed",
         ),
         pytest.param(
-            Y_DIM,
+            J_DIM,
             1,
             3,
             WEST,
@@ -196,7 +195,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="perpendicular_none_is_changed",
         ),
         pytest.param(
-            X_DIM,
+            I_DIM,
             1,
             3,
             WEST,
@@ -205,7 +204,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="shift_to_start",
         ),
         pytest.param(
-            X_DIM,
+            I_DIM,
             1,
             3,
             WEST,
@@ -214,7 +213,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="shift_larger_to_start",
         ),
         pytest.param(
-            X_DIM,
+            I_DIM,
             1,
             3,
             EAST,
@@ -223,7 +222,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="shift_to_end",
         ),
         pytest.param(
-            X_INTERFACE_DIM,
+            I_INTERFACE_DIM,
             1,
             3,
             WEST,
@@ -232,7 +231,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="shift_interface_to_start",
         ),
         pytest.param(
-            X_INTERFACE_DIM,
+            I_INTERFACE_DIM,
             1,
             3,
             EAST,
@@ -241,7 +240,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="shift_interface_to_end",
         ),
         pytest.param(
-            Y_DIM,
+            J_DIM,
             2,
             4,
             SOUTH,
@@ -250,7 +249,7 @@ def test_boundary_data_2_by_2_array_2_halo():
             id="shift_y_to_start",
         ),
         pytest.param(
-            Y_DIM,
+            J_DIM,
             2,
             4,
             NORTH,
@@ -260,7 +259,6 @@ def test_boundary_data_2_by_2_array_2_halo():
         ),
     ],
 )
-@pytest.mark.cpu_only
 def test_shift_boundary_slice(
     dim, origin, extent, boundary_type, slice_object, reference
 ):

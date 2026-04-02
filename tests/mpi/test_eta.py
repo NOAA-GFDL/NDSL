@@ -12,11 +12,11 @@ from ndsl import (
     SubtileGridSizer,
     TilePartitioner,
 )
+from ndsl.config import Backend
 from ndsl.grid import MetricTerms
-from tests.mpi import MPI
 
 
-@pytest.mark.skipif(MPI is None, reason="pytest is not run in parallel")
+@pytest.mark.parallel
 @pytest.mark.parametrize("levels", [79, 91])
 def test_set_hybrid_pressure_coefficients_correct(levels):
     """
@@ -29,7 +29,7 @@ def test_set_hybrid_pressure_coefficients_correct(levels):
     eta_file = Path.cwd() / "tests" / "data" / "eta" / f"eta{levels}.nc"
     eta_data = xr.open_dataset(eta_file)
 
-    backend = "numpy"
+    backend = Backend.python()
 
     layout = (1, 1)
 
@@ -49,6 +49,7 @@ def test_set_hybrid_pressure_coefficients_correct(levels):
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
 
     quantity_factory = QuantityFactory(sizer, backend=backend)

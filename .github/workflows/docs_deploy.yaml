@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Configure Git Credentials
         run: |
@@ -24,7 +24,7 @@ jobs:
           git config user.email github-actions[bot]@users.noreply.github.com
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.11
 

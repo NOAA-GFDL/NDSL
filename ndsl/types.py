@@ -20,23 +20,23 @@ class NumpyModule(Protocol):
     ones: Allocator
 
     @functools.wraps(np.rot90)
-    def rot90(self, *args, **kwargs):
+    def rot90(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         pass
 
     @functools.wraps(np.sum)
-    def sum(self, *args, **kwargs):
+    def sum(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         pass
 
     @functools.wraps(np.log)
-    def log(self, *args, **kwargs):
+    def log(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         pass
 
     @functools.wraps(np.sin)
-    def sin(self, *args, **kwargs):
+    def sin(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         pass
 
     @functools.wraps(np.asarray)
-    def asarray(self, *args, **kwargs):
+    def asarray(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         pass
 
 

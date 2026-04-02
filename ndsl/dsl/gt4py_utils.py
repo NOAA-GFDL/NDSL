@@ -1,3 +1,4 @@
+import warnings
 from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any
@@ -5,8 +6,8 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 from gt4py import storage as gt_storage
-from gt4py.cartesian import backend as gt_backend
 
+from ndsl.config.backend import Backend
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import DTypes, Float
 from ndsl.logging import ndsl_log
@@ -85,7 +86,7 @@ def make_storage_data(
     shape: tuple[int, ...] | None = None,
     origin: tuple[int, ...] = origin,
     *,
-    backend: str,
+    backend: Backend,
     dtype: DTypes = Float,
     mask: tuple[bool, ...] | None = None,
     start: tuple[int, ...] = (0, 0, 0),
@@ -107,7 +108,7 @@ def make_storage_data(
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        backend: gt4py backend to use
+        backend: current backend in use
 
     Returns:
         Field[..., dtype]: New storage
@@ -190,7 +191,7 @@ def make_storage_data(
     storage = gt_storage.from_array(
         data,
         dtype,
-        backend=backend,
+        backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, data.shape),
     )
@@ -206,7 +207,7 @@ def _make_storage_data_1d(
     read_only: bool = True,
     *,
     dtype: DTypes = Float,
-    backend: str,
+    backend: Backend,
 ) -> npt.NDArray:
     # axis refers to a repeated axis, dummy refers to a singleton axis
     axis = min(axis, len(shape) - 1)
@@ -243,7 +244,7 @@ def _make_storage_data_2d(
     read_only: bool = True,
     *,
     dtype: DTypes = Float,
-    backend: str,
+    backend: Backend,
 ) -> npt.NDArray:
     # axis refers to which axis should be repeated (when making a full 3d data),
     # dummy refers to a singleton axis
@@ -277,7 +278,7 @@ def _make_storage_data_3d(
     start: tuple[int, ...] = (0, 0, 0),
     *,
     dtype: DTypes = Float,
-    backend: str,
+    backend: Backend,
 ) -> npt.NDArray:
     istart, jstart, kstart = start
     isize, jsize, ksize = data.shape
@@ -296,7 +297,7 @@ def _make_storage_data_Nd(
     start: tuple[int, ...] | None = None,
     *,
     dtype: DTypes = Float,
-    backend: str,
+    backend: Backend,
 ) -> npt.NDArray:
     if start is None:
         start = tuple([0] * data.ndim)
@@ -310,7 +311,7 @@ def make_storage_from_shape(
     shape: tuple[int, ...],
     origin: tuple[int, ...] = origin,
     *,
-    backend: str,
+    backend: Backend,
     dtype: DTypes = Float,
     mask: tuple[bool, ...] | None = None,
 ) -> npt.NDArray:
@@ -342,7 +343,7 @@ def make_storage_from_shape(
     storage = gt_storage.zeros(
         shape,
         dtype,
-        backend=backend,
+        backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, shape),
     )
@@ -358,7 +359,7 @@ def make_storage_dict(
     names: list[str] | None = None,
     axis: int = 2,
     *,
-    backend: str,
+    backend: Backend,
     dtype: DTypes = Float,
 ) -> dict[str, npt.NDArray]:
     assert names is not None, "for 4d variable storages, specify a list of names"
@@ -379,7 +380,7 @@ def make_storage_dict(
     return data_dict
 
 
-def storage_dict(st_dict, names, shape, origin, *, backend: str):
+def storage_dict(st_dict, names, shape, origin, *, backend: Backend):
     for name in names:
         st_dict[name] = make_storage_from_shape(shape, origin, backend=backend)
 
@@ -446,12 +447,27 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
             return cp.asarray(array, dtype, order)
 
 
-def is_gpu_backend(backend: str) -> bool:
-    return gt_backend.from_name(backend).storage_info["device"] == "gpu"
+def is_gpu_backend(backend: Backend) -> bool:
+    warnings.warn(
+        "Function `gt4py_utils.is_gpu_backend` is deprecated, please use `Backend.is_gpu_backend()`",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+    return backend.is_gpu_backend()
 
 
-def zeros(shape, dtype=Float, *, backend: str):
-    storage_type = cp.ndarray if is_gpu_backend(backend) else np.ndarray
+def backend_is_fortran_aligned(backend: Backend) -> bool:
+    warnings.warn(
+        "Function `gt4py_utils.backend_is_fortran_aligned` is deprecated "
+        "please use `Backend.backend_is_fortran_aligned()`",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+    return backend.is_fortran_aligned()
+
+
+def zeros(shape, dtype=Float, *, backend: Backend):
+    storage_type = cp.ndarray if backend.is_gpu_backend() else np.ndarray
     xp = cp if cp and storage_type is cp.ndarray else np
     return xp.zeros(shape, dtype=dtype)
 
@@ -520,15 +536,15 @@ def stack(tup, axis: int = 0, out=None):
     return xp.stack(array_tup, axis, out)
 
 
-def device_sync(backend: str) -> None:
-    if cp and is_gpu_backend(backend):
+def device_sync(backend: Backend) -> None:
+    if cp and backend.is_gpu_backend():
         cp.cuda.Device(0).synchronize()
 
 
 def split_cartesian_into_storages(var: np.ndarray) -> Sequence[np.ndarray]:
     """
-    Provided a storage of dims [X_DIM, Y_DIM, CARTESIAN_DIM]
-         or [X_INTERFACE_DIM, Y_INTERFACE_DIM, CARTESIAN_DIM]
+    Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM]
+         or [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM]
     Split it into separate 2D storages for each cartesian
     dimension, and return these in a list.
     """

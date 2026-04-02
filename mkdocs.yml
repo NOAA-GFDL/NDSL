@@ -26,7 +26,6 @@ nav:
           - "constants": docstrings/top/constants.md
           - "io": docstrings/top/io.md
           - "logging": docstrings/top/logging.md
-          - "namelist": docstrings/top/namelist.md
           - "optional_imports": docstrings/top/optional_imports.md
           - "types": docstrings/top/types.md
           - "typing": docstrings/top/typing.md
@@ -46,7 +45,6 @@ nav:
           - "decomposition": docstrings/comm/decomposition.md
           - "local_comm": docstrings/comm/local_comm.md
           - "mpi": docstrings/comm/mpi.md
-          - "null_comm": docstrings/comm/null_comm.md
           - "partitioner": docstrings/comm/partitioner.md
       - debug:
           - "config": docstrings/debug/config.md
@@ -144,6 +142,12 @@ plugins:
         python:
           paths: [./ndsl]  # Adjust this path to where your Python modules are
           options:
+            # Filter out anything that starts with an underscore.
+            # Exceptions for `__init__(...)` and `__call__(...)` methods.
+            filters: ["!^_", "^__init__$", "^__call__$"]
+            group_by_category: true
+            members_order: source
+            show_if_no_docstring: true
             show_source: false
   - exclude:
       glob:

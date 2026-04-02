@@ -3,11 +3,26 @@ from typing import Self
 
 import ndsl.constants as constants
 from ndsl.comm.partitioner import TilePartitioner
+from ndsl.config import Backend
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.initialization.grid_sizer import GridSizer
 
 
 class SubtileGridSizer(GridSizer):
+    def __init__(
+        self,
+        nx: int,
+        ny: int,
+        nz: int,
+        n_halo: int,
+        data_dimensions: dict[str, int],
+        backend: Backend,
+    ) -> None:
+        super().__init__(nx, ny, nz, n_halo, data_dimensions)
+
+        fortran_style_memory = backend.is_fortran_aligned()
+        self._pad_non_interface_dimensions = not fortran_style_memory
+
     @classmethod
     def from_tile_params(
         cls,
@@ -17,6 +32,7 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         layout: tuple[int, int],
         *,
+        backend: Backend,
         data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
@@ -28,12 +44,13 @@ class SubtileGridSizer(GridSizer):
             ny_tile: number of y cell centers on the tile
             nz: number of vertical levels
             n_halo: number of halo points
+            layout: (y, x) number of ranks along tile edges
+            backend: current backend in use
             data_dimensions: lengths of any non-x/y/z dimensions,
                 such as land or radiation dimensions
-            layout: (y, x) number of ranks along tile edges
             tile_partitioner (optional): partitioner object for the tile. By default, a
                 TilePartitioner is created with the given layout
-            tile_rank (optional): rank of this subtile.
+            tile_rank (optional): rank of this subtile
         """
         if data_dimensions is None:
             data_dimensions = {}
@@ -42,7 +59,7 @@ class SubtileGridSizer(GridSizer):
             tile_partitioner = TilePartitioner(layout)
         y_slice, x_slice = tile_partitioner.subtile_slice(
             tile_rank,
-            [constants.Y_DIM, constants.X_DIM],
+            [constants.J_DIM, constants.I_DIM],
             [ny_tile, nx_tile],
             overlap=True,
         )
@@ -59,7 +76,7 @@ class SubtileGridSizer(GridSizer):
                 "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
             )
 
-        return cls(nx, ny, nz, n_halo, data_dimensions)
+        return cls(nx, ny, nz, n_halo, data_dimensions, backend)
 
     @classmethod
     def from_namelist(
@@ -67,16 +84,19 @@ class SubtileGridSizer(GridSizer):
         namelist: dict,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
+        *,
+        backend: Backend,
     ) -> Self:
         """Create a SubtileGridSizer from a Fortran namelist.
 
         Args:
             namelist: A namelist for the fv3gfs fortran model
             tile_partitioner (optional): a partitioner to use for segmenting the tile.
-                By default, a TilePartitioner is used.
+                By default, a TilePartitioner is used
             tile_rank (optional): current rank on tile. Default is 0. Only matters if
                 different ranks have different domain shapes. If tile_partitioner
-                is a TilePartitioner, this argument does not matter.
+                is a TilePartitioner, this argument does not matter
+            backend: current backend in use
         """
         if "fv_core_nml" in namelist.keys():
             layout = namelist["fv_core_nml"]["layout"]
@@ -103,6 +123,7 @@ class SubtileGridSizer(GridSizer):
             layout=layout,
             tile_partitioner=tile_partitioner,
             tile_rank=tile_rank,
+            backend=backend,
         )
 
     @property
@@ -110,12 +131,12 @@ class SubtileGridSizer(GridSizer):
         return_dict = self.data_dimensions.copy()
         return_dict.update(
             {
-                constants.X_DIM: self.nx,
-                constants.X_INTERFACE_DIM: self.nx + 1,
-                constants.Y_DIM: self.ny,
-                constants.Y_INTERFACE_DIM: self.ny + 1,
-                constants.Z_DIM: self.nz,
-                constants.Z_INTERFACE_DIM: self.nz + 1,
+                constants.I_DIM: self.nx,
+                constants.I_INTERFACE_DIM: self.nx + 1,
+                constants.J_DIM: self.ny,
+                constants.J_INTERFACE_DIM: self.ny + 1,
+                constants.K_DIM: self.nz,
+                constants.K_INTERFACE_DIM: self.nz + 1,
             }
         )
         return return_dict
@@ -132,15 +153,16 @@ class SubtileGridSizer(GridSizer):
 
     def get_shape(self, dims: Iterable[str]) -> tuple[int, ...]:
         shape_dict = self.data_dimensions.copy()
-        # must pad non-interface variables to have the same shape as interface variables
+        # Check of we pad non-interface variables to have the same shape as interface variables
+        pad = 1 if self._pad_non_interface_dimensions else 0
         shape_dict.update(
             {
-                constants.X_DIM: self.nx + 1 + 2 * self.n_halo,
-                constants.X_INTERFACE_DIM: self.nx + 1 + 2 * self.n_halo,
-                constants.Y_DIM: self.ny + 1 + 2 * self.n_halo,
-                constants.Y_INTERFACE_DIM: self.ny + 1 + 2 * self.n_halo,
-                constants.Z_DIM: self.nz + 1,
-                constants.Z_INTERFACE_DIM: self.nz + 1,
+                constants.I_DIM: self.nx + pad + 2 * self.n_halo,
+                constants.I_INTERFACE_DIM: self.nx + 1 + 2 * self.n_halo,
+                constants.J_DIM: self.ny + pad + 2 * self.n_halo,
+                constants.J_INTERFACE_DIM: self.ny + 1 + 2 * self.n_halo,
+                constants.K_DIM: self.nz + pad,
+                constants.K_INTERFACE_DIM: self.nz + 1,
             }
         )
         return tuple(shape_dict[dim] for dim in dims)

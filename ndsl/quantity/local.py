@@ -1,10 +1,10 @@
-import warnings
 from collections.abc import Sequence
 from typing import Any
 
 import dace
 import numpy as np
 
+from ndsl.config import Backend
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 
@@ -23,27 +23,14 @@ class Local(Quantity):
         dims: Sequence[str],
         units: str,
         *,
-        backend: str | None = None,
+        backend: Backend,
         origin: Sequence[int] | None = None,
         extent: Sequence[int] | None = None,
-        gt4py_backend: str | None = None,
         allow_mismatch_float_precision: bool = False,
     ):
-        if gt4py_backend is not None:
-            warnings.warn(
-                "gt4py_backend is deprecated. Use `backend` instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            if backend is None:
-                backend = gt4py_backend
-
-        if backend is None:
-            warnings.warn(
-                "`backend` will be a required argument starting with the next version of NDSL.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        # Initialize memory to obviously wrong value - Local should _not_ be expected
+        # to be zero'ed.
+        data[:] = 123456789
 
         super().__init__(
             data,

@@ -11,7 +11,7 @@ Historically, NDSL was developed to port the FV3 dynamical core on the cubed-sph
 
 ## Quickstart
 
-Currently, NDSL requires Python version `3.11.x`, a GNU compiler and MPI installed. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
+Currently, NDSL requires Python version `3.11` or `3.12`, a GNU compiler and MPI installed. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
 
 ```shell
 # We have submodules for GT4Py and DaCe. Don't forget to pull them
@@ -27,7 +27,7 @@ source ./venv/bin/activate
 pip install .[demos]
 ```
 
-Now, checkout [examples/NDSL](./examples/NDSL/) and ran through the Jupyter notebooks. Note that you have to install NDSL locally, as it is not available on `pypi`.
+Now, checkout [examples/NDSL](./examples/NDSL/) and run through the Jupyter notebooks. Note that you have to install NDSL from GitHub, as it is not available on `pypi`.
 
 ## The slightly longer version
 
@@ -37,13 +37,13 @@ NDSL is under active development and may only work with specific setups. This is
 
 The run the CPU backends you will need:
 
-- Python: 3.11.x
+- Python: 3.11 or 3.12
 - CXX compiler:  GNU 11.2+
 - Libraries: MPI
 
 To run the GPU backends, you'll need:
 
-- Python: 3.11.x
+- Python: 3.11 or 3.12
 - CXX compiler:  GNU 11.2+
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+
@@ -63,6 +63,8 @@ pip install openmpi
 
 A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` version 14 from homebrew works.
 
+Porting workflows might depend on [serialbox](https://github.com/FlorianDeconinck/serialbox/), e.g. the script `ndsl-serialbox_to_netcdf` depends on it. Serialbox is an optional dependency. If you install the serialbox extra, you'll need the Boost library and development headers.
+
 ### Installation options
 
 See [quickstart](#quickstart) above on how to pull and setup a virtual environment. The packages has a few options:
@@ -71,6 +73,7 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 - `ndsl[demos]`: extra dependencies to run [NDSL examples](./examples/NDSL/)
 - `ndsl[docs]`: extra dependencies to build the docs
 - `ndsl[dev]`: installs tools for development, docs, and tests.
+- `ndsl[serialbox]`: installs serialbox, which is used in porting workflows
 
 ### Running tests
 
@@ -79,13 +82,13 @@ Tests are available via `pytest` (don't forget to install the `test` or `dev` ex
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
 ```bash
-pytest tests/
+pytest -m "not parallel and not gpu and not zarr" tests/
 ```
 
 To run parallel tests on CPU (GPU tests also run if `cupy` is available)
 
 ```bash
-mpirun -np 6 pytest tests/mpi
+mpirun -np 6 pytest -m "parallel and not gpu" tests/
 ```
 
 ## Development
@@ -98,9 +101,9 @@ mpirun -np 6 pytest tests/mpi
 
 ### Documentation
 
-We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and optionally serve it as a static site.
+Documentation is available [online](https://noaa-gfdl.github.io/NDSL/). We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and serve it as a static site.
 
-To view the documentation, install NDSL with the `docs` or `dev` extras. Then  run the following:
+To view the documentation locally, install NDSL with the `docs` or `dev` extras. Then  run the following:
 
 ```bash
 mkdocs serve

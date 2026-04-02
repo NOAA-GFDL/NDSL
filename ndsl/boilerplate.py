@@ -1,4 +1,7 @@
+import warnings
+
 from ndsl import (
+    Backend,
     CompilationConfig,
     DaceConfig,
     DaCeOrchestration,
@@ -12,6 +15,7 @@ from ndsl import (
     TileCommunicator,
     TilePartitioner,
 )
+from ndsl.config.backend import backend_cpu, backend_python
 
 
 def _get_factories(
@@ -19,7 +23,7 @@ def _get_factories(
     ny: int,
     nz: int,
     nhalo: int,
-    backend: str,
+    backend: Backend,
     orchestration: DaCeOrchestration,
     topology: str,
 ) -> tuple[StencilFactory, QuantityFactory]:
@@ -56,9 +60,11 @@ def _get_factories(
     if topology == "tile":
         mpi_comm = MPIComm()
         if mpi_comm.Get_size() != 1:
-            raise ValueError(
+            warnings.warn(
                 "Single tile topology requested with an MPI communicator of size "
-                f"{mpi_comm.Get_size()} > 1. Re-configure MPI to run on only one rank."
+                f"{mpi_comm.Get_size()} > 1. Halo exchange will _not_ be done on the cube-sphere.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         partitioner = TilePartitioner((1, 1))
@@ -69,6 +75,7 @@ def _get_factories(
             n_halo=nhalo,
             layout=partitioner.layout,
             tile_partitioner=partitioner,
+            backend=backend,
         )
         comm = TileCommunicator(comm=mpi_comm, partitioner=partitioner)
     else:
@@ -82,13 +89,36 @@ def _get_factories(
 
 
 def get_factories_single_tile_orchestrated(
-    nx: int, ny: int, nz: int, nhalo: int, backend: str = "dace:cpu"
+    nx: int,
+    ny: int,
+    nz: int,
+    nhalo: int,
+    backend: Backend = backend_cpu,
+    *,
+    orchestration_mode: DaCeOrchestration | None = None,
 ) -> tuple[StencilFactory, QuantityFactory]:
     """Build the pair of (StencilFactory, QuantityFactory) for orchestrated code on a single tile topology."""
 
-    if backend is not None and not backend.startswith("dace"):
-        raise ValueError("Only `dace:*` backends can be orchestrated.")
+    if backend is not None and not backend.is_orchestrated():
+        raise ValueError(f"Only `orch:*` backends can be orchestrated, got {backend}.")
 
+    return _get_factories(
+        nx=nx,
+        ny=ny,
+        nz=nz,
+        nhalo=nhalo,
+        backend=backend,
+        orchestration=orchestration_mode or DaCeOrchestration.BuildAndRun,
+        topology="tile",
+    )
+
+
+def get_factories_single_tile(
+    nx: int, ny: int, nz: int, nhalo: int, backend: Backend = backend_python
+) -> tuple[StencilFactory, QuantityFactory]:
+    """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
+    if not isinstance(backend, Backend):
+        raise RuntimeError(f"Backend {backend} is not of class Backend")
     return _get_factories(
         nx=nx,
         ny=ny,
@@ -96,20 +126,5 @@ def get_factories_single_tile_orchestrated(
         nhalo=nhalo,
         backend=backend,
         orchestration=DaCeOrchestration.BuildAndRun,
-        topology="tile",
-    )
-
-
-def get_factories_single_tile(
-    nx: int, ny: int, nz: int, nhalo: int, backend: str = "numpy"
-) -> tuple[StencilFactory, QuantityFactory]:
-    """Build the pair of (StencilFactory, QuantityFactory) for stencils on a single tile topology."""
-    return _get_factories(
-        nx=nx,
-        ny=ny,
-        nz=nz,
-        nhalo=nhalo,
-        backend=backend,
-        orchestration=DaCeOrchestration.Python,
         topology="tile",
     )

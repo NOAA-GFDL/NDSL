@@ -17,6 +17,7 @@ from ndsl.comm.communicator import (
 )
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
+from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.stencils.testing.grid import Grid  # type: ignore
 from ndsl.stencils.testing.parallel_translate import ParallelTranslate
@@ -33,7 +34,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--backend",
         action="store",
-        default="numpy",
+        default="st:python:cpu:numpy",
         help="Backend to execute the test with, can only be one.",
     )
     parser.addoption(
@@ -232,7 +233,7 @@ def get_savepoint_restriction(metafunc: Any) -> int | None:
     return int(svpt) if svpt else None
 
 
-def get_config(backend: str, communicator: Communicator | None) -> StencilConfig:
+def get_config(backend: Backend, communicator: Communicator | None) -> StencilConfig:
     stencil_config = StencilConfig(
         compilation_config=CompilationConfig(
             backend=backend, rebuild=False, validate_args=True
@@ -248,10 +249,11 @@ def get_config(backend: str, communicator: Communicator | None) -> StencilConfig
 def sequential_savepoint_cases(
     metafunc: Any, data_path: Path, namelist_filename: Path, *, backend: str
 ) -> list[SavepointCase]:
+    ndsl_backend = Backend(backend)
     savepoint_names = get_sequential_savepoint_names(metafunc, data_path)
     namelist = load_f90nml(namelist_filename)
     grid_params = grid_params_from_f90nml(namelist)
-    stencil_config = get_config(backend, None)
+    stencil_config = get_config(ndsl_backend, None)
     ranks = get_ranks(metafunc, grid_params["layout"])
     savepoint_to_replay = get_savepoint_restriction(metafunc)
     grid_mode = metafunc.config.getoption("grid")
@@ -265,7 +267,7 @@ def sequential_savepoint_cases(
         savepoint_to_replay,
         stencil_config,
         namelist,
-        backend,
+        ndsl_backend,
         data_path,
         grid_mode,
         topology_mode,
@@ -280,7 +282,7 @@ def _savepoint_cases(
     savepoint_to_replay: int | None,
     stencil_config: StencilConfig,
     namelist: Namelist,
-    backend: str,
+    backend: Backend,
     data_path: Path,
     grid_mode: str,
     topology_mode: str,
@@ -349,7 +351,7 @@ def _savepoint_cases(
 def compute_grid_data(
     grid: Grid,
     grid_params: dict,
-    backend: str,
+    backend: Backend,
     layout: tuple[int, int],
     topology_mode: str,
 ) -> None:
@@ -371,13 +373,14 @@ def parallel_savepoint_cases(
     backend: str,
     comm: Comm,
 ) -> list[SavepointCase]:
+    ndsl_backend = Backend(backend)
     namelist = load_f90nml(namelist_filename)
     grid_params = grid_params_from_f90nml(namelist)
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
     no_report = metafunc.config.getoption("no_report")
     communicator = get_communicator(comm, grid_params["layout"], topology_mode)
-    stencil_config = get_config(backend, communicator)
+    stencil_config = get_config(ndsl_backend, communicator)
     savepoint_names = get_parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
     savepoint_to_replay = get_savepoint_restriction(metafunc)
@@ -388,7 +391,7 @@ def parallel_savepoint_cases(
         savepoint_to_replay,
         stencil_config,
         namelist,
-        backend,
+        ndsl_backend,
         data_path,
         grid_mode,
         topology_mode,

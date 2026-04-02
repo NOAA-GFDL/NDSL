@@ -12,6 +12,7 @@ from ndsl import (
     Quantity,
     StencilConfig,
 )
+from ndsl.config.backend import Backend
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import _convert_quantities_to_storage
@@ -36,8 +37,8 @@ from gt4py.cartesian import definitions  # isort: skip
 
 def get_stencil_config(
     *,
-    backend: str,
-    orchestration: DaCeOrchestration = DaCeOrchestration.Python,
+    backend: Backend,
+    orchestration: DaCeOrchestration = DaCeOrchestration.BuildAndRun,
     **kwargs,
 ) -> StencilConfig:
     dace_config = DaceConfig(None, backend=backend, orchestration=orchestration)
@@ -81,19 +82,19 @@ class MockFieldInfo(definitions.FieldInfo):
     "field_info, origin, field_origins",
     [
         pytest.param(
-            {"a": MockFieldInfo(axes=("I"))},
+            {"a": MockFieldInfo(axes=("I",))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (1,)},
             id="single_field_I",
         ),
         pytest.param(
-            {"a": MockFieldInfo(axes=("J"))},
+            {"a": MockFieldInfo(axes=("J",))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (2,)},
             id="single_field_J",
         ),
         pytest.param(
-            {"a": MockFieldInfo(axes=("K"))},
+            {"a": MockFieldInfo(axes=("K",))},
             (1, 2, 3),
             {"_all_": (1, 2, 3), "a": (3,)},
             id="single_field_K",
@@ -111,7 +112,7 @@ class MockFieldInfo(definitions.FieldInfo):
             id="single_field_origin_mapping",
         ),
         pytest.param(
-            {"a": MockFieldInfo(axes=("I", "J", "K")), "b": MockFieldInfo(axes=("I"))},
+            {"a": MockFieldInfo(axes=("I", "J", "K")), "b": MockFieldInfo(axes=("I",))},
             {"_all_": (1, 2, 3), "a": (1, 2, 3)},
             {"_all_": (1, 2, 3), "a": (1, 2, 3), "b": (1,)},
             id="two_fields_update_origin_mapping",
@@ -153,13 +154,12 @@ def copy_stencil(q_in: FloatField, q_out: FloatField):
 
 
 @pytest.mark.parametrize("validate_args", [True, False])
-def test_copy_frozen_stencil(
-    validate_args: bool,
-    backend: str = "numpy",
-    rebuild: bool = False,
-    format_source: bool = False,
-    device_sync: bool = False,
-) -> None:
+def test_copy_frozen_stencil(validate_args: bool) -> None:
+    backend = Backend.python()
+    rebuild = False
+    format_source = False
+    device_sync = False
+
     config = get_stencil_config(
         backend=backend,
         rebuild=rebuild,
@@ -182,12 +182,12 @@ def test_copy_frozen_stencil(
     np.testing.assert_array_equal(q_in, q_out)
 
 
-def test_frozen_stencil_raises_if_given_origin(
-    backend: str = "numpy",
-    rebuild: bool = False,
-    format_source: bool = False,
-    device_sync: bool = False,
-) -> None:
+def test_frozen_stencil_raises_if_given_origin() -> None:
+    backend = Backend.python()
+    rebuild = False
+    format_source = False
+    device_sync = False
+
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -209,12 +209,12 @@ def test_frozen_stencil_raises_if_given_origin(
         stencil(q_in, q_out, origin=(0, 0, 0))
 
 
-def test_frozen_stencil_raises_if_given_domain(
-    backend: str = "numpy",
-    rebuild: bool = False,
-    format_source: bool = False,
-    device_sync: bool = False,
-):
+def test_frozen_stencil_raises_if_given_domain() -> None:
+    backend = Backend.python()
+    rebuild = False
+    format_source = False
+    device_sync = False
+
     # only guaranteed when validating args
     config = get_stencil_config(
         backend=backend,
@@ -245,8 +245,9 @@ def test_frozen_stencil_kwargs_passed_to_init(
     validate_args: bool,
     format_source: bool,
     device_sync: bool,
-    backend: str = "numpy",
-):
+) -> None:
+    backend = Backend.python()
+
     config = get_stencil_config(
         backend=backend,
         rebuild=rebuild,
@@ -298,7 +299,7 @@ def field_after_parameter_stencil(q_in: FloatField, param: float, q_out: FloatFi
 
 def test_frozen_field_after_parameter() -> None:
     config = get_stencil_config(
-        backend="numpy",
+        backend=Backend.python(),
         rebuild=False,
         validate_args=False,
         format_source=False,
@@ -313,20 +314,19 @@ def test_frozen_field_after_parameter() -> None:
     )
 
 
-@pytest.mark.parametrize("backend", ("numpy", "gt:gpu"))
-def test_backend_options(
-    backend: str,
-    rebuild: bool = True,
-    validate_args: bool = True,
-) -> None:
+@pytest.mark.parametrize("backend", (Backend.python(), Backend("st:gt:gpu:KJI")))
+def test_backend_options(backend: Backend) -> None:
+    rebuild = True
+    validate_args = True
+
     expected_options = {
-        "numpy": {
-            "backend": "numpy",
+        Backend.python(): {
+            "backend": "debug",
             "rebuild": True,
             "format_source": False,
             "name": "tests.dsl.test_stencil_wrapper.copy_stencil",
         },
-        "gt:gpu": {
+        "st:gt:gpu:KJI": {
             "backend": "gt:gpu",
             "rebuild": True,
             "device_sync": False,
@@ -342,9 +342,10 @@ def test_backend_options(
     assert actual == expected
 
 
-def test_illegal_backend_options():
-    with pytest.raises(ValueError):
-        get_stencil_config(backend="illegal")
+def test_illegal_backend_options() -> None:
+    unknown_backend = "bad:back:end:now"
+    with pytest.raises(ValueError, match=f"Unknown {unknown_backend}, options are:*"):
+        get_stencil_config(backend=Backend(unknown_backend))
 
 
 def get_mock_quantity():

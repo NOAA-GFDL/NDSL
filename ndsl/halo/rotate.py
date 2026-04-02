@@ -8,9 +8,9 @@ def rotate_scalar_data(data, dims, numpy, n_clockwise_rotations):  # type: ignor
     elif n_clockwise_rotations in (1, 3):
         x_dim, y_dim = None, None
         for i, dim in enumerate(dims):
-            if dim in constants.X_DIMS:
+            if dim in constants.I_DIMS:
                 x_dim = i
-            elif dim in constants.Y_DIMS:
+            elif dim in constants.J_DIMS:
                 y_dim = i
         if (x_dim is not None) and (y_dim is not None):
             if n_clockwise_rotations == 1:

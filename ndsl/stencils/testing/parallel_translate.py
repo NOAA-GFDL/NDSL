@@ -2,10 +2,9 @@ import copy
 from types import SimpleNamespace
 from typing import Any
 
-import numpy as np
 import pytest
 
-from ndsl.constants import HORIZONTAL_DIMS, N_HALO_DEFAULT, X_DIMS, Y_DIMS
+from ndsl.constants import HORIZONTAL_DIMS, I_DIMS, J_DIMS, N_HALO_DEFAULT
 from ndsl.dsl import gt4py_utils as utils
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.translate import (
@@ -66,9 +65,7 @@ class ParallelTranslate:
             state_list.append(self.state_from_inputs(inputs))
         return state_list
 
-    def state_from_inputs(self, inputs: dict, grid=None) -> dict:
-        if grid is None:
-            grid = self.grid
+    def state_from_inputs(self, inputs: dict) -> Any:
         state = copy.copy(inputs)
         self._base.make_storage_data_input_vars(state)
         for name, properties in self.inputs.items():
@@ -77,12 +74,14 @@ class ParallelTranslate:
             input_data = state[name]
             if len(properties["dims"]) > 0:
                 dims = properties["dims"]
+                backend = self._base.stencil_factory.backend
                 state[properties["name"]] = Quantity(
                     input_data,
                     dims,
                     properties["units"],
-                    origin=grid.sizer.get_origin(dims),
-                    extent=grid.sizer.get_extent(dims),
+                    origin=self.grid.sizer.get_origin(dims),
+                    extent=self.grid.sizer.get_extent(dims),
+                    backend=backend,
                 )
             else:
                 state[properties["name"]] = input_data
@@ -100,10 +99,9 @@ class ParallelTranslate:
             input_data[varname] = read_serialized_data(serializer, savepoint, varname)
         return input_data
 
-    def outputs_from_state(self, state: dict):
-        return_dict: dict[str, np.ndarray] = {}
-        if len(self.outputs) == 0:
-            return return_dict
+    def outputs_from_state(self, state: Any) -> dict:
+        return_dict = {}
+
         for name, properties in self.outputs.items():
             standard_name = properties["name"]
             if name in self._base.in_vars["data_vars"].keys():
@@ -144,7 +142,7 @@ class ParallelTranslate:
 
 
 class ParallelTranslateBaseSlicing(ParallelTranslate):
-    def outputs_from_state(self, state: dict):
+    def outputs_from_state(self, state: Any) -> dict:
         if len(self.outputs) == 0:
             return {}
         outputs = {}
@@ -170,9 +168,9 @@ def _serialize_slice(quantity, n_halo, real_dims=None):
             if dim in HORIZONTAL_DIMS:
                 if isinstance(n_halo, int):
                     halo = n_halo
-                elif dim in X_DIMS:
+                elif dim in I_DIMS:
                     halo = n_halo[0]
-                elif dim in Y_DIMS:
+                elif dim in J_DIMS:
                     halo = n_halo[1]
                 else:
                     raise RuntimeError(n_halo)
@@ -193,14 +191,12 @@ class ParallelTranslateGrid(ParallelTranslate):
 
     tests_grid = True
 
-    def state_from_inputs(self, inputs: dict, grid=None) -> dict:
-        if grid is None:
-            grid = self.grid
+    def state_from_inputs(self, inputs: dict) -> Any:
         state = {}
         for name, properties in self.inputs.items():
             standard_name = properties.get("name", name)
             if len(properties["dims"]) > 0:
-                state[standard_name] = grid.quantity_factory.zeros(
+                state[standard_name] = self.grid.quantity_factory.zeros(
                     properties["dims"], properties["units"], dtype=inputs[name].dtype
                 )
                 input_slice = _serialize_slice(

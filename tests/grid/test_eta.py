@@ -10,6 +10,7 @@ from ndsl import (
     SubtileGridSizer,
     TilePartitioner,
 )
+from ndsl.config import Backend
 from ndsl.grid import MetricTerms
 
 
@@ -29,7 +30,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
 
     eta_file = Path("NULL")
 
-    backend = "numpy"
+    backend = Backend.python()
 
     layout = (1, 1)
 
@@ -52,6 +53,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
 
     quantity_factory = QuantityFactory(sizer, backend=backend)
@@ -74,7 +76,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
 
     eta_file = str(Path.cwd()) + "/tests/data/eta/non_mono_eta79.nc"
 
-    backend = "numpy"
+    backend = Backend.python()
 
     layout = (1, 1)
 
@@ -97,6 +99,7 @@ def test_set_hybrid_pressure_coefficients_not_mono():
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
 
     quantity_factory = QuantityFactory(sizer, backend=backend)

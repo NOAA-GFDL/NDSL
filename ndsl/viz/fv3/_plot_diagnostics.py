@@ -16,10 +16,10 @@ import numpy as np
 import xarray as xr
 from scipy.stats import binned_statistic
 
-from ._constants import COORD_X_CENTER, COORD_Y_CENTER, INIT_TIME_DIM
+from ._constants import COORD_I_CENTER, COORD_J_CENTER, INIT_TIME_DIM
 
 
-STACK_DIMS = ["tile", INIT_TIME_DIM, COORD_X_CENTER, COORD_Y_CENTER]
+STACK_DIMS = ["tile", INIT_TIME_DIM, COORD_I_CENTER, COORD_J_CENTER]
 
 
 def _mask_nan_lines(x, y):

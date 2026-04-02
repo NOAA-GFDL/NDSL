@@ -11,7 +11,7 @@ def swap_node_position_in_tree(
     top_children = top_node.parent.children
     top_level_parent = top_node.parent
 
-    # Swap childrens
+    # Swap children
     top_node.children = child_node.children
     child_node.children = [top_node]
     top_children.insert(list_index(top_children, top_node), child_node)

@@ -16,7 +16,7 @@ def column_max(field, start_index, end_index):
 
         Returns: [max value, index of max value]
     """
-    max_index = 0
+    max_index = start_index
     level = start_index
     while level <= end_index:
         new = field.at(K=level)
@@ -41,7 +41,7 @@ def column_max_ddim(field, ddim, start_index, end_index):
 
         Returns: [max value, index of max value]
     """
-    max_index = 0
+    max_index = start_index
     level = start_index
     while level <= end_index:
         new = field.at(K=level, ddim=[ddim])
@@ -66,7 +66,7 @@ def column_min(field, start_index, end_index):
 
         Returns: [min value, index of min value]
     """
-    min_index = 0
+    min_index = start_index
     level = start_index
     while level <= end_index:
         new = field.at(K=level)
@@ -91,7 +91,7 @@ def column_min_ddim(field, ddim, start_index, end_index):
 
         Returns: [min value, index of min value]
     """
-    min_index = 0
+    min_index = start_index
     level = start_index
     while level <= end_index:
         new = field.at(K=level, ddim=[ddim])
