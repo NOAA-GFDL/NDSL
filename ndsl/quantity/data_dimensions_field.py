@@ -2,7 +2,6 @@ import collections
 import inspect
 from dataclasses import dataclass
 
-import dace
 import numpy.typing as npt
 from dace import SDFG, SDFGState
 from dace.frontend.common import op_repository as oprepo
@@ -10,7 +9,7 @@ from dace.frontend.python.common import StringLiteral
 from dace.frontend.python.newast import ProgramVisitor
 
 from ndsl import QuantityFactory
-from ndsl.dsl.typing import Float
+from ndsl.dsl.typing import Float, Int
 from ndsl.internal.deferred_type import (
     StencilDeferredType,
     StencilTypeRegistrar,
@@ -151,9 +150,9 @@ class DataDimensionsField(StencilTypeRegistrar):
             sdfg: SDFG,
             state: SDFGState,
             data_dim_index: int,
-        ) -> dace.int32:
+        ) -> Int:
             size = cls._type_registrar[name].size(data_dim_index)
-            return dace.int32(size)
+            return Int(size)
 
         return cls._type_registrar[name]
 
