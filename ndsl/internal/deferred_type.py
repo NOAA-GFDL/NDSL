@@ -7,7 +7,7 @@ from typing import Any, Type
 
 def get_lhs_name(frame: FrameType | None) -> str:
     """Inspect the back frame to retrieve the LHS of an assign
-    operation, will fail if any of those aren't true"""
+    operation, will fail if any of those are None"""
     if frame is None:
         raise RuntimeError("Code frame un-inspectable.")
     previous_frame = frame.f_back
@@ -38,7 +38,7 @@ class StencilTypeRegistrar:
     """Type registrar that knows how to give back true type.
 
     This acts as a registrar and also a dynamic resolver to be able to swap to the true
-    type before
+    type before triggering the build process of a stencil in gt4py.
     """
 
     @classmethod
@@ -58,7 +58,8 @@ class StencilDeferredType:
         self.name = name
 
     def __descriptor__(self) -> None:
-        # Ignore, use JIT
+        # Make DaCe wait for JIT to resolve dimensions
+        # of the array
         return None
 
     @classmethod

@@ -1,7 +1,6 @@
 import collections
 import inspect
 from dataclasses import dataclass
-from typing import Type
 
 import dace
 import numpy.typing as npt
@@ -44,12 +43,13 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
     def range(self, dimension_index: DataDimensionIndex) -> range:
         return range(self.data_dims[dimension_index])
 
-    def set_mapping(self, mapping: SparseNameMapping) -> None:
-        self._mapping = mapping
-
     @property
     def mapping(self) -> SparseNameMapping:
         return self._mapping
+
+    @mapping.setter
+    def mapping(self, mapping: SparseNameMapping) -> None:
+        self._mapping = mapping
 
     def index(self, name: str) -> int:
         if len(self.data_dims) != 1:
@@ -103,7 +103,9 @@ class DataDimensionsField(StencilTypeRegistrar):
 
         Args:
             pre_registration_type: Type returned by the "declare" function.
-            data_dimensions: tuple of int giving size of each data dimensions.
+            quantity_factory: Factory carrying the proper data dimensions axis described
+                in `data_dimensions_names`.
+            data_dimensions_names: list of name of data dimension axis.
             name_mapping: for each dimensions, a sparse dictionnary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
@@ -114,19 +116,18 @@ class DataDimensionsField(StencilTypeRegistrar):
 
         data_dims_size = []
         for ddim_name in data_dimensions_names:
-            try:
-                data_dims_size.append(quantity_factory.sizer.data_dimensions[ddim_name])
-            except KeyError:
+            if ddim_name not in quantity_factory.sizer.data_dimensions:
                 raise KeyError(
                     f'Data dimension axis "{ddim_name}" is not present in QuantityFactory. '
                     "Use QuantityFactory.add_data_dimensions prior to registering field."
                 )
+            data_dims_size.append(quantity_factory.sizer.data_dimensions[ddim_name])
 
         cls._type_registrar[name] = _DataDimensionDescriptor[
             gtscript.IJK, (dtype, tuple(data_dims_size))
         ]
         if name_mapping is not None:
-            cls._type_registrar[name].set_mapping(name_mapping)
+            cls._type_registrar[name].mapping = name_mapping
 
         # Dynamic op replacement fo Type.index() function
         # Requires the _locals to get `name` - do not pull out of `register`
@@ -181,7 +182,9 @@ class DataDimensionsField(StencilTypeRegistrar):
         """Declare a data dimension field and register it's size
 
         Args:
-            data_dims: tuple of int giving size of each data dimensions.
+            quantity_factory: Factory carrying the proper data dimensions axis described
+                in `data_dimensions_names`.
+            data_dimensions_names: list of name of data dimension axis.
             name_mapping: for each dimensions, a sparse dictionnary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
@@ -206,8 +209,6 @@ class DataDimensionsField(StencilTypeRegistrar):
 
         Args:
             name: name of the type as registered via `register`
-            do_markup: if name not registered, markup for a future specialization
-                at stencil call time
         """
         if name not in cls._type_registrar:
             raise RuntimeError(f"Data dimension field {name} as not been registered!")
@@ -234,13 +235,13 @@ class DataDimensionsMarkupType(StencilDeferredType):
         return DataDimensionsField._type_registrar[self.name].range(dimension_index)
 
     def _get_true_type(self) -> _DataDimensionsFieldDescriptor:
-        try:
-            return DataDimensionsField._type_registrar[self.name]
-        except KeyError:
+        if self.name not in DataDimensionsField._type_registrar:
             raise KeyError(
                 f"Data dimension field {self.name} is not registered. "
                 f"Call DataDimensionsField.register({self.name})."
             )
+
+        return DataDimensionsField._type_registrar[self.name]
 
     @property
     def mapping(self) -> SparseNameMapping:
@@ -253,5 +254,5 @@ class DataDimensionsMarkupType(StencilDeferredType):
         return self._get_true_type().size(data_dims_index)
 
     @classmethod
-    def resolve(cls) -> Type[StencilTypeRegistrar]:
+    def resolve(cls) -> type[StencilTypeRegistrar]:
         return DataDimensionsField
