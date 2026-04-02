@@ -2,31 +2,17 @@ import datetime
 
 import numpy as np
 import numpy.typing as npt
-import xarray as xr
 
-from ndsl.comm.communicator import Communicator
-from ndsl.dsl.typing import Float
-from ndsl.logging import ndsl_log
-from ndsl.monitor.convert import to_numpy
-from ndsl.quantity import Quantity
-#from ndsl.monitor.protocol import Monitor
-
-from ndsl.constants import N_HALO_DEFAULT
-from ndsl import GridSizer
-from ndsl.quantity.state import State
+from ndsl.monitor.protocol import Monitor
 
 from pyfms import diag_manager
 
 from datetime import datetime, timedelta
 
-
-# TODO this should inherit the monitor protocol
-# but when inheriting it, data is only output from the root pe
-class DiagManagerMonitor():
+class DiagManagerMonitor(Monitor):
     """
     sympl.Monitor-style object for sending diagnostics to FMS's diag manager
     """
-    _diag_initialized = False
 
     def __init__(  # type: ignore[no-untyped-def]
         self,
@@ -39,18 +25,16 @@ class DiagManagerMonitor():
             communicator: provides global communication to gather state
             time_chunk_size: number of times per file
         """
-        #if not DiagManagerMonitor._diag_initialized:
         diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
-        #DiagManagerMonitor._diag_initialized = True
         self.fields = {}
         self.axes = {}
-        self._expected_vars = None 
         self.diag_end_time = None
         self.domain_id = domain_id
 
     def store(self, state: dict) -> None:
         """
-        Send the data to the diag manager. Sends data for each field in the state. 
+        Sends data from quantities in the state to be written by the diag_manager.
+        All state variables must be registered beforehand via register_field.
         """
         # get the associated quantities/axis for each field that has been registered
         if state is not None:
@@ -84,8 +68,6 @@ class DiagManagerMonitor():
     def set_timestep(self, timestep: timedelta):
         self.timestep = timestep
 
-    # registers a diag_manager field/variable for a given Quantity, adds name:field_id to self.fields
-    # TODO: check range_data
     def register_field(self,
                        module_name: str,
                        field_name: str,
@@ -97,6 +79,11 @@ class DiagManagerMonitor():
                        long_name: str = None,
                        range_data: npt.NDArray = None,
                        ticks: int = 0):
+        """
+            Register a diagnostic field with the FMS diag_manager via the pyFMS interface for fortran
+            This corresponds to a variable/field in the output netcdf file.
+            Any axis/dimensions used by this variable should be registered prior to this function.
+        """
 
         field_axes = [self.axes[dim] for dim in dims]
         if any(field_axes) is None:
@@ -120,14 +107,15 @@ class DiagManagerMonitor():
         self.fields[field_name] = field_id 
 
 
-    # registers a axis in diag_manager, adds name:axis_id to self.axes 
-    # TODO: might be able to make this private, intialize from quantity dims when registering field
-    def register_axis(self, name: str, axis_data: np.ndarray, cart_name: str = None,
-                      long_name: str = None, not_xy: bool = None, units: str = None,
+    def register_axis(self, name: str, axis_data: np.ndarray, not_xy: bool,
+                      cart_name: str = None, long_name: str = None, units: str = None,
                       domain_id: int = None, set_name: str = None):
-        #domain_id_tmp = self.domain_id if not not_xy else None
-        
-        #print(f"registering axis {name} with data {axis_data}, cart_name: {cart_name}, long_name: {long_name}, not_xy: {not_xy}, units: {units}, domain_id: {domain_id_tmp}, set_name: {set_name}")
+        """
+            Registers an axis with the FMS diag_manager via the pyFMS interface for fortran
+            This corresponds to a axis/dimension in the output netcdf file.
+            Time axis will be added as an unlimited dimension automatically,
+            so does not need to be explicitly registered.
+        """
         if not_xy:
             self.axes[name] = diag_manager.axis_init(
                 name=name,

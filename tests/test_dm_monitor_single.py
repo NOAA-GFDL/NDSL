@@ -1,8 +1,7 @@
+""" Tests the diag_manager_monitor class can output ndsl quantity data.
+    This test case uses a single tile domain decomposition, and outputs a file from the root pe
+    with data gathered from any other processors.
 """
-    Test for DiagManagerMonitor using a single tile partitioner and communicator.
-    This is a simple test that registers some axes and fields, sends data to the monitor, and then checks the output file.
-"""
-
 
 import logging
 from datetime import timedelta, datetime
@@ -56,7 +55,7 @@ def _create_input(reduction: str = "none"):
         "base_date": "2 1 1 1 1 1",
         "diag_files": [
             {
-                "file_name": "ndsl_diag_test",
+                "file_name": "diag_manager_single_tile",
                 "freq": "1 hours",
                 "time_units": "hours",
                 "unlimdim": "time",
@@ -86,8 +85,6 @@ def _create_input(reduction: str = "none"):
         f.write(text_content)
 
 
-# Simple test, uses single tile partitioner and communicator and then stores
-# a faux state dict via DiagManagerMonitor 
 def test_dm_monitor_single_tile():
 
     _create_input()
@@ -105,11 +102,9 @@ def test_dm_monitor_single_tile():
         io_layout=io_layout,
     )
 
-    # handles mpi/serial set up steps
     if npes > 1: 
         rank = MPIComm()._comm.Get_rank()
         print(f"intializing partitioner/communicator rank {rank} of {npes}")
-        # this only works with 1 pe
         partitioner = TilePartitioner(layout=layout_ndsl)
         communicator = TileCommunicator(MPIComm(), partitioner)
         communicator.tile
@@ -133,7 +128,7 @@ def test_dm_monitor_single_tile():
     )
     quantity_factory = QuantityFactory(sizer, backend=backend)
 
-    # pace will set up model start/end times and register axis info
+    # set up for diag manager for before the main loop, need to set timestep + end_time and register all axes and fields
     monitor = DiagManagerMonitor(domain_id=domain_id)
     start = datetime(2, 1, 1, 1, 1, 1)
     step = timedelta(seconds=3600)
@@ -150,6 +145,7 @@ def test_dm_monitor_single_tile():
         domain_id=domain_id,
         long_name="point_E",
         set_name="atm",
+        not_xy=False,
     )
     monitor.register_axis(
         name="y",
@@ -159,6 +155,7 @@ def test_dm_monitor_single_tile():
         domain_id=domain_id,
         long_name="point_N",
         set_name="atm",
+        not_xy=False,
     )
     monitor.register_axis(
         name="z",
@@ -170,7 +167,6 @@ def test_dm_monitor_single_tile():
         not_xy=True,
     )
 
-    # fields will be registered in the component they are defined in (either pyFV3 or pySHiELD)
     monitor.register_field(
         module_name="atm_mod",
         field_name="var_2d",
@@ -216,7 +212,6 @@ def test_dm_monitor_single_tile():
 
     MPIComm()._comm.Barrier()
 
-    # pace driver will call store for each timestep to send the data
     current_time = start
     for t in range(ntimesteps):
         current_time = current_time + step
@@ -227,13 +222,12 @@ def test_dm_monitor_single_tile():
         }
         monitor.store(state)
 
-    #if pe == 0:
-    MPIComm()._comm.Barrier()
     # cleanup writes and closes the file
     monitor.cleanup()
+
     ## check output!
-    assert Path("ndsl_diag_test.nc").exists()
-    ds = xr.open_mfdataset("ndsl_diag_test.nc", decode_times=True)
+    assert Path("diag_manager_single_tile.nc").exists()
+    ds = xr.open_mfdataset("diag_manager_single_tile.nc", decode_times=True)
     assert "var_2d" in ds
     np.testing.assert_array_equal(
         ds["var_2d"].shape, (ntimesteps, nx, ny)

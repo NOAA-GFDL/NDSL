@@ -1,20 +1,16 @@
+""" Tests the diag_manager_monitor class can output ndsl quantity data.
+    This test case uses a cubic (6 tile) mosaic, and outputs a file for each tile.
+"""
+
 import logging
 from datetime import timedelta, datetime
-from typing import List
 
-import cftime
 import numpy as np
-import pytest
-import xarray as xr
-import pdb
 
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    LocalComm,
     MPIComm,
-    Quantity,
-    TileCommunicator,
     TilePartitioner,
     DiagManagerMonitor,
 )
@@ -23,12 +19,11 @@ from ndsl.initialization import SubtileGridSizer
 from ndsl import QuantityFactory
 from pyfms import mpp_domains, fms
 
-from pathlib import Path
-
-from mpi4py import MPI
-
 import yaml
 
+from pathlib import Path
+import xarray as xr
+import cftime
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +58,7 @@ def _create_input(reduction: str = "none"):
         "base_date": "1 1 1 0 0 0",
         "diag_files": [
             {
-                "file_name": "ndsl_diag_test",
+                "file_name": "diag_manager_cubed_sphere",
                 "freq": "15 seconds",
                 "time_units": "seconds",
                 "unlimdim": "time",
@@ -94,14 +89,14 @@ def _create_input(reduction: str = "none"):
 
 
 # Simple test, uses a lat/lon grid and (1, npes) layout 
-def test_dm_monitor(reduction):
+def test_dm_monitor():
 
     npes = MPIComm()._comm.Get_size()
 
     if npes % 6 != 0:
         raise RuntimeError("this test requires npes to be a multiple of 6 to run")
 
-    _create_input(reduction)
+    _create_input()
 
     nx = 8
     ny = 8
@@ -112,8 +107,6 @@ def test_dm_monitor(reduction):
     ntimesteps = 3
 
     domain_id = fms_mpp_init(pes=npes)
-    rank = MPIComm()._comm.Get_rank()
-    print(f"intializing partitioner/communicator rank {rank} of {npes}")
     partitioner = CubedSpherePartitioner(TilePartitioner((1, 1)))
     communicator = CubedSphereCommunicator(MPIComm(), partitioner)
     communicator.tile
@@ -131,11 +124,7 @@ def test_dm_monitor(reduction):
 
     # pace will set up model start/end times and register axis info
     monitor = DiagManagerMonitor(
-        path="./",
-        communicator=communicator,
         domain_id=domain_id,
-        time_chunk_size=1,
-        precision=np.float32,
     )
     start = datetime(1, 1, 1, 0, 0, second=0)
     end = datetime(1, 1, 1, 0, 0, second=45)
@@ -178,6 +167,8 @@ def test_dm_monitor(reduction):
         units="m",
         long_name="variable one",
         init_time=start,
+        missing_value=-999.0,
+        dtype="float64",
     )
     monitor.register_field(
         module_name="atm_mod",
@@ -186,14 +177,15 @@ def test_dm_monitor(reduction):
         units="m",
         long_name="variable two",
         init_time=start,
+        missing_value=-999.0,
+        dtype="float64",
     )
     assert "x" in monitor.axes
     assert "y" in monitor.axes
     assert "var1" in monitor.fields
 
     # pace driver will call store for each timestep to send the data
-    # store also currently advances the time in diag_manager and calls diag_send_complete
-    for t in range(ntimesteps):
+    for t in range(1,ntimesteps+1):
         current_time = start + t * step
         field_q1 = quantity_factory.full( dims=("x","y"), units="m", value=t, dtype=np.float64 )
         field_q2 = quantity_factory.full( dims=("x","y","z"), units="m", value=t*2, dtype=np.float64 )
@@ -206,5 +198,32 @@ def test_dm_monitor(reduction):
 
     # cleanup writes and closes the file
     monitor.cleanup()
+
+    pe = MPIComm()._comm.Get_rank() + 1
+    filename = "diag_manager_cubed_sphere.tile" + str(pe) + ".nc"
+    assert Path(filename).exists()
+    ds = xr.open_mfdataset(filename, decode_times=True)
+    assert "var1" in ds
+    np.testing.assert_array_equal(
+        ds["var1"].shape, (ntimesteps, ny, nx)
+    )
+    assert "var2" in ds
+    np.testing.assert_array_equal(
+        ds["var2"].shape, (ntimesteps, nz, ny, nx)
+    )
+    assert ds["var1"].dims == ("time", "y", "x")
+    assert ds["var2"].dims == ("time", "z", "y", "x")
+    assert ds["time"].shape == (ntimesteps,)
+    assert ds["time"].dims == ("time",)
+    assert ds["time"].values[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 15)
+    assert ds["time"].values[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 30) 
+    assert ds["time"].values[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 45) 
+    # data is just the timestep number
+    np.testing.assert_array_equal(ds["var1"].values[0,:,:], 1)
+    np.testing.assert_array_equal(ds["var1"].values[1,:,:], 2)
+    np.testing.assert_array_equal(ds["var1"].values[2,:,:], 3)
+    np.testing.assert_array_equal(ds["var2"].values[0,:,:,:], 2)
+    np.testing.assert_array_equal(ds["var2"].values[1,:,:,:], 4)
+    np.testing.assert_array_equal(ds["var2"].values[2,:,:,:], 6)
 
     fms.end()
