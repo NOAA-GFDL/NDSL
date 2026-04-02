@@ -5,13 +5,10 @@
 
 import logging
 from datetime import timedelta, datetime
-from typing import List
 
 import cftime
 import numpy as np
-import pytest
 import xarray as xr
-import pdb
 
 from ndsl import (
     LocalComm,
@@ -22,32 +19,13 @@ from ndsl import (
 )
 
 from ndsl.initialization import SubtileGridSizer
+from ndsl.config import Backend
 from ndsl import QuantityFactory
-from pyfms import mpp_domains, fms, diag_manager
+from pyfms import mpp_domains, fms
 
 from pathlib import Path
 
 import yaml
-
-import pdb
-
-logger = logging.getLogger(__name__)
-
-
-# mpi info
-npes = MPIComm()._comm.Get_size()
-pe = MPIComm()._comm.Get_rank()
-# tile parameters for quantities/domains 
-nx = 8
-ny = 8
-nz = 2 
-nhalo = 0
-backend = "debug"
-ntimesteps = 3
-layout_fms = [1, npes]
-io_layout = [1, 1]
-layout_ndsl = (npes, 1) # flipped to match fms domain decomposition
-global_indices = [0, nx-1, 0, ny-1]
 
 def _create_input(reduction: str = "none"):
     diag_config = {
@@ -87,6 +65,21 @@ def _create_input(reduction: str = "none"):
 
 def test_dm_monitor_single_tile():
 
+    # mpi info
+    npes = MPIComm()._comm.Get_size()
+    pe = MPIComm()._comm.Get_rank()
+    # tile parameters for quantities/domains 
+    nx = 8
+    ny = 8
+    nz = 2 
+    nhalo = 0
+    backend = Backend.python() 
+    ntimesteps = 3
+    layout_fms = [1, npes]
+    io_layout = [1, 1]
+    layout_ndsl = (npes, 1) # flipped to match fms domain decomposition
+    global_indices = [0, nx-1, 0, ny-1]
+
     _create_input()
 
     fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=fms.NOLEAP)
@@ -125,6 +118,7 @@ def test_dm_monitor_single_tile():
         layout=layout_ndsl,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
     quantity_factory = QuantityFactory(sizer, backend=backend)
 
@@ -207,8 +201,8 @@ def test_dm_monitor_single_tile():
     # pad arrays for quantity factory
     var2 = np.pad(var2, (0,1))
     var3 = np.pad(var3, (0,1))
-    field_q1 = quantity_factory.from_array(var2, dims=("x", "y"), units="m")
-    field_q2 = quantity_factory.from_array(var3, dims=("x","y","z"), units="m")
+    field_q1 = quantity_factory.from_array(var2, dims=("i", "j"), units="m")
+    field_q2 = quantity_factory.from_array(var3, dims=("i","j","k"), units="m")
 
     MPIComm()._comm.Barrier()
 

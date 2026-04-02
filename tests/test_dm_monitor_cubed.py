@@ -16,6 +16,7 @@ from ndsl import (
 )
 
 from ndsl.initialization import SubtileGridSizer
+from ndsl.config import Backend
 from ndsl import QuantityFactory
 from pyfms import mpp_domains, fms
 
@@ -28,7 +29,7 @@ import cftime
 logger = logging.getLogger(__name__)
 
 # init fms mpi and set up a simple domain
-def fms_mpp_init(pes: int = 1):
+def fms_mpp_init():
     fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=fms.NOLEAP)
     x = 8 
     y = 8
@@ -92,7 +93,6 @@ def _create_input(reduction: str = "none"):
 def test_dm_monitor():
 
     npes = MPIComm()._comm.Get_size()
-
     if npes % 6 != 0:
         raise RuntimeError("this test requires npes to be a multiple of 6 to run")
 
@@ -103,10 +103,10 @@ def test_dm_monitor():
     nz = 2
     nhalo = 0
     layout = (1, 1) # 1 pe per tile
-    backend = "debug"
+    backend = Backend.python() 
     ntimesteps = 3
 
-    domain_id = fms_mpp_init(pes=npes)
+    domain_id = fms_mpp_init()
     partitioner = CubedSpherePartitioner(TilePartitioner((1, 1)))
     communicator = CubedSphereCommunicator(MPIComm(), partitioner)
     communicator.tile
@@ -119,6 +119,7 @@ def test_dm_monitor():
         layout=layout,
         tile_partitioner=partitioner.tile,
         tile_rank=communicator.tile.rank,
+        backend=backend,
     )
     quantity_factory = QuantityFactory(sizer, backend=backend)
 
@@ -187,8 +188,8 @@ def test_dm_monitor():
     # pace driver will call store for each timestep to send the data
     for t in range(1,ntimesteps+1):
         current_time = start + t * step
-        field_q1 = quantity_factory.full( dims=("x","y"), units="m", value=t, dtype=np.float64 )
-        field_q2 = quantity_factory.full( dims=("x","y","z"), units="m", value=t*2, dtype=np.float64 )
+        field_q1 = quantity_factory.full( dims=("i","j"), units="m", value=t, dtype=np.float64 )
+        field_q2 = quantity_factory.full( dims=("i","j","k"), units="m", value=t*2, dtype=np.float64 )
         state = {
             "time": current_time,
             "var1": field_q1,
