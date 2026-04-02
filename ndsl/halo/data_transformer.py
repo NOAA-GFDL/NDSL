@@ -4,6 +4,8 @@ import abc
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
+from types import ModuleType
+from typing import no_type_check
 from uuid import UUID, uuid1
 
 import numpy as np
@@ -22,7 +24,6 @@ from ndsl.halo.cuda_kernels import (
 from ndsl.halo.rotate import rotate_scalar_data, rotate_vector_data
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, QuantityHaloSpec
-from ndsl.types import NumpyModule
 from ndsl.utils import device_synchronize
 
 
@@ -53,7 +54,11 @@ def _push_stream(stream: "cp.cuda.Stream") -> None:
 INDICES_CACHE: dict[str, "cp.ndarray"] = {}
 
 
-def _build_flatten_indices(  # type: ignore[no-untyped-def]
+# `array_value[...] = xxx` is failing mypy because of bad inference
+# of the type. We can't type ignore, because mypy also thinks that it
+# no needed (but if removed, it will fail...)
+@no_type_check
+def _build_flatten_indices(
     key,
     shape,
     slices: tuple[slice, ...],
@@ -186,7 +191,7 @@ class HaloDataTransformer(abc.ABC):
 
     def __init__(
         self,
-        np_module: NumpyModule,
+        np_module: ModuleType,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> None:
@@ -237,7 +242,7 @@ class HaloDataTransformer(abc.ABC):
 
     @staticmethod
     def get(
-        np_module: NumpyModule,
+        np_module: ModuleType,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> HaloDataTransformer:
@@ -308,7 +313,7 @@ class HaloDataTransformer(abc.ABC):
 
         # Compute required size
         buffer_size = 0
-        dtype = None
+        dtype = np.float32  # default that will be overriden or not used
         for edge_x in self._infos_x:
             buffer_size += edge_x.pack_buffer_size
             dtype = edge_x.specification.dtype
@@ -320,12 +325,12 @@ class HaloDataTransformer(abc.ABC):
         self._pack_buffer = Buffer.pop_from_cache(
             self._np_module.zeros,
             (buffer_size,),
-            dtype,  # type: ignore[arg-type]
+            dtype,
         )
         self._unpack_buffer = Buffer.pop_from_cache(
             self._np_module.zeros,
             (buffer_size,),
-            dtype,  # type: ignore[arg-type]
+            dtype,
         )
 
     def ready(self) -> bool:
@@ -589,7 +594,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
 
     def __init__(
         self,
-        np_module: NumpyModule,
+        np_module: ModuleType,
         exchange_descriptors_x: Sequence[HaloExchangeSpec],
         exchange_descriptors_y: Sequence[HaloExchangeSpec] | None = None,
     ) -> None:

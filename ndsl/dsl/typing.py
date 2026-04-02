@@ -1,6 +1,7 @@
 from typing import TypeAlias
 
 import numpy as np
+import numpy.typing as npt
 from gt4py.cartesian import gtscript
 
 from ndsl.dsl import NDSL_GLOBAL_PRECISION
@@ -110,7 +111,7 @@ def cast_to_index3d(val: tuple[int, ...]) -> Index3D:
     return val
 
 
-def is_float(dtype: type) -> bool:
+def is_float(dtype: npt.DTypeLike) -> bool:
     """Expected floating point type"""
     return dtype in [
         Float,
