@@ -7,7 +7,6 @@ from pyfms import diag_manager
 
 from ndsl.monitor.protocol import Monitor
 
-
 class DiagManagerMonitor(Monitor):
     """
     sympl.Monitor-style object for sending diagnostics to FMS's diag manager
@@ -20,9 +19,7 @@ class DiagManagerMonitor(Monitor):
         """Create a DiagManagerMonitor.
 
         Args:
-            path: directory in which to store data
-            communicator: provides global communication to gather state
-            time_chunk_size: number of times per file
+            domain_id: integer domain-decomposition identifier as returned by mpp_define_domain
         """
         diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
         self.fields = {}
@@ -63,12 +60,17 @@ class DiagManagerMonitor(Monitor):
             )
         diag_manager.end(end_time=self.diag_end_time)
 
-    # sets the end time to stop recieving data. Must be called prior to cleanup/diag_manager.end()
     def set_end_time(self, end_time: datetime):
+        """
+            Sets the end time to stop recieving data. Must be called prior to cleanup/diag_manager.end()
+        """
         diag_manager.set_time_end(end_time)
         self.diag_end_time = end_time
 
     def set_timestep(self, timestep: timedelta):
+        """
+            Sets the timestep to increment by after data is sent.
+        """
         self.timestep = timestep
 
     def register_field(
@@ -82,7 +84,6 @@ class DiagManagerMonitor(Monitor):
         init_time: datetime,
         long_name: str = None,
         range_data: npt.NDArray = None,
-        ticks: int = 0,
     ):
         """
         Register a diagnostic field with the FMS diag_manager via the pyFMS interface for fortran
@@ -99,7 +100,6 @@ class DiagManagerMonitor(Monitor):
         print(
             f"registering field {field_name} with axes {field_axes}, init time: {init_time}"
         )
-        # putting all the arguments here for now, only module_name, field_name, precision are required
         field_id = diag_manager.register_field_array(
             module_name=module_name,
             field_name=field_name,
