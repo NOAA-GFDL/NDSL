@@ -14,11 +14,8 @@ from ndsl.quantity import Quantity
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl import GridSizer
 from ndsl.quantity.state import State
-    
 
-from pyfms import diag_manager, fms, mpp_domains
-
-from mpi4py import MPI
+from pyfms import diag_manager
 
 from datetime import datetime, timedelta
 
@@ -33,6 +30,7 @@ class DiagManagerMonitor():
 
     def __init__(  # type: ignore[no-untyped-def]
         self,
+        domain_id: int,
     ) -> None:
         """Create a DiagManagerMonitor.
 
@@ -48,20 +46,12 @@ class DiagManagerMonitor():
         self.axes = {}
         self._expected_vars = None 
         self.diag_end_time = None
+        self.domain_id = domain_id
 
     def store(self, state: dict) -> None:
         """
         Send the data to the diag manager. Sends data for each field in the state. 
         """
-        if self._expected_vars is None:
-            self._expected_vars = set(state.keys())
-        elif self._expected_vars != set(state.keys()):
-            raise ValueError(
-                "state keys must be the same each time store is called, "
-                "got {} but previously got {}".format(
-                    set(state.keys()), self._expected_vars
-                )
-            )
         # get the associated quantities/axis for each field that has been registered
         if state is not None:
             time = state["time"]
@@ -133,15 +123,28 @@ class DiagManagerMonitor():
     # registers a axis in diag_manager, adds name:axis_id to self.axes 
     # TODO: might be able to make this private, intialize from quantity dims when registering field
     def register_axis(self, name: str, axis_data: np.ndarray, cart_name: str = None,
-                      long_name: str = None, not_xy: bool = False, units: str = None,
+                      long_name: str = None, not_xy: bool = None, units: str = None,
                       domain_id: int = None, set_name: str = None):
-        self.axes[name] = diag_manager.axis_init(
-            name=name,
-            long_name=long_name,
-            axis_data=axis_data,
-            cart_name=cart_name,
-            domain_id=domain_id,
-            set_name=set_name,
-            not_xy=not_xy,
-            units=units,
-        )
+        #domain_id_tmp = self.domain_id if not not_xy else None
+        
+        #print(f"registering axis {name} with data {axis_data}, cart_name: {cart_name}, long_name: {long_name}, not_xy: {not_xy}, units: {units}, domain_id: {domain_id_tmp}, set_name: {set_name}")
+        if not_xy:
+            self.axes[name] = diag_manager.axis_init(
+                name=name,
+                long_name=long_name,
+                axis_data=axis_data,
+                cart_name=cart_name,
+                set_name=set_name,
+                not_xy=not_xy,
+                units=units,
+            )
+        else:
+            self.axes[name] = diag_manager.axis_init(
+                name=name,
+                long_name=long_name,
+                axis_data=axis_data,
+                cart_name=cart_name,
+                domain_id=domain_id,
+                set_name=set_name,
+                units=units,
+            )

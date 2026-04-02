@@ -67,7 +67,6 @@ def _create_input(reduction: str = "none"):
                         "long_name": "variable_too_dee",
                         "reduction": "none",
                         "kind": "r8",
-                        "output_name": "var_2avg"
                     },
                     {
                         "module": "atm_mod",
@@ -75,7 +74,6 @@ def _create_input(reduction: str = "none"):
                         "long_name": "variable_three_dee",
                         "reduction": "none",
                         "kind": "r8",
-                        "output_name" : "var3"
                     }
                 ]
             }
@@ -136,7 +134,7 @@ def test_dm_monitor_single_tile():
     quantity_factory = QuantityFactory(sizer, backend=backend)
 
     # pace will set up model start/end times and register axis info
-    monitor = DiagManagerMonitor()
+    monitor = DiagManagerMonitor(domain_id=domain_id)
     start = datetime(2, 1, 1, 1, 1, 1)
     step = timedelta(seconds=3600)
     end = start + ntimesteps * step
@@ -152,7 +150,6 @@ def test_dm_monitor_single_tile():
         domain_id=domain_id,
         long_name="point_E",
         set_name="atm",
-        not_xy=False,
     )
     monitor.register_axis(
         name="y",
@@ -162,14 +159,14 @@ def test_dm_monitor_single_tile():
         domain_id=domain_id,
         long_name="point_N",
         set_name="atm",
-        not_xy=False,
     )
     monitor.register_axis(
         name="z",
         axis_data=np.arange(nz, dtype=np.float64),
         units="point_Z",
         cart_name='z',
-        long_name="point_Z",        set_name="atm",
+        long_name="point_Z",
+        set_name="atm",
         not_xy=True,
     )
 
@@ -234,31 +231,29 @@ def test_dm_monitor_single_tile():
     MPIComm()._comm.Barrier()
     # cleanup writes and closes the file
     monitor.cleanup()
-    fms.end()
-    return
     ## check output!
     assert Path("ndsl_diag_test.nc").exists()
     ds = xr.open_mfdataset("ndsl_diag_test.nc", decode_times=True)
-    assert "var1" in ds
+    assert "var_2d" in ds
     np.testing.assert_array_equal(
-        ds["var1"].shape, (ntimesteps, nx, ny)
+        ds["var_2d"].shape, (ntimesteps, nx, ny)
     )
-    assert ds["var1"].dims == ("time", "y", "x")
-    assert ds["var1"].attrs["units"] == "m"
-    assert ds["var2"].dims == ("time", "z", "y", "x")
-    assert ds["var2"].attrs["units"] == "m"
+    assert ds["var_2d"].dims == ("time", "y", "x")
+    assert ds["var_2d"].attrs["units"] == "muntin"
+    assert ds["var_3d"].dims == ("time", "z", "y", "x")
+    assert ds["var_3d"].attrs["units"] == "muntin"
     assert ds["time"].shape == (ntimesteps,)
     assert ds["time"].dims == ("time",)
-    assert ds["time"].values[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=15)
-    assert ds["time"].values[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=30) 
-    assert ds["time"].values[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, second=45) 
-    np.testing.assert_array_equal(ds["var1"].values[0,:,:], var2_global.transpose())
-    np.testing.assert_array_equal(ds["var1"].values[1,:,:], var2_global.transpose())
-    np.testing.assert_array_equal(ds["var1"].values[2,:,:], var2_global.transpose())
+    assert ds["time"].values[0] == cftime.DatetimeNoLeap(2, 1, 1, 2, 1, 1)
+    assert ds["time"].values[1] == cftime.DatetimeNoLeap(2, 1, 1, 3, 1, 1) 
+    assert ds["time"].values[2] == cftime.DatetimeNoLeap(2, 1, 1, 4, 1, 1) 
+    np.testing.assert_array_equal(ds["var_2d"].values[0,:,:], var2_global.transpose())
+    np.testing.assert_array_equal(ds["var_2d"].values[1,:,:], var2_global.transpose())
+    np.testing.assert_array_equal(ds["var_2d"].values[2,:,:], var2_global.transpose())
     # data is transposed when passed into fortran
-    np.testing.assert_array_equal(ds["var2"].values[0,:,:,:], var3_global.transpose())
-    np.testing.assert_array_equal(ds["var2"].values[1,:,:,:], var3_global.transpose())
-    np.testing.assert_array_equal(ds["var2"].values[2,:,:,:], var3_global.transpose())
+    np.testing.assert_array_equal(ds["var_3d"].values[0,:,:,:], var3_global.transpose())
+    np.testing.assert_array_equal(ds["var_3d"].values[1,:,:,:], var3_global.transpose())
+    np.testing.assert_array_equal(ds["var_3d"].values[2,:,:,:], var3_global.transpose())
 
     fms.end()
 
