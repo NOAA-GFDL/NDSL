@@ -1,46 +1,45 @@
-""" Tests the diag_manager_monitor class can output ndsl quantity data.
-    This test case uses a cubic (6 tile) mosaic, and outputs a file for each tile.
+"""Tests the diag_manager_monitor class can output ndsl quantity data.
+This test case uses a cubic (6 tile) mosaic, and outputs a file for each tile.
 """
 
 import logging
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from pathlib import Path
 
+import cftime
 import numpy as np
+import xarray as xr
+import yaml
+from pyfms import fms, mpp_domains
 
 from ndsl import (
     CubedSphereCommunicator,
     CubedSpherePartitioner,
-    MPIComm,
-    TilePartitioner,
     DiagManagerMonitor,
+    MPIComm,
+    QuantityFactory,
+    TilePartitioner,
 )
-
-from ndsl.initialization import SubtileGridSizer
 from ndsl.config import Backend
-from ndsl import QuantityFactory
-from pyfms import mpp_domains, fms
+from ndsl.initialization import SubtileGridSizer
 
-import yaml
-
-from pathlib import Path
-import xarray as xr
-import cftime
 
 logger = logging.getLogger(__name__)
+
 
 # init fms mpi and set up a simple domain
 def fms_mpp_init():
     fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=fms.NOLEAP)
-    x = 8 
+    x = 8
     y = 8
-    layout = [1, 1] 
+    layout = [1, 1]
     io_layout = [1, 1]
     halo = 1
     tiles = 6
     domain_id = mpp_domains.define_cubic_mosaic(
-        ni= [x for i in range(6)],
-        nj= [y for i in range(6)],
-        global_indices= [0, x-1, 0, y-1],
+        ni=[x for i in range(6)],
+        nj=[y for i in range(6)],
+        global_indices=[0, x - 1, 0, y - 1],
         layout=layout,
         ntiles=tiles,
         halo=halo,
@@ -52,6 +51,7 @@ def fms_mpp_init():
     )
     mpp_domains.set_current_domain(domain_id)
     return domain_id
+
 
 def _create_input(reduction: str = "none"):
     diag_config = {
@@ -69,18 +69,18 @@ def _create_input(reduction: str = "none"):
                         "var_name": "var1",
                         "long_name": "variable_number_one",
                         "reduction": reduction,
-                        "kind": "r8"
+                        "kind": "r8",
                     },
                     {
                         "module": "atm_mod",
                         "var_name": "var2",
                         "long_name": "variable_number_one",
                         "reduction": reduction,
-                        "kind": "r8"
-                    }
-                ]
+                        "kind": "r8",
+                    },
+                ],
             }
-        ]
+        ],
     }
     with open("diag_table.yaml", "w") as f:
         yaml.dump(diag_config, f, default_flow_style=False, sort_keys=False)
@@ -89,7 +89,7 @@ def _create_input(reduction: str = "none"):
         f.write(text_content)
 
 
-# Simple test, uses a lat/lon grid and (1, npes) layout 
+# Simple test, uses a lat/lon grid and (1, npes) layout
 def test_dm_monitor():
 
     npes = MPIComm()._comm.Get_size()
@@ -102,8 +102,8 @@ def test_dm_monitor():
     ny = 8
     nz = 2
     nhalo = 0
-    layout = (1, 1) # 1 pe per tile
-    backend = Backend.python() 
+    layout = (1, 1)  # 1 pe per tile
+    backend = Backend.python()
     ntimesteps = 3
 
     domain_id = fms_mpp_init()
@@ -136,7 +136,7 @@ def test_dm_monitor():
     monitor.register_axis(
         name="x",
         axis_data=np.arange(nx, dtype=np.float64),
-        cart_name='x',
+        cart_name="x",
         long_name="x coordinate",
         units="m",
         not_xy=False,
@@ -145,7 +145,7 @@ def test_dm_monitor():
     monitor.register_axis(
         name="y",
         axis_data=np.arange(ny, dtype=np.float64),
-        cart_name='y',
+        cart_name="y",
         long_name="y coordinate",
         units="m",
         not_xy=False,
@@ -154,7 +154,7 @@ def test_dm_monitor():
     monitor.register_axis(
         name="z",
         axis_data=np.arange(nz, dtype=np.float64),
-        cart_name='z',
+        cart_name="z",
         long_name="z coordinate",
         units="m",
         not_xy=True,
@@ -164,7 +164,7 @@ def test_dm_monitor():
     monitor.register_field(
         module_name="atm_mod",
         field_name="var1",
-        dims=["x","y"],
+        dims=["x", "y"],
         units="m",
         long_name="variable one",
         init_time=start,
@@ -174,7 +174,7 @@ def test_dm_monitor():
     monitor.register_field(
         module_name="atm_mod",
         field_name="var2",
-        dims=["x","y", "z"],
+        dims=["x", "y", "z"],
         units="m",
         long_name="variable two",
         init_time=start,
@@ -186,15 +186,15 @@ def test_dm_monitor():
     assert "var1" in monitor.fields
 
     # pace driver will call store for each timestep to send the data
-    for t in range(1,ntimesteps+1):
+    for t in range(1, ntimesteps + 1):
         current_time = start + t * step
-        field_q1 = quantity_factory.full( dims=("i","j"), units="m", value=t, dtype=np.float64 )
-        field_q2 = quantity_factory.full( dims=("i","j","k"), units="m", value=t*2, dtype=np.float64 )
-        state = {
-            "time": current_time,
-            "var1": field_q1,
-            "var2": field_q2
-        }
+        field_q1 = quantity_factory.full(
+            dims=("i", "j"), units="m", value=t, dtype=np.float64
+        )
+        field_q2 = quantity_factory.full(
+            dims=("i", "j", "k"), units="m", value=t * 2, dtype=np.float64
+        )
+        state = {"time": current_time, "var1": field_q1, "var2": field_q2}
         monitor.store(state)
 
     # cleanup writes and closes the file
@@ -205,26 +205,22 @@ def test_dm_monitor():
     assert Path(filename).exists()
     ds = xr.open_mfdataset(filename, decode_times=True)
     assert "var1" in ds
-    np.testing.assert_array_equal(
-        ds["var1"].shape, (ntimesteps, ny, nx)
-    )
+    np.testing.assert_array_equal(ds["var1"].shape, (ntimesteps, ny, nx))
     assert "var2" in ds
-    np.testing.assert_array_equal(
-        ds["var2"].shape, (ntimesteps, nz, ny, nx)
-    )
+    np.testing.assert_array_equal(ds["var2"].shape, (ntimesteps, nz, ny, nx))
     assert ds["var1"].dims == ("time", "y", "x")
     assert ds["var2"].dims == ("time", "z", "y", "x")
     assert ds["time"].shape == (ntimesteps,)
     assert ds["time"].dims == ("time",)
     assert ds["time"].values[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 15)
-    assert ds["time"].values[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 30) 
-    assert ds["time"].values[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 45) 
+    assert ds["time"].values[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 30)
+    assert ds["time"].values[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 45)
     # data is just the timestep number
-    np.testing.assert_array_equal(ds["var1"].values[0,:,:], 1)
-    np.testing.assert_array_equal(ds["var1"].values[1,:,:], 2)
-    np.testing.assert_array_equal(ds["var1"].values[2,:,:], 3)
-    np.testing.assert_array_equal(ds["var2"].values[0,:,:,:], 2)
-    np.testing.assert_array_equal(ds["var2"].values[1,:,:,:], 4)
-    np.testing.assert_array_equal(ds["var2"].values[2,:,:,:], 6)
+    np.testing.assert_array_equal(ds["var1"].values[0, :, :], 1)
+    np.testing.assert_array_equal(ds["var1"].values[1, :, :], 2)
+    np.testing.assert_array_equal(ds["var1"].values[2, :, :], 3)
+    np.testing.assert_array_equal(ds["var2"].values[0, :, :, :], 2)
+    np.testing.assert_array_equal(ds["var2"].values[1, :, :, :], 4)
+    np.testing.assert_array_equal(ds["var2"].values[2, :, :, :], 6)
 
     fms.end()

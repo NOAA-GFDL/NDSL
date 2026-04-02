@@ -1,31 +1,29 @@
-""" Tests the diag_manager_monitor class can output ndsl quantity data.
-    This test case uses a single tile domain decomposition, and outputs a file from the root pe
-    with data gathered from any other processors.
+"""Tests the diag_manager_monitor class can output ndsl quantity data.
+This test case uses a single tile domain decomposition, and outputs a file from the root pe
+with data gathered from any other processors.
 """
 
 import logging
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from pathlib import Path
 
 import cftime
 import numpy as np
 import xarray as xr
+import yaml
+from pyfms import fms, mpp_domains
 
 from ndsl import (
+    DiagManagerMonitor,
     LocalComm,
     MPIComm,
+    QuantityFactory,
     TileCommunicator,
     TilePartitioner,
-    DiagManagerMonitor,
 )
-
-from ndsl.initialization import SubtileGridSizer
 from ndsl.config import Backend
-from ndsl import QuantityFactory
-from pyfms import mpp_domains, fms
+from ndsl.initialization import SubtileGridSizer
 
-from pathlib import Path
-
-import yaml
 
 def _create_input(reduction: str = "none"):
     diag_config = {
@@ -51,10 +49,10 @@ def _create_input(reduction: str = "none"):
                         "long_name": "variable_three_dee",
                         "reduction": "none",
                         "kind": "r8",
-                    }
-                ]
+                    },
+                ],
             }
-        ]
+        ],
     }
     with open("diag_table.yaml", "w") as f:
         yaml.dump(diag_config, f, default_flow_style=False, sort_keys=False)
@@ -68,17 +66,17 @@ def test_dm_monitor_single_tile():
     # mpi info
     npes = MPIComm()._comm.Get_size()
     pe = MPIComm()._comm.Get_rank()
-    # tile parameters for quantities/domains 
+    # tile parameters for quantities/domains
     nx = 8
     ny = 8
-    nz = 2 
+    nz = 2
     nhalo = 0
-    backend = Backend.python() 
+    backend = Backend.python()
     ntimesteps = 3
     layout_fms = [1, npes]
     io_layout = [1, 1]
-    layout_ndsl = (npes, 1) # flipped to match fms domain decomposition
-    global_indices = [0, nx-1, 0, ny-1]
+    layout_ndsl = (npes, 1)  # flipped to match fms domain decomposition
+    global_indices = [0, nx - 1, 0, ny - 1]
 
     _create_input()
 
@@ -95,7 +93,7 @@ def test_dm_monitor_single_tile():
         io_layout=io_layout,
     )
 
-    if npes > 1: 
+    if npes > 1:
         rank = MPIComm()._comm.Get_rank()
         print(f"intializing partitioner/communicator rank {rank} of {npes}")
         partitioner = TilePartitioner(layout=layout_ndsl)
@@ -103,10 +101,10 @@ def test_dm_monitor_single_tile():
         communicator.tile
     else:
         buffer = {}
-        partitioner = TilePartitioner((1,1)) 
+        partitioner = TilePartitioner((1, 1))
         communicator = TileCommunicator(
-                comm = LocalComm(rank=0, total_ranks=npes, buffer_dict=buffer),
-                partitioner=partitioner,
+            comm=LocalComm(rank=0, total_ranks=npes, buffer_dict=buffer),
+            partitioner=partitioner,
         )
         communicator.tile
 
@@ -135,7 +133,7 @@ def test_dm_monitor_single_tile():
         name="x",
         axis_data=np.arange(nx, dtype=np.float64),
         units="point_E",
-        cart_name='x',
+        cart_name="x",
         domain_id=domain_id,
         long_name="point_E",
         set_name="atm",
@@ -145,7 +143,7 @@ def test_dm_monitor_single_tile():
         name="y",
         axis_data=np.arange(ny, dtype=np.float64),
         units="point_N",
-        cart_name='y',
+        cart_name="y",
         domain_id=domain_id,
         long_name="point_N",
         set_name="atm",
@@ -155,7 +153,7 @@ def test_dm_monitor_single_tile():
         name="z",
         axis_data=np.arange(nz, dtype=np.float64),
         units="point_Z",
-        cart_name='z',
+        cart_name="z",
         long_name="point_Z",
         set_name="atm",
         not_xy=True,
@@ -164,7 +162,7 @@ def test_dm_monitor_single_tile():
     monitor.register_field(
         module_name="atm_mod",
         field_name="var_2d",
-        dims=["x","y"],
+        dims=["x", "y"],
         units="muntin",
         init_time=start,
         dtype="float64",
@@ -173,7 +171,7 @@ def test_dm_monitor_single_tile():
     monitor.register_field(
         module_name="atm_mod",
         field_name="var_3d",
-        dims=["x","y","z"],
+        dims=["x", "y", "z"],
         units="muntin",
         init_time=start,
         dtype="float64",
@@ -184,7 +182,7 @@ def test_dm_monitor_single_tile():
     assert "z" in monitor.axes
     assert "var_2d" in monitor.fields
     assert "var_3d" in monitor.fields
-    
+
     # set up data to send for diagnostics
     var2_global = np.empty(shape=(nx, ny), dtype=np.float64)
     var3_global = np.empty(shape=(nx, ny, nz), dtype=np.float64)
@@ -195,14 +193,14 @@ def test_dm_monitor_single_tile():
         for j in range(ny):
             for k in range(nz):
                 var3_global[i][j][k] = i * 100 + j * 10 + k
-    var2 = var2_global[domain.isc: domain.iec + 1, domain.jsc: domain.jec + 1]
-    var3 = var3_global[domain.isc: domain.iec + 1, domain.jsc: domain.jec + 1, :]
+    var2 = var2_global[domain.isc : domain.iec + 1, domain.jsc : domain.jec + 1]
+    var3 = var3_global[domain.isc : domain.iec + 1, domain.jsc : domain.jec + 1, :]
 
     # pad arrays for quantity factory
-    var2 = np.pad(var2, (0,1))
-    var3 = np.pad(var3, (0,1))
+    var2 = np.pad(var2, (0, 1))
+    var3 = np.pad(var3, (0, 1))
     field_q1 = quantity_factory.from_array(var2, dims=("i", "j"), units="m")
-    field_q2 = quantity_factory.from_array(var3, dims=("i","j","k"), units="m")
+    field_q2 = quantity_factory.from_array(var3, dims=("i", "j", "k"), units="m")
 
     MPIComm()._comm.Barrier()
 
@@ -223,9 +221,7 @@ def test_dm_monitor_single_tile():
     assert Path("diag_manager_single_tile.nc").exists()
     ds = xr.open_mfdataset("diag_manager_single_tile.nc", decode_times=True)
     assert "var_2d" in ds
-    np.testing.assert_array_equal(
-        ds["var_2d"].shape, (ntimesteps, nx, ny)
-    )
+    np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))
     assert ds["var_2d"].dims == ("time", "y", "x")
     assert ds["var_2d"].attrs["units"] == "muntin"
     assert ds["var_3d"].dims == ("time", "z", "y", "x")
@@ -233,17 +229,24 @@ def test_dm_monitor_single_tile():
     assert ds["time"].shape == (ntimesteps,)
     assert ds["time"].dims == ("time",)
     assert ds["time"].values[0] == cftime.DatetimeNoLeap(2, 1, 1, 2, 1, 1)
-    assert ds["time"].values[1] == cftime.DatetimeNoLeap(2, 1, 1, 3, 1, 1) 
-    assert ds["time"].values[2] == cftime.DatetimeNoLeap(2, 1, 1, 4, 1, 1) 
-    np.testing.assert_array_equal(ds["var_2d"].values[0,:,:], var2_global.transpose())
-    np.testing.assert_array_equal(ds["var_2d"].values[1,:,:], var2_global.transpose())
-    np.testing.assert_array_equal(ds["var_2d"].values[2,:,:], var2_global.transpose())
+    assert ds["time"].values[1] == cftime.DatetimeNoLeap(2, 1, 1, 3, 1, 1)
+    assert ds["time"].values[2] == cftime.DatetimeNoLeap(2, 1, 1, 4, 1, 1)
+    np.testing.assert_array_equal(ds["var_2d"].values[0, :, :], var2_global.transpose())
+    np.testing.assert_array_equal(ds["var_2d"].values[1, :, :], var2_global.transpose())
+    np.testing.assert_array_equal(ds["var_2d"].values[2, :, :], var2_global.transpose())
     # data is transposed when passed into fortran
-    np.testing.assert_array_equal(ds["var_3d"].values[0,:,:,:], var3_global.transpose())
-    np.testing.assert_array_equal(ds["var_3d"].values[1,:,:,:], var3_global.transpose())
-    np.testing.assert_array_equal(ds["var_3d"].values[2,:,:,:], var3_global.transpose())
+    np.testing.assert_array_equal(
+        ds["var_3d"].values[0, :, :, :], var3_global.transpose()
+    )
+    np.testing.assert_array_equal(
+        ds["var_3d"].values[1, :, :, :], var3_global.transpose()
+    )
+    np.testing.assert_array_equal(
+        ds["var_3d"].values[2, :, :, :], var3_global.transpose()
+    )
 
     fms.end()
+
 
 if __name__ == "__main__":
     test_dm_monitor_single_tile()
