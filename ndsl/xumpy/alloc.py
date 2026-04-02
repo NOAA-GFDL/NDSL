@@ -55,7 +55,7 @@ def empty(
 def full(
     shape: _ShapeLike,
     backend: Backend,
-    value: np.ScalarType,
+    value: npt.DTypeLike,
     dtype: npt.DTypeLike = Float,
 ) -> np.ndarray | cp.ndarray:
     if backend.is_gpu_backend():
@@ -66,7 +66,7 @@ def full(
 def random(
     shape: _ShapeLike,
     backend: Backend,
-    dtype: _DTypeLikeFloat32 | _DTypeLikeFloat64 = Float,  # type: ignore [valid-type]
+    dtype: _DTypeLikeFloat32 | _DTypeLikeFloat64 = Float,
 ) -> np.ndarray | cp.ndarray:
     if backend.is_gpu_backend():
         gen = cp.random.default_rng()
