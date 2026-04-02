@@ -20,7 +20,7 @@ def plot_daily_and_hourly_hist(
     return fig
 
 
-def plot_daily_hist(ax: Axes, time_list: Sequence[datetime.datetime]):
+def plot_daily_hist(ax: Axes, time_list: Sequence[datetime.datetime | np.datetime64]):
     """Given list of datetimes, plot histogram of count per calendar day on ax"""
     ser = pd.Series(time_list)
     groupby_list = [ser.dt.year, ser.dt.month, ser.dt.day]
@@ -28,7 +28,7 @@ def plot_daily_hist(ax: Axes, time_list: Sequence[datetime.datetime]):
     ax.set_ylabel("Count")
 
 
-def plot_hourly_hist(ax: Axes, time_list: Sequence[datetime.datetime]):
+def plot_hourly_hist(ax: Axes, time_list: Sequence[datetime.datetime | np.datetime64]):
     """Given list of datetimes, plot histogram of count per UTC hour on ax"""
     ser = pd.Series(time_list)
     ser.groupby(ser.dt.hour).count().plot(ax=ax, kind="bar", title="Hourly count")
