@@ -246,7 +246,3 @@ def test_dm_monitor_single_tile():
     )
 
     fms.end()
-
-
-if __name__ == "__main__":
-    test_dm_monitor_single_tile()
