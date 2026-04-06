@@ -27,5 +27,9 @@ requirements: list[str] = [
     "dacite",  # for state
 ]
 
+extra_requirements: dict = {
+    "pyfms": ["pyfms"],
+}
 
-setup(install_requires=requirements)
+
+setup(install_requires=requirements, extra_requires=extra_requirements)

@@ -2,15 +2,14 @@
 This test case uses a cubic (6 tile) mosaic, and outputs a file for each tile.
 """
 
-import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import cftime
 import numpy as np
+import pytest
 import xarray as xr
 import yaml
-from pyfms import fms, mpp_domains
 
 from ndsl import (
     CubedSphereCommunicator,
@@ -24,19 +23,19 @@ from ndsl.config import Backend
 from ndsl.initialization import SubtileGridSizer
 
 
-logger = logging.getLogger(__name__)
+pyfms = pytest.importorskip("pyfms")
 
 
 # init fms mpi and set up a simple domain
 def fms_mpp_init():
-    fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=fms.NOLEAP)
+    pyfms.fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=pyfms.fms.NOLEAP)
     x = 8
     y = 8
     layout = [1, 1]
     io_layout = [1, 1]
     halo = 1
     tiles = 6
-    domain_id = mpp_domains.define_cubic_mosaic(
+    domain_id = pyfms.mpp_domains.define_cubic_mosaic(
         ni=[x for i in range(6)],
         nj=[y for i in range(6)],
         global_indices=[0, x - 1, 0, y - 1],
@@ -45,11 +44,11 @@ def fms_mpp_init():
         halo=halo,
         use_memsize=False,
     )
-    mpp_domains.define_io_domain(
+    pyfms.mpp_domains.define_io_domain(
         domain_id=domain_id,
         io_layout=io_layout,
     )
-    mpp_domains.set_current_domain(domain_id)
+    pyfms.mpp_domains.set_current_domain(domain_id)
     return domain_id
 
 
@@ -223,4 +222,4 @@ def test_dm_monitor():
     np.testing.assert_array_equal(ds["var2"].values[1, :, :, :], 4)
     np.testing.assert_array_equal(ds["var2"].values[2, :, :, :], 6)
 
-    fms.end()
+    pyfms.fms.end()

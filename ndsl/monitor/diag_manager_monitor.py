@@ -3,9 +3,17 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import numpy.typing as npt
-from pyfms import diag_manager
 
 from ndsl.monitor.protocol import Monitor
+
+
+try:
+    from pyfms import diag_manager
+
+    HAS_PYFMS = True
+except ImportError:
+    HAS_PYFMS = False
+
 
 class DiagManagerMonitor(Monitor):
     """
@@ -21,6 +29,10 @@ class DiagManagerMonitor(Monitor):
         Args:
             domain_id: integer domain-decomposition identifier as returned by mpp_define_domain
         """
+        if not HAS_PYFMS:
+            raise RuntimeError(
+                "pyFMS not installed, install ndsl[pyfms] to use the diag manager monitor"
+            )
         diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
         self.fields = {}
         self.axes = {}
@@ -62,14 +74,14 @@ class DiagManagerMonitor(Monitor):
 
     def set_end_time(self, end_time: datetime):
         """
-            Sets the end time to stop recieving data. Must be called prior to cleanup/diag_manager.end()
+        Sets the end time to stop recieving data. Must be called prior to cleanup/diag_manager.end()
         """
         diag_manager.set_time_end(end_time)
         self.diag_end_time = end_time
 
     def set_timestep(self, timestep: timedelta):
         """
-            Sets the timestep to increment by after data is sent.
+        Sets the timestep to increment by after data is sent.
         """
         self.timestep = timestep
 

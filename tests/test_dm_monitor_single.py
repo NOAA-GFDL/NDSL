@@ -9,9 +9,9 @@ from pathlib import Path
 
 import cftime
 import numpy as np
+import pytest
 import xarray as xr
 import yaml
-from pyfms import fms, mpp_domains
 
 from ndsl import (
     DiagManagerMonitor,
@@ -23,6 +23,9 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.initialization import SubtileGridSizer
+
+
+pyfms = pytest.importorskip("pyfms")
 
 
 def _create_input(reduction: str = "none"):
@@ -80,15 +83,15 @@ def test_dm_monitor_single_tile():
 
     _create_input()
 
-    fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=fms.NOLEAP)
+    pyfms.fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=pyfms.fms.NOLEAP)
 
-    domain = mpp_domains.define_domains(
+    domain = pyfms.mpp_domains.define_domains(
         global_indices=global_indices,
         layout=layout_fms,
     )
-    mpp_domains.set_current_domain(domain_id=domain.domain_id)
+    pyfms.mpp_domains.set_current_domain(domain_id=domain.domain_id)
     domain_id = domain.domain_id
-    mpp_domains.define_io_domain(
+    pyfms.mpp_domains.define_io_domain(
         domain_id=domain_id,
         io_layout=io_layout,
     )
@@ -245,4 +248,4 @@ def test_dm_monitor_single_tile():
         ds["var_3d"].values[2, :, :, :], var3_global.transpose()
     )
 
-    fms.end()
+    pyfms.fms.end()
