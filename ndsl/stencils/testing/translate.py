@@ -9,7 +9,7 @@ from ndsl.config import Backend
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity
-from ndsl.stencils.testing.grid import Grid  # type: ignore
+from ndsl.stencils.testing.grid import Grid
 from ndsl.stencils.testing.savepoint import DataLoader
 
 
@@ -32,7 +32,7 @@ def pad_field_in_j(field, nj: int, backend: Backend):
 def as_numpy(
     value: dict[str, Any] | Quantity | np.ndarray,
 ) -> np.ndarray | dict[str, np.ndarray]:
-    def _convert(value: Quantity | np.ndarray) -> np.ndarray:
+    def _convert(value: Any) -> np.ndarray:
         if isinstance(value, Quantity):
             return value.data
         elif isinstance(value, np.ndarray):
@@ -74,10 +74,13 @@ class TranslateFortranData2Py:
         self.out_vars: dict[str, Any] = {}
         self.write_vars: list = []
         self.grid = grid
-        self.maxshape: tuple[int, ...] = grid.domain_shape_full(add=(1, 1, 1))
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
+        if self.stencil_factory.backend.is_fortran_aligned():
+            self.maxshape = self.grid.domain_shape_full()
+        else:
+            self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
 
     def extra_data_load(self, data_loader: DataLoader):
         pass

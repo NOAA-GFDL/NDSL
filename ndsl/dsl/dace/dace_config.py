@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Self
 
 import dace.config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
+from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
 
 from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
@@ -226,23 +227,18 @@ class DaceConfig:
             else:
                 dace.config.Config.set("compiler", "build_type", value="Release")
 
-            # Required to True for gt4py storage/memory
-            dace.config.Config.set(
-                "compiler",
-                "allow_view_arguments",
-                value=True,
-            )
             # Resolve "march/mtune" option for GPU
             # - turn on numeric-centric SSE by default
             # - Neoverse-V2 Grace CPU is too new for GCC 14 and -march=native will fail
             # - use alternative march=armv8-a instead
             march_cpu = "armv8-a" if is_arm_neoverse else "native"
             # Removed --fmath
+            cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
             dace.config.Config.set(
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-march={march_cpu} -std=c++17 -fPIC -Wall -Wextra -O{optimization_level}",
+                value=f"-march={march_cpu} -std=c++17 -fPIC -Wall -Wextra -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -257,11 +253,12 @@ class DaceConfig:
             # - use alternative mcpu=native instead
             march_option = "-mcpu=native" if is_arm_neoverse else "-march=native"
             # Removed --fast-math
+            gpu_config = gpu_configuration(GT4PY_COMPILE_OPT_LEVEL)
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 -Xcompiler -fPIC -O3 -Xcompiler {march_option}",
+                value=f"-std=c++14 -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_config.gpu_compile_flags}",
             )
 
             cuda_sm = cp.cuda.Device(0).compute_capability if cp else 60
@@ -280,6 +277,14 @@ class DaceConfig:
                 "max_concurrent_streams",
                 value=-1,  # no concurrent streams, every kernel on defaultStream
             )
+
+            # Required to True for gt4py storage/memory
+            dace.config.Config.set(
+                "compiler",
+                "allow_view_arguments",
+                value=True,
+            )
+
             # Speed up built time
             dace.config.Config.set(
                 "compiler",
