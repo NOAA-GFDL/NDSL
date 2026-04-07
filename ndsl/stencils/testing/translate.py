@@ -29,12 +29,12 @@ def pad_field_in_j(field, nj: int, backend: Backend):
     return outfield
 
 
-def as_numpy(value: Quantity | np.ndarray | "cp.ndarray") -> np.ndarray:
+def as_numpy(value: Quantity | np.ndarray) -> np.ndarray:
     if isinstance(value, Quantity):
         return value.data
     elif isinstance(value, np.ndarray):
         return value
-    elif cp is not None and isinstance(value, cp.ndarray):
+    elif cp is not None and isinstance(value, cp.ndarray):  # type: ignore[unreachable]
         return cp.asnumpy(value)
     else:
         raise TypeError(f"Unrecognized value type: {type(value)}")
