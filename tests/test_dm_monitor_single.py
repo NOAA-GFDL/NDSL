@@ -3,7 +3,6 @@ This test case uses a single tile domain decomposition, and outputs a file from 
 with data gathered from any other processors.
 """
 
-import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -65,7 +64,6 @@ def _create_input(reduction: str = "none"):
 
 
 def test_dm_monitor_single_tile():
-
     # mpi info
     npes = MPIComm()._comm.Get_size()
     pe = MPIComm()._comm.Get_rank()
@@ -208,7 +206,7 @@ def test_dm_monitor_single_tile():
     MPIComm()._comm.Barrier()
 
     current_time = start
-    for t in range(ntimesteps):
+    for _t in range(ntimesteps):
         current_time = current_time + step
         state = {
             "time": current_time,
@@ -220,7 +218,7 @@ def test_dm_monitor_single_tile():
     # cleanup writes and closes the file
     monitor.cleanup()
 
-    ## check output!
+    # check output!
     assert Path("diag_manager_single_tile.nc").exists()
     ds = xr.open_mfdataset("diag_manager_single_tile.nc", decode_times=True)
     assert "var_2d" in ds

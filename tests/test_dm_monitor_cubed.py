@@ -89,6 +89,7 @@ def _create_input(reduction: str = "none"):
 
 
 # Simple test, uses a lat/lon grid and (1, npes) layout
+@pytest.mark.parallel
 def test_dm_monitor():
 
     npes = MPIComm()._comm.Get_size()

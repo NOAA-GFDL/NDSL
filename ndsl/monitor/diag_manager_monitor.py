@@ -1,4 +1,3 @@
-import datetime
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -20,7 +19,7 @@ class DiagManagerMonitor(Monitor):
     sympl.Monitor-style object for sending diagnostics to FMS's diag manager
     """
 
-    def __init__(  # type: ignore[no-untyped-def]
+    def __init__(
         self,
         domain_id: int,
     ) -> None:
@@ -34,9 +33,9 @@ class DiagManagerMonitor(Monitor):
                 "pyFMS not installed, install ndsl[pyfms] to use the diag manager monitor"
             )
         diag_manager.init(diag_model_subset=diag_manager.DIAG_ALL)
-        self.fields = {}
-        self.axes = {}
-        self.diag_end_time = None
+        self.fields: dict[str, int] = {}
+        self.axes: dict[str, int] = {}
+        self.diag_end_time: datetime | None = None
         self.domain_id = domain_id
 
     def store(self, state: dict) -> None:
@@ -61,25 +60,25 @@ class DiagManagerMonitor(Monitor):
                     )
             try:
                 diag_manager.send_complete(timestep=self.timestep)
-            except:
-                raise NameError("no timestep set via set_timestep")
+            except NameError:
+                raise RuntimeError("no timestep set via set_timestep")
 
     # close the file
-    def cleanup(self):
+    def cleanup(self) -> None:
         if self.diag_end_time is None:
             raise RuntimeError(
                 "End time was not set via set_end_time prior to cleanup call"
             )
         diag_manager.end(end_time=self.diag_end_time)
 
-    def set_end_time(self, end_time: datetime):
+    def set_end_time(self, end_time: datetime) -> None:
         """
         Sets the end time to stop recieving data. Must be called prior to cleanup/diag_manager.end()
         """
         diag_manager.set_time_end(end_time)
         self.diag_end_time = end_time
 
-    def set_timestep(self, timestep: timedelta):
+    def set_timestep(self, timestep: timedelta) -> None:
         """
         Sets the timestep to increment by after data is sent.
         """
@@ -89,29 +88,26 @@ class DiagManagerMonitor(Monitor):
         self,
         module_name: str,
         field_name: str,
-        dims: list[str],
         units: str,
         dtype: str,
-        missing_value: float,
         init_time: datetime,
-        long_name: str = None,
-        range_data: npt.NDArray = None,
-    ):
+        dims: list[str] | None = None,  # if none, static field
+        missing_value: float | None = None,
+        long_name: str | None = None,
+        range_data: npt.NDArray | None = None,
+    ) -> None:
         """
         Register a diagnostic field with the FMS diag_manager via the pyFMS interface for fortran
         This corresponds to a variable/field in the output netcdf file.
         Any axis/dimensions used by this variable should be registered prior to this function.
         """
+        if dims is not None:
+            field_axes = [self.axes[dim] for dim in dims]
+            if any(field_axes) is None:
+                raise ValueError(
+                    f"All axes for field {field_name} must be registered before registering the field."
+                )
 
-        field_axes = [self.axes[dim] for dim in dims]
-        if any(field_axes) is None:
-            raise ValueError(
-                f"All axes for field {field_name} must be registered before registering the field."
-            )
-
-        print(
-            f"registering field {field_name} with axes {field_axes}, init time: {init_time}"
-        )
         field_id = diag_manager.register_field_array(
             module_name=module_name,
             field_name=field_name,
@@ -134,12 +130,12 @@ class DiagManagerMonitor(Monitor):
         name: str,
         axis_data: np.ndarray,
         not_xy: bool,
-        cart_name: str = None,
-        long_name: str = None,
-        units: str = None,
-        domain_id: int = None,
-        set_name: str = None,
-    ):
+        cart_name: str | None = None,
+        long_name: str | None = None,
+        units: str | None = None,
+        domain_id: int | None = None,
+        set_name: str | None = None,
+    ) -> None:
         """
         Registers an axis with the FMS diag_manager via the pyFMS interface for fortran
         This corresponds to a axis/dimension in the output netcdf file.
