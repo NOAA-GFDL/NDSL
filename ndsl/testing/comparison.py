@@ -27,8 +27,8 @@ class BaseMetric(ABC):
         reference_values: np.ndarray,
         computed_values: np.ndarray,
     ):
-        self.references = np.atleast_1d(reference_values)
-        self.computed = np.atleast_1d(computed_values)
+        self.references = np.squeeze(np.atleast_1d(reference_values))
+        self.computed = np.squeeze(np.atleast_1d(computed_values))
         self.check = False
 
     @abstractmethod
