@@ -140,7 +140,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             if len(cls._type_registrar[name].data_dims) != 1:
                 raise NotImplementedError("Unimplemented index on a multiple data dims")
             index = cls._type_registrar[name].index(str(index_name))
-            return slice(index, index, 1)
+            return slice(index, index + 1)
 
         # Dynamic op replacement for Type.size() function
         # Requires the _locals to get `name` - do not pull out of `register`
