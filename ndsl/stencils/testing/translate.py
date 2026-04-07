@@ -29,23 +29,15 @@ def pad_field_in_j(field, nj: int, backend: Backend):
     return outfield
 
 
-def as_numpy(
-    value: dict[str, Any] | Quantity | np.ndarray,
-) -> np.ndarray | dict[str, np.ndarray]:
-    def _convert(value: Quantity | np.ndarray) -> np.ndarray:
-        if isinstance(value, Quantity):
-            return value.data
-        elif isinstance(value, np.ndarray):
-            return value
-        elif cp is not None and isinstance(value, cp.ndarray):
-            return cp.asnumpy(value)
-        else:
-            raise TypeError(f"Unrecognized value type: {type(value)}")
-
-    if isinstance(value, dict):
-        return {k: _convert(v) for k, v in value.items()}
+def as_numpy(value: Quantity | np.ndarray | "cp.ndarray") -> np.ndarray:
+    if isinstance(value, Quantity):
+        return value.data
+    elif isinstance(value, np.ndarray):
+        return value
+    elif cp is not None and isinstance(value, cp.ndarray):
+        return cp.asnumpy(value)
     else:
-        return _convert(value)
+        raise TypeError(f"Unrecognized value type: {type(value)}")
 
 
 class TranslateFortranData2Py:
@@ -133,7 +125,6 @@ class TranslateFortranData2Py:
         kstart: int = 0,
         dummy_axes: tuple[int, int, int] | None = None,
         axis: int = 2,
-        names_4d: list[str] | None = None,
         read_only: bool = False,
         full_shape: bool = False,
     ) -> dict[str, npt.NDArray] | npt.NDArray:
@@ -150,33 +141,20 @@ class TranslateFortranData2Py:
         elif not full_shape and len(array.shape) < 3 and axis == len(array.shape) - 1:
             use_shape[1] = 1
         start = (int(istart), int(jstart), int(kstart))
-        if names_4d:
-            return utils.make_storage_dict(
-                array,
-                tuple(use_shape),
-                start=start,
-                origin=start,
-                dummy=dummy_axes,
-                axis=axis,
-                names=names_4d,
-                backend=self.stencil_factory.backend,
-                dtype=array.dtype,
-            )
-        else:
-            if len(array.shape) == 4:
-                start = (int(istart), int(jstart), int(kstart), 0)  # type: ignore
-                use_shape.append(array.shape[-1])
-            return utils.make_storage_data(
-                array,
-                tuple(use_shape),
-                start=start,
-                origin=start,
-                dummy=dummy_axes,
-                axis=axis,
-                read_only=read_only,
-                backend=self.stencil_factory.backend,
-                dtype=array.dtype,
-            )
+        if len(array.shape) == 4:
+            start = (int(istart), int(jstart), int(kstart), 0)  # type: ignore
+            use_shape.append(array.shape[-1])
+        return utils.make_storage_data(
+            array,
+            tuple(use_shape),
+            start=start,
+            origin=start,
+            dummy=dummy_axes,
+            axis=axis,
+            read_only=read_only,
+            backend=self.stencil_factory.backend,
+            dtype=array.dtype,
+        )
 
     def storage_vars(self):
         return self.in_vars["data_vars"]
@@ -205,7 +183,6 @@ class TranslateFortranData2Py:
         self,
         inputs,
         storage_vars=None,
-        dict_4d=True,
     ) -> None:
         """From a set of raw inputs (straight from NetCDF), use the `in_vars` dictionary to update inputs to
         their configured shape.
@@ -234,10 +211,6 @@ class TranslateFortranData2Py:
                 inputs_in[serialname].shape, info
             )
 
-            names_4d = None
-            if (len(inputs_in[serialname].shape) == 4) and dict_4d:
-                names_4d = info.get("names_4d", utils.tracer_variables)
-
             dummy_axes = info.get("dummy_axes", None)
             axis = info.get("axis", 2)
             if index_variable:
@@ -249,7 +222,6 @@ class TranslateFortranData2Py:
                 kstart=kstart,
                 dummy_axes=dummy_axes,
                 axis=axis,
-                names_4d=names_4d,
                 read_only=d not in self.write_vars,
                 full_shape="full_shape" in storage_vars[d],
             )
@@ -279,36 +251,17 @@ class TranslateFortranData2Py:
                 if isinstance(data_result, dict):
                     raise TypeError(f"Variable {serialname} is a 4D dict, not an index")
                 data_result += 1
-            if isinstance(data_result, dict):
-                names_4d = info.get("names_4d", utils.tracer_variables)
-                var4d = np.zeros(
-                    (
-                        ds["iend"] - ds["istart"] + 1,
-                        ds["jend"] - ds["jstart"] + 1,
-                        ds["kend"] - ds["kstart"] + 1,
-                        len(data_result),
-                    )
+            # Get slice for data dimensions (after original 3D)
+            if len(data_result.shape) > 3:
+                data_dims_slice = tuple(
+                    [slice(0, ddim_end) for ddim_end in data_result.shape[3:]]
                 )
-                for varname, data_element in data_result.items():
-                    index = names_4d.index(varname)
-                    var4d[:, :, :, index] = np.squeeze(
-                        np.asarray(data_element)[self.grid.slice_dict(ds)]
-                    )
-                out[serialname] = var4d
             else:
-                # Get slice for data dimensions (after original 3D)
-                if len(data_result.shape) > 3:
-                    data_dims_slice = tuple(
-                        [slice(0, ddim_end) for ddim_end in data_result.shape[3:]]
-                    )
-                else:
-                    data_dims_slice = ()
-                # Slice combine the expected cartesian and data_dims
-                cartesian_slice = self.grid.slice_dict(
-                    ds, min(len(data_result.shape), 3)
-                )
-                slice_tuple = cartesian_slice + data_dims_slice
-                out[serialname] = np.squeeze(data_result[slice_tuple])
+                data_dims_slice = ()
+            # Slice combine the expected cartesian and data_dims
+            cartesian_slice = self.grid.slice_dict(ds, min(len(data_result.shape), 3))
+            slice_tuple = cartesian_slice + data_dims_slice
+            out[serialname] = np.squeeze(data_result[slice_tuple])
             if "kaxis" in info:
                 out[serialname] = np.moveaxis(out[serialname], 2, info["kaxis"])
         return out
