@@ -28,7 +28,7 @@ requirements: list[str] = [
 ]
 
 extra_requirements: dict = {
-    "pyfms": ["pyfms"],
+    "pyfms": ["pyfms @ git+https://github.com/noaa-gfdl/pyfms"],
 }
 
 
