@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from types import ModuleType
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,7 +15,7 @@ from ndsl.halo.data_transformer import HaloDataTransformer, HaloExchangeSpec
 from ndsl.halo.rotate import rotate_scalar_data
 from ndsl.performance.timer import NullTimer, Timer
 from ndsl.quantity import Quantity, QuantityHaloSpec
-from ndsl.types import AsyncRequest, NumpyModule
+from ndsl.types import AsyncRequest
 from ndsl.utils import device_synchronize
 
 
@@ -95,7 +96,7 @@ class HaloUpdater:
     def from_scalar_specifications(
         cls,
         comm: Communicator,
-        numpy_like_module: NumpyModule,
+        numpy_like_module: ModuleType,
         specifications: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
         tag: int,
@@ -147,7 +148,7 @@ class HaloUpdater:
     def from_vector_specifications(
         cls,
         comm: Communicator,
-        numpy_like_module: NumpyModule,
+        numpy_like_module: ModuleType,
         specifications_x: Iterable[QuantityHaloSpec],
         specifications_y: Iterable[QuantityHaloSpec],
         boundaries: Iterable[Boundary],
@@ -475,7 +476,7 @@ class VectorInterfaceHaloUpdater:
         ]
         return send_requests
 
-    def _maybe_force_cpu(self, module: NumpyModule) -> NumpyModule:
+    def _maybe_force_cpu(self, module: ModuleType) -> ModuleType:
         """
         Get a numpy-like module depending on configuration and
         Quantity original allocator.
