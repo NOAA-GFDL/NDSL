@@ -10,7 +10,7 @@ on:
 
 jobs:
   pace_main_tests:
-    uses: floriandeconinck/pace/.github/workflows/main_unit_tests.yaml@update/numpy_2x
+    uses: NOAA-GFDL/pace/.github/workflows/main_unit_tests.yaml@develop
     with:
       component_trigger: true
       component_name: NDSL
