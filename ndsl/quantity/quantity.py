@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Iterable, Sequence
+from types import ModuleType
 from typing import Any, cast
 
 import dace
@@ -18,7 +19,6 @@ from ndsl.dsl.typing import Float, is_float
 from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
-from ndsl.types import NumpyModule
 
 
 if cupy is None:
@@ -326,7 +326,7 @@ class Quantity:
         return xr.DataArray(data, dims=self.dims, attrs=self.attrs)
 
     @property
-    def np(self) -> NumpyModule:
+    def np(self) -> ModuleType:
         return self.metadata.np
 
     @property
@@ -408,7 +408,7 @@ class Quantity:
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]
         transposed = Quantity(
-            self.np.transpose(self.data, transpose_order),  # type: ignore[attr-defined]
+            self.np.transpose(self.data, transpose_order),
             dims=_transpose_sequence(self.dims, transpose_order),
             units=self.units,
             origin=_transpose_sequence(self.origin, transpose_order),
