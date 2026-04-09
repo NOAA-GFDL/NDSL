@@ -18,7 +18,6 @@ from ndsl.constants import (
     J_INTERFACE_DIM,
     K_DIM,
     K_SOIL_DIM,
-    X_DIM,
 )
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
 from ndsl.optional_imports import zarr
@@ -95,7 +94,7 @@ def base_state(request, nz, ny, nx, numpy) -> dict:
         return {
             "var1": Quantity(
                 numpy.ones([ny, nx]),
-                dims=(J_DIM, X_DIM),
+                dims=(J_DIM, I_DIM),
                 units="m",
                 backend=Backend.python(),
             )

@@ -1,4 +1,4 @@
-from .grid import Grid  # type: ignore
+from .grid import Grid
 from .parallel_translate import (
     ParallelTranslate,
     ParallelTranslate2Py,

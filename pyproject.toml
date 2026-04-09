@@ -11,14 +11,16 @@ classifiers = [
   "Private :: Do Not Upload",
   "Natural Language :: English",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11"
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13"
 ]
 dynamic = ["dependencies", "version"]
 license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 
 [project.optional-dependencies]
 demos = ["ipython", "ipykernel"]
@@ -127,5 +129,4 @@ include-package-data = true
 include = ["ndsl", "ndsl.*"]
 
 [tool.setuptools_scm]
-local_scheme = "dirty-tag"
-version_scheme = "guess-next-dev"
+version_scheme = "no-guess-dev"

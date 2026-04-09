@@ -195,7 +195,7 @@ class StencilConfig(Hashable):
             else DaceConfig(
                 communicator=None,
                 backend=self.compilation_config.backend,
-                orchestration=DaCeOrchestration.Run,
+                orchestration=DaCeOrchestration.BuildAndRun,
             )
         )
         self.backend_opts = {
