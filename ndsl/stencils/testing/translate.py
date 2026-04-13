@@ -66,10 +66,13 @@ class TranslateFortranData2Py:
         self.out_vars: dict[str, Any] = {}
         self.write_vars: list = []
         self.grid = grid
-        self.maxshape: tuple[int, ...] = grid.domain_shape_full(add=(1, 1, 1))
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
+        if self.stencil_factory.backend.is_fortran_aligned():
+            self.maxshape = self.grid.domain_shape_full()
+        else:
+            self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
 
     def extra_data_load(self, data_loader: DataLoader):
         pass
