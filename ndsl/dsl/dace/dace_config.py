@@ -298,11 +298,16 @@ class DaceConfig:
                 "dont_fuse_callbacks",
                 value=True,
             )
-            # Unroll all loop - outer loop should be exempted with dace.nounroll
+            # Unroll no loop.
+            # Dev NOTE: while unrolling small loop could have an impact on speed
+            #           espcially small loop, the cost of potential increase in
+            #           build time is too high. The user needs to use `nounroll`
+            #           on it's own code, shifting an optimization responsability
+            #           away from the DSL. We opt for the default - no unrolling.
             dace.config.Config.set(
                 "frontend",
                 "unroll_threshold",
-                value=False,
+                value=-1,
             )
             # Allow for a longer stack dump when parsing fails
             dace.config.Config.set(
