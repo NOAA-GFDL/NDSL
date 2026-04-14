@@ -26,3 +26,4 @@ What to do after a release:
 - [ ] update the pace PR from the pre-commit checklist to include the released version of NDSL and merge it.
 - [ ] merge breaking changes in NDSL (e.g. search for deprecation warnings)
 - [ ] update the pinned version of [pyFV3](https://github.com/NOAA-GFDL/PyFV3/) to the new release-tag
+- [ ] update the pinned version of [pySHiELD](https://github.com/NOAA-GFDL/pySHiELD) to the new release-tag
