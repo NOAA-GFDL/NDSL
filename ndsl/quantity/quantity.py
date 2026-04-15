@@ -329,6 +329,14 @@ class Quantity:
     def np(self) -> ModuleType:
         return self.metadata.np
 
+    def __getitem__(self, subscript: Any) -> Any:
+        """Slicing operator accessing the full buffer"""
+        return self.data[subscript]
+
+    def __setitem__(self, subscript: Any, value: Any) -> None:
+        """Slicing operator setting the full buffer"""
+        self.data[subscript] = value
+
     @property
     def __array_interface__(self):  # type: ignore[no-untyped-def]
         return self.data.__array_interface__
