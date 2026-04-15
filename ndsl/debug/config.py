@@ -42,9 +42,9 @@ def _set_debugger() -> Debugger | None:
     debugger = Debugger(rank=MPIComm().Get_rank(), **config_dict)
     ndsl_log.info("[NDSL Debugger] On")
     ndsl_log.debug(f"[NDSL Debugger] Config:\n{config_dict}")
+    return debugger
 
     return debugger
 
-
 ndsl_debugger = _set_debugger()
-"""Global NDSL debugger"""
+"""Global NDSL debugger, set to None if NDSL_DEBUG_CONFIG is unset"""
