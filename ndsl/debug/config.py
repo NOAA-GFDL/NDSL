@@ -46,5 +46,6 @@ def _set_debugger() -> Debugger | None:
 
     return debugger
 
+
 ndsl_debugger = _set_debugger()
 """Global NDSL debugger, set to None if NDSL_DEBUG_CONFIG is unset"""
