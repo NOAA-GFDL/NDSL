@@ -10,7 +10,7 @@ on:
 
 jobs:
   shield_translate_tests:
-    uses: floriandeconinck/pySHiELD/.github/workflows/translate.yaml@update/numpy_2x
+    uses: NOAA-GFDL/pySHiELD/.github/workflows/translate.yaml@develop
     with:
       component_trigger: true
       component_name: NDSL
