@@ -312,10 +312,10 @@ def test_data_attribute_and_default_setter_are_the_same():
         backend=Backend.python(),
     )
 
-    assert quantity.shape == quantity.shape
-    assert quantity[3] == quantity[3]
+    assert quantity.shape == quantity.data.shape
+    assert quantity[3] == quantity.data[3]
     quantity[2] = 42.0
-    assert quantity[2] == 42.0
+    assert quantity.data[2] == 42.0
 
 
 def test_data_setter():
