@@ -16,7 +16,9 @@ from ndsl.constants import (
 )
 
 
-def boundary_data(quantity, boundary_type, n_points, interior=True):
+def boundary_data(  # type: ignore[no-untyped-def]
+    quantity: Quantity, boundary_type: int, n_points: int, interior: bool = True
+):
     boundary_slice = get_boundary_slice(
         quantity.dims,
         quantity.origin,
@@ -29,7 +31,7 @@ def boundary_data(quantity, boundary_type, n_points, interior=True):
     return quantity.data[tuple(boundary_slice)]
 
 
-def test_boundary_data_1_by_1_array_1_halo():
+def test_boundary_data_1_by_1_array_1_halo() -> None:
     quantity = Quantity(
         np.random.randn(3, 3),
         dims=[J_DIM, I_DIM],
@@ -65,7 +67,7 @@ def test_boundary_data_1_by_1_array_1_halo():
     )
 
 
-def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy):
+def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy) -> None:
     quantity = Quantity(
         numpy.random.randn(2, 3, 3),
         dims=[K_DIM, J_DIM, I_DIM],
@@ -103,7 +105,7 @@ def test_boundary_data_3d_array_1_halo_z_offset_origin(numpy):
     )
 
 
-def test_boundary_data_2_by_2_array_2_halo():
+def test_boundary_data_2_by_2_array_2_halo() -> None:
     quantity = Quantity(
         np.random.randn(6, 6),
         dims=[J_DIM, I_DIM],

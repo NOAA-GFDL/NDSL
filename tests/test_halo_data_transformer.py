@@ -1,5 +1,4 @@
 import copy
-from typing import Tuple
 
 import numpy as np
 import pytest
@@ -30,32 +29,32 @@ from ndsl.quantity import QuantityHaloSpec
 
 
 @pytest.fixture
-def nz():
+def nz() -> int:
     return 5
 
 
 @pytest.fixture
-def ny():
+def ny() -> int:
     return 7
 
 
 @pytest.fixture
-def nx():
+def nx() -> int:
     return 7
 
 
 @pytest.fixture
-def units():
+def units() -> str:
     return "m"
 
 
 @pytest.fixture(params=[0, 1])
-def n_buffer(request):
+def n_buffer(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture
-def n_points():
+def n_points() -> int:
     return 1
 
 
@@ -65,12 +64,12 @@ def dtype(numpy):
 
 
 @pytest.fixture(params=[1, 3])
-def n_halos(request):
+def n_halos(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture
-def origin(n_halos, dims, n_buffer):
+def origin(n_halos: int, dims: list[str], n_buffer: int) -> list[int]:
     return_list = []
     origin_dict = {
         I_DIM: n_halos + n_buffer,
@@ -108,12 +107,14 @@ def origin(n_halos, dims, n_buffer):
         ),
     ]
 )
-def dims(request):
+def dims(request: pytest.FixtureRequest) -> tuple[str]:
     return request.param
 
 
 @pytest.fixture
-def shape(nz, ny, nx, dims, n_halos, n_buffer):
+def shape(
+    nz: int, ny: int, nx: int, dims: list[str], n_halos: int, n_buffer: int
+) -> list[int]:
     return_list = []
     length_dict = {
         I_DIM: 2 * n_halos + nx + n_buffer,
@@ -129,7 +130,7 @@ def shape(nz, ny, nx, dims, n_halos, n_buffer):
 
 
 @pytest.fixture
-def extent(n_points, dims, nz, ny, nx):
+def extent(dims: list[str], nz: int, ny: int, nx: int) -> list[int]:
     return_list = []
     extent_dict = {
         I_DIM: nx,
@@ -144,7 +145,7 @@ def extent(n_points, dims, nz, ny, nx):
     return return_list
 
 
-def _shape_length(shape: Tuple[int]) -> int:
+def _shape_length(shape: tuple[int]) -> int:
     """Compute linear size from slices"""
     length = 1
     for s in shape:
@@ -153,7 +154,9 @@ def _shape_length(shape: Tuple[int]) -> int:
 
 
 @pytest.fixture
-def quantity(dims, units, origin, extent, shape, dtype, ndsl_backend: Backend):
+def quantity(
+    dims, units, origin, extent, shape, dtype, ndsl_backend: Backend
+) -> Quantity:
     """A list of quantities whose values are 42.42 in the computational domain and 1
     outside of it."""
     sz = _shape_length(shape)
@@ -170,11 +173,11 @@ def quantity(dims, units, origin, extent, shape, dtype, ndsl_backend: Backend):
 
 
 @pytest.fixture(params=[-0, -1, -2, -3])
-def rotation(request):
+def rotation(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
-def test_data_transformer_allocate(quantity, n_halos):
+def test_data_transformer_allocate(quantity, n_halos) -> None:
     boundary_north = _boundary_utils.get_boundary_slice(
         quantity.dims,
         quantity.origin,
@@ -263,7 +266,7 @@ def _get_boundaries(quantity, n_halos):
     return send_boundaries, recv_boundaries
 
 
-def test_data_transformer_scalar_pack_unpack(quantity, rotation, n_halos):
+def test_data_transformer_scalar_pack_unpack(quantity, rotation, n_halos) -> None:
     target_quantity: Quantity = copy.deepcopy(quantity)
 
     send_boundaries, recv_boundaries = _get_boundaries(quantity, n_halos)
@@ -340,7 +343,7 @@ def test_data_transformer_scalar_pack_unpack(quantity, rotation, n_halos):
     assert (target_quantity.data == quantity.data).all()
 
 
-def test_data_transformer_vector_pack_unpack(quantity, rotation, n_halos):
+def test_data_transformer_vector_pack_unpack(quantity, rotation, n_halos) -> None:
     target_quantity_x = copy.deepcopy(quantity)
     target_quantity_y = copy.deepcopy(target_quantity_x)
     x_quantity = quantity

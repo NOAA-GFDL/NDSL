@@ -23,7 +23,7 @@ from ndsl.dsl.stencil import CompareToNumpyStencil, FrozenStencil
 from tests.dsl import utils
 
 
-def _stencil(inp: Field[float], out: Field[float]):
+def _stencil(inp: Field[float], out: Field[float]) -> None:
     with computation(PARALLEL), interval(...):
         out = inp
 
@@ -64,7 +64,7 @@ class OrchestratedProgram:
         self.inp = utils.make_storage(ones, grid_indexing, stencil_config, dtype=float)
         self.out = utils.make_storage(empty, grid_indexing, stencil_config, dtype=float)
 
-    def __call__(self):
+    def __call__(self) -> None:
         self.stencil(self.inp, self.out)
 
 
@@ -82,15 +82,15 @@ def test_relocatability_orchestration() -> None:
     assert expected_cache_dir.exists()
 
 
-def test_relocatability_orchestration_tmpdir(tmpdir) -> None:
-    gt_config.cache_settings["root_path"] = tmpdir
+def test_relocatability_orchestration_tmpdir(tmp_path: Path) -> None:
+    gt_config.cache_settings["root_path"] = tmp_path
 
     # Compile in temporary directory that is only available in this test session.
     p1 = OrchestratedProgram(Backend.cpu(), DaCeOrchestration.BuildAndRun)
     p1()
 
     expected_cache_dir = (
-        tmpdir
+        tmp_path
         / ".gt_cache_FV3_A"
         / "dacecache"
         / "tests_dsl_test_caches_OrchestratedProgram___call__"
@@ -99,8 +99,8 @@ def test_relocatability_orchestration_tmpdir(tmpdir) -> None:
 
     # Check relocatability by copying the second cache directory,
     # changing the path of gt_config.cache_settings and trying to Run on it
-    relocated_path = tmpdir / ".my_relocated_cache_path"
-    shutil.copytree(tmpdir, relocated_path, dirs_exist_ok=False)
+    relocated_path = tmp_path / ".my_relocated_cache_path"
+    shutil.copytree(tmp_path, relocated_path, dirs_exist_ok=False)
     gt_config.cache_settings["root_path"] = relocated_path
     p2 = OrchestratedProgram(Backend.cpu(), DaCeOrchestration.Run)
     p2()
@@ -138,11 +138,11 @@ def test_relocatability() -> None:
     assert expected_cache_path.exists()
 
 
-def test_relocatability_tmpdir(tmpdir) -> None:
+def test_relocatability_tmpdir(tmp_path: Path) -> None:
     gt_config.cache_settings["dir_name"] = os.environ.get(
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"
     )
-    gt_config.cache_settings["root_path"] = tmpdir
+    gt_config.cache_settings["root_path"] = tmp_path
 
     # Compile in another directory
     backend = "dace:cpu"
@@ -152,7 +152,7 @@ def test_relocatability_tmpdir(tmpdir) -> None:
     backend_sanitized = backend.replace(":", "")
     python_version = f"py{sys.version_info[0]}{sys.version_info[1]}"
     expected_cache_path = (
-        tmpdir
+        tmp_path
         / ".gt_cache_000000"
         / f"{python_version}_1013"
         / f"{backend_sanitized}"
@@ -165,8 +165,8 @@ def test_relocatability_tmpdir(tmpdir) -> None:
 
     # Check relocatability by copying the first cache directory,
     # changing the path of gt_config.cache_settings and trying to Run on it
-    relocated_path = tmpdir / ".my_relocated_cache_path"
-    shutil.copytree(tmpdir / ".gt_cache_000000", relocated_path, dirs_exist_ok=False)
+    relocated_path = tmp_path / ".my_relocated_cache_path"
+    shutil.copytree(tmp_path / ".gt_cache_000000", relocated_path, dirs_exist_ok=False)
     gt_config.cache_settings["root_path"] = relocated_path
 
     p2 = OrchestratedProgram(Backend("st:dace:cpu:KIJ"), None)

@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -6,9 +8,9 @@ from ndsl.config import Backend
 
 
 @pytest.mark.parametrize("dtype", [None, np.float32, np.float64])
-def test_random(dtype) -> None:
+def test_random(dtype: Any) -> None:
     shape = (2, 3, 5)
-    rand_array = xp.random(shape, Backend.python())
+    rand_array = xp.random(shape, Backend.python(), dtype)
     assert rand_array.shape == shape
     assert (rand_array != xp.random(shape, Backend.python())).all()
 

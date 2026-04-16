@@ -4,12 +4,12 @@ import xarray as xr
 from ndsl.checkpointer import SnapshotCheckpointer
 
 
-def test_snapshot_checkpointer_no_data():
+def test_snapshot_checkpointer_no_data() -> None:
     checkpointer = SnapshotCheckpointer(rank=0)
     xr.testing.assert_identical(checkpointer.dataset, xr.Dataset())
 
 
-def test_snapshot_checkpointer_one_snapshot():
+def test_snapshot_checkpointer_one_snapshot() -> None:
     checkpointer = SnapshotCheckpointer(rank=0)
     val1 = np.random.randn(2, 3, 4)
     checkpointer("savepoint_name", val1=val1)
@@ -27,7 +27,7 @@ def test_snapshot_checkpointer_one_snapshot():
     )
 
 
-def test_snapshot_checkpointer_multiple_snapshots():
+def test_snapshot_checkpointer_multiple_snapshots() -> None:
     checkpointer = SnapshotCheckpointer(rank=0)
     val1 = np.random.randn(2, 2, 3, 4)
     val2 = np.random.randn(1, 3, 2, 4)

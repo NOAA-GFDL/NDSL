@@ -7,58 +7,59 @@ from ndsl.quantity.bounds import _shift_slice
 
 
 @pytest.fixture(params=["empty", "one", "five"])
-def extent_1d(request):
+def extent_1d(request: pytest.FixtureRequest) -> int:
     if request.param == "empty":
         return 0
-    elif request.param == "one":
+    if request.param == "one":
         return 1
-    elif request.param == "five":
+    if request.param == "five":
         return 5
+    raise NotImplementedError("extent_1d: unexpected param")
 
 
 @pytest.fixture(params=[0, 1, 3])
-def n_halo(request):
+def n_halo(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture(params=[1, 2])
-def n_dims(request):
+def n_dims(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture
-def extent(extent_1d, n_dims):
+def extent(extent_1d: int, n_dims: int) -> tuple[int, ...]:
     return (extent_1d,) * n_dims
 
 
 @pytest.fixture
-def dtype(numpy):
+def dtype(numpy) -> type:
     return numpy.float64
 
 
 @pytest.fixture
-def units():
+def units() -> str:
     return "m"
 
 
 @pytest.fixture
-def dims(n_dims):
+def dims(n_dims) -> tuple[str, ...]:
     return tuple(f"dimension_{dim}" for dim in range(n_dims))
 
 
 @pytest.fixture
-def origin(n_halo, n_dims):
+def origin(n_halo: int, n_dims: int) -> tuple[int, ...]:
     return (n_halo,) * n_dims
 
 
 @pytest.fixture
-def data(n_halo, extent_1d, n_dims, numpy, dtype):
+def data(n_halo: int, extent_1d: int, n_dims: int, numpy, dtype):
     shape = (n_halo * 2 + extent_1d,) * n_dims
     return numpy.empty(shape, dtype=dtype)
 
 
 @pytest.fixture
-def quantity(data, origin, extent, dims, units):
+def quantity(data, origin, extent, dims: list[str], units: str) -> Quantity:
     return Quantity(
         data,
         origin=origin,
@@ -69,7 +70,7 @@ def quantity(data, origin, extent, dims, units):
     )
 
 
-def test_smaller_data_raises(data, origin, extent, dims, units):
+def test_smaller_data_raises(data, origin, extent, dims: list[str], units: str) -> None:
     if len(data.shape) > 1:
         try:
             small_data = data[0]
@@ -89,7 +90,7 @@ def test_smaller_data_raises(data, origin, extent, dims, units):
                 )
 
 
-def test_smaller_dims_raises(data, origin, extent, dims, units):
+def test_smaller_dims_raises(data, origin, extent, dims: list[str], units: str) -> None:
     with pytest.raises(
         ValueError, match="received .* dimension names for .* dimensions: .*"
     ):
@@ -103,7 +104,9 @@ def test_smaller_dims_raises(data, origin, extent, dims, units):
         )
 
 
-def test_smaller_origin_raises(data, origin, extent, dims, units):
+def test_smaller_origin_raises(
+    data, origin, extent, dims: list[str], units: str
+) -> None:
     with pytest.raises(ValueError, match="received .* origins for .* dimensions: .*"):
         Quantity(
             data,
@@ -115,7 +118,9 @@ def test_smaller_origin_raises(data, origin, extent, dims, units):
         )
 
 
-def test_smaller_extent_raises(data, origin, extent, dims, units):
+def test_smaller_extent_raises(
+    data, origin, extent, dims: list[str], units: str
+) -> None:
     with pytest.raises(ValueError, match="received .* extents for .* dimensions: .*"):
         Quantity(
             data,
@@ -127,29 +132,31 @@ def test_smaller_extent_raises(data, origin, extent, dims, units):
         )
 
 
-def test_data_change_affects_quantity(data, quantity, numpy):
+def test_data_change_affects_quantity(data, quantity: Quantity, numpy) -> None:
     data[:] = 5.0
     numpy.testing.assert_array_equal(quantity.data, 5.0)
 
 
-def test_quantity_units(quantity, units):
+def test_quantity_units(quantity: Quantity, units: str) -> None:
     assert quantity.units == units
     assert quantity.attrs["units"] == units
 
 
-def test_quantity_dims(quantity, dims):
+def test_quantity_dims(quantity: Quantity, dims: list[str]) -> None:
     assert quantity.dims == dims
 
 
-def test_quantity_origin(quantity, origin):
+def test_quantity_origin(quantity: Quantity, origin) -> None:
     assert quantity.origin == origin
 
 
-def test_quantity_extent(quantity, extent):
+def test_quantity_extent(quantity: Quantity, extent) -> None:
     assert quantity.extent == extent
 
 
-def test_compute_view_get_value(quantity, extent_1d, n_halo, n_dims):
+def test_compute_view_get_value(
+    quantity: Quantity, extent_1d: int, n_halo: int, n_dims: int
+) -> None:
     quantity.data[:] = 0.0
     if extent_1d == 0 and n_halo == 0:
         with pytest.raises(IndexError):
@@ -159,7 +166,9 @@ def test_compute_view_get_value(quantity, extent_1d, n_halo, n_dims):
         assert value.shape == ()
 
 
-def test_compute_view_edit_start_halo(quantity, extent_1d, n_halo, n_dims):
+def test_compute_view_edit_start_halo(
+    quantity: Quantity, extent_1d: int, n_halo: int, n_dims: int
+) -> None:
     quantity.data[:] = 0.0
     if extent_1d == 0 and n_halo == 0:
         with pytest.raises(IndexError):
@@ -170,7 +179,9 @@ def test_compute_view_edit_start_halo(quantity, extent_1d, n_halo, n_dims):
         assert quantity.data[(n_halo - 1,) * n_dims] == 1
 
 
-def test_compute_view_edit_end_halo(quantity, extent_1d, n_halo, n_dims):
+def test_compute_view_edit_end_halo(
+    quantity: Quantity, extent_1d: int, n_halo: int, n_dims: int
+) -> None:
     quantity.data[:] = 0.0
     if n_halo == 0:
         with pytest.raises(IndexError):
@@ -181,7 +192,9 @@ def test_compute_view_edit_end_halo(quantity, extent_1d, n_halo, n_dims):
         assert quantity.data[(n_halo + extent_1d,) * n_dims] == 1
 
 
-def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
+def test_compute_view_edit_start_of_domain(
+    quantity: Quantity, extent_1d: int, n_halo: int, n_dims: int
+) -> None:
     if extent_1d == 0:
         return  # cannot edit an empty domain
 
@@ -191,7 +204,9 @@ def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
     assert quantity.np.sum(quantity.data) == 1.0
 
 
-def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
+def test_compute_view_edit_all_domain(
+    quantity: Quantity, n_halo: int, n_dims: int, extent_1d: int
+) -> None:
     if extent_1d == 0:
         return  # cannot edit an empty domain
 
@@ -293,7 +308,7 @@ def test_shift_slice(
         ),
     ],
 )
-def test_to_data_array(quantity):
+def test_to_data_array(quantity) -> None:
     assert quantity.field_as_xarray.attrs == quantity.attrs
     assert quantity.field_as_xarray.dims == quantity.dims
     assert quantity.field_as_xarray.shape == quantity.extent
@@ -304,7 +319,7 @@ def test_to_data_array(quantity):
         ), "data memory address is not equal"
 
 
-def test_data_setter():
+def test_data_setter() -> None:
     quantity = Quantity(
         np.ones((5,)), dims=["dim1"], units="", backend=Backend.python()
     )

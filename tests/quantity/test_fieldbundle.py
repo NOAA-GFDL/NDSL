@@ -5,18 +5,18 @@ from ndsl.dsl.typing import FloatField
 from ndsl.quantity.field_bundle import FieldBundle, FieldBundleType
 
 
-def assign_4d_field_stcl(field_4d: FieldBundleType.T("Tracers")):  # type: ignore # noqa
+def assign_4d_field_stcl(field_4d: FieldBundleType.T("Tracers")) -> None:  # type: ignore # noqa
     with computation(PARALLEL), interval(...):
         field_4d[0, 0, 0][1] = 63.63
         field_4d[0, 0, 0][3] = 63.63
 
 
-def assign_3d_field_stcl(field_3d: FloatField):
+def assign_3d_field_stcl(field_3d: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         field_3d = 121.121
 
 
-def test_field_bundle():
+def test_field_bundle() -> None:
     # Grid & Factories
     NX = 2
     NY = 2

@@ -25,22 +25,22 @@ from ndsl.performance import Timer
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
-def layout(request):
+def layout(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture(params=[0, 1, 3])
-def n_rank_halo(request):
+def n_rank_halo(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture(params=[0, 3])
-def n_tile_halo(request):
+def n_tile_halo(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture(params=["x,y", "y,x", "xi,y", "x,y,z", "z,y,x", "y,z,x"])
-def dims(request):
+def dims(request: pytest.FixtureRequest):
     if request.param == "x,y":
         return [I_DIM, J_DIM]
     if request.param == "y,x":

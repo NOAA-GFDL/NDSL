@@ -18,7 +18,7 @@ from ndsl.grid import MetricTerms
 
 @pytest.mark.parallel
 @pytest.mark.parametrize("levels", [79, 91])
-def test_set_hybrid_pressure_coefficients_correct(levels):
+def test_set_hybrid_pressure_coefficients_correct(levels: int) -> None:
     """
     This test checks to see that the ak and bk arrays are read-in correctly and are
     stored as expected. Both values of km=79 and km=91 are tested and both tests are

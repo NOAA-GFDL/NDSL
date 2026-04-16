@@ -2,6 +2,7 @@ import copy
 import logging
 import tempfile
 from datetime import datetime, timedelta
+from typing import Any
 
 import cftime
 import pytest
@@ -30,11 +31,13 @@ ALL_K_DIMS = ("k", "k_interface", "k_soil")
 
 
 @pytest.fixture(params=["one_step", "three_steps"])
-def n_times(request):
+def n_times(request: pytest.FixtureRequest) -> int:
     if request.param == "one_step":
         return 1
     if request.param == "three_steps":
         return 3
+
+    raise NotImplementedError("Unknown number of steps")
 
 
 @pytest.fixture(
@@ -45,48 +48,50 @@ def n_times(request):
         datetime,
     ]
 )
-def start_time(request):
+def start_time(request: pytest.FixtureRequest) -> Any:
     date_type = request.param
     return date_type(2010, 1, 1)
 
 
 @pytest.fixture
-def time_step():
+def time_step() -> timedelta:
     return timedelta(hours=1)
 
 
 @pytest.fixture
-def ny():
+def ny() -> int:
     return 4
 
 
 @pytest.fixture
-def nx():
+def nx() -> int:
     return 4
 
 
 @pytest.fixture
-def nz():
+def nz() -> int:
     return 5
 
 
 @pytest.fixture
-def layout():
+def layout() -> tuple[int, int]:
     return (1, 1)
 
 
 @pytest.fixture
-def tile_partitioner(layout):
+def tile_partitioner(layout: tuple[int, int]) -> TilePartitioner:
     return TilePartitioner(layout)
 
 
 @pytest.fixture
-def cube_partitioner(tile_partitioner):
+def cube_partitioner(tile_partitioner) -> CubedSpherePartitioner:
     return CubedSpherePartitioner(tile_partitioner)
 
 
 @pytest.fixture(params=["empty", "one_var_2d", "one_var_3d", "two_vars"])
-def base_state(request, nz, ny, nx, numpy) -> dict:
+def base_state(
+    request: pytest.FixtureRequest, nz: int, ny: int, nx: int, numpy: Any
+) -> dict:
     if request.param == "empty":
         return {}
 
@@ -142,7 +147,7 @@ def state_list(base_state, n_times, start_time, time_step, numpy):
 
 
 @pytest.mark.zarr
-def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
+def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time) -> None:
     with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
         monitor = ZarrMonitor(tempdir, cube_partitioner, mpi_comm=MPIComm())
         for state in state_list:
@@ -322,12 +327,12 @@ def test_monitor_file_store_multi_rank_state(
     ],
 )
 @pytest.mark.zarr
-def test_array_chunks(layout, tile_array_shape, array_dims, target):
+def test_array_chunks(layout, tile_array_shape, array_dims, target) -> None:
     result = array_chunks(layout, tile_array_shape, array_dims)
     assert result == target
 
 
-def _assert_no_nulls(dataset: xr.Dataset):
+def _assert_no_nulls(dataset: xr.Dataset) -> None:
     number_of_null = dataset["var"].isnull().sum().item()
     total_size = dataset["var"].size
 
@@ -338,9 +343,9 @@ def _assert_no_nulls(dataset: xr.Dataset):
 
 @pytest.mark.parametrize("mask_and_scale", [True, False])
 @pytest.mark.zarr
-def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale):
-    store = {}
-    buffer = {}
+def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale) -> None:
+    store: dict = {}
+    buffer: dict = {}
 
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
@@ -360,12 +365,12 @@ def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale):
 
 
 @pytest.mark.zarr
-def test_values_preserved(cube_partitioner, numpy):
+def test_values_preserved(cube_partitioner, numpy) -> None:
     dims = (J_DIM, I_DIM)
     units = "m"
 
-    store = {}
-    buffer = {}
+    store: dict = {}
+    buffer: dict = {}
 
     # initialize store
     monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
@@ -451,10 +456,12 @@ def zarr_monitor_single_rank(zarr_store, cube_partitioner):
 
 
 @pytest.mark.zarr
-def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store):
+def test_transposed_diags_write_across_ranks(
+    diag, cube_partitioner, zarr_store
+) -> None:
     layout = (1, 1)
     total_ranks = 6 * layout[0] * layout[1]
-    shared_buffer = {}
+    shared_buffer: dict = {}
     for rank in range(total_ranks):
         monitor = ZarrMonitor(
             zarr_store,
@@ -476,7 +483,9 @@ def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store)
 
 
 @pytest.mark.zarr
-def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank):
+def test_transposed_diags_write_across_timesteps(
+    diag, zarr_monitor_single_rank
+) -> None:
     # verify that we can store transposed diags across time
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     diag_1 = _transpose(
@@ -491,7 +500,7 @@ def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank)
 
 
 @pytest.mark.zarr
-def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
+def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank) -> None:
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
     zarr_monitor_single_rank.store({"time": time_1, "a": diag})
@@ -509,7 +518,9 @@ def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
 
 
 @pytest.mark.zarr
-def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_rank):
+def test_diags_only_consistent_units_attrs_required(
+    diag, zarr_monitor_single_rank
+) -> None:
     time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
     time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
     time_3 = cftime.DatetimeJulian(2010, 6, 20, 6, 30, 0)

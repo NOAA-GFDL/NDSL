@@ -36,7 +36,7 @@ def dtype(numpy):
 
 
 @pytest.fixture
-def layout():
+def layout() -> tuple[int, int]:
     size = MPI.COMM_WORLD.Get_size()
     ranks_per_tile = size // 6
     ranks_per_edge = int(ranks_per_tile**0.5)
@@ -44,29 +44,29 @@ def layout():
 
 
 @pytest.fixture
-def nz():
+def nz() -> int:
     return 70
 
 
 @pytest.fixture
-def ny(n_points, layout):
+def ny(n_points: int, layout: tuple[int, int]) -> int:
     ny_rank = max(12, n_points * 2 - 1)
     return ny_rank * layout[0]
 
 
 @pytest.fixture
-def nx(n_points, layout):
+def nx(n_points: int, layout: tuple[int, int]) -> int:
     nx_rank = max(12, n_points * 2 - 1)
     return nx_rank * layout[1]
 
 
 @pytest.fixture(params=[1, 3])
-def n_points(request):
+def n_points(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture(params=["fewer", "same"])
-def n_points_update(request, n_points):
+def n_points_update(request: pytest.FixtureRequest, n_points: int) -> int:
     update = n_points + {"fewer": -1, "same": 0}[request.param]
     if update > n_points:
         pytest.skip("cannot update more points than exist in the halo")
@@ -99,7 +99,7 @@ def n_points_update(request, n_points):
         ),
     ]
 )
-def dims(request):
+def dims(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -119,7 +119,7 @@ def total_ranks(ranks_per_tile):
 
 
 @pytest.fixture(params=[0, 1])
-def n_buffer(request):
+def n_buffer(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -156,7 +156,7 @@ def origin(n_points, dims):
 
 
 @pytest.fixture
-def extent(n_points, dims, nz, ny, nx):
+def extent(dims: list[str], nz: int, ny: int, nx: int) -> list[int]:
     return_list = []
     extent_dict = {
         I_DIM: nx,
@@ -172,7 +172,7 @@ def extent(n_points, dims, nz, ny, nx):
 
 
 @pytest.fixture()
-def communicator(cube_partitioner):
+def communicator(cube_partitioner) -> CubedSphereCommunicator:
     return CubedSphereCommunicator(
         comm=MPIComm(),
         partitioner=cube_partitioner,
@@ -180,17 +180,17 @@ def communicator(cube_partitioner):
 
 
 @pytest.fixture(params=[0.1, 1.0])
-def edge_interior_ratio(request):
+def edge_interior_ratio(request: pytest.FixtureRequest) -> float:
     return request.param
 
 
 @pytest.fixture
-def tile_partitioner(layout, edge_interior_ratio: float):
+def tile_partitioner(layout, edge_interior_ratio: float) -> TilePartitioner:
     return TilePartitioner(layout, edge_interior_ratio=edge_interior_ratio)
 
 
 @pytest.fixture
-def cube_partitioner(tile_partitioner):
+def cube_partitioner(tile_partitioner) -> CubedSpherePartitioner:
     return CubedSpherePartitioner(tile_partitioner)
 
 

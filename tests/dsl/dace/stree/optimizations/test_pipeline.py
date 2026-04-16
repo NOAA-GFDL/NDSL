@@ -7,7 +7,7 @@ from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import StreeOptimization
 
 
-def double_map(in_field: FloatField, out_field: FloatField):
+def double_map(in_field: FloatField, out_field: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         out_field = in_field
 
@@ -23,11 +23,11 @@ class TriviallyMergeableCode:
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
-    def __call__(self, in_field: FloatField, out_field: FloatField):
+    def __call__(self, in_field: FloatField, out_field: FloatField) -> None:
         self.stencil(in_field, out_field)
 
 
-def test_stree_roundtrip_no_opt():
+def test_stree_roundtrip_no_opt() -> None:
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0], domain[1], domain[2], 0, backend=Backend.cpu()

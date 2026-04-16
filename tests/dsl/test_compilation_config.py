@@ -1,5 +1,6 @@
 import unittest.mock
 from math import sqrt
+from typing import Any
 
 import pytest
 
@@ -36,7 +37,7 @@ def test_check_communicator_valid(
     partitioner = CubedSpherePartitioner(
         TilePartitioner((int(sqrt(size / 6)), int((sqrt(size / 6)))))
     )
-    comm = LocalComm(rank=0, total_ranks=size, buffer_dict={})
+    comm = LocalComm(rank=0, total_ranks=size, buffer_dict={})  # type: ignore[var-annotated]
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     config = CompilationConfig(
         run_mode=run_mode, use_minimal_caching=use_minimal_caching
@@ -54,7 +55,7 @@ def test_check_communicator_invalid(
     nx: int, ny: int, use_minimal_caching: bool, run_mode: RunMode
 ) -> None:
     partitioner = CubedSpherePartitioner(TilePartitioner((nx, ny)))
-    comm = LocalComm(rank=0, total_ranks=nx * ny * 6, buffer_dict={})
+    comm = LocalComm(rank=0, total_ranks=nx * ny * 6, buffer_dict={})  # type: ignore[var-annotated]
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     config = CompilationConfig(
         run_mode=run_mode, use_minimal_caching=use_minimal_caching
@@ -92,7 +93,7 @@ def test_get_decomposition_info_from_comm(
     partitioner = CubedSpherePartitioner(
         TilePartitioner((int(sqrt(size / 6)), int(sqrt(size / 6))))
     )
-    comm = LocalComm(rank=rank, total_ranks=size, buffer_dict={})
+    comm = LocalComm(rank=rank, total_ranks=size, buffer_dict={})  # type: ignore[var-annotated]
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     config = CompilationConfig(use_minimal_caching=True, run_mode=RunMode.Run)
     (
@@ -129,10 +130,10 @@ def test_determine_compiling_equivalent(
 ) -> None:
     config = CompilationConfig(use_minimal_caching=minimal_caching, run_mode=run_mode)
     partitioner = CubedSpherePartitioner(
-        TilePartitioner((sqrt(size / 6), sqrt(size / 6)))
+        TilePartitioner((int(sqrt(size / 6)), int(sqrt(size / 6))))
     )
     comm = unittest.mock.MagicMock()
-    comm = LocalComm(rank=rank, total_ranks=size, buffer_dict={})
+    comm = LocalComm(rank=rank, total_ranks=size, buffer_dict={})  # type: ignore[assignment]
     cubed_sphere_comm = CubedSphereCommunicator(comm, partitioner)
     assert (
         config.determine_compiling_equivalent(rank, cubed_sphere_comm.partitioner)
@@ -154,7 +155,7 @@ def test_as_dict() -> None:
 
 
 def test_from_dict() -> None:
-    specification_dict = {}
+    specification_dict: dict[str, Any] = {}
     config = CompilationConfig.from_dict(specification_dict)
     assert config.backend == Backend.python()
     assert config.rebuild is False

@@ -8,13 +8,13 @@ from ndsl.checkpointer import (
 )
 
 
-def test_thresholds_no_trials():
+def test_thresholds_no_trials() -> None:
     checkpointer = ThresholdCalibrationCheckpointer()
     with pytest.raises(InsufficientTrialsError):
         checkpointer.thresholds
 
 
-def test_thresholds_one_empty_trial():
+def test_thresholds_one_empty_trial() -> None:
     checkpointer = ThresholdCalibrationCheckpointer()
     with checkpointer.trial():
         pass
@@ -22,7 +22,7 @@ def test_thresholds_one_empty_trial():
         checkpointer.thresholds
 
 
-def test_thresholds_two_empty_trials():
+def test_thresholds_two_empty_trials() -> None:
     checkpointer = ThresholdCalibrationCheckpointer()
     for _ in range(2):
         with checkpointer.trial():
@@ -30,7 +30,7 @@ def test_thresholds_two_empty_trials():
     assert checkpointer.thresholds.savepoints == {}
 
 
-def test_thresholds_one_data_trial():
+def test_thresholds_one_data_trial() -> None:
     checkpointer = ThresholdCalibrationCheckpointer()
     with checkpointer.trial():
         data = np.asarray([0.0, 0.0, 0.0])
@@ -50,7 +50,9 @@ def test_thresholds_one_data_trial():
         pytest.param(1.0, [-5.0, 5.0, 10.0, 0.0], 3.0, 15.0, id="more_values"),
     ],
 )
-def test_thresholds_sufficient_trials(factor, values, rel_threshold, abs_threshold):
+def test_thresholds_sufficient_trials(
+    factor: float, values: list[float], rel_threshold: float, abs_threshold: float
+) -> None:
     checkpointer = ThresholdCalibrationCheckpointer(factor=factor)
     for val in values:
         with checkpointer.trial():
@@ -63,7 +65,7 @@ def test_thresholds_sufficient_trials(factor, values, rel_threshold, abs_thresho
     }
 
 
-def test_thresholds_more_variables():
+def test_thresholds_more_variables() -> None:
     checkpointer = ThresholdCalibrationCheckpointer(factor=1.0)
     with checkpointer.trial():
         data1 = np.asarray([0.0, 0.0, 0.0])
@@ -83,7 +85,7 @@ def test_thresholds_more_variables():
     }
 
 
-def test_thresholds_two_calls():
+def test_thresholds_two_calls() -> None:
     checkpointer = ThresholdCalibrationCheckpointer(factor=1.0)
     with checkpointer.trial():
         data1 = np.asarray([0.0, 0.0, 0.0])

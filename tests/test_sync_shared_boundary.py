@@ -1,3 +1,6 @@
+from typing import Any
+
+import numpy.typing as npt
 import pytest
 
 from ndsl import (
@@ -13,17 +16,17 @@ from ndsl.performance import Timer
 
 
 @pytest.fixture
-def dtype(numpy):
+def dtype(numpy: Any) -> type:
     return numpy.float64
 
 
 @pytest.fixture
-def units():
+def units() -> str:
     return "m"
 
 
 @pytest.fixture
-def layout(request):
+def layout(request: pytest.FixtureRequest) -> tuple[int, int]:
     try:
         return request.param
     except AttributeError:
@@ -31,29 +34,31 @@ def layout(request):
 
 
 @pytest.fixture
-def ranks_per_tile(layout):
+def ranks_per_tile(layout: tuple[int, int]) -> int:
     return layout[0] * layout[1]
 
 
 @pytest.fixture
-def total_ranks(ranks_per_tile):
+def total_ranks(ranks_per_tile: int) -> int:
     return 6 * ranks_per_tile
 
 
 @pytest.fixture
-def tile_partitioner(layout):
+def tile_partitioner(layout: tuple[int, int]) -> TilePartitioner:
     return TilePartitioner(layout)
 
 
 @pytest.fixture
-def cube_partitioner(tile_partitioner):
+def cube_partitioner(tile_partitioner: TilePartitioner) -> CubedSpherePartitioner:
     return CubedSpherePartitioner(tile_partitioner)
 
 
 @pytest.fixture
-def communicator_list(cube_partitioner, total_ranks):
-    shared_buffer = {}
-    return_list = []
+def communicator_list(
+    cube_partitioner: CubedSpherePartitioner, total_ranks: int
+) -> list[CubedSphereCommunicator]:
+    shared_buffer: dict = {}
+    return_list: list = []
     for rank in range(cube_partitioner.total_ranks):
         return_list.append(
             CubedSphereCommunicator(
@@ -68,7 +73,9 @@ def communicator_list(cube_partitioner, total_ranks):
 
 
 @pytest.fixture
-def rank_quantity_list(total_ranks, numpy, dtype, units=units):
+def rank_quantity_list(
+    total_ranks: int, numpy: Any, dtype: type, units: str
+) -> list[tuple[Quantity, Quantity]]:
     """
     Quantities whose values are equal to the rank
     """
@@ -99,7 +106,9 @@ def rank_quantity_list(total_ranks, numpy, dtype, units=units):
 
 
 @pytest.fixture
-def rank_target_list(total_ranks, numpy):
+def rank_target_list(
+    total_ranks: int, numpy: Any
+) -> list[tuple[npt.NDArray, npt.NDArray]]:
     return_list = []
     for rank in range(total_ranks):
         if rank % 2 == 0:
@@ -118,8 +127,11 @@ def rank_target_list(total_ranks, numpy):
 
 @pytest.mark.filterwarnings("ignore:invalid value encountered in remainder")
 def test_correct_ranks_are_synchronized_with_no_halos(
-    rank_quantity_list, communicator_list, subtests, numpy, rank_target_list
-):
+    rank_quantity_list: list[tuple[Quantity, Quantity]],
+    communicator_list: list[CubedSphereCommunicator],
+    numpy: Any,
+    rank_target_list: list[tuple[npt.NDArray, npt.NDArray]],
+) -> None:
     req_list = []
     for communicator, (x_quantity, y_quantity) in zip(
         communicator_list, rank_quantity_list
@@ -136,7 +148,9 @@ def test_correct_ranks_are_synchronized_with_no_halos(
 
 
 @pytest.fixture
-def counting_quantity_list(total_ranks, numpy, dtype, units=units):
+def counting_quantity_list(
+    total_ranks: int, numpy: Any, units: str
+) -> list[tuple[Quantity, Quantity]]:
     """
     A list of quantities whose entries increase sequentially in memory,
     with y values starting at 36 and x values starting at 0.
@@ -167,8 +181,10 @@ def counting_quantity_list(total_ranks, numpy, dtype, units=units):
 
 @pytest.mark.parametrize("layout", [(1, 1)], indirect=True)
 def test_specific_edges_synced_correctly_on_first_rank(
-    counting_quantity_list, communicator_list, subtests, numpy, rank_target_list
-):
+    counting_quantity_list: list[tuple[Quantity, Quantity]],
+    communicator_list: list[CubedSphereCommunicator],
+    numpy: Any,
+) -> None:
     """
     A test that a couple chosen edges send the correct data.
 
@@ -201,13 +217,11 @@ def test_specific_edges_synced_correctly_on_first_rank(
 
 @pytest.mark.parametrize("layout", [(3, 3)], indirect=True)
 def test_interior_edges_synced_correctly_on_first_tile(
-    counting_quantity_list,
-    communicator_list,
-    subtests,
-    numpy,
-    rank_target_list,
-    total_ranks,
-):
+    counting_quantity_list: list[tuple[Quantity, Quantity]],
+    communicator_list: list[CubedSphereCommunicator],
+    numpy: Any,
+    total_ranks: int,
+) -> None:
     """
     A test that a couple chosen edges send the correct data.
 

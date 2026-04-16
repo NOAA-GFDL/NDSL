@@ -57,7 +57,7 @@ class CodeState(State):
     )
 
 
-def test_basic_state(tmpdir):
+def test_basic_state(tmp_path: Path) -> None:
     K_size = 3
     _, quantity_factory = get_factories_single_tile(
         5, 5, K_size, 0, Backend("st:dace:cpu:KJI")
@@ -71,9 +71,9 @@ def test_basic_state(tmpdir):
 
     # Test NetCDF round trip
     microphys_state.inner_A.A.field[:] = 42.42
-    microphys_state.to_netcdf(Path(tmpdir))
+    microphys_state.to_netcdf(tmp_path)
     microphys_state2 = CodeState.zeros(quantity_factory)
-    microphys_state2.update_from_netcdf(Path(tmpdir))
+    microphys_state2.update_from_netcdf(tmp_path)
     assert (microphys_state2.inner_A.A.field[:] == 42.42).all()
 
     # Test memory move (no copy)
@@ -139,7 +139,7 @@ class CodeStateWithDDim(State):
     )
 
 
-def test_state_ddim():
+def test_state_ddim() -> None:
     _, quantity_factory = get_factories_single_tile(
         5, 5, 3, 0, backend=Backend("st:dace:cpu:IJK")
     )

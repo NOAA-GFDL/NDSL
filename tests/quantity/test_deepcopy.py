@@ -7,7 +7,7 @@ from ndsl import Quantity
 from ndsl.config import Backend
 
 
-def test_deepcopy_copy_is_editable_by_view():
+def test_deepcopy_copy_is_editable_by_view() -> None:
     nx, ny, nz = 12, 12, 15
     quantity = Quantity(
         np.zeros([nx, ny, nz]),
@@ -25,7 +25,7 @@ def test_deepcopy_copy_is_editable_by_view():
     np.testing.assert_array_equal(quantity_copy.data, 1.0)
 
 
-def test_deepcopy_copy_is_editable_by_data():
+def test_deepcopy_copy_is_editable_by_data() -> None:
     nx, ny, nz = 12, 12, 15
     quantity = Quantity(
         np.zeros([nx, ny, nz]),
@@ -41,7 +41,7 @@ def test_deepcopy_copy_is_editable_by_data():
     np.testing.assert_array_equal(quantity_copy.data, 1.0)
 
 
-def test_deepcopy_of_dataclass_is_editable_by_data():
+def test_deepcopy_of_dataclass_is_editable_by_data() -> None:
     nx, ny, nz = 12, 12, 15
     quantity = Quantity(
         np.zeros([nx, ny, nz]),

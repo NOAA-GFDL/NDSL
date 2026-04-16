@@ -9,21 +9,21 @@ from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 from ndsl.quantity import Quantity, State
 
 
-def _stencil(out: Field[float]):
+def _stencil(out: Field[float]) -> None:
     with computation(PARALLEL), interval(...):
         out = out + 1
 
 
 class OrchestratedProgram:
-    def __init__(self, stencil_factory: StencilFactory):
+    def __init__(self, stencil_factory: StencilFactory) -> None:
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, out_qty):
+    def __call__(self, out_qty: Quantity) -> None:
         self.stencil(out_qty)
 
 
-def test_memory_reallocation():
+def test_memory_reallocation() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -56,16 +56,16 @@ class AState(State):
 
 
 class DefaultTypeProgram(NDSLRuntime):
-    def __init__(self, stencil_factory: StencilFactory):
+    def __init__(self, stencil_factory: StencilFactory) -> None:
         super().__init__(stencil_factory)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, a_quantity: Quantity, a_state: AState):
+    def __call__(self, a_quantity: Quantity, a_state: AState) -> None:
         self.stencil(a_quantity)
         self.stencil(a_state.the_quantity)
 
 
-def test_default_types_are_compiletime():
+def test_default_types_are_compiletime() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -75,7 +75,7 @@ def test_default_types_are_compiletime():
     code(qty_A, state_A)
 
 
-def test_dace_call_argument_caching():
+def test_dace_call_argument_caching() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0, backend=Backend.cpu()
     )

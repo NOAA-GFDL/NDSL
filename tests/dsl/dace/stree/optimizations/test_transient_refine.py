@@ -27,11 +27,11 @@ def stencil_with_JK_offset(in_field: FloatField, out_field: FloatField) -> None:
         out_field = in_field[J + 1, K + 1] + 3
 
 
-def stencil_with_ddim(in_field: DDIM_TYPE, out_field: DDIM_TYPE) -> None:
+def stencil_with_ddim(in_field: DDIM_TYPE, out_field: DDIM_TYPE) -> None:  # type: ignore[valid-type]
     with computation(PARALLEL), interval(...):
         n = 0
         while n < DATADIM_SIZE:
-            out_field[0, 0, 0][n] = in_field[0, 0, 0][n] + 4
+            out_field[0, 0, 0][n] = in_field[0, 0, 0][n] + 4  # type: ignore[index]
             n = n + 1
 
 

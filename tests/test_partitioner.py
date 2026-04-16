@@ -37,7 +37,7 @@ for ranks_per_tile in (1, 4):
 @pytest.mark.parametrize(
     "rank, total_ranks, tile_index", zip(rank_list, total_rank_list, tile_index_list)
 )
-def test_get_tile_index(rank, total_ranks, tile_index):
+def test_get_tile_index(rank: int, total_ranks: int, tile_index: int) -> None:
     tile = get_tile_index(rank, total_ranks)
     assert tile == tile_index
 
@@ -65,7 +65,9 @@ for layout in ((1, 1), (1, 2), (2, 2), (2, 3)):
 @pytest.mark.parametrize(
     "rank, layout, subtile_index", zip(rank_list, layout_list, subtile_index_list)
 )
-def test_subtile_index(rank, layout, subtile_index):
+def test_subtile_index(
+    rank: int, layout: tuple[int, int], subtile_index: tuple[int, int]
+) -> None:
     partitioner = TilePartitioner(layout)
     assert partitioner.subtile_index(rank) == subtile_index
 
@@ -103,7 +105,12 @@ def test_subtile_index(rank, layout, subtile_index):
         ),
     ],
 )
-def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_extent):
+def test_tile_extent_from_rank_metadata(
+    array_extent: tuple[int, ...],
+    array_dims: tuple[str, ...],
+    layout: tuple[int, int],
+    tile_extent: tuple[int, ...],
+) -> None:
     result = tile_extent_from_rank_metadata(array_dims, array_extent, layout)
     assert result == tile_extent
 
@@ -610,8 +617,14 @@ def test_tile_extent_from_rank_metadata(array_extent, array_dims, layout, tile_e
     ],
 )
 def test_subtile_slice(
-    array_dims, tile_extent, layout, rank, subtile_slice, overlap, edge_interior_ratio
-):
+    array_dims: list[str],
+    tile_extent: tuple[int, ...],
+    layout: tuple[int, int],
+    rank: int,
+    subtile_slice: tuple[slice, ...],
+    overlap: bool,
+    edge_interior_ratio: float,
+) -> None:
     partitioner = TilePartitioner(layout, edge_interior_ratio)
     result = partitioner.subtile_slice(rank, array_dims, tile_extent, overlap)
     assert result == subtile_slice
@@ -726,8 +739,14 @@ def test_subtile_slice(
     ],
 )
 def test_subtile_slice_even_grid_odd_layout(
-    array_dims, tile_extent, layout, rank, subtile_slice, overlap, edge_interior_ratio
-):
+    array_dims: list[str],
+    tile_extent: tuple[int, ...],
+    layout: tuple[int, int],
+    rank: int,
+    subtile_slice: tuple[slice, slice],
+    overlap: bool,
+    edge_interior_ratio: float,
+) -> None:
     partitioner = TilePartitioner(layout, edge_interior_ratio)
     result = partitioner.subtile_slice(rank, array_dims, tile_extent, overlap)
     assert result == subtile_slice
@@ -768,14 +787,14 @@ def test_subtile_slice_even_grid_odd_layout(
     ],
 )
 def test_subtile_slice_odd_grid_even_layout_no_interface(
-    array_dims,
-    tile_extent,
-    layout,
-    rank,
-    expected_error_string,
-    overlap,
-    edge_interior_ratio,
-):
+    array_dims: list[str],
+    tile_extent: tuple[int, ...],
+    layout: tuple[int, int],
+    rank: int,
+    expected_error_string: str,
+    overlap: bool,
+    edge_interior_ratio: float,
+) -> None:
     partitioner = TilePartitioner(layout, edge_interior_ratio)
     with pytest.raises(ValueError, match=expected_error_string):
         partitioner.subtile_slice(rank, array_dims, tile_extent, overlap)
@@ -848,8 +867,12 @@ def test_subtile_slice_odd_grid_even_layout_no_interface(
     ],
 )
 def test_subtile_extents_from_tile_metadata(
-    array_dims, tile_extent, layout, edge_interior_ratio, rank_extent
-):
+    array_dims: list[str],
+    tile_extent: tuple[int, ...],
+    layout: tuple[int, int],
+    edge_interior_ratio: float,
+    rank_extent: tuple[tuple[int], tuple[int]],
+) -> None:
     result = _subtile_extents_from_tile_metadata(
         array_dims, tile_extent, layout, edge_interior_ratio
     )
@@ -863,39 +886,16 @@ def test_subtile_extents_from_tile_metadata(
     assert result == rank_extent
 
 
-@pytest.mark.parametrize(
-    (
-        "array_dims, tile_extent, layout, full_edge_interior_ratio, "
-        "half_edge_interior_ratio, expected_slice, expected_extent, "
-        "expected_error_string"
-    ),
-    [
-        pytest.param(
-            [J_DIM, I_DIM],
-            (12, 12),
-            (3, 4),
-            1.0,
-            0.5,
-            (slice(0, 3, None), slice(0, 2, None)),
-            (9, 8),
-            (
-                "Only equal sized subdomains are supported, "
-                "was given an edge_interior_ratio of 0.5"
-            ),
-            id="72_rank_half_edge_tiles",
-        ),
-    ],
-)
-def test_tile_extent_from_metadata(
-    array_dims,
-    tile_extent,
-    layout,
-    full_edge_interior_ratio,
-    half_edge_interior_ratio,
-    expected_slice,
-    expected_extent,
-    expected_error_string,
-):
+def test_tile_extent_from_metadata() -> None:
+    array_dims = [J_DIM, I_DIM]
+    tile_extent = (12, 12)
+    layout = (3, 4)
+    full_edge_interior_ratio = 1.0
+    half_edge_interior_ratio = 0.5
+    expected_slice = (slice(0, 3, None), slice(0, 2, None))
+    expected_extent = (9, 8)
+    expected_error_string = "Only equal sized subdomains are supported, was given an edge_interior_ratio of 0.5"
+
     partitioner = TilePartitioner(layout, half_edge_interior_ratio)
     subtile_slice = partitioner.subtile_slice(0, array_dims, tile_extent, False)
     assert subtile_slice == expected_slice
@@ -967,14 +967,14 @@ def test_tile_extent_from_metadata(
     ],
 )
 def test_subtile_extent_with_tile_dimensions(
-    array_dims,
-    tile_extent,
-    layout,
-    edge_interior_ratio,
-    rank,
-    tile_expected,
-    cubedsphere_expected,
-):
+    array_dims: list[str],
+    tile_extent: tuple[int, ...],
+    layout: tuple[int, int],
+    edge_interior_ratio: float,
+    rank: int,
+    tile_expected: tuple[int, ...],
+    cubedsphere_expected: tuple[int, ...],
+) -> None:
     data_array = np.zeros((tile_extent))
     quantity = Quantity(
         data_array,

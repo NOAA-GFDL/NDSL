@@ -50,7 +50,7 @@ def test_timing_collector() -> None:
 
     stencil_factory = StencilFactory(stencil_config, grid_indexing)
 
-    def func(inp: Field[float], out: Field[float]):
+    def func(inp: Field[float], out: Field[float]) -> None:
         with computation(PARALLEL), interval(...):
             out = inp
 
@@ -73,7 +73,7 @@ def test_timing_collector() -> None:
 def test_grid_indexing_get_2d_compute_origin_domain(
     klevel: int | None,
     expected_origin_k: int,
-):
+) -> None:
     indexing = GridIndexing(
         domain=(12, 12, 79),
         n_halo=3,
@@ -116,7 +116,7 @@ def test_domain_size_comparison(
     dimensions: list[str],
     domain: tuple[int],
     call_count: int,
-):
+) -> None:
     quantity = Quantity(
         np.zeros(extent), dimensions, "n/a", extent=extent, backend=Backend.python()
     )
@@ -179,7 +179,7 @@ def test_stencil_2D_temporaries() -> None:
     "iterations",
     [2, 1],
 )
-def test_validation_call_count(iterations: tuple[int]):
+def test_validation_call_count(iterations: int) -> None:
     domain = (2, 2, 5)
     quantity = Quantity(
         np.zeros(domain),
