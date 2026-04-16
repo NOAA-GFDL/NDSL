@@ -1,6 +1,5 @@
 import copy
 from dataclasses import dataclass
-from typing import Any
 
 from gt4py.cartesian import gtscript
 
@@ -113,9 +112,9 @@ class FieldBundle:
         """Memory interface for GPU memory as defined by cupy."""
         return self._quantity.__cuda_array_interface__
 
-    def __descriptor__(self) -> Any:
-        """Data descriptor for DaCe."""
-        return self._quantity.__descriptor__()
+    #     def __descriptor__(self) -> Any:
+    #         """Data descriptor for DaCe."""
+    #         return self._quantity.__descriptor__()
 
     @staticmethod
     def extend_3D_quantity_factory(

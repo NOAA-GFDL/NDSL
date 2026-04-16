@@ -3,9 +3,8 @@ from __future__ import annotations
 import warnings
 from collections.abc import Iterable, Sequence
 from types import ModuleType
-from typing import Any, cast
+from typing import cast
 
-import dace
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -352,14 +351,14 @@ class Quantity:
     def shape(self):  # type: ignore[no-untyped-def]
         return self.data.shape
 
-    def __descriptor__(self) -> Any:
-        """The descriptor is a property that dace uses.
-
-        This relies on `dace` capacity to read out data from the buffer protocol.
-        If the internal data given doesn't follow the protocol it will most likely
-        fail.
-        """
-        return dace.data.create_datadescriptor(self.data)
+    # def __descriptor__(self) -> Any:
+    #    """The descriptor is a property that dace uses.
+    #
+    #    This relies on `dace` capacity to read out data from the buffer protocol.
+    #    If the internal data given doesn't follow the protocol it will most likely
+    #    fail.
+    #    """
+    #    return dace.data.create_datadescriptor(self.data)
 
     def transpose(
         self,
