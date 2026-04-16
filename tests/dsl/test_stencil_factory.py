@@ -20,18 +20,18 @@ from ndsl.dsl.typing import Field, FloatField
 BACKENDS = [Backend.python(), Backend("st:dace:cpu:KIJ")]
 
 
-def copy_stencil(q_in: FloatField, q_out: FloatField):
+def copy_stencil(q_in: FloatField, q_out: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         q_out = q_in
 
 
-def add_1_stencil(q: FloatField):
+def add_1_stencil(q: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         qin = q
         q = qin + 1.0
 
 
-def add_1_in_region_stencil(q_in: FloatField, q_out: FloatField):
+def add_1_in_region_stencil(q_in: FloatField, q_out: FloatField) -> None:
     from __externals__ import i_start
 
     with computation(PARALLEL), interval(...):
@@ -125,6 +125,8 @@ def test_stencil_vertical_bounds(backend: Backend) -> None:
         stencil_factory=factory,
     )
 
+    assert isinstance(stencils[0], FrozenStencil)
+    assert isinstance(stencils[1], FrozenStencil)
     assert "k_start" in stencils[0].externals and stencils[0].externals["k_start"] == 0
     assert "k_end" in stencils[0].externals and stencils[0].externals["k_end"] == 2
     assert "k_start" in stencils[1].externals and stencils[1].externals["k_start"] == 1

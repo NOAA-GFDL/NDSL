@@ -12,12 +12,12 @@ def extent_1d():
 
 
 @pytest.fixture(params=[0, 3])
-def n_halo(request):
+def n_halo(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture(params=[3])
-def n_dims(request):
+def n_dims(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -64,14 +64,14 @@ def quantity(data, origin, extent, dims, units):
     )
 
 
-def test_numpy(quantity, backend):
+def test_numpy(quantity, backend) -> None:
     if "cupy" in backend:
         assert quantity.np is cp
     else:
         assert quantity.np is np
 
 
-def test_modifying_numpy_data_modifies_view_and_field():
+def test_modifying_numpy_data_modifies_view_and_field() -> None:
     shape = (6, 6)
     data = np.zeros(shape, dtype=float)
     quantity = Quantity(
@@ -97,7 +97,7 @@ def test_modifying_numpy_data_modifies_view_and_field():
     assert quantity.data[4, 4] == 3
 
 
-def test_data_and_field_access_right_full_array_and_compute_domain():
+def test_data_and_field_access_right_full_array_and_compute_domain() -> None:
     """Test halo read/write align with data (full array) and field (compute domain)"""
     shape = (6, 6)
     data = np.zeros(shape, dtype=float)
@@ -121,14 +121,14 @@ def test_data_and_field_access_right_full_array_and_compute_domain():
     assert np.all(quantity.field == 11.11)
 
 
-def test_data_exists(quantity, backend):
+def test_data_exists(quantity, backend) -> None:
     if "numpy" in backend:
         assert isinstance(quantity.data, np.ndarray)
     else:
         assert isinstance(quantity.data, cp.ndarray)
 
 
-def test_field_exists(quantity, backend):
+def test_field_exists(quantity, backend) -> None:
     if "numpy" in backend:
         assert isinstance(quantity.field, np.ndarray)
     else:
@@ -152,7 +152,9 @@ def test_accessing_data_does_not_break_view(
 
 
 @pytest.mark.gpu
-def test_numpy_data_becomes_cupy_with_gpu_backend(data, origin, extent, dims, units):
+def test_numpy_data_becomes_cupy_with_gpu_backend(
+    data, origin, extent, dims, units
+) -> None:
     cpu_data = np.zeros(data.shape)
     quantity = Quantity(
         cpu_data,

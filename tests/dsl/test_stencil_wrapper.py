@@ -1,5 +1,6 @@
 import contextlib
 import unittest.mock
+from typing import Any
 
 import numpy as np
 import pytest
@@ -15,7 +16,7 @@ from ndsl import (
 from ndsl.config.backend import Backend
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.gt4py_utils import make_storage_from_shape
-from ndsl.dsl.stencil import _convert_quantities_to_storage
+from ndsl.dsl.stencil import FieldInfo, _convert_quantities_to_storage
 from ndsl.dsl.typing import (
     BoolFieldIJ,
     Float,
@@ -39,7 +40,7 @@ def get_stencil_config(
     *,
     backend: Backend,
     orchestration: DaCeOrchestration = DaCeOrchestration.BuildAndRun,
-    **kwargs,
+    **kwargs: Any,
 ) -> StencilConfig:
     dace_config = DaceConfig(None, backend=backend, orchestration=orchestration)
     config = StencilConfig(
@@ -53,7 +54,7 @@ def get_stencil_config(
 
 
 @contextlib.contextmanager
-def mock_gtscript_stencil(mock):
+def mock_gtscript_stencil(mock):  # type: ignore[no-untyped-def]
     original_stencil = gt4py.cartesian.gtscript.stencil
     try:
         gt4py.cartesian.gtscript.stencil = mock
@@ -143,12 +144,16 @@ class MockFieldInfo(definitions.FieldInfo):
         ),
     ],
 )
-def test_compute_field_origins(field_info, origin, field_origins) -> None:
+def test_compute_field_origins(
+    field_info: dict[str, FieldInfo],
+    origin: tuple | dict[str, tuple],
+    field_origins: tuple | dict[str, tuple],
+) -> None:
     result = FrozenStencil._compute_field_origins(field_info, origin)
     assert result == field_origins
 
 
-def copy_stencil(q_in: FloatField, q_out: FloatField):
+def copy_stencil(q_in: FloatField, q_out: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         q_out = q_in
 
@@ -292,7 +297,9 @@ def test_frozen_stencil_kwargs_passed_to_init(
     )
 
 
-def field_after_parameter_stencil(q_in: FloatField, param: float, q_out: FloatField):
+def field_after_parameter_stencil(
+    q_in: FloatField, param: float, q_out: FloatField
+) -> None:
     with computation(PARALLEL), interval(...):
         q_out = param * q_in
 
@@ -348,13 +355,13 @@ def test_illegal_backend_options() -> None:
         get_stencil_config(backend=Backend(unknown_backend))
 
 
-def get_mock_quantity():
+def get_mock_quantity() -> Quantity:
     return unittest.mock.MagicMock(spec=Quantity)
 
 
 def test_convert_quantities_to_storage_no_args() -> None:
-    args = []
-    kwargs = {}
+    args: list = []
+    kwargs: dict = {}
     _convert_quantities_to_storage(args, kwargs)
     assert len(args) == 0
     assert len(kwargs) == 0
@@ -362,8 +369,8 @@ def test_convert_quantities_to_storage_no_args() -> None:
 
 def test_convert_quantities_to_storage_one_arg_quantity() -> None:
     quantity = get_mock_quantity()
-    args = [quantity]
-    kwargs = {}
+    args: list[Quantity] = [quantity]
+    kwargs: dict = {}
     _convert_quantities_to_storage(args, kwargs)
     assert len(args) == 1
     assert args[0] == quantity.data
@@ -372,8 +379,8 @@ def test_convert_quantities_to_storage_one_arg_quantity() -> None:
 
 def test_convert_quantities_to_storage_one_kwarg_quantity() -> None:
     quantity = get_mock_quantity()
-    args = []
-    kwargs = {"val": quantity}
+    args: list = []
+    kwargs: dict[str, Quantity] = {"val": quantity}
     _convert_quantities_to_storage(args, kwargs)
     assert len(args) == 0
     assert len(kwargs) == 1
@@ -382,8 +389,8 @@ def test_convert_quantities_to_storage_one_kwarg_quantity() -> None:
 
 def test_convert_quantities_to_storage_one_arg_nonquantity() -> None:
     non_quantity = unittest.mock.MagicMock(spec=tuple)
-    args = [non_quantity]
-    kwargs = {}
+    args: list = [non_quantity]
+    kwargs: dict = {}
     _convert_quantities_to_storage(args, kwargs)
     assert len(args) == 1
     assert args[0] == non_quantity
@@ -392,8 +399,8 @@ def test_convert_quantities_to_storage_one_arg_nonquantity() -> None:
 
 def test_convert_quantities_to_storage_one_kwarg_non_quantity() -> None:
     non_quantity = unittest.mock.MagicMock(spec=tuple)
-    args = []
-    kwargs = {"val": non_quantity}
+    args: list = []
+    kwargs: dict = {"val": non_quantity}
     _convert_quantities_to_storage(args, kwargs)
     assert len(args) == 0
     assert len(kwargs) == 1

@@ -4,7 +4,7 @@ from ndsl import xumpy as xp
 from ndsl.config import Backend
 
 
-def test_count_nonzero():
+def test_count_nonzero() -> None:
     shape = (2, 3, 5)
     rand_array = xp.random(shape, Backend.python())
     rand_array[1, 1, :] = 0

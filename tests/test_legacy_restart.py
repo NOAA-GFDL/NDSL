@@ -28,7 +28,7 @@ DATA_DIRECTORY = os.path.join(TEST_DIRECTORY, "data")
 
 
 @pytest.fixture(params=[(1, 1)])
-def layout(request):
+def layout(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -56,8 +56,8 @@ def get_c12_restart_state_list(layout, only_names, tracer_properties):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (3, 3)])
-def test_open_c12_restart(layout):
-    tracer_properties = {}
+def test_open_c12_restart(layout) -> None:
+    tracer_properties: dict = {}
     only_names = None
     c12_restart_state_list = get_c12_restart_state_list(
         layout, only_names, tracer_properties
@@ -123,7 +123,7 @@ def test_open_c12_restart(layout):
         },
     ],
 )
-def test_open_c12_restart_tracer_properties(layout, tracer_properties):
+def test_open_c12_restart_tracer_properties(layout, tracer_properties) -> None:
     only_names = None
     c12_restart_state_list = get_c12_restart_state_list(
         layout, only_names, tracer_properties
@@ -137,19 +137,19 @@ def test_open_c12_restart_tracer_properties(layout, tracer_properties):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (3, 3)])
-def test_open_c12_restart_empty_to_state_without_crashing(layout):
+def test_open_c12_restart_empty_to_state_without_crashing(layout) -> None:
     total_ranks = 6 * layout[0] * layout[1]
     ny = 12 / layout[0]
     nx = 12 / layout[1]
-    shared_buffer = {}
-    communicator_list = []
+    shared_buffer: dict = {}
+    communicator_list: list = []
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
             LocalComm(rank, total_ranks, shared_buffer),
             CubedSpherePartitioner(TilePartitioner(layout)),
         )
         communicator_list.append(communicator)
-    state_list = []
+    state_list: list = []
     for communicator in communicator_list:
         state_list.append({})
         open_restart(
@@ -178,12 +178,12 @@ def test_open_c12_restart_empty_to_state_without_crashing(layout):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (3, 3)])
-def test_open_c12_restart_to_allocated_state_without_crashing(layout):
+def test_open_c12_restart_to_allocated_state_without_crashing(layout) -> None:
     total_ranks = 6 * layout[0] * layout[1]
     ny = 12 / layout[0]
     nx = 12 / layout[1]
-    shared_buffer = {}
-    communicator_list = []
+    shared_buffer: dict = {}
+    communicator_list: list = []
     for rank in range(total_ranks):
         communicator = CubedSphereCommunicator(
             LocalComm(rank, total_ranks, shared_buffer),
@@ -232,7 +232,7 @@ def test_open_c12_restart_to_allocated_state_without_crashing(layout):
     ],
     ids=["julian", "thirty_day", "noleap"],
 )
-def coupler_res_file_and_time(request):
+def coupler_res_file_and_time(request: pytest.FixtureRequest):
     file, expected_date_type = request.param
     return (
         os.path.join(DATA_DIRECTORY, file),
@@ -240,7 +240,7 @@ def coupler_res_file_and_time(request):
     )
 
 
-def test_get_current_date_from_coupler_res(coupler_res_file_and_time):
+def test_get_current_date_from_coupler_res(coupler_res_file_and_time) -> None:
     filename, current_time = coupler_res_file_and_time
     with open(filename, "r") as f:
         result = io.get_current_date_from_coupler_res(f)
@@ -253,7 +253,7 @@ def data_array():
 
 
 @pytest.fixture(params=["empty", "1_dim", "2_dims"])
-def new_dims(request):
+def new_dims(request: pytest.FixtureRequest):
     if request.param == "empty":
         return ()
     elif request.param == "1_dim":
@@ -270,7 +270,7 @@ def result_dims(data_array, new_dims):
     return tuple(list(data_array.dims[:kept_dims]) + list(new_dims))
 
 
-def test_apply_dims(data_array, new_dims, result_dims):
+def test_apply_dims(data_array, new_dims, result_dims) -> None:
     result = _apply_dims(data_array, new_dims)
     np.testing.assert_array_equal(result.values, data_array.values)
     assert result.dims == result_dims
@@ -312,7 +312,7 @@ def test_apply_dims(data_array, new_dims, result_dims):
         ),
     ],
 )
-def test_map_keys(old_dict, key_mapping, new_dict):
+def test_map_keys(old_dict, key_mapping, new_dict) -> None:
     result = map_keys(old_dict, key_mapping)
     assert result == new_dict
 
@@ -346,19 +346,19 @@ def test_map_keys(old_dict, key_mapping, new_dict):
         ),
     ],
 )
-def test_get_rank_suffix(rank, total_ranks, suffix):
+def test_get_rank_suffix(rank, total_ranks, suffix) -> None:
     result = get_rank_suffix(rank, total_ranks)
     assert result == suffix
 
 
 @pytest.mark.parametrize("invalid_total_ranks", [5, 7, 9, 23])
-def test_get_rank_suffix_invalid_total_ranks(invalid_total_ranks):
+def test_get_rank_suffix_invalid_total_ranks(invalid_total_ranks) -> None:
     with pytest.raises(ValueError):
         # total_ranks should be multiple of 6
         get_rank_suffix(0, invalid_total_ranks)
 
 
-def test_read_state_incorrectly_encoded_time():
+def test_read_state_incorrectly_encoded_time() -> None:
     with tempfile.NamedTemporaryFile(mode="w", suffix=".nc") as file:
         state_ds = xr.DataArray(0.0, name="time").to_dataset()
         state_ds.to_netcdf(file.name)
@@ -366,7 +366,7 @@ def test_read_state_incorrectly_encoded_time():
             io.read_state(file.name)
 
 
-def test_read_state_non_scalar_time():
+def test_read_state_non_scalar_time() -> None:
     with tempfile.NamedTemporaryFile(mode="w", suffix=".nc") as file:
         state_ds = xr.DataArray([0.0, 1.0], dims=["T"], name="time").to_dataset()
         state_ds.to_netcdf(file.name)
@@ -379,8 +379,8 @@ def test_read_state_non_scalar_time():
     [["time", "air_temperature"], ["air_temperature"]],
     ids=lambda x: f"{x}",
 )
-def test_open_c12_restart_only_names(layout, only_names):
-    tracer_properties = {}
+def test_open_c12_restart_only_names(layout, only_names) -> None:
+    tracer_properties: dict = {}
     c12_restart_state_list = get_c12_restart_state_list(
         layout, only_names, tracer_properties
     )

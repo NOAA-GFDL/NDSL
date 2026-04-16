@@ -229,7 +229,7 @@ def asynchronous_and_synchronous_send_recv(comm, numpy):
 
 
 @pytest.fixture(params=worker_function_list)
-def worker_function(request):
+def worker_function(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -294,7 +294,7 @@ def dummy_results(worker_function, dummy_list, numpy):
 
 
 @pytest.mark.parallel
-def test_worker(comm, dummy_results, mpi_results, numpy):
+def test_worker(comm, dummy_results, mpi_results, numpy) -> None:
     comm.barrier()  # synchronize the test "dots" across ranks
     if comm.Get_rank() == 0:
         assert len(dummy_results) == len(mpi_results)

@@ -1,5 +1,6 @@
 import copy
 import datetime
+from typing import Any, Sequence
 
 import pytest
 
@@ -17,50 +18,50 @@ from ndsl.constants import (
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
-def layout(request):
+def layout(request: pytest.FixtureRequest) -> tuple:
     return request.param
 
 
 @pytest.fixture(params=[0, 1, 3])
-def n_rank_halo(request):
+def n_rank_halo(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture(params=[0, 3])
-def n_tile_halo(request):
+def n_tile_halo(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
 @pytest.fixture(params=["i,j", "j,i", "i_interface,j", "i,j,k", "i,j,k", "j,k,i"])
-def dims(request):
+def dims(request: pytest.FixtureRequest) -> list[str]:
     if request.param == "i,j":
         return [I_DIM, J_DIM]
-    elif request.param == "j,i":
+    if request.param == "j,i":
         return [J_DIM, I_DIM]
-    elif request.param == "i_interface,j":
+    if request.param == "i_interface,j":
         return [I_INTERFACE_DIM, J_DIM]
-    elif request.param == "i,j,k":
+    if request.param == "i,j,k":
         return [I_DIM, J_DIM, K_DIM]
-    elif request.param == "i,j,k":
+    if request.param == "i,j,k":
         return [K_DIM, J_DIM, I_DIM]
-    elif request.param == "j,k,i":
+    if request.param == "j,k,i":
         return [J_DIM, K_DIM, I_DIM]
-    else:
-        raise NotImplementedError()
+
+    raise NotImplementedError()
 
 
 @pytest.fixture
-def units():
+def units() -> str:
     return "m/s"
 
 
 @pytest.fixture
-def time():
+def time() -> datetime.datetime:
     return datetime.datetime(2000, 1, 1)
 
 
 @pytest.fixture()
-def dim_lengths(layout):
+def dim_lengths(layout: tuple[int, int]) -> dict[str, int]:
     return {
         I_DIM: 2 * layout[1],
         I_INTERFACE_DIM: 2 * layout[1] + 1,
@@ -72,9 +73,9 @@ def dim_lengths(layout):
 
 
 @pytest.fixture()
-def communicator_list(layout):
+def communicator_list(layout: tuple[int, int]) -> list[TileCommunicator]:
     total_ranks = layout[0] * layout[1]
-    shared_buffer = {}
+    shared_buffer: dict = {}
     return_list = []
     for rank in range(total_ranks):
         return_list.append(
@@ -87,20 +88,20 @@ def communicator_list(layout):
 
 
 @pytest.fixture
-def tile_extent(dims, dim_lengths):
-    return_list = []
-    for dim in dims:
-        return_list.append(dim_lengths[dim])
-    return tuple(return_list)
+def tile_quantity(
+    dims: list[str],
+    units: str,
+    dim_lengths: dict[str, int],
+    n_tile_halo: int,
+    numpy: Any,
+) -> Quantity:
+    return get_tile_quantity(dims, units, dim_lengths, n_tile_halo, numpy)
 
 
 @pytest.fixture
-def tile_quantity(dims, units, dim_lengths, tile_extent, n_tile_halo, numpy):
-    return get_tile_quantity(dims, units, dim_lengths, tile_extent, n_tile_halo, numpy)
-
-
-@pytest.fixture
-def scattered_quantities(tile_quantity, layout, n_rank_halo, numpy):
+def scattered_quantities(
+    tile_quantity: Quantity, layout: tuple[int, int], n_rank_halo: int, numpy: Any
+) -> list[Quantity]:
     return_list = []
     total_ranks = layout[0] * layout[1]
     partitioner = TilePartitioner(layout)
@@ -125,16 +126,20 @@ def scattered_quantities(tile_quantity, layout, n_rank_halo, numpy):
     return return_list
 
 
-def get_tile_quantity(dims, units, dim_lengths, tile_extent, n_halo, numpy):
+def get_tile_quantity(
+    dims: list[str], units: str, dim_lengths: dict[str, int], n_halo: int, numpy: Any
+) -> Quantity:
     extent = [dim_lengths[dim] for dim in dims]
     quantity = get_quantity(dims, units, extent, n_halo, numpy)
     quantity.view[:] = numpy.random.randn(*quantity.extent)
     return quantity
 
 
-def get_quantity(dims, units, extent, n_halo, numpy):
+def get_quantity(
+    dims: Sequence[str], units: str, extent: Sequence[int], n_halo: int, numpy: Any
+) -> Quantity:
     shape = list(copy.deepcopy(extent))
-    origin = [0 for dim in dims]
+    origin = [0 for _ in dims]
     for i, dim in enumerate(dims):
         if dim in HORIZONTAL_DIMS:
             origin[i] += n_halo
@@ -150,8 +155,12 @@ def get_quantity(dims, units, extent, n_halo, numpy):
 
 
 def test_tile_gather_state(
-    tile_quantity, scattered_quantities, communicator_list, time
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+    time: datetime.datetime,
+) -> None:
+    result_state: dict | None = None
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
@@ -161,8 +170,10 @@ def test_tile_gather_state(
             result_state = out
         else:
             assert out is None
+    assert result_state is not None
     assert result_state["time"] == time
     result = result_state["air_temperature"]
+    assert isinstance(result, Quantity)
     assert result.dims == tile_quantity.dims
     assert result.units == tile_quantity.units
     assert result.extent == tile_quantity.extent
@@ -171,10 +182,14 @@ def test_tile_gather_state(
 
 
 def test_tile_gather_state_with_recv_state(
-    tile_quantity, scattered_quantities, communicator_list, time
-):
-    recv_state = {"time": time, "air_temperature": copy.deepcopy(tile_quantity)}
-    recv_state["air_temperature"].data[:] = -1
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+    time: datetime.datetime,
+) -> None:
+    air_temperature = copy.deepcopy(tile_quantity)
+    air_temperature.data[:] = -1
+    recv_state = {"time": time, "air_temperature": air_temperature}
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
@@ -185,6 +200,7 @@ def test_tile_gather_state_with_recv_state(
             communicator.gather_state(send_state=state)
     assert recv_state["time"] == time
     result = recv_state["air_temperature"]
+    assert isinstance(result, Quantity)
     assert result.dims == tile_quantity.dims
     assert result.units == tile_quantity.units
     assert result.extent == tile_quantity.extent
@@ -192,14 +208,20 @@ def test_tile_gather_state_with_recv_state(
 
 
 def test_tile_gather_no_recv_quantity(
-    tile_quantity, scattered_quantities, communicator_list
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+) -> None:
+    result: Quantity | None = None
+
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
         result = communicator.gather(send_quantity=rank_quantity)
         if communicator.rank != 0:
             assert result is None
+
+    assert isinstance(result, Quantity)
     assert result.dims == tile_quantity.dims
     assert result.units == tile_quantity.units
     assert result.extent == tile_quantity.extent
@@ -207,8 +229,10 @@ def test_tile_gather_no_recv_quantity(
 
 
 def test_tile_scatter_no_recv_quantity(
-    tile_quantity, scattered_quantities, communicator_list
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+) -> None:
     result_list = []
     for communicator in communicator_list:
         if communicator.rank == 0:
@@ -223,8 +247,10 @@ def test_tile_scatter_no_recv_quantity(
 
 
 def test_tile_scatter_with_recv_quantity(
-    tile_quantity, scattered_quantities, communicator_list
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+) -> None:
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
         q.data[:] = 0.0
@@ -246,8 +272,10 @@ def test_tile_scatter_with_recv_quantity(
 
 
 def test_tile_gather_with_recv_quantity(
-    tile_quantity, scattered_quantities, communicator_list
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+) -> None:
     recv_quantity = copy.deepcopy(tile_quantity)
     recv_quantity.data[:] = -1
     for communicator, rank_quantity in reversed(
@@ -269,8 +297,11 @@ def test_tile_gather_with_recv_quantity(
 
 
 def test_tile_scatter_state(
-    tile_quantity, scattered_quantities, communicator_list, time
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+    time: datetime.datetime,
+) -> None:
     state = {"time": time, "air_temperature": tile_quantity}
     result_list = []
     for communicator in communicator_list:
@@ -288,8 +319,10 @@ def test_tile_scatter_state(
 
 
 def test_tile_scatter_state_without_time(
-    tile_quantity, scattered_quantities, communicator_list
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+) -> None:
     state = {"air_temperature": tile_quantity}
     result_list = []
     for communicator in communicator_list:
@@ -307,8 +340,11 @@ def test_tile_scatter_state_without_time(
 
 
 def test_tile_scatter_state_with_recv_state(
-    tile_quantity, scattered_quantities, communicator_list, time
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+    time: datetime.datetime,
+) -> None:
     tile_state = {"time": time, "air_temperature": tile_quantity}
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
@@ -334,8 +370,10 @@ def test_tile_scatter_state_with_recv_state(
 
 
 def test_tile_scatter_state_with_recv_state_without_time(
-    tile_quantity, scattered_quantities, communicator_list
-):
+    tile_quantity: Quantity,
+    scattered_quantities: list[Quantity],
+    communicator_list: list[TileCommunicator],
+) -> None:
     tile_state = {"air_temperature": tile_quantity}
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:

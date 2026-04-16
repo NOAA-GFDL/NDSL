@@ -15,15 +15,15 @@ ntke = 8
 fill_value = 42.0
 
 
-def sample_4d_stencil(q_in: FloatFieldTracer, q_out: FloatField):
+def sample_4d_stencil(q_in: FloatFieldTracer, q_out: FloatField) -> None:  # type: ignore[valid-type]
     from __externals__ import ntke
 
     with computation(PARALLEL), interval(...):
-        q_out = max(q_in[0, 0, 0][ntke], 1.0e-9)
+        q_out = max(q_in[0, 0, 0][ntke], 1.0e-9)  # type: ignore[index]
 
 
 class SampleCalculation:
-    def __init__(self, stencil_factory: StencilFactory, *, ntke: int):
+    def __init__(self, stencil_factory: StencilFactory, *, ntke: int) -> None:
         self._test_calc = stencil_factory.from_dims_halo(
             func=sample_4d_stencil,
             externals={
@@ -32,7 +32,7 @@ class SampleCalculation:
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
-    def __call__(self, q_in: FloatFieldTracer, q_out: FloatField):
+    def __call__(self, q_in: FloatFieldTracer, q_out: FloatField) -> None:  # type: ignore[valid-type]
         self._test_calc(q_in, q_out)
 
 

@@ -7,7 +7,7 @@ from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiti
 
 
 @pytest.mark.parallel
-def test_unblock_waiting_tiles():
+def test_unblock_waiting_tiles() -> None:
     comm = MPIComm()
     compilation_config = MagicMock(compiling_equivalent=0)
 

@@ -16,17 +16,17 @@ from ndsl.constants import (
 
 
 @pytest.fixture(params=[48, 96])
-def nx_tile(request):
+def nx_tile(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture(params=[48, 96])
-def ny_tile(request):
+def ny_tile(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture(params=[60, 80])
-def nz(request):
+def nz(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -41,7 +41,7 @@ def ny(ny_tile, layout):
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
-def layout(request):
+def layout(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -90,7 +90,7 @@ def units():
 
 
 @pytest.fixture(params=[float, int])
-def dtype(request):
+def dtype(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -181,22 +181,22 @@ def dim_case(request, nx, ny, nz) -> DimCase:
     raise NotImplementedError()
 
 
-def test_subtile_dimension_sizer_origin(sizer, dim_case):
+def test_subtile_dimension_sizer_origin(sizer, dim_case) -> None:
     result = sizer.get_origin(dim_case.dims)
     assert result == dim_case.origin
 
 
-def test_subtile_dimension_sizer_extent(sizer, dim_case):
+def test_subtile_dimension_sizer_extent(sizer, dim_case) -> None:
     result = sizer.get_extent(dim_case.dims)
     assert result == dim_case.extent
 
 
-def test_subtile_dimension_sizer_shape(sizer, dim_case):
+def test_subtile_dimension_sizer_shape(sizer, dim_case) -> None:
     result = sizer.get_shape(dim_case.dims)
     assert result == dim_case.shape
 
 
-def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
+def test_allocator_zeros(numpy, sizer, dim_case, units, dtype) -> None:
     allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.zeros(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
@@ -207,7 +207,7 @@ def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
     assert numpy.all(quantity.data == 0)
 
 
-def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
+def test_allocator_ones(numpy, sizer, dim_case, units, dtype) -> None:
     allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.ones(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
@@ -218,7 +218,7 @@ def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
     assert numpy.all(quantity.data == 1)
 
 
-def test_allocator_empty(sizer, dim_case, units, dtype):
+def test_allocator_empty(sizer, dim_case, units, dtype) -> None:
     allocator = QuantityFactory(sizer, backend=Backend.python())
     quantity = allocator.empty(dim_case.dims, units, dtype=dtype)
     assert quantity.units == units
@@ -228,7 +228,7 @@ def test_allocator_empty(sizer, dim_case, units, dtype):
     assert quantity.data.shape == dim_case.shape
 
 
-def test_allocator_data_dimensions_operations(sizer):
+def test_allocator_data_dimensions_operations(sizer) -> None:
     quantity_factory = QuantityFactory(sizer, backend=Backend.python())
     quantity_factory.add_data_dimensions({"D0": 11})
     assert "D0" in quantity_factory.sizer.data_dimensions.keys()
@@ -242,7 +242,7 @@ def test_allocator_data_dimensions_operations(sizer):
         quantity_factory.add_data_dimensions({"D0": 33})
 
 
-def test_pad_non_interface_dimensions():
+def test_pad_non_interface_dimensions() -> None:
     nx = 10
     ny = 20
     nz = 30

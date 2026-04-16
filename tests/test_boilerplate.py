@@ -8,7 +8,9 @@ from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
-def _copy_ops(stencil_factory: StencilFactory, quantity_factory: QuantityFactory):
+def _copy_ops(
+    stencil_factory: StencilFactory, quantity_factory: QuantityFactory
+) -> None:
     # Allocate data and fill input
     qty_out = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
     qty_in = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
@@ -20,7 +22,7 @@ def _copy_ops(stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     )  # Value of each entry is sum of the I and J index at each point
 
     # Define a stencil
-    def copy_stencil(input_field: FloatField, output_field: FloatField):
+    def copy_stencil(input_field: FloatField, output_field: FloatField) -> None:
         with computation(PARALLEL), interval(...):
             output_field = input_field
 
@@ -32,7 +34,7 @@ def _copy_ops(stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     assert (qty_in.view[:] == qty_out.view[:]).all()
 
 
-def test_boilerplate_import_numpy():
+def test_boilerplate_import_numpy() -> None:
     """Test make sure the basic numpy boilerplate works as expected.
 
     Dev Note: the import inside the function are part of the test.
@@ -51,7 +53,7 @@ def test_boilerplate_import_numpy():
     _copy_ops(stencil_factory, quantity_factory)
 
 
-def test_boilerplate_import_orchestrated_cpu():
+def test_boilerplate_import_orchestrated_cpu() -> None:
     """Test make sure the basic orchestrate boilerplate works as expected.
 
     Dev Note: the import inside the function are part of the test.
@@ -69,7 +71,7 @@ def test_boilerplate_import_orchestrated_cpu():
     _copy_ops(stencil_factory, quantity_factory)
 
 
-def test_boilerplate_non_dace_based_orchestration_raises():
+def test_boilerplate_non_dace_based_orchestration_raises() -> None:
     from ndsl.boilerplate import get_factories_single_tile_orchestrated
 
     with pytest.raises(ValueError, match="Only .* backends can be orchestrated."):

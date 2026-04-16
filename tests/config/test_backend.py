@@ -3,7 +3,7 @@ import pytest
 from ndsl import Backend
 
 
-def test_backend_building():
+def test_backend_building() -> None:
     Backend("st:python:cpu:IJK")
     Backend("st:numpy:cpu:IJK")
     Backend("st:gt:cpu:IJK")
@@ -23,7 +23,7 @@ def test_backend_building():
         Backend(unknown_backend)
 
 
-def test_backend_operators():
+def test_backend_operators() -> None:
     backend_A = Backend("st:numpy:cpu:IJK")
     backend_B = Backend("st:numpy:cpu:IJK")
 

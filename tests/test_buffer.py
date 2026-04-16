@@ -23,30 +23,30 @@ def allocator(request, numpy):
     return getattr(numpy, request.param)
 
 
-def test_is_contiguous(contiguous_array):
+def test_is_contiguous(contiguous_array) -> None:
     assert is_contiguous(contiguous_array)
 
 
-def test_is_c_contiguous(contiguous_array):
+def test_is_c_contiguous(contiguous_array) -> None:
     assert is_c_contiguous(contiguous_array)
 
 
-def test_not_is_contiguous(non_contiguous_array):
+def test_not_is_contiguous(non_contiguous_array) -> None:
     assert not is_contiguous(non_contiguous_array)
 
 
-def test_not_is_c_contiguous(non_contiguous_array):
+def test_not_is_c_contiguous(non_contiguous_array) -> None:
     assert not is_c_contiguous(non_contiguous_array)
 
 
-def test_sendbuf_uses_buffer(numpy, backend, allocator, non_contiguous_array):
+def test_sendbuf_uses_buffer(numpy, backend, allocator, non_contiguous_array) -> None:
     with send_buffer(allocator, non_contiguous_array) as sendbuf:
         assert sendbuf is not non_contiguous_array
         assert sendbuf.data is not non_contiguous_array.data
         numpy.testing.assert_array_equal(sendbuf, non_contiguous_array)
 
 
-def test_recvbuf_uses_buffer(numpy, allocator, non_contiguous_array):
+def test_recvbuf_uses_buffer(numpy, allocator, non_contiguous_array) -> None:
     with recv_buffer(allocator, non_contiguous_array) as recvbuf:
         assert recvbuf is not non_contiguous_array
         assert recvbuf.data is not non_contiguous_array.data
@@ -55,17 +55,17 @@ def test_recvbuf_uses_buffer(numpy, allocator, non_contiguous_array):
     assert numpy.all(non_contiguous_array == 0.0)
 
 
-def test_sendbuf_no_buffer(allocator, contiguous_array):
+def test_sendbuf_no_buffer(allocator, contiguous_array) -> None:
     with send_buffer(allocator, contiguous_array) as sendbuf:
         assert sendbuf is contiguous_array
 
 
-def test_recvbuf_no_buffer(allocator, contiguous_array):
+def test_recvbuf_no_buffer(allocator, contiguous_array) -> None:
     with recv_buffer(allocator, contiguous_array) as recvbuf:
         assert recvbuf is contiguous_array
 
 
-def test_buffer_cache_appends(allocator, backend: str):
+def test_buffer_cache_appends(allocator, backend: str) -> None:
     """
     Test buffer with the same key are appended while not in use for potential reuse
     """
@@ -91,7 +91,7 @@ def test_buffer_cache_appends(allocator, backend: str):
     assert len(BUFFER_CACHE[first_buffer._key]) == 2
 
 
-def test_buffer_reuse(allocator, backend: str):
+def test_buffer_reuse(allocator, backend: str) -> None:
     """Test we reuse the buffer when available instead of reallocating one"""
     if backend == "gt4py_cupy":
         pytest.skip("gt4py gpu backend cannot produce contiguous arrays")
@@ -119,7 +119,7 @@ def test_buffer_reuse(allocator, backend: str):
     Buffer.push_to_cache(repop_buffer)
 
 
-def test_cacheline_differentiation(allocator, backend: str):
+def test_cacheline_differentiation(allocator, backend: str) -> None:
     """Test allocation with different keys creates different cache lines"""
     if backend == "gt4py_cupy":
         pytest.skip("gt4py gpu backend cannot produce contiguous arrays")
@@ -187,7 +187,7 @@ def test_new_args_gives_different_buffer(
 
 
 @pytest.mark.gpu
-def test_mpi_unsafe_allocator_exception(allocator):
+def test_mpi_unsafe_allocator_exception(allocator) -> None:
     BUFFER_CACHE.clear()
     with pytest.raises(RuntimeError):
         Buffer.pop_from_cache(allocator, shape=(10, 10, 10), dtype=float)
