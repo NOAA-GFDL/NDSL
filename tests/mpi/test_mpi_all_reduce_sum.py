@@ -22,7 +22,7 @@ def layout() -> tuple[int, int]:
 
 
 @pytest.fixture(params=[0.1, 1.0])
-def edge_interior_ratio(request) -> float:
+def edge_interior_ratio(request: pytest.FixtureRequest) -> float:
     return request.param
 
 

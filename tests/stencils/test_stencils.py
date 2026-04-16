@@ -33,15 +33,15 @@ class ColumnOperations:
     def __init__(self, stencil_factory: StencilFactory):
         def column_max_stencil(
             data: FloatField, max_value: FloatFieldIJ, max_index: FloatFieldIJ
-        ):
+        ) -> None:
             from __externals__ import k_end
 
             with computation(FORWARD), interval(0, 1):
                 max_value, max_index = column_max(data, 0, k_end)
 
         def column_max_ddim_stencil(
-            data: FloatField_ddim, max_value: FloatFieldIJ, max_index: FloatFieldIJ
-        ):
+            data: FloatField_ddim, max_value: FloatFieldIJ, max_index: FloatFieldIJ  # type: ignore[valid-type]
+        ) -> None:
             from __externals__ import k_end
 
             with computation(FORWARD), interval(0, 1):
@@ -49,15 +49,15 @@ class ColumnOperations:
 
         def column_min_stencil(
             data: FloatField, min_value: FloatFieldIJ, min_index: FloatFieldIJ
-        ):
+        ) -> None:
             from __externals__ import k_end
 
             with computation(FORWARD), interval(0, 1):
                 min_value, min_index = column_min(data, 5, k_end)
 
         def column_min_ddim_stencil(
-            data: FloatField_ddim, min_value: FloatFieldIJ, min_index: FloatFieldIJ
-        ):
+            data: FloatField_ddim, min_value: FloatFieldIJ, min_index: FloatFieldIJ  # type: ignore[valid-type]
+        ) -> None:
             from __externals__ import k_end
 
             with computation(FORWARD), interval(0, 1):
@@ -87,19 +87,19 @@ class ColumnOperations:
         max_index: FloatFieldIJ,
         min_value: FloatFieldIJ,
         min_index: FloatFieldIJ,
-        data_ddim: FloatField_ddim,
+        data_ddim: FloatField_ddim,  # type: ignore[valid-type]
         max_value_ddim: FloatFieldIJ,
         max_index_ddim: FloatFieldIJ,
         min_value_ddim: FloatFieldIJ,
         min_index_ddim: FloatFieldIJ,
-    ):
+    ) -> None:
         self._column_max_stencil(data, max_value, max_index)
         self._column_max_ddim_stencil(data_ddim, max_value_ddim, max_index_ddim)
         self._column_min_stencil(data, min_value, min_index)
         self._column_min_ddim_stencil(data_ddim, min_value_ddim, min_index_ddim)
 
 
-def test_column_operations(boilerplate: tuple[StencilFactory, QuantityFactory]):
+def test_column_operations(boilerplate: tuple[StencilFactory, QuantityFactory]) -> None:
     stencil_factory, quantity_factory = boilerplate
     quantity_factory.add_data_dimensions({"ddim": 2})
     data = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "n/a")

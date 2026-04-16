@@ -1,3 +1,5 @@
+from typing import Literal
+
 import numpy as np
 import pytest
 
@@ -6,7 +8,7 @@ from ndsl.optional_imports import cupy
 
 
 @pytest.fixture(params=["numpy", pytest.param("cupy", marks=pytest.mark.gpu)])
-def backend(request):
+def backend(request: pytest.FixtureRequest) -> Literal["numpy"] | Literal["cupy"]:
     if request.param == "cupy" and cupy is None:
         raise ModuleNotFoundError("cupy must be installed to run gpu tests")
 
@@ -14,7 +16,7 @@ def backend(request):
 
 
 @pytest.fixture
-def ndsl_backend(backend: str):
+def ndsl_backend(backend: str) -> Backend:
     if backend == "numpy":
         return Backend("st:numpy:cpu:IJK")
 
@@ -25,7 +27,7 @@ def ndsl_backend(backend: str):
 
 
 @pytest.fixture
-def numpy(backend: str):
+def numpy(backend: str):  # type: ignore[no-untyped-def]
     if backend == "numpy":
         return np
 

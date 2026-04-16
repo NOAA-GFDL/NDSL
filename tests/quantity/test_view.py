@@ -7,7 +7,7 @@ from ndsl.constants import I_DIM, J_DIM
 
 
 @pytest.fixture
-def quantity(request):
+def quantity(request: pytest.FixtureRequest):
     return Quantity(
         request.param[0], dims=request.param[1], units="units", backend=Backend.python()
     )
@@ -154,7 +154,7 @@ def quantity(request):
 #         ),
 #     ],
 # )
-# def test_west(quantity, view_slice, reference):
+# def test_west(quantity, view_slice, reference) -> None:
 #     result = quantity.view.west[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
@@ -200,7 +200,7 @@ def quantity(request):
         "interior",
     ],
 )
-def test_many_indices_raises(quantity, view_name):
+def test_many_indices_raises(quantity, view_name) -> None:
     view = getattr(quantity.view, view_name)
     index = tuple([0] * (len(quantity.dims) + 1))
     with pytest.raises(IndexError):
@@ -234,7 +234,7 @@ def test_many_indices_raises(quantity, view_name):
         "interior",
     ],
 )
-def test_many_slices_raises(quantity, view_name):
+def test_many_slices_raises(quantity, view_name) -> None:
     view = getattr(quantity.view, view_name)
     index = tuple([slice(0, 1)] * (len(quantity.dims) + 1))
     with pytest.raises(IndexError):
@@ -378,7 +378,7 @@ def test_many_slices_raises(quantity, view_name):
 #         ),
 #     ],
 # )
-# def test_east(quantity, view_slice, reference):
+# def test_east(quantity, view_slice, reference) -> None:
 #     result = quantity.view.east[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
@@ -546,7 +546,7 @@ def test_many_slices_raises(quantity, view_name):
 #         ),
 #     ],
 # )
-# def test_south(quantity, view_slice, reference):
+# def test_south(quantity, view_slice, reference) -> None:
 #     result = quantity.view.south[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
@@ -714,7 +714,7 @@ def test_many_slices_raises(quantity, view_name):
 #         ),
 #     ],
 # )
-# def test_north(quantity, view_slice, reference):
+# def test_north(quantity, view_slice, reference) -> None:
 #     result = quantity.view.north[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
@@ -811,7 +811,7 @@ def test_many_slices_raises(quantity, view_name):
         ),
     ],
 )
-def test_southwest(quantity, view_slice, reference):
+def test_southwest(quantity, view_slice, reference) -> None:
     result = quantity.view.southwest[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
@@ -909,7 +909,7 @@ def test_southwest(quantity, view_slice, reference):
         ),
     ],
 )
-def test_southeast(quantity, view_slice, reference):
+def test_southeast(quantity, view_slice, reference) -> None:
     result = quantity.view.southeast[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
@@ -1020,7 +1020,7 @@ def test_southeast(quantity, view_slice, reference):
         ),
     ],
 )
-def test_northwest(quantity, view_slice, reference):
+def test_northwest(quantity, view_slice, reference) -> None:
     result = quantity.view.northwest[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
@@ -1131,7 +1131,7 @@ def test_northwest(quantity, view_slice, reference):
         ),
     ],
 )
-def test_northeast(quantity, view_slice, reference):
+def test_northeast(quantity, view_slice, reference) -> None:
     result = quantity.view.northeast[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
@@ -1237,7 +1237,7 @@ def test_northeast(quantity, view_slice, reference):
         ),
     ],
 )
-def test_interior(quantity, view_slice, reference):
+def test_interior(quantity, view_slice, reference) -> None:
     result = quantity.view.interior[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice

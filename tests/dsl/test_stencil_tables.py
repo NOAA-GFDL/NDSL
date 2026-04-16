@@ -66,7 +66,7 @@ class OrchestratedProgram:
             gt_storage.zeros, grid_indexing, stencil_config, dtype=float
         )
 
-    def __call__(self):
+    def __call__(self) -> None:
         self.stencil(self.inp, self.out)
 
 

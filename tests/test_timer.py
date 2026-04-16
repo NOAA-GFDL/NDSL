@@ -6,17 +6,17 @@ from ndsl.performance import NullTimer, Timer
 
 
 @pytest.fixture
-def timer():
+def timer() -> Timer:
     return Timer()
 
 
 @pytest.fixture
-def null_timer():
+def null_timer() -> NullTimer:
     return NullTimer()
 
 
 @pytest.fixture
-def disabled_timer():
+def disabled_timer() -> Timer:
     return Timer(enabled=False)
 
 
@@ -132,7 +132,7 @@ def test_disabled_timer_does_not_add_time(timer: Timer) -> None:
 
 
 @pytest.fixture(params=["clean", "one_label", "two_labels"])
-def used_timer(request, timer) -> Timer:
+def used_timer(request: pytest.FixtureRequest, timer: Timer) -> Timer:
     if request.param == "clean":
         return timer
 
@@ -147,6 +147,8 @@ def used_timer(request, timer) -> Timer:
         with timer.clock("label2"):
             time.sleep(0.01)
         return timer
+
+    raise NotImplementedError("Unknown timer type")
 
 
 def test_timer_reset(used_timer: Timer) -> None:

@@ -1,3 +1,5 @@
+from typing import Any, Generator
+
 import pytest
 
 from ndsl import LocalComm, Quantity, TileCommunicator, TilePartitioner
@@ -5,7 +7,9 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM
 
 
-def rank_scatter_results(communicator_list, quantity):
+def rank_scatter_results(
+    communicator_list: list[TileCommunicator], quantity: Quantity
+) -> Generator[tuple[TileCommunicator, Quantity]]:
     for rank, tile_communicator in enumerate(communicator_list):
         if rank == 0:
             array = quantity
@@ -14,9 +18,9 @@ def rank_scatter_results(communicator_list, quantity):
         yield (tile_communicator, tile_communicator.scatter(send_quantity=array))
 
 
-def get_tile_communicator_list(partitioner):
+def get_tile_communicator_list(partitioner: TilePartitioner) -> list[TileCommunicator]:
     total_ranks = partitioner.total_ranks
-    shared_buffer = {}
+    shared_buffer: dict = {}
     tile_communicator_list = []
     for rank in range(total_ranks):
         tile_communicator_list.append(
@@ -31,7 +35,9 @@ def get_tile_communicator_list(partitioner):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (1, 2), (2, 1), (2, 2), (3, 3)])
-def test_interface_state_two_by_two_per_rank_scatter_tile(layout, numpy):
+def test_interface_state_two_by_two_per_rank_scatter_tile(
+    layout: tuple[int, int], numpy: Any
+) -> None:
     state = {
         "pos_j": Quantity(
             numpy.empty([layout[0] + 1, layout[1] + 1]),
@@ -76,7 +82,9 @@ def test_interface_state_two_by_two_per_rank_scatter_tile(layout, numpy):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (1, 2), (2, 1), (2, 2), (3, 3)])
-def test_centered_state_one_item_per_rank_scatter_tile(layout, numpy):
+def test_centered_state_one_item_per_rank_scatter_tile(
+    layout: tuple[int, int], numpy: Any
+) -> None:
     total_ranks = layout[0] * layout[1]
     state = {
         "rank": Quantity(
@@ -133,7 +141,9 @@ def test_centered_state_one_item_per_rank_scatter_tile(layout, numpy):
 
 @pytest.mark.parametrize("layout", [(1, 1), (1, 2), (2, 1), (2, 2), (3, 3)])
 @pytest.mark.parametrize("n_halo", [0, 1, 3])
-def test_centered_state_one_item_per_rank_with_halo_scatter_tile(layout, n_halo, numpy):
+def test_centered_state_one_item_per_rank_with_halo_scatter_tile(
+    layout: tuple[int, int], n_halo: int, numpy: Any
+) -> None:
     extent = layout
     total_ranks = layout[0] * layout[1]
     state = {

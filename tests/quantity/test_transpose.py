@@ -15,12 +15,12 @@ from ndsl.constants import (
 
 
 @pytest.fixture
-def initial_dims(request):
+def initial_dims(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture
-def initial_shape(request):
+def initial_shape(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -40,22 +40,22 @@ def quantity_data_input(initial_data, numpy, backend):
 
 
 @pytest.fixture
-def initial_origin(request):
+def initial_origin(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture
-def initial_extent(request):
+def initial_extent(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture
-def transpose_order(request):
+def transpose_order(request: pytest.FixtureRequest):
     return request.param
 
 
 @pytest.fixture
-def target_dims(request):
+def target_dims(request: pytest.FixtureRequest):
     return request.param
 
 
@@ -218,7 +218,7 @@ def test_transpose_invalid_cases(
         quantity.transpose(target_dims)
 
 
-def test_transpose_retains_attrs(numpy):
+def test_transpose_retains_attrs(numpy) -> None:
     quantity = Quantity(
         numpy.random.randn(3, 4),
         dims=["x", "y"],

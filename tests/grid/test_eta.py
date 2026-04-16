@@ -22,7 +22,7 @@ is not provided.
 """
 
 
-def test_set_hybrid_pressure_coefficients_nofile():
+def test_set_hybrid_pressure_coefficients_nofile() -> None:
     """
     This test checks to see that the program fails when the eta_file is not specified
     in the yaml configuration file.
@@ -66,7 +66,7 @@ def test_set_hybrid_pressure_coefficients_nofile():
         )
 
 
-def test_set_hybrid_pressure_coefficients_not_mono():
+def test_set_hybrid_pressure_coefficients_not_mono() -> None:
     """
     This test checks to see that the program fails when the computed eta values
     increase non-monotonically. For the latter test, the eta_file is specified in

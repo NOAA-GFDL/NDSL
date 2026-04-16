@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -6,11 +8,11 @@ from ndsl.halo.rotate import rotate_scalar_data, rotate_vector_data
 
 
 @pytest.fixture
-def start_data(request, numpy):
+def start_data(request: pytest.FixtureRequest, numpy: Any) -> tuple[Any] | Any:
     if isinstance(request.param, tuple):
         return tuple(numpy.asarray(item) for item in request.param)
-    else:
-        return numpy.asarray(request.param)
+
+    return numpy.asarray(request.param)
 
 
 @pytest.mark.parametrize(
@@ -111,8 +113,12 @@ def start_data(request, numpy):
     indirect=["start_data"],
 )
 def test_rotate_scalar_data(
-    start_data, n_clockwise_rotations, dims, numpy, target_data
-):
+    start_data: Any,
+    n_clockwise_rotations: int,
+    dims: list[str],
+    numpy: Any,
+    target_data: Any,
+) -> None:
     result = rotate_scalar_data(start_data, dims, numpy, n_clockwise_rotations)
     numpy.testing.assert_array_equal(result, target_data)
 
@@ -166,8 +172,12 @@ def test_rotate_scalar_data(
     indirect=["start_data"],
 )
 def test_rotate_vector_data(
-    start_data, n_clockwise_rotations, dims, numpy, target_data
-):
+    start_data: Any,
+    n_clockwise_rotations: int,
+    dims: list[str],
+    numpy: Any,
+    target_data: Any,
+) -> None:
     x_data, y_data = start_data
     x_target, y_target = target_data
     x_result, y_result = rotate_vector_data(

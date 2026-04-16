@@ -19,7 +19,7 @@ class Copy:
             domain=grid_indexing.domain_compute(),
         )
 
-    def __call__(self, f_in: FloatField, f_out: FloatField):
+    def __call__(self, f_in: FloatField, f_out: FloatField) -> None:
         self._copy_stencil(f_in, f_out)
 
 
@@ -36,7 +36,7 @@ class AdjustmentFactor:
         self,
         factor: FloatFieldIJ,
         f_out: FloatField,
-    ):
+    ) -> None:
         self._adjustmentfactor_stencil(factor, f_out)
 
 
@@ -53,7 +53,7 @@ class SetValue:
         self,
         f_out: FloatField,
         value: Float,
-    ):
+    ) -> None:
         self._set_value_stencil(f_out, value)
 
 
@@ -70,11 +70,11 @@ class AdjustDivide:
         self,
         factor: FloatField,
         f_out: FloatField,
-    ):
+    ) -> None:
         self._adjust_divide_stencil(factor, f_out)
 
 
-def test_copy():
+def test_copy() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=20, ny=20, nz=79, nhalo=0
     )
@@ -94,7 +94,7 @@ def test_copy():
     assert (infield.field == outfield.field).all()
 
 
-def test_adjustment_factor():
+def test_adjustment_factor() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=20, ny=20, nz=79, nhalo=0
     )
@@ -107,7 +107,7 @@ def test_adjustment_factor():
     assert (outfield.field == 4.0).all()
 
 
-def test_setvalue():
+def test_setvalue() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=20, ny=20, nz=79, nhalo=0
     )
@@ -124,7 +124,7 @@ def test_setvalue():
     assert (outfield.field == fill_value).all()
 
 
-def test_adjust_divide():
+def test_adjust_divide() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=20, ny=20, nz=79, nhalo=0
     )

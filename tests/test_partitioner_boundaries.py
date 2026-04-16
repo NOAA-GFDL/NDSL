@@ -22,30 +22,30 @@ from ndsl.constants import (
 
 
 @pytest.fixture
-def partitioner_1_by_1():
+def partitioner_1_by_1() -> CubedSpherePartitioner:
     grid = TilePartitioner((1, 1))
     return CubedSpherePartitioner(grid)
 
 
 @pytest.fixture
-def partitioner_2_by_2():
+def partitioner_2_by_2() -> CubedSpherePartitioner:
     grid = TilePartitioner((2, 2))
     return CubedSpherePartitioner(grid)
 
 
 @pytest.fixture
-def tile_partitioner_3_by_3():
+def tile_partitioner_3_by_3() -> TilePartitioner:
     return TilePartitioner((3, 3))
 
 
 @pytest.fixture
-def partitioner_3_by_3():
+def partitioner_3_by_3() -> CubedSpherePartitioner:
     grid = TilePartitioner((3, 3))
     return CubedSpherePartitioner(grid)
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 19, 1),  #
         (1, 0, 0),
@@ -74,16 +74,20 @@ def partitioner_3_by_3():
     ],
 )
 def test_2_by_2_left_edge(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_2_by_2.boundary(WEST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 2, 0),
         (1, 0, 0),
@@ -97,22 +101,30 @@ def test_2_by_2_left_edge(
     ],
 )
 def test_single_3_by_3_left_edge(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(WEST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [(0, 4, 1), (1, 0, 0), (2, 0, 1), (3, 2, 0), (4, 2, 1), (5, 4, 0)],
 )
 def test_1_by_1_left_edge(
-    partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_1_by_1: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_1_by_1.boundary(WEST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
@@ -128,13 +140,15 @@ def test_1_by_1_left_edge(
         (2, (2, 2), 1, 3),
     ],
 )
-def test_rotate_subtile_rank(rank, layout, n_clockwise_rotations, new_rank):
+def test_rotate_subtile_rank(
+    rank: int, layout: tuple[int, int], n_clockwise_rotations: int, new_rank: int
+) -> None:
     result = rotate_subtile_rank(rank, layout, n_clockwise_rotations)
     assert result == new_rank
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 2, 0),  #
         (1, 3, 0),
@@ -162,15 +176,21 @@ def test_rotate_subtile_rank(rank, layout, n_clockwise_rotations, new_rank):
         (23, 1, 0),
     ],
 )
-def test_2_by_2_top_edge(partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations):
+def test_2_by_2_top_edge(
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_2_by_2.boundary(NORTH, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 3, 0),
         (1, 4, 0),
@@ -184,27 +204,37 @@ def test_2_by_2_top_edge(partitioner_2_by_2, from_rank, to_rank, n_clockwise_rot
     ],
 )
 def test_single_3_by_3_top_edge(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(NORTH, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [(0, 2, 3), (1, 2, 0), (2, 4, 3), (3, 4, 0), (4, 0, 3), (5, 0, 0)],
 )
-def test_1_by_1_top_edge(partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations):
+def test_1_by_1_top_edge(
+    partitioner_1_by_1: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_1_by_1.boundary(NORTH, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 22, 0),  #
         (1, 23, 0),
@@ -233,16 +263,20 @@ def test_1_by_1_top_edge(partitioner_1_by_1, from_rank, to_rank, n_clockwise_rot
     ],
 )
 def test_2_by_2_bottom_edge(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_2_by_2.boundary(SOUTH, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 6, 0),
         (1, 7, 0),
@@ -256,29 +290,37 @@ def test_2_by_2_bottom_edge(
     ],
 )
 def test_single_3_by_3_bottom_edge(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(SOUTH, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [(0, 5, 0), (1, 5, 3), (2, 1, 0), (3, 1, 3), (4, 3, 0), (5, 3, 3)],
 )
 def test_1_by_1_bottom_edge(
-    partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_1_by_1: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_1_by_1.boundary(SOUTH, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 1, 0),  #
         (1, 4, 0),
@@ -307,16 +349,20 @@ def test_1_by_1_bottom_edge(
     ],
 )
 def test_2_by_2_right_edge(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_2_by_2.boundary(EAST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 1, 0),
         (1, 2, 0),
@@ -330,53 +376,69 @@ def test_2_by_2_right_edge(
     ],
 )
 def test_single_3_by_3_right_edge(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(EAST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [(0, 1, 0), (1, 3, 1), (2, 3, 0), (3, 5, 1), (4, 5, 0), (5, 1, 1)],
 )
 def test_1_by_1_right_edge(
-    partitioner_1_by_1, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_1_by_1: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = partitioner_1_by_1.boundary(EAST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-def test_1_by_1_top_left_corner(partitioner_1_by_1, from_rank):
+def test_1_by_1_top_left_corner(
+    partitioner_1_by_1: CubedSpherePartitioner, from_rank: int
+) -> None:
     corner = partitioner_1_by_1.boundary(NORTHWEST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-def test_1_by_1_top_right_corner(partitioner_1_by_1, from_rank):
+def test_1_by_1_top_right_corner(
+    partitioner_1_by_1: CubedSpherePartitioner, from_rank: int
+) -> None:
     corner = partitioner_1_by_1.boundary(NORTHEAST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-def test_1_by_1_bottom_left_corner(partitioner_1_by_1, from_rank):
+def test_1_by_1_bottom_left_corner(
+    partitioner_1_by_1: CubedSpherePartitioner, from_rank: int
+) -> None:
     corner = partitioner_1_by_1.boundary(SOUTHWEST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize("from_rank", [0, 1, 2, 3, 4, 5])
-def test_1_by_1_bottom_right_corner(partitioner_1_by_1, from_rank):
+def test_1_by_1_bottom_right_corner(
+    partitioner_1_by_1: CubedSpherePartitioner, from_rank: int
+) -> None:
     corner = partitioner_1_by_1.boundary(SOUTHEAST, from_rank)
     assert corner is None
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 18, 1),  #
         (1, 2, 0),
@@ -405,19 +467,23 @@ def test_1_by_1_bottom_right_corner(partitioner_1_by_1, from_rank):
     ],
 )
 def test_2_by_2_top_left_corner(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int | None,
+    n_clockwise_rotations: int,
+) -> None:
     corner = partitioner_2_by_2.boundary(NORTHWEST, from_rank)
     if to_rank is None:
         assert corner is None
     else:
+        assert corner is not None
         assert corner.from_rank == from_rank
         assert corner.to_rank == to_rank
         assert corner.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 5, 0),
         (1, 3, 0),
@@ -431,16 +497,20 @@ def test_2_by_2_top_left_corner(
     ],
 )
 def test_single_3_by_3_top_left_corner(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(NORTHWEST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "layout, boundary_type, from_rank, to_rank",
+    "layout, boundary_type, from_rank: int, to_rank",
     (
         ((1, 1), WEST, 0, 0),
         ((1, 1), EAST, 0, 0),
@@ -456,16 +526,19 @@ def test_single_3_by_3_top_left_corner(
         ((2, 2), SOUTH, 3, 1),
     ),
 )
-def test_tile_boundary(layout, boundary_type, from_rank, to_rank):
+def test_tile_boundary(
+    layout: tuple[int, int], boundary_type: int, from_rank: int, to_rank: int
+) -> None:
     tile = TilePartitioner(layout)
     boundary = tile.boundary(boundary_type, from_rank)
+    assert boundary is not None
     assert boundary.from_rank == from_rank
     assert boundary.to_rank == to_rank
     assert boundary.n_clockwise_rotations == 0
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 3, 0),  #
         (1, 6, 0),
@@ -494,19 +567,23 @@ def test_tile_boundary(layout, boundary_type, from_rank, to_rank):
     ],
 )
 def test_2_by_2_top_right_corner(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int | None,
+    n_clockwise_rotations: int | None,
+) -> None:
     corner = partitioner_2_by_2.boundary(NORTHEAST, from_rank)
     if to_rank is None:
         assert corner is None
     else:
+        assert corner is not None
         assert corner.from_rank == from_rank
         assert corner.to_rank == to_rank
         assert corner.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 4, 0),
         (1, 5, 0),
@@ -520,16 +597,20 @@ def test_2_by_2_top_right_corner(
     ],
 )
 def test_single_3_by_3_top_right_corner(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(NORTHEAST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, None, None),  #
         (1, 22, 0),
@@ -558,19 +639,23 @@ def test_single_3_by_3_top_right_corner(
     ],
 )
 def test_2_by_2_bottom_left_corner(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int | None,
+    n_clockwise_rotations: int | None,
+) -> None:
     corner = partitioner_2_by_2.boundary(SOUTHWEST, from_rank)
     if to_rank is None:
         assert corner is None
     else:
+        assert corner is not None
         assert corner.from_rank == from_rank
         assert corner.to_rank == to_rank
         assert corner.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 8, 0),
         (1, 6, 0),
@@ -584,16 +669,20 @@ def test_2_by_2_bottom_left_corner(
     ],
 )
 def test_single_3_by_3_bottom_left_corner(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(SOUTHWEST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 23, 0),  #
         (1, None, None),
@@ -622,19 +711,23 @@ def test_single_3_by_3_bottom_left_corner(
     ],
 )
 def test_2_by_2_bottom_right_corner(
-    partitioner_2_by_2, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_2_by_2: CubedSpherePartitioner,
+    from_rank: int,
+    to_rank: int | None,
+    n_clockwise_rotations: int | None,
+) -> None:
     corner = partitioner_2_by_2.boundary(SOUTHEAST, from_rank)
     if to_rank is None:
         assert corner is None
     else:
+        assert corner is not None
         assert corner.from_rank == from_rank
         assert corner.to_rank == to_rank
         assert corner.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize(
-    "from_rank, to_rank, n_clockwise_rotations",
+    "from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (0, 7, 0),
         (1, 8, 0),
@@ -648,19 +741,24 @@ def test_2_by_2_bottom_right_corner(
     ],
 )
 def test_single_3_by_3_bottom_right_corner(
-    tile_partitioner_3_by_3, from_rank, to_rank, n_clockwise_rotations
-):
+    tile_partitioner_3_by_3: TilePartitioner,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     edge = tile_partitioner_3_by_3.boundary(SOUTHEAST, from_rank)
+    assert edge is not None
     assert edge.from_rank == from_rank
     assert edge.to_rank == to_rank
     assert edge.n_clockwise_rotations == n_clockwise_rotations
 
 
-def test_boundary_returns_correct_boundary_type():
+def test_boundary_returns_correct_boundary_type() -> None:
     tile = TilePartitioner((3, 3))
     partitioner = CubedSpherePartitioner(tile)
     for boundary_type in BOUNDARY_TYPES:
         boundary = partitioner.boundary(boundary_type, rank=4)  # center face
+        assert boundary is not None
         assert boundary.boundary_type == boundary_type
 
 
@@ -670,7 +768,7 @@ def test_boundary_returns_correct_boundary_type():
 # left is tile 4 top-right corner, 1 rotation
 # bottom is tile 5 top-left corner, 0 rotations
 @pytest.mark.parametrize(
-    "boundary_type, from_rank, to_rank, n_clockwise_rotations",
+    "boundary_type, from_rank: int, to_rank: int, n_clockwise_rotations",
     [
         (WEST, 0, 4 * 9 + 8, 1),
         (SOUTH, 0, 5 * 9 + 6, 0),
@@ -679,19 +777,23 @@ def test_boundary_returns_correct_boundary_type():
     ],
 )
 def test_3_by_3_difficult_cases(
-    partitioner_3_by_3, boundary_type, from_rank, to_rank, n_clockwise_rotations
-):
+    partitioner_3_by_3: CubedSpherePartitioner,
+    boundary_type: int,
+    from_rank: int,
+    to_rank: int,
+    n_clockwise_rotations: int,
+) -> None:
     corner = partitioner_3_by_3.boundary(boundary_type, from_rank)
-    if to_rank is None:
-        assert corner is None
-    else:
-        assert corner.from_rank == from_rank
-        assert corner.to_rank == to_rank
-        assert corner.n_clockwise_rotations == n_clockwise_rotations
+    assert corner is not None
+    assert corner.from_rank == from_rank
+    assert corner.to_rank == to_rank
+    assert corner.n_clockwise_rotations == n_clockwise_rotations
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (2, 2), (4, 4)])
-def test_edge_boundaries_pair(layout, subtests):
+def test_edge_boundaries_pair(
+    layout: tuple[int, int], subtests: pytest.Subtests
+) -> None:
     order = [WEST, NORTH, EAST, SOUTH]
     tile = TilePartitioner(layout)
     partitioner = CubedSpherePartitioner(tile)
@@ -699,12 +801,14 @@ def test_edge_boundaries_pair(layout, subtests):
         for boundary_type in EDGE_BOUNDARY_TYPES:
             with subtests.test(rank=rank, boundary_type=boundary_type):
                 out_boundary = partitioner.boundary(boundary_type, rank)
+                assert out_boundary is not None
                 in_boundary = partitioner.boundary(
                     rotate(
                         boundary_type, 2 - out_boundary.n_clockwise_rotations, order
                     ),
                     out_boundary.to_rank,
                 )
+                assert in_boundary is not None
                 assert out_boundary.to_rank == in_boundary.from_rank
                 assert in_boundary.to_rank == out_boundary.from_rank
                 assert (
@@ -714,7 +818,9 @@ def test_edge_boundaries_pair(layout, subtests):
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (2, 2), (4, 4)])
-def test_corner_boundaries_pair(layout, subtests):
+def test_corner_boundaries_pair(
+    layout: tuple[int, int], subtests: pytest.Subtests
+) -> None:
     order = [
         NORTHWEST,
         NORTHEAST,
@@ -734,6 +840,7 @@ def test_corner_boundaries_pair(layout, subtests):
                         ),
                         out_boundary.to_rank,
                     )
+                    assert in_boundary is not None
                     assert out_boundary.to_rank == in_boundary.from_rank
                     assert in_boundary.to_rank == out_boundary.from_rank
                     assert (
@@ -742,6 +849,6 @@ def test_corner_boundaries_pair(layout, subtests):
                     )
 
 
-def rotate(boundary_type, n_clockwise_rotations, order):
+def rotate(boundary_type: int, n_clockwise_rotations: int, order: list[int]) -> int:
     target_index = (order.index(boundary_type) + n_clockwise_rotations) % len(order)
     return order[target_index]

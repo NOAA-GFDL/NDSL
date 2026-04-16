@@ -16,7 +16,7 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM
 
 
-def test_halo_update_integration():
+def test_halo_update_integration() -> None:
     shape = (18, 18)
     dims = [I_DIM, J_DIM]
     origin = (3, 3)
@@ -34,7 +34,7 @@ def test_halo_update_integration():
         )
         for _ in range(n_ranks)
     ]
-    buffer_dict = {}
+    buffer_dict: dict = {}
     write_communicator_list: List[CubedSphereCommunicator] = []
     for i in range(n_ranks):
         write_communicator_list.append(
@@ -51,7 +51,7 @@ def test_halo_update_integration():
     read_communicator_list: List[CubedSphereCommunicator] = []
     for i in range(n_ranks):
         file = io.BytesIO()
-        write_communicator_list[i].comm.dump(file)
+        write_communicator_list[i].comm.dump(file)  # type: ignore[attr-defined]
         file.seek(0)
         read_communicator_list.append(
             CubedSphereCommunicator(
@@ -67,7 +67,7 @@ def test_halo_update_integration():
 def perform_serial_halo_updates(
     communicator_list: List[CubedSphereCommunicator],
     quantity_list: List[Quantity],
-):
+) -> None:
     req_list = []
     for communicator, quantity in zip(communicator_list, quantity_list):
         req_list.append(communicator.start_halo_update(quantity, n_points=3))
@@ -75,8 +75,8 @@ def perform_serial_halo_updates(
         req.wait()
 
 
-def test_Recv_inserts_data():
-    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))
+def test_Recv_inserts_data() -> None:
+    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))  # type: ignore[var-annotated]
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.received_buffers) == 0
@@ -89,8 +89,8 @@ def test_Recv_inserts_data():
         assert comm._data.received_buffers[0].shape == shape
 
 
-def test_Irecv_inserts_data():
-    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))
+def test_Irecv_inserts_data() -> None:
+    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))  # type: ignore[var-annotated]
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.received_buffers) == 0
@@ -106,8 +106,8 @@ def test_Irecv_inserts_data():
         assert comm._data.received_buffers[0].shape == shape
 
 
-def test_bcast_inserts_data():
-    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))
+def test_bcast_inserts_data() -> None:
+    comm = CachingCommWriter(comm=LocalComm(rank=0, total_ranks=6, buffer_dict={}))  # type: ignore[var-annotated]
     shape = (12, 12)
     recvbuf = np.random.randn(*shape)
     assert len(comm._data.bcast_objects) == 0
@@ -125,16 +125,16 @@ def writer_to_reader(comm_writer: CachingCommWriter) -> CachingCommReader:
     return CachingCommReader.load(file)
 
 
-def test_Scatter():
+def test_Scatter() -> None:
     np.random.seed(0)
     array = np.random.uniform(size=(50,))
     send_array = np.empty([2] + list(array.shape))
     send_array[:] = array[None, :]
-    buffer_dict = {}
-    root_comm = CachingCommWriter(
+    buffer_dict: dict = {}
+    root_comm = CachingCommWriter(  # type: ignore[var-annotated]
         comm=LocalComm(rank=0, total_ranks=2, buffer_dict=buffer_dict)
     )
-    worker_comm = CachingCommWriter(
+    worker_comm = CachingCommWriter(  # type: ignore[var-annotated]
         comm=LocalComm(rank=1, total_ranks=2, buffer_dict=buffer_dict)
     )
     recvbuf_root = np.zeros_like(array)
@@ -143,8 +143,8 @@ def test_Scatter():
     worker_comm.Scatter(None, recvbuf=recvbuf_worker, root=0)
     np.testing.assert_array_equal(recvbuf_root, recvbuf_worker)
 
-    root_comm = writer_to_reader(root_comm)
-    worker_comm = writer_to_reader(worker_comm)
+    root_comm = writer_to_reader(root_comm)  # type: ignore[assignment]
+    worker_comm = writer_to_reader(worker_comm)  # type: ignore[assignment]
 
     recvbuf2_root = np.zeros_like(array)
     recvbuf2_worker = np.zeros_like(array)
@@ -154,15 +154,15 @@ def test_Scatter():
     np.testing.assert_array_equal(recvbuf2_worker, recvbuf_worker)
 
 
-def test_Gather():
+def test_Gather() -> None:
     np.random.seed(0)
     array_root = np.random.uniform(size=(50,))
     array_worker = np.random.uniform(size=(50,))
     buffer_dict = {}
-    root_comm = CachingCommWriter(
+    root_comm = CachingCommWriter(  # type: ignore[var-annotated]
         comm=LocalComm(rank=0, total_ranks=2, buffer_dict=buffer_dict)
     )
-    worker_comm = CachingCommWriter(
+    worker_comm = CachingCommWriter(  # type: ignore[var-annotated]
         comm=LocalComm(rank=1, total_ranks=2, buffer_dict=buffer_dict)
     )
     recvbuf_root = np.empty([2] + list(array_root.shape))
@@ -171,8 +171,8 @@ def test_Gather():
     np.testing.assert_array_equal(recvbuf_root[0, :], array_root)
     np.testing.assert_array_equal(recvbuf_root[1, :], array_worker)
 
-    root_comm = writer_to_reader(root_comm)
-    worker_comm = writer_to_reader(worker_comm)
+    root_comm = writer_to_reader(root_comm)  # type: ignore[assignment]
+    worker_comm = writer_to_reader(worker_comm)  # type: ignore[assignment]
 
     recvbuf_root = np.empty([2] + list(array_root.shape))
     worker_comm.Gather(array_worker, recvbuf=None, root=0)

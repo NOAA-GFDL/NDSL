@@ -11,7 +11,7 @@ from ndsl.checkpointer.validation import _clip_pace_array_to_target
 
 def get_dataset(
     n_savepoints: int, n_vars: int, n_ranks: int, nx: int, ny: int, nz: int
-):
+) -> xr.Dataset:
     data_vars = {}
     for i in range(n_vars):
         data_vars["data{}".format(i)] = xr.DataArray(
@@ -27,7 +27,7 @@ def get_dataset(
     return xr.Dataset(data_vars=data_vars)
 
 
-def test_validation_validates_onevar_onecall():
+def test_validation_validates_onevar_onecall() -> None:
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
     nz = 20
@@ -61,7 +61,9 @@ def test_validation_validates_onevar_onecall():
         pytest.param(1.0, 0.99, id="absolute_failure"),
     ],
 )
-def test_validation_asserts_onevar_onecall(relative_threshold, absolute_threshold):
+def test_validation_asserts_onevar_onecall(
+    relative_threshold: float, absolute_threshold: float
+) -> None:
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
     nz = 20
@@ -105,7 +107,9 @@ def test_validation_asserts_onevar_onecall(relative_threshold, absolute_threshol
         pytest.param(1.0, 0.99, id="absolute_threshold"),
     ],
 )
-def test_validation_passes_onevar_two_calls(relative_threshold, absolute_threshold):
+def test_validation_passes_onevar_two_calls(
+    relative_threshold: float, absolute_threshold: float
+) -> None:
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
     nz = 20
@@ -155,7 +159,9 @@ def test_validation_passes_onevar_two_calls(relative_threshold, absolute_thresho
         pytest.param(1.0, 0.99, id="absolute_failure"),
     ],
 )
-def test_validation_asserts_onevar_two_calls(relative_threshold, absolute_threshold):
+def test_validation_asserts_onevar_two_calls(
+    relative_threshold: float, absolute_threshold: float
+) -> None:
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
     nz = 20
@@ -207,7 +213,9 @@ def test_validation_asserts_onevar_two_calls(relative_threshold, absolute_thresh
         pytest.param(1.0, 0.99, id="absolute_failure"),
     ],
 )
-def test_validation_asserts_twovar_onecall(relative_threshold, absolute_threshold):
+def test_validation_asserts_twovar_onecall(
+    relative_threshold: float, absolute_threshold: float
+) -> None:
     temp_dir = tempfile.TemporaryDirectory()
     nx_compute = 12
     nz = 20
@@ -272,6 +280,8 @@ def test_validation_asserts_twovar_onecall(relative_threshold, absolute_threshol
         ),
     ],
 )
-def test_clip_pace_array_to_target(array, target_shape, target_array):
+def test_clip_pace_array_to_target(
+    array: np.ndarray, target_shape: tuple, target_array: np.ndarray
+) -> None:
     clipped = _clip_pace_array_to_target(array, target_shape=target_shape)
     np.testing.assert_array_equal(clipped, target_array)

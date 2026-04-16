@@ -25,7 +25,7 @@ def dtype(numpy):
 
 
 @pytest.fixture(params=[(1, 1)])
-def layout(request):
+def layout(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
@@ -134,7 +134,9 @@ def rank_quantity_list(total_ranks, numpy, dtype):
 
 
 @pytest.mark.filterwarnings("ignore:invalid value encountered in remainder")
-def test_correct_rank_layout(rank_quantity_list, communicator_list, subtests, numpy):
+def test_correct_rank_layout(
+    rank_quantity_list, communicator_list, subtests, numpy
+) -> None:
     halo_updater_list = []
     for communicator, quantity in zip(communicator_list, rank_quantity_list):
         halo_updater = communicator.start_halo_update(quantity, 1)

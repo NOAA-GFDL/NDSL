@@ -30,12 +30,12 @@ def test_determine_rank_is_compiling(
     assert determine_rank_is_compiling(rank, partitioner.total_ranks) == is_compiling
 
 
-def test_check_cached_path_exists():
+def test_check_cached_path_exists() -> None:
     with pytest.raises(RuntimeError):
         check_cached_path_exists("not/a/real/path")
 
 
-def test_check_cached_path_exists_working():
+def test_check_cached_path_exists_working() -> None:
     path = os.getcwd()
     check_cached_path_exists(path)
 

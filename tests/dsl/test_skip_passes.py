@@ -19,7 +19,7 @@ from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
-def stencil_definition(a: FloatField):
+def stencil_definition(a: FloatField) -> None:
     with computation(PARALLEL), interval(...):
         a = 0.0
 
@@ -60,6 +60,7 @@ def test_skip_passes_becomes_oir_pipeline() -> None:
             skip_passes=("HorizontalExecutionMerging",),
         )
     assert "oir_pipeline" in mock_stencil_builder.call_args.kwargs
-    pipeline: DefaultPipeline = mock_stencil_builder.call_args.kwargs["oir_pipeline"]
+
+    pipeline = mock_stencil_builder.call_args.kwargs["oir_pipeline"]
     assert HorizontalExecutionMerging in pipeline.skip
     assert HorizontalExecutionMerging not in pipeline.steps

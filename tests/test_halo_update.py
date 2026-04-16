@@ -42,7 +42,7 @@ def dtype(numpy):
 
 
 @pytest.fixture(params=[(1, 1), (3, 3)])
-def layout(request):
+def layout(request: pytest.FixtureRequest) -> tuple[int, int]:
     return request.param
 
 
@@ -57,7 +57,7 @@ def ny_rank(nx_rank):
 
 
 @pytest.fixture
-def nz():
+def nz() -> int:
     return 2
 
 
@@ -72,7 +72,7 @@ def nx(nx_rank, layout):
 
 
 @pytest.fixture(params=[1, 3])
-def n_points(request):
+def n_points(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
@@ -104,12 +104,12 @@ def n_points_update(request, n_points):
         ),
     ]
 )
-def dims(request):
+def dims(request: pytest.FixtureRequest) -> tuple[str]:
     return request.param
 
 
 @pytest.fixture
-def units():
+def units() -> str:
     return "m"
 
 
@@ -129,7 +129,7 @@ def single_tile_ranks(layout):
 
 
 @pytest.fixture(params=[0, 1])
-def n_buffer(request):
+def n_buffer(request: pytest.FixtureRequest) -> int:
     return request.param
 
 
@@ -182,7 +182,9 @@ def extent(n_points, dims, nz, ny, nx):
 
 
 @pytest.fixture
-def communicator_list(cube_partitioner: CubedSpherePartitioner):
+def communicator_list(
+    cube_partitioner: CubedSpherePartitioner,
+) -> list[CubedSphereCommunicator]:
     total_ranks = cube_partitioner.total_ranks
     shared_buffer: Dict[str, Any] = {}
     return_list = []
