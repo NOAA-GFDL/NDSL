@@ -11,7 +11,7 @@ from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 from ndsl.dsl.typing import FloatField
 
 
-def _stencil(out: Field[float]) -> None:
+def _stencil(out: Field[float]):
     with computation(PARALLEL), interval(...):
         out = out + 1
 
@@ -30,34 +30,34 @@ class AState(State):
 
 
 class OrchestratedProgram:
-    def __init__(self, stencil_factory: StencilFactory) -> None:
+    def __init__(self, stencil_factory: StencilFactory):
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, out_qty) -> None:
+    def __call__(self, out_qty):
         self.stencil(out_qty)
 
 
 class DSLTypeProgram(NDSLRuntime):
-    def __init__(self, stencil_factory: StencilFactory) -> None:
+    def __init__(self, stencil_factory: StencilFactory):
         super().__init__(stencil_factory)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, a_quantity: Quantity, a_state: AState) -> None:
+    def __call__(self, a_quantity: Quantity, a_state: AState):
         self.stencil(a_quantity)
         self.stencil(a_state.the_quantity)
 
 
 class GTTypeProgram(NDSLRuntime):
-    def __init__(self, stencil_factory: StencilFactory) -> None:
+    def __init__(self, stencil_factory: StencilFactory):
         super().__init__(stencil_factory)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, a_quantity: FloatField) -> None:
+    def __call__(self, a_quantity: FloatField):
         self.stencil(a_quantity)
 
 
-def test_memory_reallocation_blind_type() -> None:
+def test_memory_reallocation_blind_type():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -77,7 +77,7 @@ def test_memory_reallocation_blind_type() -> None:
 
 
 @pytest.mark.xfail(reason="See https://github.com/NOAA-GFDL/NDSL/issues/436")
-def test_memory_reallocation_dsl_typehint() -> None:
+def test_memory_reallocation_dsl_typehint():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -95,7 +95,7 @@ def test_memory_reallocation_dsl_typehint() -> None:
     assert (state_B.the_quantity.field[0, 0, :] == 2).all()
 
 
-def test_memory_reallocation_gt4py_typehint() -> None:
+def test_memory_reallocation_gt4py_typehint():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -111,7 +111,7 @@ def test_memory_reallocation_gt4py_typehint() -> None:
     assert (qty_E.field[0, 0, :] == 2).all()
 
 
-def test_default_types_are_compiletime() -> None:
+def test_default_types_are_compiletime():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -121,7 +121,7 @@ def test_default_types_are_compiletime() -> None:
     code(qty_A, state_A)
 
 
-def test_dace_call_argument_caching() -> None:
+def test_dace_call_argument_caching():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0, backend=Backend.cpu()
     )

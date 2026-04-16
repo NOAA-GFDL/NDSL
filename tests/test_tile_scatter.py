@@ -9,7 +9,7 @@ from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM
 
 def rank_scatter_results(
     communicator_list: list[TileCommunicator], quantity: Quantity
-) -> Generator[tuple[TileCommunicator, Quantity]]:
+) -> Generator[tuple[TileCommunicator, Quantity], Any, None]:
     for rank, tile_communicator in enumerate(communicator_list):
         if rank == 0:
             array = quantity

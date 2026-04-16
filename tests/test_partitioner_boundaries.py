@@ -45,7 +45,7 @@ def partitioner_3_by_3() -> CubedSpherePartitioner:
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 19, 1),  #
         (1, 0, 0),
@@ -87,7 +87,7 @@ def test_2_by_2_left_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 2, 0),
         (1, 0, 0),
@@ -114,7 +114,7 @@ def test_single_3_by_3_left_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [(0, 4, 1), (1, 0, 0), (2, 0, 1), (3, 2, 0), (4, 2, 1), (5, 4, 0)],
 )
 def test_1_by_1_left_edge(
@@ -148,7 +148,7 @@ def test_rotate_subtile_rank(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 2, 0),  #
         (1, 3, 0),
@@ -190,7 +190,7 @@ def test_2_by_2_top_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 3, 0),
         (1, 4, 0),
@@ -217,7 +217,7 @@ def test_single_3_by_3_top_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [(0, 2, 3), (1, 2, 0), (2, 4, 3), (3, 4, 0), (4, 0, 3), (5, 0, 0)],
 )
 def test_1_by_1_top_edge(
@@ -234,7 +234,7 @@ def test_1_by_1_top_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 22, 0),  #
         (1, 23, 0),
@@ -276,7 +276,7 @@ def test_2_by_2_bottom_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 6, 0),
         (1, 7, 0),
@@ -303,7 +303,7 @@ def test_single_3_by_3_bottom_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [(0, 5, 0), (1, 5, 3), (2, 1, 0), (3, 1, 3), (4, 3, 0), (5, 3, 3)],
 )
 def test_1_by_1_bottom_edge(
@@ -320,7 +320,7 @@ def test_1_by_1_bottom_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 1, 0),  #
         (1, 4, 0),
@@ -362,7 +362,7 @@ def test_2_by_2_right_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 1, 0),
         (1, 2, 0),
@@ -389,7 +389,7 @@ def test_single_3_by_3_right_edge(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [(0, 1, 0), (1, 3, 1), (2, 3, 0), (3, 5, 1), (4, 5, 0), (5, 1, 1)],
 )
 def test_1_by_1_right_edge(
@@ -438,7 +438,7 @@ def test_1_by_1_bottom_right_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 18, 1),  #
         (1, 2, 0),
@@ -483,7 +483,7 @@ def test_2_by_2_top_left_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 5, 0),
         (1, 3, 0),
@@ -510,7 +510,7 @@ def test_single_3_by_3_top_left_corner(
 
 
 @pytest.mark.parametrize(
-    "layout, boundary_type, from_rank: int, to_rank",
+    "layout, boundary_type, from_rank, to_rank",
     (
         ((1, 1), WEST, 0, 0),
         ((1, 1), EAST, 0, 0),
@@ -538,7 +538,7 @@ def test_tile_boundary(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 3, 0),  #
         (1, 6, 0),
@@ -583,7 +583,7 @@ def test_2_by_2_top_right_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 4, 0),
         (1, 5, 0),
@@ -610,7 +610,7 @@ def test_single_3_by_3_top_right_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, None, None),  #
         (1, 22, 0),
@@ -655,7 +655,7 @@ def test_2_by_2_bottom_left_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 8, 0),
         (1, 6, 0),
@@ -682,7 +682,7 @@ def test_single_3_by_3_bottom_left_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 23, 0),  #
         (1, None, None),
@@ -727,7 +727,7 @@ def test_2_by_2_bottom_right_corner(
 
 
 @pytest.mark.parametrize(
-    "from_rank: int, to_rank: int, n_clockwise_rotations",
+    "from_rank, to_rank, n_clockwise_rotations",
     [
         (0, 7, 0),
         (1, 8, 0),
@@ -768,7 +768,7 @@ def test_boundary_returns_correct_boundary_type() -> None:
 # left is tile 4 top-right corner, 1 rotation
 # bottom is tile 5 top-left corner, 0 rotations
 @pytest.mark.parametrize(
-    "boundary_type, from_rank: int, to_rank: int, n_clockwise_rotations",
+    "boundary_type, from_rank, to_rank, n_clockwise_rotations",
     [
         (WEST, 0, 4 * 9 + 8, 1),
         (SOUTH, 0, 5 * 9 + 6, 0),
