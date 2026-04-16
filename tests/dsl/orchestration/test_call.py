@@ -19,7 +19,7 @@ class OrchestratedProgram:
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, out_qty):
+    def __call__(self, out_qty: Quantity):
         self.stencil(out_qty)
 
 
