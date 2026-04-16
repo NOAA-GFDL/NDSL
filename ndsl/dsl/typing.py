@@ -43,19 +43,25 @@ NDSL_32BIT_INT_TYPE: TypeAlias = np.int32
 NDSL_64BIT_INT_TYPE: TypeAlias = np.int64
 
 
-def global_set_precision() -> tuple[type, type]:
-    """Set the global precision for all references of
-    Float and Int in the codebase. Defaults to 64 bit."""
-    precision_in_bit = NDSL_GLOBAL_PRECISION
+# mypy only really works with static type hints. `Float` and `Int` are set dynamically
+# at runtime based on `NDSL_GLOBAL_PRECISION`. For mypy this is the difference between
+# variables and `TypeAlias`:
+# https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
+# A `TypeAlias` can never be set conditionally, thus `Float` and `Int` are variables,
+# which `mypy` won't consider in type contexts. It is thus simpler to not type them
+# and potentially let IDEs / language servers infer types.
+def global_set_precision():  # type: ignore[no-untyped-def]
+    """Set the global precision for all references of Float and Int in the codebase.
+    Defaults to 64 bit."""
 
-    if precision_in_bit == 64:
-        return (NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE)
+    if NDSL_GLOBAL_PRECISION == 64:
+        return NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE
 
-    if precision_in_bit == 32:
-        return (NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE)
+    if NDSL_GLOBAL_PRECISION == 32:
+        return NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE
 
     raise NotImplementedError(
-        f"{precision_in_bit} bit precision not implemented or tested."
+        f"{NDSL_GLOBAL_PRECISION} bit precision not implemented or tested."
     )
 
 

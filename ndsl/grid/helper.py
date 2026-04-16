@@ -226,7 +226,7 @@ class VerticalGridData:
         return self._dp_ref
 
     @property
-    def ptop(self) -> Float:  # type: ignore[valid-type]
+    def ptop(self) -> Float:
         """Top of atmosphere pressure (Pa)"""
         if self.bk.view[0] != 0:
             raise ValueError("ptop is not well-defined when top-of-atmosphere bk != 0")
