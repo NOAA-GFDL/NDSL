@@ -1,17 +1,32 @@
 import dataclasses
 
-from ndsl import NDSLRuntime, StencilFactory
+import pytest
+
+from ndsl import NDSLRuntime, Quantity, State, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
-from ndsl.quantity import Quantity, State
+from ndsl.dsl.typing import FloatField
 
 
 def _stencil(out: Field[float]):
     with computation(PARALLEL), interval(...):
         out = out + 1
+
+
+@dataclasses.dataclass
+class AState(State):
+    the_quantity: Quantity = dataclasses.field(
+        metadata={
+            "name": "A",
+            "dims": [I_DIM, J_DIM, K_DIM],
+            "units": "kg kg-1",
+            "intent": "?",
+            "dtype": Float,
+        }
+    )
 
 
 class OrchestratedProgram:
@@ -23,7 +38,26 @@ class OrchestratedProgram:
         self.stencil(out_qty)
 
 
-def test_memory_reallocation():
+class DSLTypeProgram(NDSLRuntime):
+    def __init__(self, stencil_factory: StencilFactory):
+        super().__init__(stencil_factory)
+        self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
+
+    def __call__(self, a_quantity: Quantity, a_state: AState):
+        self.stencil(a_quantity)
+        self.stencil(a_state.the_quantity)
+
+
+class GTTypeProgram(NDSLRuntime):
+    def __init__(self, stencil_factory: StencilFactory):
+        super().__init__(stencil_factory)
+        self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
+
+    def __call__(self, a_quantity: FloatField):
+        self.stencil(a_quantity)
+
+
+def test_memory_reallocation_blind_type():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         5, 5, 2, 0
     )
@@ -42,27 +76,39 @@ def test_memory_reallocation():
     assert (qty_B.field[0, 0, :] == 2).all()
 
 
-@dataclasses.dataclass
-class AState(State):
-    the_quantity: Quantity = dataclasses.field(
-        metadata={
-            "name": "A",
-            "dims": [I_DIM, J_DIM, K_DIM],
-            "units": "kg kg-1",
-            "intent": "?",
-            "dtype": Float,
-        }
+@pytest.mark.xfail(reason="See https://github.com/NOAA-GFDL/NDSL/issues/436")
+def test_memory_reallocation_dsl_typehint():
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0
     )
+    typed_code = DSLTypeProgram(stencil_factory)
+    qty_C = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+    state_A = AState.ones(quantity_factory)
+    state_B = AState.ones(quantity_factory)
+
+    typed_code(qty_C, state_A)
+    assert (qty_C.field[0, 0, :] == 2).all()
+    assert (state_A.the_quantity.field[0, 0, :] == 2).all()
+
+    typed_code(qty_C, state_B)
+    assert (state_A.the_quantity.field[0, 0, :] == 2).all()
+    assert (state_B.the_quantity.field[0, 0, :] == 2).all()
 
 
-class DefaultTypeProgram(NDSLRuntime):
-    def __init__(self, stencil_factory: StencilFactory):
-        super().__init__(stencil_factory)
-        self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
+def test_memory_reallocation_gt4py_typehint():
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0
+    )
+    typed_code = GTTypeProgram(stencil_factory)
+    qty_D = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+    qty_E = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
 
-    def __call__(self, a_quantity: Quantity, a_state: AState):
-        self.stencil(a_quantity)
-        self.stencil(a_state.the_quantity)
+    typed_code(qty_D)
+    assert (qty_D.field[0, 0, :] == 2).all()
+
+    typed_code(qty_E)
+    assert (qty_D.field[0, 0, :] == 2).all()
+    assert (qty_E.field[0, 0, :] == 2).all()
 
 
 def test_default_types_are_compiletime():
@@ -71,7 +117,7 @@ def test_default_types_are_compiletime():
     )
     qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
     state_A = AState.zeros(quantity_factory)
-    code = DefaultTypeProgram(stencil_factory)
+    code = DSLTypeProgram(stencil_factory)
     code(qty_A, state_A)
 
 
@@ -83,7 +129,7 @@ def test_dace_call_argument_caching():
 
     quantity_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
     state_A = AState.zeros(quantity_factory)
-    code = DefaultTypeProgram(stencil_factory)
+    code = DSLTypeProgram(stencil_factory)
     code(quantity_A, state_A)
 
     assert len(dconfig.loaded_dace_executables.values()) == 1
