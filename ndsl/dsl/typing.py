@@ -1,3 +1,4 @@
+import warnings
 from typing import TypeAlias
 
 import numpy as np
@@ -25,6 +26,11 @@ DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.f
 
 
 def get_precision() -> int:
+    warnings.warn(
+        "`get_precision()` is deprecated in favor of `NDSL_GLOBAL_PRECISION`. This function will be removed in the next version.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return NDSL_GLOBAL_PRECISION
 
 
@@ -37,19 +43,20 @@ NDSL_32BIT_INT_TYPE: TypeAlias = np.int32
 NDSL_64BIT_INT_TYPE: TypeAlias = np.int64
 
 
-def global_set_precision() -> tuple[TypeAlias, TypeAlias]:
+def global_set_precision() -> tuple[type, type]:
     """Set the global precision for all references of
     Float and Int in the codebase. Defaults to 64 bit."""
-    global Float, Int  # noqa: F824 global ... is unused
-    precision_in_bit = get_precision()
+    precision_in_bit = NDSL_GLOBAL_PRECISION
+
     if precision_in_bit == 64:
-        return NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE
-    elif precision_in_bit == 32:
-        return NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE
-    else:
-        raise NotImplementedError(
-            f"{precision_in_bit} bit precision not implemented or tested"
-        )
+        return (NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE)
+
+    if precision_in_bit == 32:
+        return (NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE)
+
+    raise NotImplementedError(
+        f"{precision_in_bit} bit precision not implemented or tested."
+    )
 
 
 # Default float and int types

@@ -1,10 +1,10 @@
 from functools import singledispatch
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 
 from ndsl import Quantity
-from ndsl.dsl.typing import Float
 from ndsl.optional_imports import cupy as cp
 
 
@@ -58,9 +58,9 @@ def _(in_quantity: Quantity, out_quantity: Quantity) -> None:
 
 @singledispatch
 def max(
-    buffer: npt.NDArray | Quantity | int,
+    buffer: npt.NDArray | Quantity,
     axis: int | tuple[int, ...] | None = None,
-) -> Float:
+) -> Any:
     """Find maximum value."""
     raise NotImplementedError(f"Missing implementation for {type(buffer)}")
 
@@ -69,7 +69,7 @@ def max(
 def _(
     buffer: npt.NDArray,
     axis: int | tuple[int, ...] | None = None,
-) -> Float:
+) -> Any:
     return buffer.max(axis=axis)
 
 
@@ -77,15 +77,15 @@ def _(
 def _(
     quantity: Quantity,
     axis: int | tuple[int, ...] | None = None,
-) -> Float:
+) -> Any:
     return quantity.field.max(axis=axis)
 
 
 @singledispatch
 def min(
-    buffer: npt.NDArray | Quantity | int,
+    buffer: npt.NDArray | Quantity,
     axis: int | tuple[int, ...] | None = None,
-) -> Float:
+) -> Any:
     """Find minimum value."""
     raise NotImplementedError(f"Missing implementation for {type(buffer)}")
 
@@ -94,7 +94,7 @@ def min(
 def _(
     buffer: npt.NDArray,
     axis: int | tuple[int, ...] | None = None,
-) -> Float:
+) -> Any:
     return buffer.min(axis=axis)
 
 
@@ -102,5 +102,5 @@ def _(
 def _(
     quantity: Quantity,
     axis: int | tuple[int, ...] | None = None,
-) -> Float:
+) -> Any:
     return quantity.field.min(axis=axis)

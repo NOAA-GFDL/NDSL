@@ -37,7 +37,7 @@ def adjustmentfactor_stencil(adjustment: FloatFieldIJ, q_out: FloatField) -> Non
         q_out = q_out * adjustment
 
 
-def set_value(q_out: FloatField, value: Float) -> None:
+def set_value(q_out: FloatField, value: Float) -> None:  # type: ignore[valid-type]
     """
     Sets every element of q_out to the value specified by value argument.
 
@@ -49,7 +49,7 @@ def set_value(q_out: FloatField, value: Float) -> None:
         q_out = value
 
 
-def set_value_2D(buffer: FloatFieldIJ, value: Float) -> None:
+def set_value_2D(buffer: FloatFieldIJ, value: Float) -> None:  # type: ignore[valid-type]
     """
     Sets every element of buffer to the value specified by value argument.
 

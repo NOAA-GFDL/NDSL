@@ -13,9 +13,9 @@ from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
+from ndsl.dsl import NDSL_GLOBAL_PRECISION
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
-from ndsl.dsl.typing import get_precision
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
 
@@ -326,7 +326,7 @@ class DaceConfig:
                 "compiler", "cuda", "syncdebug", value=_debug_dace_orchestration()
             )
 
-            if get_precision() == 32:
+            if NDSL_GLOBAL_PRECISION == 32:
                 # When using 32-bit float, we flip the default dtypes to be all
                 # C, e.g. 32 bit.
                 dace.Config.set(

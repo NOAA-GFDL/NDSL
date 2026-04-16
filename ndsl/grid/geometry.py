@@ -592,7 +592,7 @@ def edge_factors(
     nhalo: int,
     tile_partitioner: TilePartitioner,
     rank: int,
-    radius: Float,
+    radius: Float,  # type: ignore[valid-type]
     np,
 ):
     """
@@ -705,7 +705,7 @@ def efactor_a2c_v(
     nhalo: int,
     tile_partitioner: TilePartitioner,
     rank: int,
-    radius: Float,
+    radius: Float,  # type: ignore[valid-type]
     np,
 ):
     """
@@ -889,7 +889,7 @@ def unit_vector_lonlat(grid, np):
     return unit_lon, unit_lat
 
 
-def _fill_halo_corners(field, value: Float, nhalo: int, tile_partitioner, rank):
+def _fill_halo_corners(field, value: Float, nhalo: int, tile_partitioner: TilePartitioner, rank: int) -> None:  # type: ignore[valid-type]
     """
     Fills a tile halo corners (ghost cells) of a field
     with a set value along the first 2 axes
@@ -906,7 +906,7 @@ def _fill_halo_corners(field, value: Float, nhalo: int, tile_partitioner, rank):
             field[-nhalo:, -nhalo:] = value  # NE corner
 
 
-def _fill_single_halo_corner(field, value: Float, nhalo: int, corner: str):
+def _fill_single_halo_corner(field, value: Float, nhalo: int, corner: str) -> None:  # type: ignore[valid-type]
     """
     Fills a tile halo corner (ghost cells) of a field
     with a set value along the first 2 axes
