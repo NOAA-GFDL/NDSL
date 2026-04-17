@@ -391,7 +391,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        return dace._data.create_datadescriptor(self._data)
+        return dace.data.create_datadescriptor(self._data)
 
     def transpose(
         self,
