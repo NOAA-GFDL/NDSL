@@ -160,7 +160,8 @@ def _build_sdfg(
 
         if config.verbose_orchestration:
             sdfg.save(
-                os.path.abspath(f"{sdfg.build_folder}/00-no-opt.sdfgz"), compress=True
+                os.path.abspath(f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"),
+                compress=True,
             )
 
         with DaCeProgress(config, "Simplify (1)"):
@@ -177,6 +178,10 @@ def _build_sdfg(
                 # Break all loops into uni-dimensional loops to simplify optimizations
                 sdfg.apply_transformations_repeated(MapExpansion, validate=True)
                 stree = sdfg.as_schedule_tree()
+                with open(
+                    os.path.abspath(f"{sdfg.build_folder}/03-pre_opt.stree.txt")
+                ) as f:
+                    f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
@@ -215,12 +220,16 @@ def _build_sdfg(
                         f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
                     )
                 CPUPipeline(passes=passes).run(stree, verbose=True)
+                with open(
+                    os.path.abspath(f"{sdfg.build_folder}/04-post_opt.stree.txt")
+                ) as f:
+                    f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
                 if config.verbose_orchestration:
                     sdfg.save(
-                        os.path.abspath(f"{sdfg.build_folder}/02-stree_opt.sdfgz"),
+                        os.path.abspath(f"{sdfg.build_folder}/05-from_stree.sdfgz"),
                         compress=True,
                     )
 
@@ -258,7 +267,7 @@ def _build_sdfg(
             _simplify(sdfg)
             if config.verbose_orchestration:
                 sdfg.save(
-                    os.path.abspath(f"{sdfg.build_folder}/03-simplify_2.sdfgz"),
+                    os.path.abspath(f"{sdfg.build_folder}/06-simplify_2.sdfgz"),
                     compress=True,
                 )
         # Move all memory that can be into a pool to lower memory pressure for GPU
@@ -290,7 +299,6 @@ def _build_sdfg(
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
             sdfg.compile()
-        write_build_info(sdfg, config.layout, config.tile_resolution, backend_name)
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):
@@ -298,6 +306,11 @@ def _build_sdfg(
                 sdfg, memory_static_analysis(sdfg), False
             )
             ndsl_log.info(f"{DaCeProgress.default_prefix(config)} {report}")
+
+        # Store build info in the common cache directory
+        write_build_info(
+            sdfg, config.layout, config.tile_resolution, report, backend_name
+        )
 
     # Compilation done.
     # On Build: all ranks sync, then exit.
