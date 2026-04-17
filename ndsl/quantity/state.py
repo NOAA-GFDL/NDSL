@@ -8,8 +8,8 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Hashable, Self, TypeAlias
 
 import dacite
+import numpy as np
 import xarray as xr
-from numpy.typing import ArrayLike
 
 from ndsl.comm.mpi import MPI
 from ndsl.types import Number
@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 import warnings
 
 
-StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
+_ArrayLike: TypeAlias = Quantity | np.ndarray
+StateMemoryMapping: TypeAlias = dict[str, dict | _ArrayLike | None]
 OptionalQuantityType: TypeAlias = Quantity | None
 StateElementType: TypeAlias = dict[
     str, Quantity | OptionalQuantityType | Local | dict[str, Any]
@@ -458,11 +459,15 @@ class State:
                                 f"  Shapes: {array.shape} != {quantity.field.shape}"
                             )
                             raise e
-                        if array.strides != quantity._data.strides:
+                        if isinstance(array, Quantity):
+                            strides = array._data.strides
+                        else:
+                            strides = array.strides
+                        if strides != quantity._data.strides:
                             e = ValueError("Stride mismatch on zero copy for")
                             e.add_note(f"  Error on {name} for {type(state)}")
                             e.add_note(
-                                f"  Strides: {array.strides} != {quantity._data.strides}"
+                                f"  Strides: {strides} != {quantity._data.strides}"
                             )
                             raise e
                     try:

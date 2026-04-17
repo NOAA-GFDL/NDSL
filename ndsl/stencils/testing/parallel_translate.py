@@ -115,9 +115,7 @@ class ParallelTranslate:
                     state[standard_name],
                     properties.get("n_halo", N_HALO_DEFAULT),
                 )
-                return_dict[name] = utils.asarray(
-                    state[standard_name][output_slice]
-                )
+                return_dict[name] = utils.asarray(state[standard_name][output_slice])
             else:
                 return_dict[name] = state[standard_name]
         return return_dict

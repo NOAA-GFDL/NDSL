@@ -1529,9 +1529,7 @@ class MetricTerms:
     @functools.cached_property
     def _dgrid_xyz_64(self) -> Quantity:
         """Cartesian coordinates of each dgrid cell center."""
-        return lon_lat_to_xyz(
-            self._grid_64[:, :, 0], self._grid_64[:, :, 1], self._np
-        )
+        return lon_lat_to_xyz(self._grid_64[:, :, 0], self._grid_64[:, :, 1], self._np)
 
     @functools.cached_property
     def _agrid_xyz_64(self) -> Quantity:
