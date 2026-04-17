@@ -237,6 +237,14 @@ class Quantity:
             view_selection: an ndarray-like selection of the given indices
                 on `self.view`
         """
+
+        warnings.warn(
+            "`sel` is not in use and will be removed in a future release. If you have use for it,"
+            " please reach out to the maintainers.",
+            category=UserWarning,
+            stacklevel=2,
+        )
+
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
     @property
@@ -373,7 +381,7 @@ class Quantity:
         return self._data.shape
 
     @property
-    def dtype(self): # type: ignore[no-untyped-def]
+    def dtype(self):  # type: ignore[no-untyped-def]
         return self._data.dtype
 
     def __descriptor__(self) -> Any:
