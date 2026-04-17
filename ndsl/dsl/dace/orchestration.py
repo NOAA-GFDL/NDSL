@@ -3,6 +3,7 @@ from __future__ import annotations
 import numbers
 import os
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any
 
 from dace import SDFG, CompiledSDFG
@@ -221,7 +222,7 @@ def _build_sdfg(
                     raise NotImplementedError(
                         f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
                     )
-                CPUPipeline(passes=passes, cache_directory=sdfg.build_folder).run(
+                CPUPipeline(passes=passes, cache_directory=Path(sdfg.build_folder)).run(
                     stree, verbose=config.verbose_schedule_tree_optimizations
                 )
                 if config.verbose_orchestration:
@@ -273,7 +274,7 @@ def _build_sdfg(
             _simplify(sdfg)
             if config.verbose_orchestration:
                 sdfg.save(
-                    os.path.abspath(f"{sdfg.build_folder}/06-simplify_2.sdfgz"),
+                    os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
                     compress=True,
                 )
         # Move all memory that can be into a pool to lower memory pressure for GPU
