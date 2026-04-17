@@ -179,7 +179,7 @@ def _build_sdfg(
                 sdfg.apply_transformations_repeated(MapExpansion, validate=True)
                 stree = sdfg.as_schedule_tree()
                 with open(
-                    os.path.abspath(f"{sdfg.build_folder}/03-pre_opt.stree.txt")
+                    os.path.abspath(f"{sdfg.build_folder}/03-pre_opt.stree.txt"), "w"
                 ) as f:
                     f.write(stree.as_string())
 
@@ -221,7 +221,7 @@ def _build_sdfg(
                     )
                 CPUPipeline(passes=passes).run(stree, verbose=True)
                 with open(
-                    os.path.abspath(f"{sdfg.build_folder}/04-post_opt.stree.txt")
+                    os.path.abspath(f"{sdfg.build_folder}/04-post_opt.stree.txt"), "w"
                 ) as f:
                     f.write(stree.as_string())
 
