@@ -77,7 +77,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = Float,
+        dtype: type | np.dtype = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -92,7 +92,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = Float,
+        dtype: type | np.dtype = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -178,7 +178,7 @@ class QuantityFactory:
         allocator: Callable,
         dims: Sequence[str],
         units: str,
-        dtype: type = Float,
+        dtype: type | np.dtype = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         origin = self.sizer.get_origin(dims)

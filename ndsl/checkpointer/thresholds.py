@@ -40,7 +40,7 @@ class SavepointThresholds:
 
 def cast_to_ndarray(array: ArrayLike) -> np.ndarray:
     if isinstance(array, Quantity):
-        array = array[:]
+        array = array._data
     if isinstance(array.data, np.ndarray):
         return array.data
     else:
@@ -65,14 +65,14 @@ class ThresholdCalibrationCheckpointer(Checkpointer):
         # we keep dictionaries (over savepoint name) of lists (over call count)
         # of dictionaries (over variable name) of numpy arrays
         self._minimums: Mapping[
-            SavepointName, list[Mapping[VariableName, np.ndarray]]
+            SavepointName, list[Mapping[VariableName, np.ndarray | float]]
         ] = collections.defaultdict(list)
         self._maximums: Mapping[
-            SavepointName, list[Mapping[VariableName, np.ndarray]]
+            SavepointName, list[Mapping[VariableName, np.ndarray | float]]
         ] = collections.defaultdict(list)
         self._factor = factor
         self._abs_sums: Mapping[
-            SavepointName, list[Mapping[VariableName, np.ndarray]]
+            SavepointName, list[Mapping[VariableName, np.ndarray | float]]
         ] = collections.defaultdict(list)
         self._n_trials = 0
         self._n_calls: Mapping[SavepointName, int] = collections.defaultdict(int)

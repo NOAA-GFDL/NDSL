@@ -19,7 +19,7 @@ def copy_temporaries(obj: object, max_depth: int) -> dict:
             if max_depth > 0:
                 sub_temporaries = copy_temporaries(attr, max_depth - 1)
                 if len(sub_temporaries) > 0:
-                    temporaries[attr_name] = sub_temporaries
+                    temporaries[attr_name] = sub_temporaries  # type: ignore[assignment]
     return temporaries
 
 

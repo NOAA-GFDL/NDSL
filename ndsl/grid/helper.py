@@ -779,10 +779,10 @@ class DriverGridData:
             es1_1, es1_2, es1_3 = split_quantity_along_last_dim(es1)
             ew2_1, ew2_2, ew2_3 = split_quantity_along_last_dim(ew2)
         except (AttributeError, TypeError):
-            vlon1, vlon2, vlon3 = split_cartesian_into_storages(vlon)
-            vlat1, vlat2, vlat3 = split_cartesian_into_storages(vlat)
-            es1_1, es1_2, es1_3 = split_cartesian_into_storages(es1)
-            ew2_1, ew2_2, ew2_3 = split_cartesian_into_storages(ew2)
+            vlon1, vlon2, vlon3 = split_cartesian_into_storages(vlon[:])  # type: ignore[assignment]
+            vlat1, vlat2, vlat3 = split_cartesian_into_storages(vlat[:])  # type: ignore[assignment]
+            es1_1, es1_2, es1_3 = split_cartesian_into_storages(es1[:])  # type: ignore[assignment]
+            ew2_1, ew2_2, ew2_3 = split_cartesian_into_storages(ew2[:])  # type: ignore[assignment]
 
         return cls(
             vlon1=vlon1,

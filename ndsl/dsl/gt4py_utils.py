@@ -527,7 +527,7 @@ def device_sync(backend: Backend) -> None:
         cp.cuda.Device(0).synchronize()
 
 
-def split_cartesian_into_storages(var: np.ndarray) -> Sequence[np.ndarray]:
+def split_cartesian_into_storages(var: np.ndarray) -> list[np.ndarray]:
     """
     Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM]
          or [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM]
