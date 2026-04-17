@@ -157,7 +157,7 @@ def main(
             data_B = data_B[halo:-halo, halo:-halo, ::]
 
         dims = [f"D{i}_{s}" for i, s in enumerate(data_A.shape)]
-        absolute_diff = data_A.data - data_B.data
+        absolute_diff = data_A[:] - data_B[:]
         dataset[name_A] = xr.DataArray(
             absolute_diff,
             dims=dims,
@@ -165,7 +165,7 @@ def main(
 
         # ULP diffs
         max_values = np.maximum(
-            np.absolute(data_A.data.flatten()), np.absolute(data_B.data.flatten())
+            np.absolute(data_A[:].flatten()), np.absolute(data_B[:].flatten())
         )
         ulp_diff = np.divide(np.abs(absolute_diff.flatten()), np.spacing(max_values))
         ulp_diff = np.sort(ulp_diff)

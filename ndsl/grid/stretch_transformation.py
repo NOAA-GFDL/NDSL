@@ -39,8 +39,8 @@ def direct_transform(
     """
 
     if isinstance(lon, Quantity):
-        lon_data = lon.data
-        lat_data = lat.data
+        lon_data = lon[:]
+        lat_data = lat[:]
     elif isinstance(lon, np.ndarray):
         lon_data = lon
         lat_data = lat
@@ -95,8 +95,8 @@ def direct_transform(
         lon_out = copy.deepcopy(lon)
         lat_out = copy.deepcopy(lat)
 
-        lon_out.data[:] = lon_transformed
-        lat_out.data[:] = lat_transformed
+        lon_out[:] = lon_transformed
+        lat_out[:] = lat_transformed
     else:
         lon_out = lon_transformed
         lat_out = lat_transformed

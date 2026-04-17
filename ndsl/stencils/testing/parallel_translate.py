@@ -116,7 +116,7 @@ class ParallelTranslate:
                     properties.get("n_halo", N_HALO_DEFAULT),
                 )
                 return_dict[name] = utils.asarray(
-                    state[standard_name].data[output_slice]
+                    state[standard_name][output_slice]
                 )
             else:
                 return_dict[name] = state[standard_name]
@@ -150,7 +150,7 @@ class ParallelTranslateBaseSlicing(ParallelTranslate):
         for name, properties in self.outputs.items():
             standard_name = properties.get("name", name)
             if isinstance(state[standard_name], Quantity):
-                storages[name] = state[standard_name].data
+                storages[name] = state[standard_name][:]
             elif len(self.outputs[name]["dims"]) > 0:
                 storages[name] = state[standard_name]  # assume it's a storage
             else:
@@ -204,11 +204,11 @@ class ParallelTranslateGrid(ParallelTranslate):
                     properties.get("n_halo", N_HALO_DEFAULT),
                 )
                 if len(properties["dims"]) > 0:
-                    state[standard_name].data[input_slice] = utils.asarray(
-                        inputs[name], to_type=type(state[standard_name].data)
+                    state[standard_name][input_slice] = utils.asarray(
+                        inputs[name], to_type=type(state[standard_name][:])
                     )
                 else:
-                    state[standard_name].data[:] = inputs[name]
+                    state[standard_name][:] = inputs[name]
                 if name in self._base.in_vars["data_vars"].keys():
                     if "kaxis" in self._base.in_vars["data_vars"][name].keys():
                         kaxis = int(self._base.in_vars["data_vars"][name]["kaxis"])
@@ -242,7 +242,7 @@ class ParallelTranslate2Py(ParallelTranslate):
         result.update(quantity_result)
         for name, data in result.items():
             if isinstance(data, Quantity):
-                result[name] = data.data
+                result[name] = data[:]
         result.update(self._base.slice_output(result))
         return result
 

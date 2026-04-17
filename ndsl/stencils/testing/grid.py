@@ -519,11 +519,11 @@ class Grid:
                 allow_mismatch_float_precision=True,
             )
             if len(quantity.shape) == 3:
-                quantity.data[:] = data[:, :, : quantity.shape[2]]
+                quantity[:] = data[:, :, : quantity.shape[2]]
             elif len(quantity.shape) == 2:
-                quantity.data[:] = data[:, : quantity.shape[1]]
+                quantity[:] = data[:, : quantity.shape[1]]
             elif len(quantity.shape) == 1:
-                quantity.data[:] = data[: quantity.shape[0]]
+                quantity[:] = data[: quantity.shape[0]]
             else:
                 raise NotImplementedError(
                     "The data filtering is not implemented for a quantity of this shape"

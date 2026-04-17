@@ -119,18 +119,16 @@ class Communicator(abc.ABC):
         op: ReductionOperator,
         output_quantity: Quantity | None = None,
     ) -> Quantity:
-        reduced_quantity_data = self.comm.allreduce(input_quantity.data, op)
+        reduced_quantity_data = self.comm.allreduce(input_quantity._data, op)
         if output_quantity is None:
             return self._create_all_reduce_quantity(
                 input_quantity.metadata, reduced_quantity_data
             )
 
-        if output_quantity.data.shape != input_quantity.data.shape:
+        if output_quantity.shape != input_quantity.shape:
             raise TypeError("Shapes not matching")
 
-        input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
-
-        output_quantity.data = reduced_quantity_data
+        output_quantity[:] = reduced_quantity_data[:]
         return output_quantity
 
     def all_reduce_per_element(
@@ -139,7 +137,7 @@ class Communicator(abc.ABC):
         output_quantity: Quantity,
         op: ReductionOperator,
     ) -> None:
-        self.comm.Allreduce(input_quantity.data, output_quantity.data, op)
+        self.comm.Allreduce(input_quantity._data, output_quantity._data, op)
 
     def all_reduce_per_element_in_place(
         self, quantity: Quantity, op: ReductionOperator
@@ -147,7 +145,7 @@ class Communicator(abc.ABC):
         # Note that device_synchronization is Cupy/Cuda specific
         # at the moment.
         device_synchronize()
-        self.comm.Allreduce_inplace(quantity.data, op)
+        self.comm.Allreduce_inplace(quantity._data, op)
 
     def _Scatter(self, numpy_module, sendbuf, recvbuf, **kwargs):  # type: ignore[no-untyped-def]
         with send_buffer(numpy_module.zeros, sendbuf) as send:
@@ -264,7 +262,7 @@ class Communicator(abc.ABC):
             with array_buffer(
                 send_quantity.np.zeros,
                 (self.partitioner.total_ranks,) + tuple(send_quantity.extent),
-                dtype=send_quantity.data.dtype,
+                dtype=send_quantity.dtype,
             ) as recvbuf:
                 self._Gather(
                     send_quantity.np,
@@ -423,9 +421,9 @@ class Communicator(abc.ABC):
         for quantity in quantities:
             specification = QuantityHaloSpec(
                 n_points=n_points,
-                shape=quantity.data.shape,
-                strides=quantity.data.strides,
-                itemsize=quantity.data.itemsize,
+                shape=quantity.shape,
+                strides=quantity._data.strides,
+                itemsize=quantity._data.itemsize,
                 origin=quantity.origin,
                 extent=quantity.extent,
                 dims=quantity.dims,
@@ -500,9 +498,9 @@ class Communicator(abc.ABC):
         for x_quantity, y_quantity in zip(x_quantities, y_quantities):
             x_specification = QuantityHaloSpec(
                 n_points=n_points,
-                shape=x_quantity.data.shape,
-                strides=x_quantity.data.strides,
-                itemsize=x_quantity.data.itemsize,
+                shape=x_quantity.shape,
+                strides=x_quantity._data.strides,
+                itemsize=x_quantity._data.itemsize,
                 origin=x_quantity.metadata.origin,
                 extent=x_quantity.metadata.extent,
                 dims=x_quantity.metadata.dims,
@@ -512,9 +510,9 @@ class Communicator(abc.ABC):
             x_specifications.append(x_specification)
             y_specification = QuantityHaloSpec(
                 n_points=n_points,
-                shape=y_quantity.data.shape,
-                strides=y_quantity.data.strides,
-                itemsize=y_quantity.data.itemsize,
+                shape=y_quantity.shape,
+                strides=y_quantity._data.strides,
+                itemsize=y_quantity._data.itemsize,
                 origin=y_quantity.metadata.origin,
                 extent=y_quantity.metadata.extent,
                 dims=y_quantity.metadata.dims,

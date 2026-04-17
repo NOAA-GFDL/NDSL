@@ -40,7 +40,7 @@ class SavepointThresholds:
 
 def cast_to_ndarray(array: ArrayLike) -> np.ndarray:
     if isinstance(array, Quantity):
-        array = array.data
+        array = array[:]
     if isinstance(array.data, np.ndarray):
         return array.data
     else:

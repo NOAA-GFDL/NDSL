@@ -285,6 +285,12 @@ class Quantity:
 
     @data.setter
     def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
+        warnings.warn(
+            "Quantity.data settor is now deprecated. Build a quantity from a data with the "
+            "dedicated constructor. If you need no-copy mapping, talk to the team.",
+            category=UserWarning,
+            stacklevel=2,
+        )
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
@@ -364,7 +370,11 @@ class Quantity:
 
     @property
     def shape(self):  # type: ignore[no-untyped-def]
-        return self.data.shape
+        return self._data.shape
+
+    @property
+    def dtype(self): # type: ignore[no-untyped-def]
+        return self._data.dtype
 
     def __descriptor__(self) -> Any:
         """The descriptor is a property that dace uses.
@@ -373,7 +383,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        return dace.data.create_datadescriptor(self.data)
+        return dace._data.create_datadescriptor(self._data)
 
     def transpose(
         self,
@@ -422,7 +432,7 @@ class Quantity:
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]
         transposed = Quantity(
-            self.np.transpose(self.data, transpose_order),
+            self.np.transpose(self._data, transpose_order),
             dims=_transpose_sequence(self.dims, transpose_order),
             units=self.units,
             origin=_transpose_sequence(self.origin, transpose_order),

@@ -34,7 +34,7 @@ def as_numpy(
 ) -> np.ndarray | dict[str, np.ndarray]:
     def _convert(value: Any) -> np.ndarray:
         if isinstance(value, Quantity):
-            return value.data
+            return value[:]
         elif isinstance(value, np.ndarray):
             return value
         elif cp is not None and isinstance(value, cp.ndarray):

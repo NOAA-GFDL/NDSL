@@ -388,7 +388,7 @@ class GridData:
     @staticmethod
     def _fC_from_lat(lat: Quantity) -> Quantity:
         np = lat.np
-        data = Float(2.0) * constants.OMEGA * np.sin(lat.data, dtype=Float)
+        data = Float(2.0) * constants.OMEGA * np.sin(lat[:], dtype=Float)
         return GridData._fC_from_data(data, lat)
 
     @property
@@ -815,10 +815,10 @@ def split_quantity_along_last_dim(quantity: Quantity) -> list[Quantity]:
         list[Quantity]: List of quantities.
     """
     return_list: list[Quantity] = []
-    for i in range(quantity.data.shape[-1]):
+    for i in range(quantity.shape[-1]):
         return_list.append(
             Quantity(
-                data=quantity.data[..., i],
+                data=quantity[..., i],
                 dims=quantity.dims[:-1],
                 units=quantity.units,
                 origin=quantity.origin[:-1],

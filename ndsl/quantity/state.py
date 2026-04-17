@@ -92,7 +92,7 @@ class State:
                     )
                     if _field.type == Local:
                         local_ = Local(
-                            data=quantity.data,
+                            data=quantity._data,
                             dims=quantity.dims,
                             units=quantity.units,
                             origin=quantity.origin,
@@ -458,15 +458,15 @@ class State:
                                 f"  Shapes: {array.shape} != {quantity.field.shape}"
                             )
                             raise e
-                        if array.strides != quantity.data.strides:
+                        if array.strides != quantity._data.strides:
                             e = ValueError("Stride mismatch on zero copy for")
                             e.add_note(f"  Error on {name} for {type(state)}")
                             e.add_note(
-                                f"  Strides: {array.strides} != {quantity.data.strides}"
+                                f"  Strides: {array.strides} != {quantity._data.strides}"
                             )
                             raise e
                     try:
-                        quantity.data = array
+                        quantity._data = array
                     except Exception as e:
                         e.add_note(f"  Error on {name} for {type(state)}")
                         raise e

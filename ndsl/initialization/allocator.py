@@ -122,7 +122,7 @@ class QuantityFactory:
             dtype,
             allow_mismatch_float_precision,
         )
-        quantity.data[:] = value
+        quantity[:] = value
         return quantity
 
     def from_array(
@@ -145,7 +145,7 @@ class QuantityFactory:
             dtype=data.dtype,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
-        base.data[:] = base.np.asarray(data)
+        base[:] = base.np.asarray(data)
         return base
 
     def from_compute_array(
