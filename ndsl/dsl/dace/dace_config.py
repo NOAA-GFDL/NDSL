@@ -29,12 +29,14 @@ if TYPE_CHECKING:
 DEACTIVATE_DISTRIBUTED_DACE_COMPILE = False
 
 
-def _debug_dace_orchestration() -> bool:
+def _sync_gpu_option() -> bool:
     """
+    Force synchronize after each kernel call.
+
     Debugging Dace orchestration deeper can be done by turning on `syncdebug`.
     We control this Dace configuration below with our own override.
     """
-    return os.getenv("NDSL_DACE_DEBUG", "False") == "True"
+    return os.getenv("NDSL_DACE_FORCE_SYNC_GPU", "False") == "True"
 
 
 def _is_corner(rank: int, partitioner: Partitioner) -> bool:
@@ -203,6 +205,11 @@ class DaceConfig:
         else:
             self._orchestrate = orchestration
 
+        # Verbose orchestration optimization
+        self.verbose_orchestration = (
+            os.getenv("NDSL_VERBOSE_ORCHESTRATION", "False") == "True"
+        )
+
         # We hijack the optimization level of GT4Py because we don't
         # have the configuration at NDSL level, but we do use the GT4Py
         # level
@@ -323,7 +330,7 @@ class DaceConfig:
 
             # Enable to debug GPU failures
             dace.config.Config.set(
-                "compiler", "cuda", "syncdebug", value=_debug_dace_orchestration()
+                "compiler", "cuda", "syncdebug", value=_sync_gpu_option()
             )
 
             if NDSL_GLOBAL_PRECISION == 32:

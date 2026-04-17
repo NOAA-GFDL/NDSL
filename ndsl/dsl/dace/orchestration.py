@@ -158,8 +158,18 @@ def _build_sdfg(
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
 
+        if config.verbose_orchestration:
+            sdfg.save(
+                os.path.abspath(f"{sdfg.build_folder}/00-no-opt.sdfgz"), compress=True
+            )
+
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
+            if config.verbose_orchestration:
+                sdfg.save(
+                    os.path.abspath(f"{sdfg.build_folder}/01-simplify_1.sdfgz"),
+                    compress=True,
+                )
 
         if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
             # Here be 🐉 - but tests exists in test_optimization.py
@@ -208,6 +218,11 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(f"{sdfg.build_folder}/02-stree_opt.sdfgz"),
+                        compress=True,
+                    )
 
         # Make the transients array persistents
         if config.is_gpu_backend():
@@ -241,7 +256,11 @@ def _build_sdfg(
 
         with DaCeProgress(config, "Simplify (2)"):
             _simplify(sdfg)
-
+            if config.verbose_orchestration:
+                sdfg.save(
+                    os.path.abspath(f"{sdfg.build_folder}/03-simplify_2.sdfgz"),
+                    compress=True,
+                )
         # Move all memory that can be into a pool to lower memory pressure for GPU
         # We skip this memory optimization for CPU because we don't have a memory
         # pool available yet (DaCe v1)
