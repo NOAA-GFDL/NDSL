@@ -205,9 +205,12 @@ class DaceConfig:
         else:
             self._orchestrate = orchestration
 
-        # Verbose orchestration optimization
+        # Verbose optimizations
         self.verbose_orchestration = (
             os.getenv("NDSL_VERBOSE_ORCHESTRATION", "False") == "True"
+        )
+        self.verbose_schedule_tree_optimizations = (
+            os.getenv("NDSL_VERBOSE_SCHEDULE_TREE_OPTIMIZATIONS", "False") == "True"
         )
 
         # We hijack the optimization level of GT4Py because we don't

@@ -26,8 +26,11 @@ class StreePipeline(ABC):
 
 class CPUPipeline(StreePipeline):
     def __init__(
-        self, passes: list[stree.ScheduleNodeTransformer] | None = None
+        self,
+        passes: list[stree.ScheduleNodeTransformer] | None = None,
+        cache_directory: str = "./",
     ) -> None:
+        self.cache_directory = cache_directory
         self.passes = (
             passes if passes is not None else [CartesianAxisMerge(AxisIterator._K)]
         )
@@ -45,11 +48,11 @@ class CPUPipeline(StreePipeline):
     ) -> stree.ScheduleTreeRoot:
         for i, p in enumerate(self.passes):
             if verbose:
-                path = f"pass{i}_{p}.txt"
+                path = f"{self.cache_directory}/stree_pass{i}_{p}.txt"
                 ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
             p.visit(stree)
             if verbose:
-                with open(path, "w") as f:
+                with open(path, "w+") as f:
                     f.write(stree.as_string())
 
         return stree
@@ -57,8 +60,11 @@ class CPUPipeline(StreePipeline):
 
 class GPUPipeline(StreePipeline):
     def __init__(
-        self, passes: list[stree.ScheduleNodeTransformer] | None = None
+        self,
+        passes: list[stree.ScheduleNodeTransformer] | None = None,
+        cache_directory: str = "./",
     ) -> None:
+        self.cache_directory = cache_directory
         self.passes = passes if passes else []
 
     def __repr__(self) -> str:
@@ -72,9 +78,12 @@ class GPUPipeline(StreePipeline):
         stree: stree.ScheduleTreeRoot,
         verbose: bool = False,
     ) -> stree.ScheduleTreeRoot:
-        for p in self.passes:
+        for i, p in enumerate(self.passes):
             if verbose:
-                print(f"[Stree OPT] {p}")
+                path = f"{self.cache_directory}/stree_pass{i}_{p}.txt"
             p.visit(stree)
+            if verbose:
+                with open(path, "w+") as f:
+                    f.write(stree.as_string())
 
         return stree

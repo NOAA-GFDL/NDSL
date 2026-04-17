@@ -178,10 +178,12 @@ def _build_sdfg(
                 # Break all loops into uni-dimensional loops to simplify optimizations
                 sdfg.apply_transformations_repeated(MapExpansion, validate=True)
                 stree = sdfg.as_schedule_tree()
-                with open(
-                    os.path.abspath(f"{sdfg.build_folder}/03-pre_opt.stree.txt"), "w"
-                ) as f:
-                    f.write(stree.as_string())
+                if config.verbose_orchestration:
+                    with open(
+                        os.path.abspath(f"{sdfg.build_folder}/02-pre_opt.stree.txt"),
+                        "w+",
+                    ) as f:
+                        f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
@@ -219,17 +221,21 @@ def _build_sdfg(
                     raise NotImplementedError(
                         f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
                     )
-                CPUPipeline(passes=passes).run(stree, verbose=True)
-                with open(
-                    os.path.abspath(f"{sdfg.build_folder}/04-post_opt.stree.txt"), "w"
-                ) as f:
-                    f.write(stree.as_string())
+                CPUPipeline(passes=passes, cache_directory=sdfg.build_folder).run(
+                    stree, verbose=config.verbose_schedule_tree_optimizations
+                )
+                if config.verbose_orchestration:
+                    with open(
+                        os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),
+                        "w+",
+                    ) as f:
+                        f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
                 if config.verbose_orchestration:
                     sdfg.save(
-                        os.path.abspath(f"{sdfg.build_folder}/05-from_stree.sdfgz"),
+                        os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
                         compress=True,
                     )
 
