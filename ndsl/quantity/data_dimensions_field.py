@@ -211,6 +211,13 @@ class DataDimensionsField(StencilTypeRegistrar):
             raise RuntimeError(f"Data dimension field {name} as not been registered!")
         return cls._type_registrar[name]
 
+    @classmethod
+    def exists(cls, name: str) -> bool:
+        """
+        Check that a data dimensions has been registered.
+        """
+        return name in cls._type_registrar.keys()
+
 
 @dataclass
 class DataDimensionsMarkupType(StencilDeferredType):
