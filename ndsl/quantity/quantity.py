@@ -238,13 +238,6 @@ class Quantity:
                 on `self.view`
         """
 
-        warnings.warn(
-            "`sel` is not in use and will be removed in a future release. If you have use for it,"
-            " please reach out to the maintainers.",
-            category=UserWarning,
-            stacklevel=2,
-        )
-
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
     @property
@@ -299,6 +292,11 @@ class Quantity:
             category=UserWarning,
             stacklevel=2,
         )
+        self.swap_buffer(input_data)      
+
+    def swap_buffer(self, input_data: np.ndarray | cupy.ndarray) -> None:
+        """Swap internal buffer for given input. Use with _extreme_ care as it might
+        trip hash calculations for other subsystem."""
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
@@ -311,7 +309,6 @@ class Quantity:
                 f"new data ({input_data.shape}) is smaller "
                 f"than expected extent ({self.extent})."
             )
-
         self._data = input_data
         self._compute_domain_view = BoundedArrayView(
             self._data, self.dims, self.origin, self.extent
