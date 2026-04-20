@@ -1,8 +1,16 @@
 import re
 
 import pytest
+from dace.frontend.python.common import DaceSyntaxError
 
-from ndsl import Backend, NDSLRuntime, Quantity, QuantityFactory, StencilFactory
+from ndsl import (
+    Backend,
+    NDSLRuntime,
+    Quantity,
+    QuantityFactory,
+    StencilFactory,
+    orchestrate,
+)
 from ndsl.boilerplate import (
     get_factories_single_tile,
     get_factories_single_tile_orchestrated,
@@ -62,6 +70,11 @@ class Code(NDSLRuntime):
         quantity_factory: QuantityFactory,
     ):
         super().__init__(stencil_factory)
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            method_to_orchestrate="bad_call",
+        )
         self._the_stencil_4D = stencil_factory.from_dims_halo(
             func=_the_stencil_4D,
             compute_dims=[I_DIM, J_DIM, K_DIM],
@@ -88,18 +101,16 @@ class Code(NDSLRuntime):
         # Blind loop on size
         for i_tracer in range(Tracers.size(0)):
             self._the_stencil_3D(
-                in_tracers.data[:, :, :, i_tracer], out_field, self._my_local
+                in_tracers[:, :, :, i_tracer], out_field, self._my_local
             )
 
         # Direct variable access
         my_index = 5
-        self._the_stencil_3D(
-            in_tracers.data[:, :, :, my_index], out_field, self._my_local
-        )
+        self._the_stencil_3D(in_tracers[:, :, :, my_index], out_field, self._my_local)
 
         # Name based access
         self._the_stencil_3D(
-            in_tracers.data[:, :, :, Tracers.index("H")], out_field, self._my_local
+            in_tracers[:, :, :, Tracers.index("H")], out_field, self._my_local
         )
 
     def bad_call(
@@ -108,7 +119,7 @@ class Code(NDSLRuntime):
 
         another_index = Tracers.index("H")  # BAD in orchestration
         self._the_stencil_3D(
-            in_tracers.data[:, :, :, another_index], out_field, self._my_local
+            in_tracers[:, :, :, another_index], out_field, self._my_local
         )
 
 
@@ -174,7 +185,11 @@ def test_data_dimensions_fields_with_orchestrated_backend():
     code = Code(stcil_fctry, qty_factry)
     code(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
-    code.bad_call(tracers_quantity, tracers_and_plume_quantity, out_arr)
+    with pytest.raises(
+        DaceSyntaxError,
+        match="In assignments, the rhs may only be data, numerical/boolean constants and symbols",
+    ):
+        code.bad_call(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
 def test_data_dimensions_fields_functions():
