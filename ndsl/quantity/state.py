@@ -471,7 +471,7 @@ class State:
                             )
                             raise e
                     try:
-                        quantity._data = array
+                        quantity.swap_buffer(array)
                     except Exception as e:
                         e.add_note(f"  Error on {name} for {type(state)}")
                         raise e
@@ -492,7 +492,7 @@ class State:
                 if dataclasses.is_dataclass(_field.type):
                     _flatten_elements_for_hash(element, flatten_hashable_list)
                 else:
-                    flatten_hashable_list.append(element)
+                    flatten_hashable_list.append(element.__hash__())
 
         to_hash: list[Hashable] = []
         _flatten_elements_for_hash(self, to_hash)
