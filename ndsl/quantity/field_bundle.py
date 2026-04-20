@@ -7,6 +7,7 @@ from gt4py.cartesian import gtscript
 from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity.quantity import Quantity
+import warnings
 
 
 # ToDo: This is 4th dimensions restricted. We need a concept
@@ -46,6 +47,13 @@ class FieldBundle:
             mapping: sparse dict of [name, index] to be able to call tracers by name.
             register_type: boolean to register the type as part of initialization.
         """
+        warnings.warn(
+            "FieldBundle is replaced with `DataDimensionField`. Please update your code,"
+            " FieldBundle will be removed in the next version.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         if mapping is None:
             mapping = {}
 
@@ -171,6 +179,13 @@ class FieldBundleType:
             data_dims: tuple of int giving size of each data dimensions.
             dtype: Inner data type, defaults to Float.
         """
+        warnings.warn(
+            "FieldBundle is replaced with `DataDimensionField`. Please update your code,"
+            " FieldBundle will be removed in the next version.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         if name in cls._field_type_registrar.keys():
             raise RuntimeError(f"Registering {name} a second time!")
         cls._field_type_registrar[name] = gtscript.Field[
@@ -193,6 +208,13 @@ class FieldBundleType:
             do_markup: if name not registered, markup for a future specialization
                 at stencil call time
         """
+        warnings.warn(
+            "FieldBundle is replaced with `DataDimensionField`. Please update your code,"
+            " FieldBundle will be removed in the next version.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         if name not in cls._field_type_registrar:
             if do_markup:
                 return MarkupFieldBundleType(name)
