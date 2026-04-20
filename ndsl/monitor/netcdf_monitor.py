@@ -14,9 +14,7 @@ from ndsl.quantity import Quantity
 
 class _TimeChunkedVariable:
     def __init__(self, initial: Quantity, time_chunk_size: int):
-        self._data = np.zeros(
-            (time_chunk_size, *initial.extent), dtype=initial.data.dtype
-        )
+        self._data = np.zeros((time_chunk_size, *initial.extent), dtype=initial.dtype)
         self._data[0, ...] = to_numpy(initial.view[:])
         self._dims = initial.dims
         self._units = initial.units

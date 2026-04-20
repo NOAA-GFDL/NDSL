@@ -61,7 +61,7 @@ def test_interface_state_two_by_two_per_rank_scatter_tile(layout, numpy):
         assert rank_array.view[0, 1] == j
         assert rank_array.view[1, 0] == j + 1
         assert rank_array.view[1, 1] == j + 1
-        assert rank_array.data.dtype == state["pos_j"].data.dtype
+        assert rank_array.dtype == state["pos_j"].dtype
 
     for communicator, rank_array in rank_scatter_results(
         tile_communicator_list, state["pos_i"]
@@ -72,7 +72,7 @@ def test_interface_state_two_by_two_per_rank_scatter_tile(layout, numpy):
         assert rank_array.view[1, 0] == i
         assert rank_array.view[0, 1] == i + 1
         assert rank_array.view[1, 1] == i + 1
-        assert rank_array.data.dtype == state["pos_i"].data.dtype
+        assert rank_array.dtype == state["pos_i"].dtype
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (1, 2), (2, 1), (2, 2), (3, 3)])
@@ -118,7 +118,7 @@ def test_centered_state_one_item_per_rank_scatter_tile(layout, numpy):
     ):
         assert rank_array.extent == (1, 1)
         assert rank_array.view[0, 0] == communicator.rank
-        assert rank_array.data.dtype == state["rank"].data.dtype
+        assert rank_array.dtype == state["rank"].dtype
     for communicator, rank_array in rank_scatter_results(
         tile_communicator_list, state["rank_pos_j"]
     ):
@@ -180,15 +180,15 @@ def test_centered_state_one_item_per_rank_with_halo_scatter_tile(layout, n_halo,
         tile_communicator_list, state["rank"]
     ):
         assert rank_array.extent == (1, 1)
-        assert rank_array.data[0, 0] == communicator.rank
-        assert rank_array.data.dtype == state["rank"].data.dtype
+        assert rank_array[0, 0] == communicator.rank
+        assert rank_array.dtype == state["rank"].dtype
     for communicator, rank_array in rank_scatter_results(
         tile_communicator_list, state["rank_pos_j"]
     ):
         assert rank_array.extent == (1, 1)
-        assert rank_array.view[0, 0] == partitioner.subtile_index(communicator.rank)[0]
+        assert rank_array.field[0, 0] == partitioner.subtile_index(communicator.rank)[0]
     for communicator, rank_array in rank_scatter_results(
         tile_communicator_list, state["rank_pos_i"]
     ):
         assert rank_array.extent == (1, 1)
-        assert rank_array.view[0, 0] == partitioner.subtile_index(communicator.rank)[1]
+        assert rank_array.field[0, 0] == partitioner.subtile_index(communicator.rank)[1]

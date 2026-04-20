@@ -44,6 +44,6 @@ class Local(Quantity):
 
     def __descriptor__(self) -> Any:
         """Locals uses `Quantity.__descriptor__` and flag itself as transient."""
-        data = dace.data.create_datadescriptor(self.data)
+        data = dace.data.create_datadescriptor(self._data)
         data.transient = True
         return data

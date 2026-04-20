@@ -31,7 +31,7 @@ def pad_field_in_j(field, nj: int, backend: Backend):
 
 def as_numpy(value: Quantity | np.ndarray) -> np.ndarray:
     if isinstance(value, Quantity):
-        return value.data
+        return value.data[:]
     elif isinstance(value, np.ndarray):
         return value
     elif cp is not None and isinstance(value, cp.ndarray):  # type: ignore[unreachable]

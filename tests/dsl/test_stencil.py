@@ -172,7 +172,7 @@ def test_stencil_2D_temporaries() -> None:
         stencil_config=MagicMock(spec=StencilConfig()),
     )
     stencil(quantity)
-    assert (quantity.data[1, 1, :] == 21.0).all()
+    assert (quantity[1, 1, :] == 21.0).all()
 
 
 @pytest.mark.parametrize(

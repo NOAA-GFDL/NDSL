@@ -237,6 +237,7 @@ class Quantity:
             view_selection: an ndarray-like selection of the given indices
                 on `self.view`
         """
+
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
     @property
@@ -285,6 +286,17 @@ class Quantity:
 
     @data.setter
     def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
+        warnings.warn(
+            "Quantity.data settor is now deprecated. Build a quantity from a data with the "
+            "dedicated constructor. If you need no-copy mapping, talk to the team.",
+            category=UserWarning,
+            stacklevel=2,
+        )
+        self.swap_buffer(input_data)
+
+    def swap_buffer(self, input_data: np.ndarray | cupy.ndarray) -> None:
+        """Swap internal buffer for given input. Use with _extreme_ care as it might
+        trip hash calculations for other subsystem."""
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
@@ -297,7 +309,6 @@ class Quantity:
                 f"new data ({input_data.shape}) is smaller "
                 f"than expected extent ({self.extent})."
             )
-
         self._data = input_data
         self._compute_domain_view = BoundedArrayView(
             self._data, self.dims, self.origin, self.extent
@@ -364,7 +375,11 @@ class Quantity:
 
     @property
     def shape(self):  # type: ignore[no-untyped-def]
-        return self.data.shape
+        return self._data.shape
+
+    @property
+    def dtype(self):  # type: ignore[no-untyped-def]
+        return self._data.dtype
 
     def __descriptor__(self) -> Any:
         """The descriptor is a property that dace uses.
@@ -373,7 +388,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        return dace.data.create_datadescriptor(self.data)
+        return dace.data.create_datadescriptor(self._data)
 
     def transpose(
         self,
@@ -422,7 +437,7 @@ class Quantity:
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]
         transposed = Quantity(
-            self.np.transpose(self.data, transpose_order),
+            self.np.transpose(self._data, transpose_order),
             dims=_transpose_sequence(self.dims, transpose_order),
             units=self.units,
             origin=_transpose_sequence(self.origin, transpose_order),
