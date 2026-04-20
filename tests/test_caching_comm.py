@@ -61,7 +61,7 @@ def test_halo_update_integration():
         )
     perform_serial_halo_updates(read_communicator_list, quantity_list)
     for local_comm_quantity, read_quantity in zip(local_comm_quantities, quantity_list):
-        np.testing.assert_array_equal(local_comm_quantity.data, read_quantity.data)
+        np.testing.assert_array_equal(local_comm_quantity[:], read_quantity[:])
 
 
 def perform_serial_halo_updates(

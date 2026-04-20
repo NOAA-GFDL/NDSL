@@ -298,7 +298,7 @@ def test_to_data_array(quantity):
     np.testing.assert_array_equal(quantity.field_as_xarray.values, quantity.view[:])
     if quantity.extent == quantity.shape:
         assert (
-            quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data
+            quantity.field_as_xarray.data.ctypes.data == quantity._data.ctypes.data
         ), "data memory address is not equal"
 
 
@@ -312,10 +312,10 @@ def test_data_attribute_and_default_setter_are_the_same():
         backend=Backend.python(),
     )
 
-    assert quantity.shape == quantity.data.shape
-    assert quantity[3] == quantity.data[3]
+    assert quantity.shape == quantity._data.shape
+    assert quantity[3] == quantity._data[3]
     quantity[2] = 42.0
-    assert quantity.data[2] == 42.0
+    assert quantity._data[2] == 42.0
 
 
 def test_data_setter():
@@ -329,7 +329,7 @@ def test_data_setter():
     # Allows swap: new array is bigger than Q.shape
     new_array = np.ones((10,))
     new_array[:] = 2
-    quantity.data = new_array
+    quantity.swap_buffer(new_array)
 
     # After swap - field and data points to the same memory
     # BUT field still respects the original origin/extent
@@ -341,8 +341,8 @@ def test_data_setter():
     # Expected fail: new array is too small
     new_array = np.ones((2,))
     with pytest.raises(ValueError, match="Quantity.data buffer swap failed.*"):
-        quantity.data = new_array
+        quantity.swap_buffer(new_array)
 
     # Expected fail: new array is not even an array
     with pytest.raises(TypeError, match="Quantity.data buffer swap failed.*"):
-        quantity.data = "meh"
+        quantity.swap_buffer("meh")

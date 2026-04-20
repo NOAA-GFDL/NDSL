@@ -165,4 +165,4 @@ def test_correct_rank_layout(rank_quantity_list, communicator_list, subtests, nu
                     )
                     % 6
                 )
-            numpy.testing.assert_array_equal(quantity.data, target_data)
+            numpy.testing.assert_array_equal(quantity[:], target_data)
