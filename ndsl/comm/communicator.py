@@ -128,6 +128,8 @@ class Communicator(abc.ABC):
         if output_quantity.shape != input_quantity.shape:
             raise TypeError("Shapes not matching")
 
+        input_quantity.metadata.duplicate_metadata(output_quantity.metadata)
+
         output_quantity[:] = reduced_quantity_data[:]
         return output_quantity
 
