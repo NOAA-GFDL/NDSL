@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import no_type_check
 
 import dataclasses
 import os
@@ -761,6 +762,7 @@ class DriverGridData:
         )
 
     @classmethod
+    @no_type_check
     def new_from_grid_variables(
         cls,
         vlon: Quantity,
@@ -779,10 +781,10 @@ class DriverGridData:
             es1_1, es1_2, es1_3 = split_quantity_along_last_dim(es1)
             ew2_1, ew2_2, ew2_3 = split_quantity_along_last_dim(ew2)
         except (AttributeError, TypeError):
-            vlon1, vlon2, vlon3 = split_cartesian_into_storages(vlon[:])  # type: ignore[assignment]
-            vlat1, vlat2, vlat3 = split_cartesian_into_storages(vlat[:])  # type: ignore[assignment]
-            es1_1, es1_2, es1_3 = split_cartesian_into_storages(es1[:])  # type: ignore[assignment]
-            ew2_1, ew2_2, ew2_3 = split_cartesian_into_storages(ew2[:])  # type: ignore[assignment]
+            vlon1, vlon2, vlon3 = split_cartesian_into_storages(vlon[:])
+            vlat1, vlat2, vlat3 = split_cartesian_into_storages(vlat[:])
+            es1_1, es1_2, es1_3 = split_cartesian_into_storages(es1[:])
+            ew2_1, ew2_2, ew2_3 = split_cartesian_into_storages(ew2[:])
 
         return cls(
             vlon1=vlon1,
