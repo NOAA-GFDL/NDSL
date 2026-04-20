@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import no_type_check
 
 import dataclasses
 import os
 import pathlib
+from typing import no_type_check
 
 import xarray as xr
 
