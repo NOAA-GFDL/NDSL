@@ -102,10 +102,14 @@ class Code(NDSLRuntime):
             in_tracers.data[:, :, :, Tracers.index("H")], out_field, self._my_local
         )
 
-        # another_index = Tracers.index("H")  # BAD in orchestration
-        # self._the_stencil_3D(
-        #     in_tracers.data[:, :, :, another_index], out_field, self._my_local
-        # )
+    def bad_call(
+        self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
+    ):
+
+        another_index = Tracers.index("H")  # BAD in orchestration
+        self._the_stencil_3D(
+            in_tracers.data[:, :, :, another_index], out_field, self._my_local
+        )
 
 
 def test_data_dimensions_registration_errors():
@@ -169,6 +173,8 @@ def test_data_dimensions_fields_with_orchestrated_backend():
 
     code = Code(stcil_fctry, qty_factry)
     code(tracers_quantity, tracers_and_plume_quantity, out_arr)
+
+    code.bad_call(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
 def test_data_dimensions_fields_functions():

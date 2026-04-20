@@ -51,8 +51,6 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
         self._mapping = mapping
 
     def index(self, name: str) -> int:
-        if len(self.data_dims) != 1:
-            raise NotImplementedError("Unimplemtened index on a multiple data dims")
         return self._mapping[name]
 
     def size(self, data_dim_index: int) -> int:
@@ -105,7 +103,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             quantity_factory: Factory carrying the proper data dimensions axis described
                 in `data_dimensions_names`.
             data_dimensions_names: list of name of data dimension axis.
-            name_mapping: for each dimensions, a sparse dictionnary giving a name/index
+            name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
         """
@@ -244,14 +242,19 @@ class DataDimensionsMarkupType(StencilDeferredType):
 
     @property
     def mapping(self) -> SparseNameMapping:
+        """Return name/index sparse mapping."""
         return self._get_true_type().mapping
 
     def index(self, name: str) -> int:
+        """Gives back index by name. This function is not dimension-aware
+        and index need to be applied to the right dimension"""
         return self._get_true_type().index(name)
 
     def size(self, data_dims_index: int) -> int:
+        """Gives back size of a data dimension."""
         return self._get_true_type().size(data_dims_index)
 
     @classmethod
     def resolve(cls) -> type[StencilTypeRegistrar]:
+        """Internal. Resolve for true base class type."""
         return DataDimensionsField
