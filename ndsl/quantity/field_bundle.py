@@ -1,4 +1,5 @@
 import copy
+import warnings
 from dataclasses import dataclass
 from typing import Any
 
@@ -7,7 +8,6 @@ from gt4py.cartesian import gtscript
 from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity.quantity import Quantity
-import warnings
 
 
 # ToDo: This is 4th dimensions restricted. We need a concept
