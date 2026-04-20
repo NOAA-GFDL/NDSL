@@ -292,7 +292,7 @@ class Quantity:
             category=UserWarning,
             stacklevel=2,
         )
-        self.swap_buffer(input_data)      
+        self.swap_buffer(input_data)
 
     def swap_buffer(self, input_data: np.ndarray | cupy.ndarray) -> None:
         """Swap internal buffer for given input. Use with _extreme_ care as it might
