@@ -58,8 +58,8 @@ def test_set_hybrid_pressure_coefficients_correct(levels):
         quantity_factory=quantity_factory, communicator=communicator, eta_file=eta_file
     )
 
-    ak_results = metric_terms.ak.data
-    bk_results = metric_terms.bk.data
+    ak_results = metric_terms.ak[:]
+    bk_results = metric_terms.bk[:]
     ak_answers, bk_answers = eta_data["ak"].values, eta_data["bk"].values
 
     assert ak_answers.size == ak_results.size, "Unexpected size of bk"
