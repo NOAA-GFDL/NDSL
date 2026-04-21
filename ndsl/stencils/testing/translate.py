@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -13,9 +13,8 @@ from ndsl.stencils.testing.grid import Grid
 from ndsl.stencils.testing.savepoint import DataLoader
 
 
-if TYPE_CHECKING:
-    if cupy is None:
-        import numpy as cupy
+if cupy is None:
+    import numpy as cupy
 
 logger = logging.getLogger(__name__)
 
