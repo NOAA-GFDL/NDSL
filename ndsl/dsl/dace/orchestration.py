@@ -3,6 +3,7 @@ from __future__ import annotations
 import numbers
 import os
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any
 
 from dace import SDFG, CompiledSDFG
@@ -158,8 +159,19 @@ def _build_sdfg(
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
 
+        if config.verbose_orchestration:
+            sdfg.save(
+                os.path.abspath(f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"),
+                compress=True,
+            )
+
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
+            if config.verbose_orchestration:
+                sdfg.save(
+                    os.path.abspath(f"{sdfg.build_folder}/01-simplify_1.sdfgz"),
+                    compress=True,
+                )
 
         if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
             # Here be 🐉 - but tests exists in test_optimization.py
@@ -167,6 +179,12 @@ def _build_sdfg(
                 # Break all loops into uni-dimensional loops to simplify optimizations
                 sdfg.apply_transformations_repeated(MapExpansion, validate=True)
                 stree = sdfg.as_schedule_tree()
+                if config.verbose_orchestration:
+                    with open(
+                        os.path.abspath(f"{sdfg.build_folder}/02-pre_opt.stree.txt"),
+                        "w+",
+                    ) as f:
+                        f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 passes = []
@@ -204,10 +222,23 @@ def _build_sdfg(
                     raise NotImplementedError(
                         f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
                     )
-                CPUPipeline(passes=passes).run(stree, verbose=True)
+                CPUPipeline(passes=passes, cache_directory=Path(sdfg.build_folder)).run(
+                    stree, verbose=config.verbose_schedule_tree_optimizations
+                )
+                if config.verbose_orchestration:
+                    with open(
+                        os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),
+                        "w+",
+                    ) as f:
+                        f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
+                        compress=True,
+                    )
 
         # Make the transients array persistents
         if config.is_gpu_backend():
@@ -241,7 +272,11 @@ def _build_sdfg(
 
         with DaCeProgress(config, "Simplify (2)"):
             _simplify(sdfg)
-
+            if config.verbose_orchestration:
+                sdfg.save(
+                    os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
+                    compress=True,
+                )
         # Move all memory that can be into a pool to lower memory pressure for GPU
         # We skip this memory optimization for CPU because we don't have a memory
         # pool available yet (DaCe v1)
@@ -271,7 +306,6 @@ def _build_sdfg(
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
             sdfg.compile()
-        write_build_info(sdfg, config.layout, config.tile_resolution, backend_name)
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):
@@ -279,6 +313,11 @@ def _build_sdfg(
                 sdfg, memory_static_analysis(sdfg), False
             )
             ndsl_log.info(f"{DaCeProgress.default_prefix(config)} {report}")
+
+        # Store build info in the common cache directory
+        write_build_info(
+            sdfg, config.layout, config.tile_resolution, report, backend_name
+        )
 
     # Compilation done.
     # On Build: all ranks sync, then exit.

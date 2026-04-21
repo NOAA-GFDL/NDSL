@@ -18,14 +18,8 @@ repos:
     rev: v1.18.2
     hooks:
       - id: mypy
-        name: mypy-ndsl
         args: ["--config-file", "pyproject.toml"]
         additional_dependencies: [types-PyYAML]
-        files: ndsl
-        exclude: |
-          (?x)^(
-          ndsl/ndsl/gt4py_utils.py |
-          )$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0

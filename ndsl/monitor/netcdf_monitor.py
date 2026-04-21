@@ -6,7 +6,8 @@ import numpy as np
 import xarray as xr
 
 from ndsl.comm.communicator import Communicator
-from ndsl.dsl.typing import Float, get_precision
+from ndsl.dsl import NDSL_GLOBAL_PRECISION
+from ndsl.dsl.typing import Float
 from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
 from ndsl.quantity import Quantity
@@ -127,9 +128,9 @@ class NetCDFMonitor:
         self.__writer: _ChunkedNetCDFWriter | None = None
         self._expected_vars: set[str] | None = None
         self._transfer_type = precision
-        if self._transfer_type == np.float32 and get_precision() > 32:
+        if self._transfer_type == np.float32 and NDSL_GLOBAL_PRECISION > 32:
             warn(
-                f"NetCDF save: requested 32-bit float but precision of NDSL is {get_precision()}, cast will occur with possible loss of precision"
+                f"NetCDF save: requested 32-bit float but precision of NDSL is {NDSL_GLOBAL_PRECISION}, cast will occur with possible loss of precision"
             )
 
     @property

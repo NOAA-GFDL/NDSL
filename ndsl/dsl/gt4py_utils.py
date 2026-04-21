@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any
@@ -430,15 +429,6 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
             return np.asarray(array, dtype, order)
         else:
             return cp.asarray(array, dtype, order)
-
-
-def zeros(shape, dtype=Float, *, backend: Backend):
-    warnings.warn(
-        "gt4py_utils.zeros() is deprecated. Use `zeros()` from `ndsl.xumpy` instead.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return xumpy.zeros(shape, backend, dtype)
 
 
 def sum(array, axis=None, dtype=Float, out=None, keepdims=False):
