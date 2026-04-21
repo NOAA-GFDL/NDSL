@@ -287,7 +287,7 @@ class Quantity:
     @data.setter
     def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
         warnings.warn(
-            "Quantity.data settor is now deprecated. Build a quantity from a data with the "
+            "Quantity.data setter is now deprecated. Build a quantity from a data with the "
             "dedicated constructor. If you need no-copy mapping, talk to the team.",
             category=UserWarning,
             stacklevel=2,
@@ -296,7 +296,7 @@ class Quantity:
 
     def swap_buffer(self, input_data: np.ndarray | cupy.ndarray) -> None:
         """Swap internal buffer for given input. Use with _extreme_ care as it might
-        trip hash calculations for other subsystem."""
+        trip hash calculations for other subsystems."""
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
