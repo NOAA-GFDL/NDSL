@@ -82,19 +82,19 @@ def test_modifying_numpy_data_modifies_view_and_field():
         units="units",
         backend=Backend.python(),
     )
-    assert np.all(quantity.data == 0)
-    quantity.data[0, 0] = 1
-    quantity.data[2, 2] = 5
-    quantity.data[4, 4] = 3
+    assert np.all(quantity[:] == 0)
+    quantity[0, 0] = 1
+    quantity[2, 2] = 5
+    quantity[4, 4] = 3
     assert quantity.view[0, 0] == 1
     assert quantity.view[2, 2] == 5
     assert quantity.view[4, 4] == 3
     assert quantity.field[0, 0] == 1
     assert quantity.field[2, 2] == 5
     assert quantity.field[4, 4] == 3
-    assert quantity.data[0, 0] == 1
-    assert quantity.data[2, 2] == 5
-    assert quantity.data[4, 4] == 3
+    assert quantity[0, 0] == 1
+    assert quantity[2, 2] == 5
+    assert quantity[4, 4] == 3
 
 
 def test_data_and_field_access_right_full_array_and_compute_domain():
@@ -109,23 +109,23 @@ def test_data_and_field_access_right_full_array_and_compute_domain():
         units="units",
         backend=Backend.python(),
     )
-    assert np.all(quantity.data == 0)
+    assert np.all(quantity[:] == 0)
     # Write compute domain - test data is written with the offset
     quantity.field[:] = 11.11
     assert np.all(quantity.field == 11.11)
-    assert np.all(quantity.data[1:-1, 1:-1] == 11.11)
-    assert np.all(quantity.data[0:1, 0:1] == 0)
+    assert np.all(quantity[1:-1, 1:-1] == 11.11)
+    assert np.all(quantity[0:1, 0:1] == 0)
     # Write halo and test field has been left untouched
-    quantity.data[0:1, 0:1] = 33
-    assert np.all(quantity.data[0:1, 0:1] == 33)
+    quantity[0:1, 0:1] = 33
+    assert np.all(quantity[0:1, 0:1] == 33)
     assert np.all(quantity.field == 11.11)
 
 
 def test_data_exists(quantity, backend):
     if "numpy" in backend:
-        assert isinstance(quantity.data, np.ndarray)
+        assert isinstance(quantity._data, np.ndarray)
     else:
-        assert isinstance(quantity.data, cp.ndarray)
+        assert isinstance(quantity._data, cp.ndarray)
 
 
 def test_field_exists(quantity, backend):
@@ -146,9 +146,9 @@ def test_accessing_data_does_not_break_view(
         units=units,
         backend=ndsl_backend,
     )
-    quantity.data[origin] = -1.0
-    assert quantity.data[origin] == quantity.view[tuple(0 for _ in origin)]
-    assert quantity.data[origin] == quantity.field[tuple(0 for _ in origin)]
+    quantity[origin] = -1.0
+    assert quantity[origin] == quantity.view[tuple(0 for _ in origin)]
+    assert quantity[origin] == quantity.field[tuple(0 for _ in origin)]
 
 
 @pytest.mark.gpu

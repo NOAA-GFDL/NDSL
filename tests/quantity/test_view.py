@@ -158,9 +158,9 @@ def quantity(request):
 #     result = quantity.view.west[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
-#     assert len(result.shape) == 0 or result.base is quantity.data
+#     assert len(result.shape) == 0 or result.base is quantity._data
 #     transposed_quantity = Quantity(
-#         quantity.data.T,
+#         quantity._data.T,
 #         dims=quantity.dims[::-1],
 #         units=quantity.units,
 #         origin=quantity.origin[::-1],
@@ -382,9 +382,9 @@ def test_many_slices_raises(quantity, view_name):
 #     result = quantity.view.east[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
-#     assert len(result.shape) == 0 or result.base is quantity.data
+#     assert len(result.shape) == 0 or result.base is quantity._data
 #     transposed_quantity = Quantity(
-#         quantity.data.T,
+#         quantity._data.T,
 #         dims=quantity.dims[::-1],
 #         units=quantity.units,
 #         origin=quantity.origin[::-1],
@@ -550,9 +550,9 @@ def test_many_slices_raises(quantity, view_name):
 #     result = quantity.view.south[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
-#     assert len(result.shape) == 0 or result.base is quantity.data
+#     assert len(result.shape) == 0 or result.base is quantity._data
 #     transposed_quantity = Quantity(
-#         quantity.data.T,
+#         quantity._data.T,
 #         dims=quantity.dims[::-1],
 #         units=quantity.units,
 #         origin=quantity.origin[::-1],
@@ -718,9 +718,9 @@ def test_many_slices_raises(quantity, view_name):
 #     result = quantity.view.north[view_slice]
 #     quantity.np.testing.assert_array_equal(result, reference)
 #     # result should be a slice of the quantity memory, if it's a slice
-#     assert len(result.shape) == 0 or result.base is quantity.data
+#     assert len(result.shape) == 0 or result.base is quantity._data
 #     transposed_quantity = Quantity(
-#         quantity.data.T,
+#         quantity._data.T,
 #         dims=quantity.dims[::-1],
 #         units=quantity.units,
 #         origin=quantity.origin[::-1],
@@ -815,9 +815,9 @@ def test_southwest(quantity, view_slice, reference):
     result = quantity.view.southwest[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
-    assert len(result.shape) == 0 or result.base is quantity.data
+    assert len(result.shape) == 0 or result.base is quantity._data
     transposed_quantity = Quantity(
-        quantity.data.T,
+        quantity._data.T,
         dims=quantity.dims[::-1],
         units=quantity.units,
         origin=quantity.origin[::-1],
@@ -913,9 +913,9 @@ def test_southeast(quantity, view_slice, reference):
     result = quantity.view.southeast[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
-    assert len(result.shape) == 0 or result.base is quantity.data
+    assert len(result.shape) == 0 or result.base is quantity._data
     transposed_quantity = Quantity(
-        quantity.data.T,
+        quantity._data.T,
         dims=quantity.dims[::-1],
         units=quantity.units,
         origin=quantity.origin[::-1],
@@ -1024,9 +1024,9 @@ def test_northwest(quantity, view_slice, reference):
     result = quantity.view.northwest[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
-    assert len(result.shape) == 0 or result.base is quantity.data
+    assert len(result.shape) == 0 or result.base is quantity._data
     transposed_quantity = Quantity(
-        quantity.data.T,
+        quantity._data.T,
         dims=quantity.dims[::-1],
         units=quantity.units,
         origin=quantity.origin[::-1],
@@ -1135,9 +1135,9 @@ def test_northeast(quantity, view_slice, reference):
     result = quantity.view.northeast[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
-    assert len(result.shape) == 0 or result.base is quantity.data
+    assert len(result.shape) == 0 or result.base is quantity._data
     transposed_quantity = Quantity(
-        quantity.data.T,
+        quantity._data.T,
         dims=quantity.dims[::-1],
         units=quantity.units,
         origin=quantity.origin[::-1],
@@ -1241,9 +1241,9 @@ def test_interior(quantity, view_slice, reference):
     result = quantity.view.interior[view_slice]
     quantity.np.testing.assert_array_equal(result, reference)
     # result should be a slice of the quantity memory, if it's a slice
-    assert len(result.shape) == 0 or result.base is quantity.data
+    assert len(result.shape) == 0 or result.base is quantity._data
     transposed_quantity = Quantity(
-        quantity.data.T,
+        quantity._data.T,
         dims=quantity.dims[::-1],
         units=quantity.units,
         origin=quantity.origin[::-1],

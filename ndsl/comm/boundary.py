@@ -96,12 +96,12 @@ class SimpleBoundary(Boundary):
             quantity.dims,
             quantity.origin,
             quantity.extent,
-            quantity.data.shape,
+            quantity.shape,
             self.boundary_type,
             n_points,
             interior,
         )
-        return quantity.data[tuple(boundary_slice)]
+        return quantity[tuple(boundary_slice)]
 
     def _slice(
         self, specification: QuantityHaloSpec, interior: bool

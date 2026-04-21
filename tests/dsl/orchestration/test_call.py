@@ -154,7 +154,7 @@ def test_dace_call_argument_caching():
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash == hash_A
 
     # Check that inner quantity data swap recomputes
-    quantity_A.data = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "Abis").data
+    quantity_A.swap_buffer(quantity_factory.ones([I_DIM, J_DIM, K_DIM], "Abis")._data)
     code(quantity_A, state_A)
     assert list(dconfig.loaded_dace_executables.values())[0].arguments_hash != hash_A
     hash_Abis = list(dconfig.loaded_dace_executables.values())[0].arguments_hash

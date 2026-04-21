@@ -582,7 +582,7 @@ def test_zeros_halo_update(
                     quantity.dims,
                     quantity.origin,
                     quantity.extent,
-                    quantity.data.shape,
+                    quantity.shape,
                     boundary,
                     n_points_update,
                     interior=False,
@@ -594,7 +594,7 @@ def test_zeros_halo_update(
                     boundary_slice=boundary_slice,
                 ):
                     numpy.testing.assert_array_equal(
-                        quantity.data[tuple(boundary_slice)], 0.0
+                        quantity[tuple(boundary_slice)], 0.0
                     )
 
 
@@ -652,7 +652,7 @@ def test_zeros_tile_halo_update(
                     quantity.dims,
                     quantity.origin,
                     quantity.extent,
-                    quantity.data.shape,
+                    quantity.shape,
                     boundary,
                     n_points_update,
                     interior=False,
@@ -664,7 +664,7 @@ def test_zeros_tile_halo_update(
                     boundary_slice=boundary_slice,
                 ):
                     numpy.testing.assert_array_equal(
-                        quantity.data[tuple(boundary_slice)], 0.0
+                        quantity[tuple(boundary_slice)], 0.0
                     )
 
 
@@ -700,7 +700,7 @@ def test_zeros_vector_halo_update(
                     x_quantity.dims,
                     x_quantity.origin,
                     x_quantity.extent,
-                    x_quantity.data.shape,
+                    x_quantity.shape,
                     boundary,
                     n_points_update,
                     interior=False,
@@ -713,7 +713,7 @@ def test_zeros_vector_halo_update(
                 ):
                     for quantity in y_quantity, x_quantity:
                         numpy.testing.assert_array_equal(
-                            quantity.data[tuple(boundary_slice)], 0.0
+                            quantity[tuple(boundary_slice)], 0.0
                         )
 
 
@@ -751,7 +751,7 @@ def test_zeros_vector_tile_halo_update(
                     x_quantity.dims,
                     x_quantity.origin,
                     x_quantity.extent,
-                    x_quantity.data.shape,
+                    x_quantity.shape,
                     boundary,
                     n_points_update,
                     interior=False,
@@ -764,7 +764,7 @@ def test_zeros_vector_tile_halo_update(
                 ):
                     for quantity in y_quantity, x_quantity:
                         numpy.testing.assert_array_equal(
-                            quantity.data[tuple(boundary_slice)], 0.0
+                            quantity[tuple(boundary_slice)], 0.0
                         )
 
 
@@ -858,9 +858,9 @@ def test_halo_updater_stability(
     for communicator, quantity in zip(communicator_list, zeros_quantity_list):
         specification = QuantityHaloSpec(
             n_points,
-            quantity.data.strides,
-            quantity.data.itemsize,
-            quantity.data.shape,
+            quantity._data.strides,
+            quantity._data.itemsize,
+            quantity.shape,
             quantity.origin,
             quantity.extent,
             quantity.dims,
@@ -898,7 +898,7 @@ def test_halo_updater_stability(
         halo_updater.start([quantity])
     for halo_updater in halo_updaters:
         halo_updater.wait()
-    assert (quantity.data == exchanged_once_quantity.data).all()
+    assert (quantity[:] == exchanged_once_quantity[:]).all()
 
     # All caches are still in use
     assert len(BUFFER_CACHE) == 1

@@ -71,7 +71,7 @@ def assert_quantity_equals(result, reference):
     assert result.dims == reference.dims
     assert result.units == reference.units
     assert result.extent == reference.extent
-    assert isinstance(result.data, type(reference.data))
+    assert isinstance(result[:], type(reference[:]))
     reference.np.testing.assert_array_equal(result.view[:], reference.view[:])
 
 
@@ -189,7 +189,7 @@ def test_cube_gather_state_with_recv_state(
     cube_quantity, scattered_quantities, communicator_list, time
 ):
     recv_state = {"time": time, "air_temperature": copy.deepcopy(cube_quantity)}
-    recv_state["air_temperature"].data[:] = -1
+    recv_state["air_temperature"][:] = -1
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
@@ -233,7 +233,7 @@ def test_cube_scatter_with_recv_quantity(
 ):
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
-        q.data[:] = 0.0
+        q[:] = 0.0
     for recv, communicator in zip(recv_quantities, communicator_list):
         if communicator.rank == 0:
             result = communicator.scatter(
@@ -252,7 +252,7 @@ def test_cube_gather_with_recv_quantity(
     cube_quantity, scattered_quantities, communicator_list
 ):
     recv_quantity = copy.deepcopy(cube_quantity)
-    recv_quantity.data[:] = -1
+    recv_quantity[:] = -1
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
@@ -288,7 +288,7 @@ def test_cube_scatter_state_with_recv_state(
     tile_state = {"time": time, "air_temperature": cube_quantity}
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
-        q.data[:] = 0.0
+        q[:] = 0.0
     for recv, communicator in zip(recv_quantities, communicator_list):
         state = {
             "time": time - datetime.timedelta(hours=1),

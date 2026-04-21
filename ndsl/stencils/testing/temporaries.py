@@ -5,8 +5,8 @@ import numpy as np
 from ndsl.quantity import Quantity
 
 
-def copy_temporaries(obj: object, max_depth: int) -> dict:
-    temporaries = {}
+def copy_temporaries(obj: object, max_depth: int) -> dict[str, dict | np.ndarray]:
+    temporaries: dict[str, dict | np.ndarray] = {}
     attrs = [a for a in dir(obj) if not a.startswith("__")]
     for attr_name in attrs:
         try:
@@ -14,7 +14,7 @@ def copy_temporaries(obj: object, max_depth: int) -> dict:
         except AttributeError:
             attr = None
         if isinstance(attr, Quantity):
-            temporaries[attr_name] = copy.deepcopy(np.asarray(attr.data))
+            temporaries[attr_name] = copy.deepcopy(np.asarray(attr[:]))
         elif attr.__class__.__module__.split(".")[0] in ("pyFV3"):
             if max_depth > 0:
                 sub_temporaries = copy_temporaries(attr, max_depth - 1)

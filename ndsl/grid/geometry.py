@@ -598,7 +598,7 @@ def edge_factors(
     """
     Creates interpolation factors from the A grid to the B grid on tile edges
     """
-    grid = grid_quantity.data[:]
+    grid = grid_quantity[:]
     big_number = 1.0e8
     i_range = grid[nhalo:-nhalo, nhalo:-nhalo].shape[0]
     j_range = grid[nhalo:-nhalo, nhalo:-nhalo].shape[1]
@@ -713,7 +713,7 @@ def efactor_a2c_v(
     for interpolating vectors from A to C grids
     """
     big_number = 1.0e8
-    grid = grid_quantity.data[:]
+    grid = grid_quantity[:]
     npx, npy, ndims = tile_partitioner.global_extent(grid_quantity)
     slice_x, slice_y = tile_partitioner.subtile_slice(
         rank, grid_quantity.dims, (npx, npy)
