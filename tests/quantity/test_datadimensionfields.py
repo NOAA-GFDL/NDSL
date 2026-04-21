@@ -185,7 +185,12 @@ def test_data_dimensions_fields_with_orchestrated_backend():
     code = Code(stcil_fctry, qty_factry)
     code(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
-    with pytest.raises((DaceSyntaxError, TypeError,)):
+    with pytest.raises(
+        (
+            DaceSyntaxError,
+            TypeError,
+        )
+    ):
         code.bad_call(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
