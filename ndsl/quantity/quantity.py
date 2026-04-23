@@ -68,7 +68,7 @@ class Quantity:
         ):
             raise ValueError(
                 f"Floating-point data type mismatch, asked for {data.dtype}, "
-                f"Pace configured for {Float}"
+                f"NDSL configured for {Float}"
             )
         if origin is None:
             origin = (0,) * len(dims)  # default origin at origin of array
