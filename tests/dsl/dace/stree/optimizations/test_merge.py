@@ -201,7 +201,7 @@ class TestStreeMergeMapsIJK:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
-        assert len(all_maps) == 4  # Should be all dmerged = 3
+        assert len(all_maps) == 4  # Should be all merged = 3
 
     def test_block_merge_when_dependencies_are_found(
         self, code: OrchestratedCode, factories: Factories
@@ -216,16 +216,13 @@ class TestStreeMergeMapsIJK:
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
-            me.params[0]
+            (me, state)
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, dace.nodes.MapEntry)
         ]
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 5  # Should be 4 = 2 IJ + 2 Ks (un-merged)
 
-    @pytest.mark.skip(
-        "Optimization broken by DaCe v2 update: https://github.com/NOAA-GFDL/NDSL/issues/375"
-    )
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
     ) -> None:

@@ -203,7 +203,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             return self._push_ifelse_down(node, nodes)
 
         if isinstance(node, tn.ForScope):
-            return self._for_merge(node, nodes)
+            return self._for_merge(node)
 
         if isinstance(node, tn.TaskletNode):
             return self._push_tasklet_down(node, nodes)
@@ -214,11 +214,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         ndsl_log.debug(f"  (╯°□°)╯︵ ┻━┻: can't merge {type(node)}. Recursion ends.")
         return 0
 
-    def _for_merge(
-        self,
-        the_for_scope: tn.ForScope,
-        nodes: list[tn.ScheduleTreeNode],
-    ) -> int:
+    def _for_merge(self, the_for_scope: tn.ForScope) -> int:
         merged = 0
 
         if _is_axis_for(the_for_scope, self.axis):
@@ -419,8 +415,9 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         return 1
 
-    def _merge(self, node: tn.ScheduleTreeRoot | tn.ScheduleTreeScope) -> int:
+    def _merge(self, node: tn.ScheduleTreeScope) -> int:
         merged = 0
+        tn.validate_children_and_parents_align(node)
 
         if __debug__:
             detect_cycle(node.children, set())
@@ -429,6 +426,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         while i_candidate < len(node.children):
             next_node = node.children[i_candidate]
             merged += self._merge_node(next_node, node.children)
+            tn.validate_children_and_parents_align(node)
             i_candidate += 1
 
         if __debug__:
@@ -457,6 +455,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             merging and we don't take care of it at the moment. We could write a pass cleaning
             those first.
         """
+        tn.validate_children_and_parents_align(node)
         overall_merged = 0
         passes_apply = 0
         i = 0
@@ -475,8 +474,13 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             # to the previous state
             if merged == 0:
                 node.children = previous_children
+                for child in node.children:
+                    child.parent = node
                 break
             passes_apply += 1
+
+        tn.validate_has_no_other_node_types(node)
+        tn.validate_children_and_parents_align(node)
 
         ndsl_log.debug(
             f"🚀 {self}: {overall_merged} maps merged in {passes_apply} passes"

@@ -233,7 +233,9 @@ def _build_sdfg(
                         f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
-                sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+                sdfg = stree.as_sdfg(
+                    skip={"ScalarToSymbolPromotion", "ControlFlowRaising"}
+                )
                 if config.verbose_orchestration:
                     sdfg.save(
                         os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
