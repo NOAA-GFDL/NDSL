@@ -107,7 +107,8 @@ class Debugger:
             xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
             ndsl_log.error(f"[DebugInfo] Failure to save {savename}: {e}")
-        self.step += 1
+        if not is_in:
+            self.step += 1
 
     def increment_call_count(self, savename: str) -> None:
         """Increment the call count for this savename"""
