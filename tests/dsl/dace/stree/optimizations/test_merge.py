@@ -2,6 +2,7 @@ from typing import TypeAlias
 
 import dace
 import pytest
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 
 from ndsl import QuantityFactory, StencilFactory, orchestrate
@@ -243,12 +244,12 @@ class TestStreeMergeMapsIJK:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # All merged
-        loop_regions = [
-            (node)
+        for_loops = [
+            node
             for node, _ in sdfg.all_nodes_recursive()
-            if isinstance(node, LoopRegion)
+            if isinstance(node, LoopRegion) and tn.loop_variant(node) == "for"
         ]
-        assert len(loop_regions) == 1  # 1 For loop
+        assert len(for_loops) == 1  # 1 For loop
 
 
 class TestStreeMergeMapsKJI:
@@ -352,9 +353,6 @@ class TestStreeMergeMapsKJI:
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 9
 
-    @pytest.mark.skip(
-        "Optimization broken by DaCe v2 update: https://github.com/NOAA-GFDL/NDSL/issues/375"
-    )
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
     ) -> None:
@@ -374,9 +372,9 @@ class TestStreeMergeMapsKJI:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # All merged
-        all_loop_guard_state = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        for_loops = [
+            node
+            for node, _ in sdfg.all_nodes_recursive()
+            if isinstance(node, LoopRegion) and tn.loop_variant(node) == "for"
         ]
-        assert len(all_loop_guard_state) == 1  # 1 For loop
+        assert len(for_loops) == 1  # 1 For loop
