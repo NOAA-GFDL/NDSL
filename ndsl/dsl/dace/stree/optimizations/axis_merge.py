@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import re
-from typing import Any
 
 import dace
 from dace.properties import CodeBlock
@@ -124,33 +123,33 @@ def _sanitize_axis(axis: AxisIterator, name_to_normalize: str) -> str:
 
 class NormalizeAxisSymbol(tn.ScheduleNodeVisitor):
     def __init__(self, axis: AxisIterator) -> None:
-        self.axis = axis
+        self._axis = axis
 
     def visit_MapScope(
         self,
         map_scope: tn.MapScope,
         axis_replacements: dict[str, str] | None = None,
-        **kwargs: Any,
     ) -> None:
         if axis_replacements is None:
             axis_replacements = {}
         for index, param in enumerate(map_scope.node.params):
-            sanitized_param = _sanitize_axis(self.axis, param)
+            sanitized_param = _sanitize_axis(self._axis, param)
             axis_replacements[param] = sanitized_param
             map_scope.node.params[index] = sanitized_param
 
         # visit children
         for child in map_scope.children:
-            self.visit(child, axis_rpl_dict=axis_replacements)
+            self.visit(child, axis_replacements=axis_replacements)
 
     def visit_TaskletNode(
         self,
         node: tn.TaskletNode,
         axis_replacements: dict[str, str] | None = None,
-        **kwargs: Any,
     ) -> None:
-        if axis_replacements is None:
-            axis_replacements = {}
+        if not axis_replacements:
+            # Noop if there are no replacements to do.
+            return
+
         for memlets in node.in_memlets.values():
             memlets.replace(axis_replacements)
         for memlets in node.out_memlets.values():
