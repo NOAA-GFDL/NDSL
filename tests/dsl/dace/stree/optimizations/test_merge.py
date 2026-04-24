@@ -2,6 +2,7 @@ from typing import TypeAlias
 
 import dace
 import pytest
+from dace import nodes
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 
@@ -156,7 +157,7 @@ class TestStreeMergeMapsIJK:
         all_maps = [
             (me, state)
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
 
         assert len(all_maps) == 3
@@ -176,13 +177,13 @@ class TestStreeMergeMapsIJK:
         all_maps = [
             map_entry
             for map_entry, _ in sdfg.all_nodes_recursive()
-            if isinstance(map_entry, dace.nodes.MapEntry)
+            if isinstance(map_entry, nodes.MapEntry)
         ]
         assert len(all_maps) == 4  # 2 IJ + 2 Ks
         all_loops = [
             loop
             for loop, _ in sdfg.all_nodes_recursive()
-            if isinstance(loop, dace.sdfg.state.LoopRegion)
+            if isinstance(loop, LoopRegion)
         ]
         assert len(all_loops) == 1  # 1 For loop
 
@@ -200,7 +201,7 @@ class TestStreeMergeMapsIJK:
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 4  # Should be all merged = 3
@@ -220,7 +221,7 @@ class TestStreeMergeMapsIJK:
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 5  # Should be 4 = 2 IJ + 2 Ks (un-merged)
@@ -241,7 +242,7 @@ class TestStreeMergeMapsIJK:
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # All merged
         for_loops = [
@@ -276,7 +277,7 @@ class TestStreeMergeMapsKJI:
         all_maps = [
             (me, state)
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
 
         assert len(all_maps) == 3
@@ -289,9 +290,6 @@ class TestStreeMergeMapsKJI:
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        code.missing_merge_of_forscope_and_map(in_qty, out_qty)
-        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
-
         with StreeOptimization():
             # K iterative loop - blocks all merges
             code.missing_merge_of_forscope_and_map(in_qty, out_qty)
@@ -300,13 +298,13 @@ class TestStreeMergeMapsKJI:
         all_maps = [
             map_entry
             for map_entry, _ in sdfg.all_nodes_recursive()
-            if isinstance(map_entry, dace.nodes.MapEntry)
+            if isinstance(map_entry, nodes.MapEntry)
         ]
         assert len(all_maps) == 8  # 2 KJI (all maps) + 1 for scope
         all_loops = [
             loop
             for loop, _ in sdfg.all_nodes_recursive()
-            if isinstance(loop, dace.sdfg.state.LoopRegion)
+            if isinstance(loop, LoopRegion)
         ]
         assert len(all_loops) == 1  # 1 For loop
 
@@ -325,7 +323,7 @@ class TestStreeMergeMapsKJI:
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 6
@@ -345,7 +343,7 @@ class TestStreeMergeMapsKJI:
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
         # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
         assert len(all_maps) == 9
@@ -366,7 +364,7 @@ class TestStreeMergeMapsKJI:
         all_maps = [
             (me, state)
             for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.nodes.MapEntry)
+            if isinstance(me, nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # All merged
         for_loops = [
