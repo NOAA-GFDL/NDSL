@@ -2,6 +2,7 @@ from typing import TypeAlias
 
 import dace
 import pytest
+from dace.sdfg.state import LoopRegion
 
 from ndsl import QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
@@ -242,12 +243,12 @@ class TestStreeMergeMapsIJK:
             if isinstance(me, dace.nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # All merged
-        all_loop_guard_state = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, dace.SDFGState) and me.name.startswith("loop_guard")
+        loop_regions = [
+            (node)
+            for node, _ in sdfg.all_nodes_recursive()
+            if isinstance(node, LoopRegion)
         ]
-        assert len(all_loop_guard_state) == 1  # 1 For loop
+        assert len(loop_regions) == 1  # 1 For loop
 
 
 class TestStreeMergeMapsKJI:

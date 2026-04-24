@@ -172,7 +172,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         self.eager = eager
 
     def __str__(self) -> str:
-        return f"CartesianAxisMerge_{self.axis.name}"
+        return f"CartesianAxisMerge_{self.axis.name}_{'eager' if self.eager else ''}"
 
     def _merge_node(
         self, node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode]
