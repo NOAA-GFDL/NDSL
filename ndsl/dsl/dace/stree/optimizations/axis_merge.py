@@ -34,9 +34,7 @@ def _is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
 
 
 def _both_same_single_axis_maps(
-    first: tn.MapScope,
-    second: tn.MapScope,
-    axis: AxisIterator,
+    first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
     return (
         (len(first.node.params) == 1 and len(second.node.params) == 1)  # Single axis
@@ -46,9 +44,7 @@ def _both_same_single_axis_maps(
 
 
 def _can_merge_axis_maps(
-    first: tn.MapScope,
-    second: tn.MapScope,
-    axis: AxisIterator,
+    first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
     return _both_same_single_axis_maps(
         first, second, axis
@@ -104,8 +100,7 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
 
 
 def _get_next_node(
-    nodes: list[tn.ScheduleTreeNode],
-    node: tn.ScheduleTreeNode,
+    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
 ) -> tn.ScheduleTreeNode:
     return nodes[list_index(nodes, node) + 1]
 
@@ -132,6 +127,7 @@ class NormalizeAxisSymbol(tn.ScheduleNodeVisitor):
     ) -> None:
         if axis_replacements is None:
             axis_replacements = {}
+
         for index, param in enumerate(map_scope.node.params):
             sanitized_param = _sanitize_axis(self._axis, param)
             axis_replacements[param] = sanitized_param
@@ -171,12 +167,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         eager: overcompute with a conditional guard
     """
 
-    def __init__(
-        self,
-        axis: AxisIterator,
-        *,
-        eager: bool = True,
-    ) -> None:
+    def __init__(self, axis: AxisIterator, *, eager: bool = True) -> None:
         self.axis = axis
         self.eager = eager
 
@@ -184,9 +175,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         return f"CartesianAxisMerge_{self.axis.name}"
 
     def _merge_node(
-        self,
-        node: tn.ScheduleTreeNode,
-        nodes: list[tn.ScheduleTreeNode],
+        self, node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode]
     ) -> int:
         """Direct code to the correct resolver for the node (e.g. visitor)
 
@@ -232,19 +221,14 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         return merged + self._default_control_flow(the_for_scope)
 
-    def _default_control_flow(
-        self,
-        the_control_flow: tn.ControlFlowScope,
-    ) -> int:
+    def _default_control_flow(self, the_control_flow: tn.ControlFlowScope) -> int:
         if len(the_control_flow.children) != 0:
             return self._merge(the_control_flow)
 
         return 0
 
     def _push_tasklet_down(
-        self,
-        the_tasklet: tn.TaskletNode,
-        nodes: list[tn.ScheduleTreeNode],
+        self, the_tasklet: tn.TaskletNode, nodes: list[tn.ScheduleTreeNode]
     ) -> int:
         """Push tasklet into a consecutive map."""
         in_memlets = the_tasklet.input_memlets()
@@ -273,9 +257,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         return merged
 
     def _push_ifelse_down(
-        self,
-        the_if: tn.IfScope,
-        nodes: list[tn.ScheduleTreeNode],
+        self, the_if: tn.IfScope, nodes: list[tn.ScheduleTreeNode]
     ) -> int:
         merged = 0
 
@@ -348,9 +330,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         return merged
 
     def _map_overcompute_merge(
-        self,
-        the_map: tn.MapScope,
-        nodes: list[tn.ScheduleTreeNode],
+        self, the_map: tn.MapScope, nodes: list[tn.ScheduleTreeNode]
     ) -> int:
         # End of nodes OR
         # Not the right axis
