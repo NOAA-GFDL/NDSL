@@ -22,9 +22,11 @@ class Debugger:
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     save_compute_domain_only: bool = False
     dir_name: str = "./"
+    save_all_stencils: bool = False
 
     # Runtime data
     rank: int = -1
+    step: int = 0
     calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
     track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
 
@@ -78,7 +80,7 @@ class Debugger:
 
         Note: Unknown types in the dictionary won't be saved.
         """
-        if savename not in self.stencils_or_class:
+        if savename not in self.stencils_or_class and not self.save_all_stencils:
             return
 
         data_arrays = {}
@@ -99,12 +101,14 @@ class Debugger:
         path = pathlib.Path(f"{self.dir_name}/debug/savepoints/R{self.rank}/")
         os.makedirs(path, exist_ok=True)
         path = pathlib.Path(
-            f"{path}/{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
+            f"{path}/S{self.step:06d}_{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
         )
         try:
             xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
             ndsl_log.error(f"[DebugInfo] Failure to save {savename}: {e}")
+        if not is_in:
+            self.step += 1
 
     def increment_call_count(self, savename: str) -> None:
         """Increment the call count for this savename"""
