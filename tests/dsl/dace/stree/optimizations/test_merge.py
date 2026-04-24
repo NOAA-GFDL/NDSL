@@ -282,9 +282,6 @@ class TestStreeMergeMapsKJI:
         assert len(all_maps) == 3
         assert (out_qty.field[:] == 2).all()
 
-    @pytest.mark.skip(
-        "Optimization broken by DaCe v2 update: https://github.com/NOAA-GFDL/NDSL/issues/375"
-    )
     def test_missing_merge_of_forscope_and_map(
         self, code: OrchestratedCode, factories: Factories
     ) -> None:
