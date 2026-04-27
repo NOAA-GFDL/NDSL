@@ -36,12 +36,12 @@ def swap_node_position_in_tree(
 def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
     """Detect the cycles in the tree."""
     # Dev note: isn't there a DaCe tool for this?!
-    for n in nodes:
-        if id(n) in visited:
+    for node in nodes:
+        if id(node) in visited:
             breakpoint()
-        visited.add(id(n))
-        if hasattr(n, "children"):
-            detect_cycle(n.children, visited)
+        visited.add(id(node))
+        if isinstance(node, tn.ScheduleTreeScope):
+            detect_cycle(node.children, visited)
 
 
 def list_index(
