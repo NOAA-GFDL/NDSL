@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import re
 
 import dace
 from dace.properties import CodeBlock
@@ -25,7 +24,7 @@ PUSH_IFSCOPE_DOWNWARD = False  # Crashing the overall stree - bad algorithmics
 
 def _is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
     """Returns true if node is a map over the given axis."""
-    map_parameter = node.node.params
+    map_parameter = node.node.map.params
     return len(map_parameter) == 1 and map_parameter[0].startswith(axis.as_str())
 
 
@@ -37,22 +36,21 @@ def _both_same_single_axis_maps(
     first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
     return (
-        (len(first.node.params) == 1 and len(second.node.params) == 1)  # Single axis
-        and first.node.params[0] == second.node.params[0]  # Same axis
-        and _is_axis_map(first, axis)  # Correct axis
+        (
+            len(first.node.map.params) == 1 and len(second.node.map.params) == 1
+        )  # Single axis
+        and _is_axis_map(first, axis)  # Correct axis in first map
+        and _is_axis_map(second, axis)  # Correct axis in second map
     )
 
 
 def _can_merge_axis_maps(
     first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
-    return _both_same_single_axis_maps(
-        first, second, axis
-    ) and no_data_dependencies_on_cartesian_axis(
-        first,
-        second,
-        axis,
-    )
+    if _both_same_single_axis_maps(first, second, axis):
+        if no_data_dependencies_on_cartesian_axis(first, second, axis):
+            return True
+    return False
 
 
 class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
@@ -87,7 +85,9 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
         if not all_children_are_maps:
             if self._merged_range != self._original_range:
                 if_scope = tn.IfScope(
-                    condition=self._execution_condition(), children=node.children
+                    condition=self._execution_condition(),
+                    children=node.children,
+                    parent=node,
                 )
                 # Re-parent to IF
                 for child in node.children:
@@ -109,14 +109,7 @@ def _last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> b
     return list_index(nodes, node) >= len(nodes) - 1
 
 
-def _sanitize_axis(axis: AxisIterator, name_to_normalize: str) -> str:
-    axis_clean = f"{axis.as_str()}"
-    pattern = f"{axis.as_str()}_[0-9]*"
-
-    return re.sub(pattern, axis_clean, name_to_normalize)
-
-
-class NormalizeAxisSymbol(tn.ScheduleNodeVisitor):
+class ReplaceAxisSymbol(tn.ScheduleNodeVisitor):
     def __init__(self, axis: AxisIterator) -> None:
         self._axis = axis
 
@@ -129,9 +122,8 @@ class NormalizeAxisSymbol(tn.ScheduleNodeVisitor):
             axis_replacements = {}
 
         for index, param in enumerate(map_scope.node.params):
-            sanitized_param = _sanitize_axis(self._axis, param)
-            axis_replacements[param] = sanitized_param
-            map_scope.node.params[index] = sanitized_param
+            if param in axis_replacements:
+                map_scope.node.params[index] = axis_replacements[param]
 
         # visit children
         for child in map_scope.children:
@@ -388,6 +380,15 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         # TODO also merge containers and symbols (if applicable)
         first_map.node.map.range = merged_range
+
+        # K-maps use unique iterators (i.e. every k-map iterates over `k__[0-9]*`).
+        # After merge, we need to replace the axis symbols of the second map's children
+        # with the axis symbol of the first map.
+        if next_node.node.map.params[0] != the_map.node.map.params[0]:
+            replacements = {next_node.node.map.params[0]: the_map.node.map.params[0]}
+            ReplaceAxisSymbol(self.axis).visit(
+                first_map, axis_replacements=replacements
+            )
 
         # delete now-merged second_map
         del nodes[list_index(nodes, next_node)]

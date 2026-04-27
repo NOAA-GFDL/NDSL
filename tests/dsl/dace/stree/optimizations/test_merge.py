@@ -203,8 +203,7 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
-        assert len(all_maps) == 4  # Should be all merged = 3
+        assert len(all_maps) == 3  # All maps merged
 
     def test_block_merge_when_dependencies_are_found(
         self, code: OrchestratedCode, factories: Factories
@@ -223,8 +222,7 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
-        assert len(all_maps) == 5  # Should be 4 = 2 IJ + 2 Ks (un-merged)
+        assert len(all_maps) == 4  # 2 IJ + 2 Ks (un-merged)
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
@@ -325,8 +323,7 @@ class TestStreeMergeMapsKJI:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
-        assert len(all_maps) == 6
+        assert len(all_maps) == 3  # All maps merged
 
     def test_block_merge_when_dependencies_are_found(
         self, code: OrchestratedCode, factories: Factories
@@ -345,8 +342,7 @@ class TestStreeMergeMapsKJI:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        # ⚠️ WE EXPECT A FAILURE TO MERGE K (because of index) ⚠️
-        assert len(all_maps) == 9
+        assert len(all_maps) == 6  # 2 * KJI
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
