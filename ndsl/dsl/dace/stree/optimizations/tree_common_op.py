@@ -1,12 +1,15 @@
 from typing import Collection
 
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
+import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 
 def swap_node_position_in_tree(
-    top_node: stree.ScheduleTreeScope, child_node: stree.ScheduleTreeScope
+    top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
 ) -> None:
-    """Top node becomes child, child becomes top node"""
+    """Top node becomes child, child becomes top node."""
+    # Ensue parent/children relationship is valid
+    tn.validate_children_and_parents_align(top_node)
+
     # Take refs before swap
     top_children = top_node.parent.children
     top_level_parent = top_node.parent
@@ -23,21 +26,27 @@ def swap_node_position_in_tree(
     # Remove now-pushed original node
     top_children.remove(top_node)
 
+    # Reset parent/child relationship
+    for child in top_node.children:
+        child.parent = top_node
+    for child in child_node.children:
+        child.parent = child_node
 
-def detect_cycle(nodes: list[stree.ScheduleTreeNode], visited: set) -> None:
+
+def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
     """Detect the cycles in the tree."""
     # Dev note: isn't there a DaCe tool for this?!
-    for n in nodes:
-        if id(n) in visited:
+    for node in nodes:
+        if id(node) in visited:
             breakpoint()
-        visited.add(id(n))
-        if hasattr(n, "children"):
-            detect_cycle(n.children, visited)
+        visited.add(id(node))
+        if isinstance(node, tn.ScheduleTreeScope):
+            detect_cycle(node.children, visited)
 
 
 def list_index(
-    collection: Collection[stree.ScheduleTreeNode],
-    node: stree.ScheduleTreeNode,
+    collection: Collection[tn.ScheduleTreeNode],
+    node: tn.ScheduleTreeNode,
 ) -> int:
     """Check if node is in list with "is" operator."""
     # compare with "is" to get memory comparison. ".index()" uses value comparison

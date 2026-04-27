@@ -7,11 +7,14 @@ When loading, the configuration will be searched in the global environment varia
 Configuration is a yaml file of the shape
 ```yaml
 stencils_or_class:
-    - copy_corners_x_nord
-    - copy_corners_y_nord
-    - DGridShallowWaterLagrangianDynamics.__call__
+    - stencil_name
+    - ClassName.orchestrated_method
+    - ClassName.__call__
 track_parameter_by_name:
-    - fy
+    - name_of_variable
+save_all_stencils: False
+dir_name: ./my/local/path
+save_compute_domain_only: False
 ```
 
 Global variable:

@@ -16,6 +16,7 @@ from dace.dtypes import DeviceType as DaceDeviceType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
 from dace.frontend.python.parser import DaceProgram
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapExpansion
 from dace.transformation.helpers import get_parent_map
@@ -138,6 +139,16 @@ def _simplify(
     )
 
 
+def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
+    """
+    Convert the given ScheduleTree to SDFG.
+
+    This function wraps `stree.as_sdfg()` with a configuration that is suitable for
+    NDSL, e.g. skipping certain passes of `sdfg.simplify()`.
+    """
+    return stree.as_sdfg(skip={"ScalarToSymbolPromotion", "ControlFlowRaising"})
+
+
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
 ) -> None:
@@ -233,7 +244,7 @@ def _build_sdfg(
                         f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
-                sdfg = stree.as_sdfg(skip={"ScalarToSymbolPromotion"})
+                sdfg = _tree_as_sdfg(stree)
                 if config.verbose_orchestration:
                     sdfg.save(
                         os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
