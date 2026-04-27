@@ -153,7 +153,7 @@ def ord4_transform(
 
 class CubedToLatLon:
     """
-    Fortan name is c2l_ord2
+    Fortran name is `c2l_ord2`.
     """
 
     def __init__(
