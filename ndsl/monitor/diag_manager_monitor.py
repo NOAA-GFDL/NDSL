@@ -63,8 +63,11 @@ class DiagManagerMonitor(Monitor):
             except NameError:
                 raise RuntimeError("no timestep set via set_timestep")
 
-    # close the file
     def cleanup(self) -> None:
+        """
+        Calls diag_manager.end after simulation ends to ensure all data is written.
+        """
+        
         if self.diag_end_time is None:
             raise RuntimeError(
                 "End time was not set via set_end_time prior to cleanup call"

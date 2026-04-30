@@ -88,4 +88,5 @@ __all__ = [
     "LocalState",
     "NDSLRuntime",
     "Local",
+    "DiagManagerMonitor",
 ]

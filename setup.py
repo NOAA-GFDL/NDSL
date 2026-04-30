@@ -27,8 +27,4 @@ requirements: list[str] = [
     "dacite",  # for state
 ]
 
-extras: dict = {
-    "pyfms": ["pyfms @ git+https://github.com/noaa-gfdl/pyfms"],
-}
-
-setup(install_requires=requirements, extra_requirements=extras)
+setup(install_requires=requirements)
