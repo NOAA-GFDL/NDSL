@@ -80,6 +80,7 @@ class NDSLRuntime:
                 ndsl_debugger.save_as_dataset(
                     data_as_dict, type(self).__qualname__, is_in=False
                 )
+                ndsl_debugger.increment_call_count(type(self).__qualname__)
 
             return new_call
 
