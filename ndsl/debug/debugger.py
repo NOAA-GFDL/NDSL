@@ -86,6 +86,8 @@ class Debugger:
 
         data_arrays = {}
         for name, data in data_as_dict.items():
+            if data is None:
+                continue
             if dataclasses.is_dataclass(data):
                 for field in dataclasses.fields(data):
                     data_arrays[f"{name}.{field.name}"] = self._to_xarray(

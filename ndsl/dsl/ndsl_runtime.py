@@ -51,7 +51,7 @@ class NDSLRuntime:
                 self: NDSLRuntime,
                 *args: list[Any],
                 **kwargs: dict[str, Any],
-            ) -> None:
+            ) -> Any:
                 assert ndsl_debugger
                 params = inspect.signature(child_call).parameters
                 data_as_dict = {}
@@ -76,11 +76,12 @@ class NDSLRuntime:
                 ndsl_debugger.save_as_dataset(
                     data_as_dict, type(self).__qualname__, is_in=True
                 )
-                child_call(self, *args, **kwargs)
+                result = child_call(self, *args, **kwargs)
                 ndsl_debugger.save_as_dataset(
                     data_as_dict, type(self).__qualname__, is_in=False
                 )
                 ndsl_debugger.increment_call_count(type(self).__qualname__)
+                return result
 
             return new_call
 
