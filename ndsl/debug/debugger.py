@@ -23,6 +23,7 @@ class Debugger:
     save_compute_domain_only: bool = False
     dir_name: str = "./"
     save_all_stencils: bool = False
+    save_all: bool = False
 
     # Runtime data
     rank: int = -1
@@ -36,7 +37,7 @@ class Debugger:
                 mem = data.field
                 shp = data.field.shape
             else:
-                mem = data.data
+                mem = data[:]
                 shp = data.shape
         elif hasattr(data, "shape"):
             mem = data
@@ -80,7 +81,7 @@ class Debugger:
 
         Note: Unknown types in the dictionary won't be saved.
         """
-        if savename not in self.stencils_or_class and not self.save_all_stencils:
+        if savename not in self.stencils_or_class and not self.save_all:
             return
 
         data_arrays = {}
