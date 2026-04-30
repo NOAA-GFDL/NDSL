@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any
@@ -449,15 +448,6 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
             return cp.asarray(array, dtype, order)
 
 
-def zeros(shape, dtype=Float, *, backend: Backend):
-    warnings.warn(
-        "gt4py_utils.zeros() is deprecated. Use `zeros()` from `ndsl.xumpy` instead.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return xumpy.zeros(shape, backend, dtype)
-
-
 def sum(array, axis=None, dtype=Float, out=None, keepdims=False):
     xp = cp if cp and type(array) is cp.ndarray else np
     return xp.sum(array, axis, dtype, out, keepdims)
@@ -527,7 +517,7 @@ def device_sync(backend: Backend) -> None:
         cp.cuda.Device(0).synchronize()
 
 
-def split_cartesian_into_storages(var: np.ndarray) -> Sequence[np.ndarray]:
+def split_cartesian_into_storages(var: np.ndarray) -> list[np.ndarray]:
     """
     Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM]
          or [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM]

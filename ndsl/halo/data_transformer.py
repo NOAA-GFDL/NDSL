@@ -433,7 +433,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
             # Thus we rotate that number of times counterclockwise before sending,
             # to get the right final orientation
             source_view = rotate_scalar_data(
-                quantity.data[info_x.pack_slices],
+                quantity[info_x.pack_slices],
                 quantity.dims,
                 quantity.np,
                 -info_x.pack_clockwise_rotation,
@@ -473,8 +473,8 @@ class HaloDataTransformerCPU(HaloDataTransformer):
             # Thus we rotate that number of times counterclockwise before sending,
             # to get the right final orientation
             x_view, y_view = rotate_vector_data(
-                quantity_x.data[info_x.pack_slices],
-                quantity_y.data[info_y.pack_slices],
+                quantity_x[info_x.pack_slices],
+                quantity_y[info_y.pack_slices],
                 -info_x.pack_clockwise_rotation,
                 quantity_x.dims,
                 quantity_x.np,
@@ -520,7 +520,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
         assert isinstance(self._unpack_buffer, Buffer)  # e.g. allocate happened
         offset = 0
         for quantity, info_x in zip(quantities, self._infos_x):
-            quantity_view = quantity.data[info_x.unpack_slices]
+            quantity_view = quantity[info_x.unpack_slices]
             data_size = _slices_size(info_x.unpack_slices)
             self._unpack_buffer.assign_to(
                 quantity_view,
@@ -548,7 +548,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
         for quantity_x, quantity_y, info_x, info_y in zip(
             quantities_x, quantities_y, self._infos_x, self._infos_y
         ):
-            quantity_view = quantity_x.data[info_x.unpack_slices]
+            quantity_view = quantity_x[info_x.unpack_slices]
             data_size = _slices_size(info_x.unpack_slices)
             self._unpack_buffer.assign_to(
                 quantity_view,
@@ -556,7 +556,7 @@ class HaloDataTransformerCPU(HaloDataTransformer):
                 buffer_reshape=quantity_view.shape,
             )
             offset += data_size
-            quantity_view = quantity_y.data[info_y.unpack_slices]
+            quantity_view = quantity_y[info_y.unpack_slices]
             data_size = _slices_size(info_y.unpack_slices)
             self._unpack_buffer.assign_to(
                 quantity_view,
@@ -779,7 +779,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                         (grid_x,),
                         (blocks,),
                         (
-                            quantity.data[:],  # source_array
+                            quantity[:],  # source_array
                             cu_kernel_args.x_send_indices,  # indices
                             info_x.pack_buffer_size,  # nIndex
                             offset,
@@ -848,8 +848,8 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                         (grid_x,),
                         (blocks,),
                         (
-                            quantity_x.data[:],  # source_array_x
-                            quantity_y.data[:],  # source_array_y
+                            quantity_x[:],  # source_array_x
+                            quantity_y[:],  # source_array_y
                             cu_kernel_args.x_send_indices,  # indices_x
                             cu_kernel_args.y_send_indices,  # indices_y
                             info_x.pack_buffer_size,  # nIndex_x
@@ -934,7 +934,7 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                             cu_kernel_args.x_recv_indices,  # indices
                             info_x._unpack_buffer_size,  # nIndex
                             offset,
-                            quantity.data[:],  # destination_array
+                            quantity[:],  # destination_array
                         ),
                     )
 
@@ -1005,8 +1005,8 @@ class HaloDataTransformerGPU(HaloDataTransformer):
                             info_x._unpack_buffer_size,  # nIndex_x
                             info_y._unpack_buffer_size,  # nIndex_y
                             offset,
-                            quantity_x.data[:],  # destination_array_x
-                            quantity_y.data[:],  # destination_array_y
+                            quantity_x[:],  # destination_array_x
+                            quantity_y[:],  # destination_array_y
                         ),
                     )
 

@@ -165,7 +165,7 @@ class _ZarrVariableWriter:
         self.array = self.group.create_dataset(
             self.name,
             shape=self._prepend_shape + tile_shape,
-            dtype=quantity.data.dtype,
+            dtype=quantity.dtype,
             chunks=chunks,
             fill_value=None,
         )

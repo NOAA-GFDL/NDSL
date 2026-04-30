@@ -129,7 +129,7 @@ def test_smaller_extent_raises(data, origin, extent, dims, units):
 
 def test_data_change_affects_quantity(data, quantity, numpy):
     data[:] = 5.0
-    numpy.testing.assert_array_equal(quantity.data, 5.0)
+    numpy.testing.assert_array_equal(quantity, 5.0)
 
 
 def test_quantity_units(quantity, units):
@@ -150,7 +150,7 @@ def test_quantity_extent(quantity, extent):
 
 
 def test_compute_view_get_value(quantity, extent_1d, n_halo, n_dims):
-    quantity.data[:] = 0.0
+    quantity[:] = 0.0
     if extent_1d == 0 and n_halo == 0:
         with pytest.raises(IndexError):
             quantity.view[[0] * n_dims]
@@ -160,52 +160,50 @@ def test_compute_view_get_value(quantity, extent_1d, n_halo, n_dims):
 
 
 def test_compute_view_edit_start_halo(quantity, extent_1d, n_halo, n_dims):
-    quantity.data[:] = 0.0
+    quantity[:] = 0.0
     if extent_1d == 0 and n_halo == 0:
         with pytest.raises(IndexError):
             quantity.view[[-1] * n_dims] = 1
     else:
         quantity.view[[-1] * n_dims] = 1
-        assert quantity.np.sum(quantity.data) == 1.0
-        assert quantity.data[(n_halo - 1,) * n_dims] == 1
+        assert quantity.np.sum(quantity) == 1.0
+        assert quantity[(n_halo - 1,) * n_dims] == 1
 
 
 def test_compute_view_edit_end_halo(quantity, extent_1d, n_halo, n_dims):
-    quantity.data[:] = 0.0
+    quantity[:] = 0.0
     if n_halo == 0:
         with pytest.raises(IndexError):
             quantity.view[[extent_1d] * n_dims] = 1
     else:
         quantity.view[(extent_1d,) * n_dims] = 1
-        assert quantity.np.sum(quantity.data) == 1.0
-        assert quantity.data[(n_halo + extent_1d,) * n_dims] == 1
+        assert quantity.np.sum(quantity) == 1.0
+        assert quantity[(n_halo + extent_1d,) * n_dims] == 1
 
 
 def test_compute_view_edit_start_of_domain(quantity, extent_1d, n_halo, n_dims):
     if extent_1d == 0:
         return  # cannot edit an empty domain
 
-    quantity.data[:] = 0.0
+    quantity[:] = 0.0
     quantity.view[(0,) * n_dims] = 1
-    assert quantity.data[(n_halo,) * n_dims] == 1
-    assert quantity.np.sum(quantity.data) == 1.0
+    assert quantity[(n_halo,) * n_dims] == 1
+    assert quantity.np.sum(quantity) == 1.0
 
 
 def test_compute_view_edit_all_domain(quantity, n_halo, n_dims, extent_1d):
     if extent_1d == 0:
         return  # cannot edit an empty domain
 
-    quantity.data[:] = 0.0
+    quantity[:] = 0.0
     quantity.view[:] = 1
-    assert quantity.np.sum(quantity.data) == extent_1d**n_dims
+    assert quantity.np.sum(quantity) == extent_1d**n_dims
     if n_dims > 1:
-        quantity.np.testing.assert_array_equal(quantity.data[:n_halo, :], 0.0)
-        quantity.np.testing.assert_array_equal(
-            quantity.data[n_halo + extent_1d :, :], 0.0
-        )
+        quantity.np.testing.assert_array_equal(quantity[:n_halo, :], 0.0)
+        quantity.np.testing.assert_array_equal(quantity[n_halo + extent_1d :, :], 0.0)
     else:
-        quantity.np.testing.assert_array_equal(quantity.data[:n_halo], 0.0)
-        quantity.np.testing.assert_array_equal(quantity.data[n_halo + extent_1d :], 0.0)
+        quantity.np.testing.assert_array_equal(quantity[:n_halo], 0.0)
+        quantity.np.testing.assert_array_equal(quantity[n_halo + extent_1d :], 0.0)
 
 
 @pytest.mark.parametrize(
@@ -298,10 +296,26 @@ def test_to_data_array(quantity):
     assert quantity.field_as_xarray.dims == quantity.dims
     assert quantity.field_as_xarray.shape == quantity.extent
     np.testing.assert_array_equal(quantity.field_as_xarray.values, quantity.view[:])
-    if quantity.extent == quantity.data.shape:
+    if quantity.extent == quantity.shape:
         assert (
-            quantity.field_as_xarray.data.ctypes.data == quantity.data.ctypes.data
+            quantity.field_as_xarray.data.ctypes.data == quantity._data.ctypes.data
         ), "data memory address is not equal"
+
+
+def test_data_attribute_and_default_setter_are_the_same():
+    quantity = Quantity(
+        np.arange(
+            5,
+        ),
+        dims=["dim1"],
+        units="",
+        backend=Backend.python(),
+    )
+
+    assert quantity.shape == quantity._data.shape
+    assert quantity[3] == quantity._data[3]
+    quantity[2] = 42.0
+    assert quantity._data[2] == 42.0
 
 
 def test_data_setter():
@@ -310,25 +324,25 @@ def test_data_setter():
     )
 
     # After allocation - field and data are the same (origin is 0)
-    assert quantity.data.shape == quantity.field.shape
+    assert quantity.shape == quantity.field.shape
 
     # Allows swap: new array is bigger than Q.shape
     new_array = np.ones((10,))
     new_array[:] = 2
-    quantity.data = new_array
+    quantity.swap_buffer(new_array)
 
     # After swap - field and data points to the same memory
     # BUT field still respects the original origin/extent
-    assert (quantity.data[:] == 2).all()
+    assert (quantity[:] == 2).all()
     assert (quantity.field[:] == 2).all()
-    assert quantity.data.shape != quantity.field.shape
+    assert quantity.shape != quantity.field.shape
     assert quantity.field.shape == (5,)
 
     # Expected fail: new array is too small
     new_array = np.ones((2,))
     with pytest.raises(ValueError, match="Quantity.data buffer swap failed.*"):
-        quantity.data = new_array
+        quantity.swap_buffer(new_array)
 
     # Expected fail: new array is not even an array
     with pytest.raises(TypeError, match="Quantity.data buffer swap failed.*"):
-        quantity.data = "meh"
+        quantity.swap_buffer("meh")

@@ -123,18 +123,12 @@ def test_all_reduce(backend: Backend, communicator: CubedSphereCommunicator) -> 
     )
     communicator.all_reduce(testQuantity_1D, ReductionOperator.SUM, testQuantity_1D_out)
     assert testQuantity_1D_out.metadata == testQuantity_1D.metadata
-    assert (
-        testQuantity_1D_out.data == (testQuantity_1D.data * communicator.size)
-    ).all()
+    assert (testQuantity_1D_out[:] == (testQuantity_1D[:] * communicator.size)).all()
 
     communicator.all_reduce(testQuantity_2D, ReductionOperator.SUM, testQuantity_2D_out)
     assert testQuantity_2D_out.metadata == testQuantity_2D.metadata
-    assert (
-        testQuantity_2D_out.data == (testQuantity_2D.data * communicator.size)
-    ).all()
+    assert (testQuantity_2D_out[:] == (testQuantity_2D[:] * communicator.size)).all()
 
     communicator.all_reduce(testQuantity_3D, ReductionOperator.SUM, testQuantity_3D_out)
     assert testQuantity_3D_out.metadata == testQuantity_3D.metadata
-    assert (
-        testQuantity_3D_out.data == (testQuantity_3D.data * communicator.size)
-    ).all()
+    assert (testQuantity_3D_out[:] == (testQuantity_3D[:] * communicator.size)).all()

@@ -60,13 +60,13 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
     report_segments = []
     for i, (arg, numpy_arg) in enumerate(zip(args, args_copy)):
         if isinstance(arg, Quantity):
-            arg = arg.data
+            arg = arg[:]
             numpy_arg = numpy_arg.data
         if isinstance(arg, np.ndarray):
             report_segments.append(report_diff(arg, numpy_arg, label=f"arg {i}"))
     for name in kwargs:
         if isinstance(kwargs[name], Quantity):
-            kwarg = kwargs[name].data
+            kwarg = kwargs[name]._data
             numpy_kwarg = kwargs_copy[name].data
         else:
             kwarg = kwargs[name]
@@ -245,7 +245,7 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
     differences = {}
     for name, maybe_array in sorted(data.items(), key=lambda x: x[0]):
         if isinstance(maybe_array, Quantity):
-            maybe_array = maybe_array.data
+            maybe_array = maybe_array._data
         if hasattr(maybe_array, "data") and isinstance(maybe_array.data, np.ndarray):
             array = maybe_array.data
             other = comm.sendrecv(array, pair_rank)
@@ -617,7 +617,7 @@ def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def
             # this means it's a Quantity, so we need
             # to pull off the ndarray.
             arg.dims
-            args[i] = arg.data
+            args[i] = arg._data
         except AttributeError:
             pass
     for name, arg in kwargs.items():
@@ -626,7 +626,7 @@ def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def
             # this means it's a Quantity, so we need
             # to pull off the ndarray.
             arg.dims
-            kwargs[name] = arg.data
+            kwargs[name] = arg._data
         except AttributeError:
             pass
 

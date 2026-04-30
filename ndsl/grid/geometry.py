@@ -598,7 +598,7 @@ def edge_factors(
     """
     Creates interpolation factors from the A grid to the B grid on tile edges
     """
-    grid = grid_quantity.data[:]
+    grid = grid_quantity[:]
     big_number = 1.0e8
     i_range = grid[nhalo:-nhalo, nhalo:-nhalo].shape[0]
     j_range = grid[nhalo:-nhalo, nhalo:-nhalo].shape[1]
@@ -713,7 +713,7 @@ def efactor_a2c_v(
     for interpolating vectors from A to C grids
     """
     big_number = 1.0e8
-    grid = grid_quantity.data[:]
+    grid = grid_quantity[:]
     npx, npy, ndims = tile_partitioner.global_extent(grid_quantity)
     slice_x, slice_y = tile_partitioner.subtile_slice(
         rank, grid_quantity.dims, (npx, npy)
@@ -889,7 +889,9 @@ def unit_vector_lonlat(grid, np):
     return unit_lon, unit_lat
 
 
-def _fill_halo_corners(field, value: Float, nhalo: int, tile_partitioner, rank):
+def _fill_halo_corners(
+    field, value: Float, nhalo: int, tile_partitioner: TilePartitioner, rank: int
+) -> None:
     """
     Fills a tile halo corners (ghost cells) of a field
     with a set value along the first 2 axes
@@ -906,7 +908,7 @@ def _fill_halo_corners(field, value: Float, nhalo: int, tile_partitioner, rank):
             field[-nhalo:, -nhalo:] = value  # NE corner
 
 
-def _fill_single_halo_corner(field, value: Float, nhalo: int, corner: str):
+def _fill_single_halo_corner(field, value: Float, nhalo: int, corner: str) -> None:
     """
     Fills a tile halo corner (ghost cells) of a field
     with a set value along the first 2 axes

@@ -203,8 +203,8 @@ def test_allocator_zeros(numpy, sizer, dim_case, units, dtype):
     assert quantity.dims == dim_case.dims
     assert quantity.origin == dim_case.origin
     assert quantity.extent == dim_case.extent
-    assert quantity.data.shape == dim_case.shape
-    assert numpy.all(quantity.data == 0)
+    assert quantity.shape == dim_case.shape
+    assert numpy.all(quantity[:] == 0)
 
 
 def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
@@ -214,8 +214,8 @@ def test_allocator_ones(numpy, sizer, dim_case, units, dtype):
     assert quantity.dims == dim_case.dims
     assert quantity.origin == dim_case.origin
     assert quantity.extent == dim_case.extent
-    assert quantity.data.shape == dim_case.shape
-    assert numpy.all(quantity.data == 1)
+    assert quantity.shape == dim_case.shape
+    assert numpy.all(quantity[:] == 1)
 
 
 def test_allocator_empty(sizer, dim_case, units, dtype):
@@ -225,7 +225,7 @@ def test_allocator_empty(sizer, dim_case, units, dtype):
     assert quantity.dims == dim_case.dims
     assert quantity.origin == dim_case.origin
     assert quantity.extent == dim_case.extent
-    assert quantity.data.shape == dim_case.shape
+    assert quantity.shape == dim_case.shape
 
 
 def test_allocator_data_dimensions_operations(sizer):

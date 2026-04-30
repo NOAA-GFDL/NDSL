@@ -21,7 +21,8 @@ def test_if_scope() -> None:
     cleaner = CleanUpScheduleTree()
     cleaner.visit(stree)
 
-    assert [type(node) for node in stree.children] == [tn.IfScope]
+    assert len(stree.children) == 1
+    assert isinstance(stree.children[0], tn.IfScope)
     assert len(stree.children[0].children) == 0
 
 
@@ -39,7 +40,8 @@ def test_for_scope() -> None:
     cleaner = CleanUpScheduleTree()
     cleaner.visit(stree)
 
-    assert [type(node) for node in stree.children] == [tn.ForScope]
+    assert len(stree.children) == 1
+    assert isinstance(stree.children[0], tn.ForScope)
     assert len(stree.children[0].children) == 0
 
 
@@ -57,7 +59,8 @@ def test_while_scope() -> None:
     cleaner = CleanUpScheduleTree()
     cleaner.visit(stree)
 
-    assert [type(node) for node in stree.children] == [tn.WhileScope]
+    assert len(stree.children) == 1
+    assert isinstance(stree.children[0], tn.WhileScope)
     assert len(stree.children[0].children) == 0
 
 
@@ -75,5 +78,6 @@ def test_map_scope() -> None:
     cleaner = CleanUpScheduleTree()
     cleaner.visit(stree)
 
-    assert [type(node) for node in stree.children] == [tn.MapScope]
+    assert len(stree.children) == 1
+    assert isinstance(stree.children[0], tn.MapScope)
     assert len(stree.children[0].children) == 0

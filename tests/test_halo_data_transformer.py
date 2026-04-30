@@ -179,7 +179,7 @@ def test_data_transformer_allocate(quantity, n_halos):
         quantity.dims,
         quantity.origin,
         quantity.extent,
-        quantity.data.shape,
+        quantity.shape,
         NORTH,
         n_halos,
         interior=False,
@@ -188,7 +188,7 @@ def test_data_transformer_allocate(quantity, n_halos):
         quantity.dims,
         quantity.origin,
         quantity.extent,
-        quantity.data.shape,
+        quantity.shape,
         SOUTHWEST,
         n_halos,
         interior=False,
@@ -196,9 +196,9 @@ def test_data_transformer_allocate(quantity, n_halos):
 
     specification = QuantityHaloSpec(
         n_points=n_halos,
-        shape=quantity.data.shape,
-        strides=quantity.data.strides,
-        itemsize=quantity.data.itemsize,
+        shape=quantity.shape,
+        strides=quantity._data.strides,
+        itemsize=quantity._data.itemsize,
         origin=quantity.metadata.origin,
         extent=quantity.metadata.extent,
         dims=quantity.metadata.dims,
@@ -216,12 +216,12 @@ def test_data_transformer_allocate(quantity, n_halos):
     assert len(data_transformer.get_pack_buffer().array.shape) == 1
     assert (
         data_transformer.get_pack_buffer().array.size
-        == quantity.data[boundary_north].size + quantity.data[boundary_southwest].size
+        == quantity[boundary_north].size + quantity[boundary_southwest].size
     )
     assert len(data_transformer.get_unpack_buffer().array.shape) == 1
     assert (
         data_transformer.get_unpack_buffer().array.size
-        == quantity.data[boundary_north].size + quantity.data[boundary_southwest].size
+        == quantity[boundary_north].size + quantity[boundary_southwest].size
     )
     # clean up
     Buffer.push_to_cache(data_transformer._pack_buffer)
@@ -245,7 +245,7 @@ def _get_boundaries(quantity, n_halos):
             quantity.dims,
             quantity.origin,
             quantity.extent,
-            quantity.data.shape,
+            quantity.shape,
             direction,
             n_halos,
             interior=True,
@@ -254,7 +254,7 @@ def _get_boundaries(quantity, n_halos):
             quantity.dims,
             quantity.origin,
             quantity.extent,
-            quantity.data.shape,
+            quantity.shape,
             direction,
             n_halos,
             interior=False,
@@ -284,9 +284,9 @@ def test_data_transformer_scalar_pack_unpack(quantity, rotation, n_halos):
 
     specification = QuantityHaloSpec(
         n_points=n_halos,
-        shape=quantity.data.shape,
-        strides=quantity.data.strides,
-        itemsize=quantity.data.itemsize,
+        shape=quantity.shape,
+        strides=quantity._data.strides,
+        itemsize=quantity._data.itemsize,
         origin=quantity.metadata.origin,
         extent=quantity.metadata.extent,
         dims=quantity.metadata.dims,
@@ -323,21 +323,21 @@ def test_data_transformer_scalar_pack_unpack(quantity, rotation, n_halos):
     # according to the rotation & slice and insert them back
     # this reproduces the multi-buffer strategy
     rotated = rotate_scalar_data(
-        quantity.data[N_edge_boundaries[rotation][0]],
+        quantity[N_edge_boundaries[rotation][0]],
         quantity.dims,
         quantity.metadata.np,
         -rotation,
     )
-    target_quantity.data[N_edge_boundaries[rotation][1]] = rotated
+    target_quantity[N_edge_boundaries[rotation][1]] = rotated
     rotated = rotate_scalar_data(
-        quantity.data[NE_corner_boundaries[rotation][0]],
+        quantity[NE_corner_boundaries[rotation][0]],
         quantity.dims,
         quantity.metadata.np,
         -rotation,
     )
-    target_quantity.data[NE_corner_boundaries[rotation][1]] = rotated
+    target_quantity[NE_corner_boundaries[rotation][1]] = rotated
 
-    assert (target_quantity.data == quantity.data).all()
+    assert (target_quantity[:] == quantity[:]).all()
 
 
 def test_data_transformer_vector_pack_unpack(quantity, rotation, n_halos):
@@ -364,9 +364,9 @@ def test_data_transformer_vector_pack_unpack(quantity, rotation, n_halos):
 
     specification_x = QuantityHaloSpec(
         n_points=n_halos,
-        shape=x_quantity.data.shape,
-        strides=x_quantity.data.strides,
-        itemsize=x_quantity.data.itemsize,
+        shape=x_quantity.shape,
+        strides=x_quantity._data.strides,
+        itemsize=x_quantity._data.itemsize,
         origin=x_quantity.metadata.origin,
         extent=x_quantity.metadata.extent,
         dims=x_quantity.metadata.dims,
@@ -375,9 +375,9 @@ def test_data_transformer_vector_pack_unpack(quantity, rotation, n_halos):
     )
     specification_y = QuantityHaloSpec(
         n_points=n_halos,
-        shape=y_quantity.data.shape,
-        strides=y_quantity.data.strides,
-        itemsize=y_quantity.data.itemsize,
+        shape=y_quantity.shape,
+        strides=y_quantity._data.strides,
+        itemsize=y_quantity._data.itemsize,
         origin=y_quantity.metadata.origin,
         extent=y_quantity.metadata.extent,
         dims=y_quantity.metadata.dims,
@@ -432,23 +432,23 @@ def test_data_transformer_vector_pack_unpack(quantity, rotation, n_halos):
     # according to the rotation & slice and insert them bak
     # this reproduce the multi-buffer strategy
     rotated_x, rotated_y = rotate_vector_data(
-        quantity.data[N_edge_boundaries[rotation][0]],
-        quantity.data[N_edge_boundaries[rotation][0]],
+        quantity[N_edge_boundaries[rotation][0]],
+        quantity[N_edge_boundaries[rotation][0]],
         -rotation,
         quantity.dims,
         quantity.metadata.np,
     )
-    target_quantity_x.data[N_edge_boundaries[rotation][1]] = rotated_x
-    target_quantity_y.data[N_edge_boundaries[rotation][1]] = rotated_y
+    target_quantity_x[N_edge_boundaries[rotation][1]] = rotated_x
+    target_quantity_y[N_edge_boundaries[rotation][1]] = rotated_y
     rotated_x, rotated_y = rotate_vector_data(
-        quantity.data[NE_corner_boundaries[rotation][0]],
-        quantity.data[NE_corner_boundaries[rotation][0]],
+        quantity[NE_corner_boundaries[rotation][0]],
+        quantity[NE_corner_boundaries[rotation][0]],
         -rotation,
         quantity.dims,
         quantity.metadata.np,
     )
-    target_quantity_x.data[NE_corner_boundaries[rotation][1]] = rotated_x
-    target_quantity_y.data[NE_corner_boundaries[rotation][1]] = rotated_y
+    target_quantity_x[NE_corner_boundaries[rotation][1]] = rotated_x
+    target_quantity_y[NE_corner_boundaries[rotation][1]] = rotated_y
 
-    assert (target_quantity_x.data == x_quantity.data).all()
-    assert (target_quantity_y.data == y_quantity.data).all()
+    assert (target_quantity_x[:] == x_quantity[:]).all()
+    assert (target_quantity_y[:] == y_quantity[:]).all()

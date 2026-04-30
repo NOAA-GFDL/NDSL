@@ -83,14 +83,14 @@ class FieldBundle:
             # without breaking orchestration
             return None  # type: ignore
         # ToDo: extend the dims below to work with more than 4 dims
-        assert len(self._quantity.data.shape) == 4
+        assert len(self._quantity.shape) == 4
 
         if name not in self._per_name_view:
             # Memoize the Quantities returned here to ensue that we only ever
             # have one `field.a_name`-Quantity floating around. If not, DaCe
             # orchestration gets (rightly so) confused.
             self._per_name_view[name] = Quantity(
-                data=self._quantity.data[:, :, :, self.index(name)],
+                data=self._quantity[:, :, :, self.index(name)],
                 dims=self._quantity.dims[:-1],
                 units=self._quantity.units,
                 origin=self._quantity.origin[:-1],

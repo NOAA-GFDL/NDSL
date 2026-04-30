@@ -175,7 +175,7 @@ def test_transpose(
     numpy,
 ):
     result = quantity.transpose(target_dims)
-    numpy.testing.assert_array_equal(result.data, final_data)
+    numpy.testing.assert_array_equal(result[:], final_data)
     assert result.dims == final_dims
     assert result.origin == final_origin
     assert result.extent == final_extent

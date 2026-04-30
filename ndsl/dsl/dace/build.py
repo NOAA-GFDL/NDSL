@@ -27,6 +27,7 @@ def write_build_info(
     sdfg: SDFG,
     layout: tuple[int, int],
     resolution_per_tile: list[int],
+    memory_report: str,
     backend: Backend,
 ) -> None:
     """Write down all relevant information on the build to identify
@@ -41,6 +42,9 @@ def write_build_info(
         build_info_read.write(f"{backend}\n")
         build_info_read.write(f"{str(layout)}\n")
         build_info_read.write(f"{str(resolution_per_tile)}\n")
+
+    with open(f"{path_to_sdfg_dir}/memory_report.txt", "w") as f:
+        f.write(memory_report)
 
 
 ################################################

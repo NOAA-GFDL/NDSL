@@ -119,7 +119,7 @@ class NDSLRuntime:
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )
         return Local(
-            data=quantity.data,
+            data=quantity._data,
             dims=quantity.dims,
             units=quantity.units,
             origin=quantity.origin,

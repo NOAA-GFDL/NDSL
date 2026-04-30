@@ -8,8 +8,8 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Hashable, Self, TypeAlias
 
 import dacite
+import numpy as np
 import xarray as xr
-from numpy.typing import ArrayLike
 
 from ndsl.comm.mpi import MPI
 from ndsl.types import Number
@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 import warnings
 
 
-StateMemoryMapping: TypeAlias = dict[str, dict | ArrayLike | None]
+_ArrayLike: TypeAlias = Quantity | np.ndarray
+StateMemoryMapping: TypeAlias = dict[str, dict | _ArrayLike | None]
 OptionalQuantityType: TypeAlias = Quantity | None
 StateElementType: TypeAlias = dict[
     str, Quantity | OptionalQuantityType | Local | dict[str, Any]
@@ -92,7 +93,7 @@ class State:
                     )
                     if _field.type == Local:
                         local_ = Local(
-                            data=quantity.data,
+                            data=quantity._data,
                             dims=quantity.dims,
                             units=quantity.units,
                             origin=quantity.origin,
@@ -458,15 +459,19 @@ class State:
                                 f"  Shapes: {array.shape} != {quantity.field.shape}"
                             )
                             raise e
-                        if array.strides != quantity.data.strides:
+                        if isinstance(array, Quantity):
+                            strides = array._data.strides
+                        else:
+                            strides = array.strides
+                        if strides != quantity._data.strides:
                             e = ValueError("Stride mismatch on zero copy for")
                             e.add_note(f"  Error on {name} for {type(state)}")
                             e.add_note(
-                                f"  Strides: {array.strides} != {quantity.data.strides}"
+                                f"  Strides: {strides} != {quantity._data.strides}"
                             )
                             raise e
                     try:
-                        quantity.data = array
+                        quantity.swap_buffer(array)
                     except Exception as e:
                         e.add_note(f"  Error on {name} for {type(state)}")
                         raise e
@@ -487,7 +492,7 @@ class State:
                 if dataclasses.is_dataclass(_field.type):
                     _flatten_elements_for_hash(element, flatten_hashable_list)
                 else:
-                    flatten_hashable_list.append(element)
+                    flatten_hashable_list.append(hash(element))
 
         to_hash: list[Hashable] = []
         _flatten_elements_for_hash(self, to_hash)
