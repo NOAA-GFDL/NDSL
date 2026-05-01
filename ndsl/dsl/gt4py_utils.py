@@ -20,23 +20,6 @@ managed_memory = True
 # Number of halo lines for each field and default origin
 origin = (N_HALO_DEFAULT, N_HALO_DEFAULT, 0)
 
-# TODO: Both pyFV3 and pySHiELD need to know what is being advected
-#       but the actual value should come from outside of `ndsl`.
-#       There should be a set of API to deal with tracers, that lives in `ndsl`
-#       but their call doesn't.
-# TODO get from field_table
-tracer_variables = [
-    "qvapor",
-    "qliquid",
-    "qrain",
-    "qice",
-    "qsnow",
-    "qgraupel",
-    "qo3mr",
-    "qsgs_tke",
-    "qcld",
-]
-
 
 def mark_untested(msg="This is not tested"):
     def inner(func) -> Callable[..., Any]:
@@ -519,8 +502,8 @@ def device_sync(backend: Backend) -> None:
 
 def split_cartesian_into_storages(var: np.ndarray) -> list[np.ndarray]:
     """
-    Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM]
-         or [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM]
+    Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM] or
+    [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM].
     Split it into separate 2D storages for each cartesian
     dimension, and return these in a list.
     """
@@ -530,3 +513,16 @@ def split_cartesian_into_storages(var: np.ndarray) -> list[np.ndarray]:
             asarray(var, type(var))[:, :, cart],
         )
     return var_data
+
+
+def run_once(f):
+    """Python trick to enforce function is only called once"""
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+
+    wrapper.has_run = False
+    return wrapper
