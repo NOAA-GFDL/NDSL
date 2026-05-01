@@ -5,7 +5,7 @@ import numpy as np
 import numpy.typing as npt
 
 
-def _fixed_width_float_16e(value: np.floating[Any]) -> str:
+def _fixed_width_float_16e(value: Any) -> str:
     """Account for extra '-' character"""
     if value > 0:
         return f" {value:.16e}"
@@ -13,7 +13,7 @@ def _fixed_width_float_16e(value: np.floating[Any]) -> str:
         return f"{value:.16e}"
 
 
-def _fixed_width_float_2e(value: np.floating[Any]) -> str:
+def _fixed_width_float_2e(value: Any) -> str:
     """Account for extra '-' character"""
     if value > 0:
         return f" {value:.2e}"
@@ -29,7 +29,7 @@ class BaseMetric(ABC):
     ):
         self.references = np.squeeze(np.atleast_1d(reference_values))
         self.computed = np.squeeze(np.atleast_1d(computed_values))
-        self.check = False
+        self.check: np.bool[bool] = np.bool(False)
 
     @abstractmethod
     def __str__(self) -> str: ...
@@ -254,7 +254,7 @@ class MultiModalFloatMetric(BaseMetric):
             self.ulp_threshold.value = ulp_override
 
         self.success = self._compute_all_metrics()
-        self.check = np.all(self.success)
+        self.check = self.success.all()
         self.sort_report = sort_report
 
         # We might have sliced outputs in the translate test. Rather than funnel the slicing
@@ -339,8 +339,6 @@ class MultiModalFloatMetric(BaseMetric):
             return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
     def report(self, file_path: str | None = None) -> list[str]:
-        report = []
-        report.append(self.one_line_report())
         failed_indices = np.logical_not(self.success).nonzero()
         # List all errors to terminal and file
         bad_indices_count = len(failed_indices[0])
@@ -389,7 +387,7 @@ class MultiModalFloatMetric(BaseMetric):
         elif self.sort_report == "relative":
             indices_flatten = np.argsort(self.relative_distance.flatten())
         elif self.sort_report == "index":
-            indices_flatten = list(range(self.ulp_distance.size - 1, -1, -1))
+            indices_flatten = np.array(list(range(self.ulp_distance.size - 1, -1, -1)))
         else:
             RuntimeError(
                 f"[Translate test] Unknown {self.sort_report} report sorting option."
