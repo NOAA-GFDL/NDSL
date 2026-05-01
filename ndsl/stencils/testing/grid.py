@@ -8,7 +8,6 @@ from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import TilePartitioner
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, N_HALO_DEFAULT
-from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.grid.generation import GridDefinitions
 from ndsl.grid.helper import (
@@ -178,7 +177,6 @@ class Grid:
                     MetricTerms.LON_OR_LAT_DIM: 2,
                     MetricTerms.TILE_DIM: 6,
                     MetricTerms.CARTESIAN_DIM: 3,
-                    TRACER_DIM: len(utils.tracer_variables),
                 },
                 layout=self.layout,
                 backend=self.backend,
