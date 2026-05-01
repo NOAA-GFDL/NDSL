@@ -27,5 +27,4 @@ requirements: list[str] = [
     "dacite",  # for state
 ]
 
-
 setup(install_requires=requirements)
