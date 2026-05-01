@@ -126,7 +126,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         if name_mapping is not None:
             cls._type_registrar[name].mapping = name_mapping
 
-        # Dynamic op replacement fo Type.index() function
+        # Dynamic op replacement for Type.index() function
         # Requires the _locals to get `name` - do not pull out of `register`
         @oprepo.replaces(f"{name}.index")
         def _data_dimensions_index(
