@@ -21,7 +21,7 @@ from ndsl.constants import (
     SOUTHWEST,
     WEST,
 )
-from ndsl.quantity import Quantity, QuantityMetadata
+from ndsl.quantity import QuantityMetadata
 from ndsl.utils import list_by_dims
 
 
@@ -105,15 +105,11 @@ class Partitioner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def subtile_extent(
-        self,
-        global_metadata: QuantityMetadata,
-        rank: int,
-    ) -> tuple[int, ...]:
+    def subtile_extent(self, metadata: QuantityMetadata, rank: int) -> tuple[int, ...]:
         """Return the shape of a single rank representation for the given dimensions.
 
         Args:
-            global_metadata: quantity metadata.
+            metadata: quantity metadata.
             rank: rank of the process.
 
         Returns:
@@ -160,9 +156,7 @@ class TilePartitioner(Partitioner):
     def total_ranks(self) -> int:
         return self.layout[0] * self.layout[1]
 
-    def global_extent(
-        self, rank_metadata: Quantity | QuantityMetadata
-    ) -> tuple[int, ...]:
+    def global_extent(self, rank_metadata: QuantityMetadata) -> tuple[int, ...]:
         """Return the shape of a full tile representation for the given dimensions.
 
         Args:
@@ -175,23 +169,19 @@ class TilePartitioner(Partitioner):
             rank_metadata.dims, rank_metadata.extent, self.layout
         )
 
-    def subtile_extent(
-        self,
-        global_metadata: QuantityMetadata,
-        rank: int,
-    ) -> tuple[int, ...]:
+    def subtile_extent(self, metadata: QuantityMetadata, rank: int) -> tuple[int, ...]:
         """Return the shape of a single rank representation for the given dimensions.
 
         Args:
-            global_metadata: quantity metadata.
+            metadata: quantity metadata.
             rank: rank of the process.
 
         Returns:
             extent: shape of a single rank representation for the given dimensions.
         """
         rank_slice = rank_slice_from_tile_metadata(
-            global_metadata.dims,
-            extent=global_metadata.extent,
+            metadata.dims,
+            extent=metadata.extent,
             layout=self.layout,
             subtile_index=self.subtile_index(rank),
             edge_interior_ratio=self.edge_interior_ratio,
@@ -617,22 +607,18 @@ class CubedSpherePartitioner(Partitioner):
             rank_metadata.dims, rank_metadata.extent, self.layout
         )
 
-    def subtile_extent(
-        self,
-        cube_metadata: QuantityMetadata,
-        rank: int,
-    ) -> tuple[int, ...]:
+    def subtile_extent(self, metadata: QuantityMetadata, rank: int) -> tuple[int, ...]:
         """Return the shape of a single rank representation for the given dimensions.
 
         Args:
-            cube_metadata: quantity metadata.
+            metadata: quantity metadata.
             rank: rank of the process.
 
         Returns:
             extent: shape of a single rank representation for the given dimensions.
         """
 
-        return self.tile.subtile_extent(cube_metadata, rank)
+        return self.tile.subtile_extent(metadata, rank)
 
     def subtile_slice(
         self,
