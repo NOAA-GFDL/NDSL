@@ -606,7 +606,7 @@ def edge_factors(
     edge_s = np.zeros(i_range) + big_number
     edge_e = np.zeros(j_range) + big_number
     edge_w = np.zeros(j_range) + big_number
-    npx, npy, ndims = tile_partitioner.global_extent(grid_quantity)
+    npx, npy, _ = tile_partitioner.global_extent(grid_quantity.metadata)
     slice_x, slice_y = tile_partitioner.subtile_slice(
         rank, grid_quantity.dims, (npx, npy)
     )
@@ -714,7 +714,7 @@ def efactor_a2c_v(
     """
     big_number = 1.0e8
     grid = grid_quantity[:]
-    npx, npy, ndims = tile_partitioner.global_extent(grid_quantity)
+    npx, npy, _ = tile_partitioner.global_extent(grid_quantity.metadata)
     slice_x, slice_y = tile_partitioner.subtile_slice(
         rank, grid_quantity.dims, (npx, npy)
     )
