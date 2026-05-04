@@ -267,7 +267,7 @@ class MetricTerms:
         # This will carry the public version of the grid
         # for the selected floating point precision
         self._grid = None
-        npx, npy, _ = self._tile_partitioner.global_extent(self._grid_64)
+        npx, npy, _ = self._tile_partitioner.global_extent(self._grid_64.metadata)
         self._npx = npx
         self._npy = npy
         self._npz = self.quantity_factory.sizer.get_extent(K_DIM)[0]
