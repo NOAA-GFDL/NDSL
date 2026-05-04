@@ -8,7 +8,6 @@ from pathlib import Path
 
 import cftime
 import numpy as np
-import pyfms
 import pytest
 import xarray as xr
 import yaml
@@ -23,6 +22,7 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.initialization import SubtileGridSizer
+from ndsl.optional_imports import pyfms
 
 
 def _create_input() -> None:
