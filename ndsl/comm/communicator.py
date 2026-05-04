@@ -78,12 +78,12 @@ class Communicator(abc.ABC, Generic[P]):
 
     @property
     def rank(self) -> int:
-        """rank of the current process within this communicator"""
+        """Rank of the current process within this communicator."""
         return self.comm.Get_rank()
 
     @property
     def size(self) -> int:
-        """Total number of ranks in this communicator"""
+        """Total number of ranks in this communicator."""
         return self.comm.Get_size()
 
     def _maybe_force_cpu(self, module: ModuleType) -> ModuleType:
@@ -104,7 +104,7 @@ class Communicator(abc.ABC, Generic[P]):
     def _create_all_reduce_quantity(
         self, input_metadata: QuantityMetadata, input_data: Any
     ) -> Quantity:
-        """Create a Quantity for all_reduce data and metadata"""
+        """Create a Quantity for all_reduce data and metadata."""
         all_reduce_quantity = Quantity(
             input_data,
             dims=input_metadata.dims,
@@ -649,7 +649,7 @@ def bcast_metadata(comm: CommABC, array: Quantity):  # type: ignore[no-untyped-d
 
 
 class TileCommunicator(Communicator[TilePartitioner]):
-    """Performs communications within a single tile or region of a tile"""
+    """Performs communications within a single tile or region of a tile."""
 
     def __init__(
         self,
@@ -666,7 +666,7 @@ class TileCommunicator(Communicator[TilePartitioner]):
             force_cpu: force all communication to go through central memory
             timer: Time communication operations.
         """
-        super().__init__(comm, partitioner, force_cpu=force_cpu, timer=timer)
+        super().__init__(comm, partitioner, force_cpu, timer)
 
     @classmethod
     def from_layout(
@@ -676,8 +676,7 @@ class TileCommunicator(Communicator[TilePartitioner]):
         force_cpu: bool = False,
         timer: Timer | None = None,
     ) -> TileCommunicator:
-        partitioner = TilePartitioner(layout=layout)
-        return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
+        return cls(comm, TilePartitioner(layout=layout), force_cpu, timer)
 
     @property
     def tile(self) -> TileCommunicator:
@@ -763,7 +762,7 @@ class TileCommunicator(Communicator[TilePartitioner]):
 
 
 class CubedSphereCommunicator(Communicator[CubedSpherePartitioner]):
-    """Performs communications within a cubed sphere"""
+    """Performs communications within a cubed sphere."""
 
     _tile_communicator: TileCommunicator | None
 
@@ -810,21 +809,19 @@ class CubedSphereCommunicator(Communicator[CubedSpherePartitioner]):
 
     @property
     def tile(self) -> TileCommunicator:
-        """Communicator for within a tile"""
+        """Communicator for within a tile."""
         if self._tile_communicator is None:
-            self._initialize_tile_communicator()
-        return cast(TileCommunicator, self._tile_communicator)
+            tile_comm = self.comm.Split(
+                color=self.partitioner.tile_index(self.rank), key=self.rank
+            )
+            self._tile_communicator = TileCommunicator(tile_comm, self.partitioner.tile)
 
-    def _initialize_tile_communicator(self) -> None:
-        tile_comm = self.comm.Split(
-            color=self.partitioner.tile_index(self.rank), key=self.rank
-        )
-        self._tile_communicator = TileCommunicator(tile_comm, self.partitioner.tile)
+        return self._tile_communicator
 
     def _get_gather_recv_quantity(
         self, global_extent: Sequence[int], send_metadata: QuantityMetadata
     ) -> Quantity:
-        """Initialize a Quantity for use when receiving global data during gather
+        """Initialize a Quantity for use when receiving global data during gather.
 
         Args:
             shape: ndarray shape, numpy-style
@@ -846,7 +843,7 @@ class CubedSphereCommunicator(Communicator[CubedSpherePartitioner]):
     def _get_scatter_recv_quantity(
         self, shape: Sequence[int], send_metadata: QuantityMetadata
     ) -> Quantity:
-        """Initialize a Quantity for use when receiving subtile data during scatter
+        """Initialize a Quantity for use when receiving subtile data during scatter.
 
         Args:
             shape: ndarray shape, numpy-style
