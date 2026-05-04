@@ -24,9 +24,9 @@ jobs:
         marker-parallel: ['parallel and not gpu and not pyfms']
         include:
           # add pyfms tests for 3.12
-          - extra: 'test,zarr,pyfms'
-            marker-serial: 'not parallel and not gpu'
-            marker-parallel: 'parallel and not gpu'
+          - extra: 'test,pyfms'
+            marker-serial: 'pyfms and not parallel'
+            marker-parallel: 'pyfms and parallel'
             python-version: '3.12'
     name: Python ${{ matrix.python-version }} (${{matrix.extra}})
     steps:
