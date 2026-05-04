@@ -35,7 +35,7 @@ jobs:
         run: pip3 install mpich
 
       - name: Install Python packages
-        run: pip3 install .[test,zarr]
+        run: pip3 install .[test,zarr,pyfms]
 
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -m "not parallel and not gpu" tests

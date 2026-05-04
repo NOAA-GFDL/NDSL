@@ -7,6 +7,7 @@ from pathlib import Path
 
 import cftime
 import numpy as np
+import pyfms
 import pytest
 import xarray as xr
 import yaml
@@ -21,9 +22,6 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.initialization import SubtileGridSizer
-
-
-pyfms = pytest.importorskip("pyfms")
 
 
 # init fms mpi and set up a simple domain
@@ -52,7 +50,7 @@ def fms_mpp_init():
     return domain_id
 
 
-def _create_input(reduction: str = "none"):
+def _create_input(reduction: str = "none") -> None:
     diag_config = {
         "title": "ndsl_diag_manager_test",
         "base_date": "1 1 1 0 0 0",
@@ -89,9 +87,9 @@ def _create_input(reduction: str = "none"):
 
 
 # Simple test, uses a lat/lon grid and (1, npes) layout
+@pytest.mark.pyfms
 @pytest.mark.parallel
-def test_dm_monitor():
-
+def test_dm_monitor() -> None:
     npes = MPIComm()._comm.Get_size()
     if npes % 6 != 0:
         raise RuntimeError("this test requires npes to be a multiple of 6 to run")
