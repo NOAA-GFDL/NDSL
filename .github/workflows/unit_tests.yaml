@@ -19,12 +19,12 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-        extra: ['tests,zarr']
+        extra: ['test,zarr']
         marker-serial: ['not parallel and not gpu and not pyfms']
         marker-parallel: ['parallel and not gpu and not pyfms']
         include:
           # add pyfms tests for 3.12
-          - extra: 'tests,zarr,pyfms'
+          - extra: 'test,zarr,pyfms'
             marker-serial: 'not parallel and not gpu'
             marker-parallel: 'parallel and not gpu'
             python-version: '3.12'
