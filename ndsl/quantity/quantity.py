@@ -91,18 +91,20 @@ class Quantity:
         is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
         device = gt4py_backend_cls.storage_info["device"]
 
-        dimensions: tuple[str | int, ...] = tuple(
-            [
-                (
-                    axis  # type: ignore # mypy can't parse this list construction of hell
-                    if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
-                    else str(data.shape[index])
-                )
-                for index, (dim, axis) in enumerate(
-                    zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
-                )
-            ]
-        )
+        # Normalize dimensions for the gt4py.cartesian allocator
+        # The allocator expects "I", "J" or "K", or  the size of the dimension
+        # as a string
+        dims_as_list = []
+        for index, dim in enumerate(dims):
+            if dim in constants.SPATIAL_DIMS:
+                # Interface dimensions are cartesian dimensions for gt4py
+                # with an added point in the shape
+                if dim in constants.INTERFACE_DIMS:
+                    dim = dim[: -len("_interface")]
+                dims_as_list.append(dim.upper())
+            else:
+                dims_as_list.append(str(data.shape[index]))
+        dimensions = tuple(dims_as_list)
 
         if isinstance(data, np.ndarray):
             is_correct_device = device == "cpu"
