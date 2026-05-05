@@ -22,12 +22,10 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.initialization import SubtileGridSizer
+from ndsl.optional_imports import pyfms
 
 
-pyfms = pytest.importorskip("pyfms")
-
-
-def _create_input(reduction: str = "none"):
+def _create_input() -> None:
     diag_config = {
         "title": "ndsl_diag_manager_test",
         "base_date": "2 1 1 1 1 1",
@@ -63,10 +61,10 @@ def _create_input(reduction: str = "none"):
         f.write(text_content)
 
 
-def test_dm_monitor_single_tile():
+@pytest.mark.pyfms
+def test_dm_monitor_single_tile() -> None:
     # mpi info
     npes = MPIComm()._comm.Get_size()
-    pe = MPIComm()._comm.Get_rank()
     # tile parameters for quantities/domains
     nx = 8
     ny = 8
