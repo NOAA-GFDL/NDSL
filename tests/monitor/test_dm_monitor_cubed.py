@@ -201,7 +201,7 @@ def test_dm_monitor() -> None:
     pe = MPIComm()._comm.Get_rank() + 1
     filename = "diag_manager_cubed_sphere.tile" + str(pe) + ".nc"
     assert Path(filename).exists()
-    ds = xr.open_mfdataset(filename, decode_times=True)
+    ds = xr.open_dataset(filename, decode_times=True)
     assert "var1" in ds
     np.testing.assert_array_equal(ds["var1"].shape, (ntimesteps, ny, nx))
     assert "var2" in ds
