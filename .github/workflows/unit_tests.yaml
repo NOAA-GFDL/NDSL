@@ -51,7 +51,7 @@ jobs:
         run: sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
-        run: pip3 install .[${{matrix.extra}}]
+        run: pip3 install -v .[${{matrix.extra}}]
 
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
