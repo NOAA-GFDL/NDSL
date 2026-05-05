@@ -75,6 +75,7 @@ nav:
           - "subtile_grid_sizer": docstrings/initialization/subtile_grid_sizer.md
       - monitor:
           - "convert": docstrings/monitor/convert.md
+          - "diag_manager_monitor": docstrings/monitor/diag_manager_monitor.md
           - "netcdf_monitor": docstrings/monitor/netcdf_monitor.md
           - "protocol": docstrings/monitor/protocol.md
           - "zarr_monitor": docstrings/monitor/zarr_monitor.md
