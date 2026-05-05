@@ -55,14 +55,12 @@ jobs:
       - name: Install Python packages
         run: |
           pip3 install .[${{matrix.extra}}]
-          pip3 list
-          nc-config --version
 
       - name: Run serial cpu tests
-        run: coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
+        run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
-        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
+        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -s -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |
