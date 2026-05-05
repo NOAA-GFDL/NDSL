@@ -47,4 +47,15 @@ if MPI is not None:
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"
     )
 
+
+# Raise an error if DaCe backends aren't registered in GT4Py.
+import gt4py.cartesian.backend as gt_backend  # noqa: E402
+
+
+if not any([name.startswith("dace") for name in gt_backend.REGISTRY.names]):
+    raise RuntimeError(
+        "NDSL installation is incomplete: GT4Py was unable to load the DaCe backends."
+    )
+
+
 ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")
