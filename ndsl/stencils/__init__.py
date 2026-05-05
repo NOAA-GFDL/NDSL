@@ -3,6 +3,15 @@ from .basic_operations import (
     adjustmentfactor_stencil,
     average_in,
     copy,
+    copy_2d,
+    add,
+    add_2d,
+    subtract,
+    subtract_2d,
+    multiply,
+    multiply_2d,
+    divide,
+    divide_2d,
     dim,
     select_k,
     set_IJ_mask_value,
@@ -12,10 +21,18 @@ from .basic_operations import (
 )
 from .corners import FillCornersBGrid
 
-
 __all__ = [
     "FillCornersBGrid",
     "copy",
+    "copy_2d",
+    "add",
+    "add_2d",
+    "subtract",
+    "subtract_2d",
+    "multiply",
+    "multiply_2d",
+    "divide",
+    "divide_2d",
     "adjustmentfactor_stencil",
     "set_value",
     "set_value_2D",
