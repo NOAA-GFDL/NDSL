@@ -1,6 +1,7 @@
 # Literal precision for both GT4Py & NDSL
 import os
 import sys
+import warnings
 from typing import Literal
 
 from ndsl.comm.mpi import MPI
@@ -46,5 +47,21 @@ if MPI is not None:
     gt4py.cartesian.config.cache_settings["dir_name"] = os.environ.get(
         "GT_CACHE_DIR_NAME", f".gt_cache_{MPI.COMM_WORLD.Get_rank():06}"
     )
+
+# Ensure DaCe backends are registered in GT4Py
+with warnings.catch_warnings(record=True) as caught:
+    # Cause all warnings to always be triggered.
+    warnings.simplefilter("always")
+
+    # Load GT4Py backends
+    import gt4py.cartesian.backend  # noqa: E402
+
+    # If DaCe backends aren't registered in GT4Py, escalate the warning with a descriptive error message.
+    for warning in caught:
+        if "GT4Py was unable to load DaCe" in str(warning.message):
+            raise RuntimeError(
+                "NDSL installation is incomplete. GT4Py was unable to load DaCe. Contact the team."
+            )
+
 
 ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")
