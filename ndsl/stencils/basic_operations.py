@@ -75,7 +75,9 @@ def subtract(input_1: FloatField, input_2: FloatField, output: FloatField) -> No
         output = input_1 - input_2
 
 
-def subtract_2d(input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ) -> None:
+def subtract_2d(
+    input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ
+) -> None:
     """
     Subtract input_2 from input_1, output to a new field - 2D variant.
 
@@ -101,7 +103,9 @@ def multiply(input_1: FloatField, input_2: FloatField, output: FloatField) -> No
         output = input_1 * input_2
 
 
-def multiply_2d(input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ) -> None:
+def multiply_2d(
+    input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ
+) -> None:
     """
     Multiply two inputs together, output to a new field - 2D variant.
 
@@ -127,7 +131,9 @@ def divide(input_1: FloatField, input_2: FloatField, output: FloatField) -> None
         output = input_1 / input_2
 
 
-def divide_2d(input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ) -> None:
+def divide_2d(
+    input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ
+) -> None:
     """
     Divide input_1 by input_2, output to a new field - 2D variant.
 
