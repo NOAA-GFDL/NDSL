@@ -220,7 +220,7 @@ def test_dm_monitor_single_tile():
 
     # check output!
     assert Path("diag_manager_single_tile.nc").exists()
-    ds = xr.open_mfdataset("diag_manager_single_tile.nc", decode_times=True)
+    ds = xr.open_dataset("diag_manager_single_tile.nc", decode_times=True)
     assert "var_2d" in ds
     np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))
     assert ds["var_2d"].dims == ("time", "y", "x")
