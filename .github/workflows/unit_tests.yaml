@@ -49,7 +49,7 @@ jobs:
       - name: Install pyFMS dependencies (includes system MPI)
         if: contains(matrix.extra, 'pyfms')
         run: |
-          sudo apt-get update --fix-missing 
+          sudo apt-get update --fix-missing
           sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
