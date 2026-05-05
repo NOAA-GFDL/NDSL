@@ -656,11 +656,17 @@ def orchestrate(
     for argument in dace_compiletime_args:
         func.__annotations__[argument] = DaceCompiletime
 
+    # Swap State and subclass into compile time
     for arg_name, annotation in func.__annotations__.items():
-        if annotation in [Quantity, State] or (
+        if annotation in [State] or (
             isinstance(annotation, type) and issubclass(annotation, State)
         ):
             func.__annotations__[arg_name] = DaceCompiletime
+
+    # Remove type hint of Quantity to allow for __descriptor__ to be read in JIT
+    for arg_name, annotation in func.__annotations__.items():
+        if annotation in [Quantity]:
+            func.__annotations__[arg_name] = None
 
     # Build DaCe orchestrated wrapper
     # This is a JIT object, e.g. DaCe compilation will happen on call
