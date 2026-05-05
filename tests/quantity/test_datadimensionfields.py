@@ -27,19 +27,25 @@ TracersAndPlumes = DataDimensionsField.declare()
 _DOMAIN = (2, 2, 5)
 
 
-def _the_stencil_5D(in_field: TracersAndPlumes, out_field: FloatField, add: FloatField):
+def _the_stencil_5D(
+    in_field: TracersAndPlumes, out_field: FloatField, add: FloatField
+) -> None:
     with computation(PARALLEL), interval(...):
         out_field = in_field.A[1, 1] + add
 
 
-def _the_stencil_4D(in_tracers: Tracers, out_field: FloatField, add: FloatField):
+def _the_stencil_4D(
+    in_tracers: Tracers, out_field: FloatField, add: FloatField
+) -> None:
     with computation(PARALLEL), interval(...):
         from __externals__ import C
 
         out_field = in_tracers[0, 0, 0][C] + add
 
 
-def _the_stencil_3D(in_field: FloatField, out_field: FloatField, add: FloatField):
+def _the_stencil_3D(
+    in_field: FloatField, out_field: FloatField, add: FloatField
+) -> None:
     with computation(PARALLEL), interval(...):
         out_field = in_field + add
 
@@ -47,7 +53,7 @@ def _the_stencil_3D(in_field: FloatField, out_field: FloatField, add: FloatField
 SETUP_DDIMS_ONCE = False
 
 
-def setup_data_dimensions(quantity_factory: QuantityFactory):
+def setup_data_dimensions(quantity_factory: QuantityFactory) -> None:
     quantity_factory.add_data_dimensions({"tracers": 8, "plumes": 3})
 
     # Make sure this is called once
@@ -68,7 +74,7 @@ class Code(NDSLRuntime):
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
-    ):
+    ) -> None:
         super().__init__(stencil_factory)
         orchestrate(
             obj=self,
@@ -93,7 +99,7 @@ class Code(NDSLRuntime):
 
     def __call__(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
-    ):
+    ) -> None:
         # Literal access, multi-axis access and external indexation
         self._the_stencil_4D(in_tracers, out_field, self._my_local)
         self._the_stencil_5D(in_tracers_and_plumes, out_field, self._my_local)
@@ -115,15 +121,14 @@ class Code(NDSLRuntime):
 
     def bad_call(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
-    ):
-
+    ) -> None:
         another_index = Tracers.index("H")  # BAD in orchestration
         self._the_stencil_3D(
             in_tracers[:, :, :, another_index], out_field, self._my_local
         )
 
 
-def test_data_dimensions_registration_errors():
+def test_data_dimensions_registration_errors() -> None:
     _, quantity_factory = get_factories_single_tile(
         _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("st:python:cpu:IJK")
     )
@@ -146,7 +151,7 @@ def test_data_dimensions_registration_errors():
         Tracers.index("H")
 
 
-def test_data_dimensions_fields_with_stencil_backend():
+def test_data_dimensions_fields_with_stencil_backend() -> None:
     stcil_fctry, qty_factry = get_factories_single_tile(
         _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("st:python:cpu:IJK")
     )
@@ -166,7 +171,7 @@ def test_data_dimensions_fields_with_stencil_backend():
     code(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
-def test_data_dimensions_fields_with_orchestrated_backend():
+def test_data_dimensions_fields_with_orchestrated_backend() -> None:
     stcil_fctry, qty_factry = get_factories_single_tile_orchestrated(
         _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("orch:dace:cpu:IJK")
     )
@@ -194,12 +199,12 @@ def test_data_dimensions_fields_with_orchestrated_backend():
         code.bad_call(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
-def test_data_dimensions_fields_functions():
-    stcil_fctry, qty_factry = get_factories_single_tile(
+def test_data_dimensions_fields_functions() -> None:
+    _, quantity_factory = get_factories_single_tile(
         _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("orch:dace:cpu:IJK")
     )
 
-    setup_data_dimensions(qty_factry)
+    setup_data_dimensions(quantity_factory)
 
     assert Tracers.index("H") == 7
     assert TracersAndPlumes.size(0) == Tracers.size(0)
