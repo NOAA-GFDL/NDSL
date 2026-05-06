@@ -3,7 +3,7 @@
 !!! abstract ""
     [Back to GEOS-FP results summary](summary.md)
 
-Project call for the porting of the UW Shallow Convection scheme (UW). The work was concluded in August with validation on performance backends and early pre-optimization benchmarks.
+Project call for the porting of the UW Shallow Convection scheme (UW). The work was concluded in August 2025 with validation on performance backends and early pre-optimization benchmarks.
 
 ## Validation
 
@@ -31,7 +31,14 @@ The temperature patterns look very similar between the Fortran and Python. Howev
 
 ### Benchmark
 
-Benchmarking in progress...
+Benchmark is done by measuring CPU time (post sync for GPU) at the Fortran level (overhead of going to GPU from CPU is included in the number). This mirrors the real life application of the technology running an "hybrid" GEOS.
+
+Time are given in seconds. Positive speed up means NDSL is faster, negative means original Fortran is faster.
+
+| Resolution   | Layout | Fortran | NDSL GPU (dace:gpu) | NDSL CPU (gt:cpu_kfirst) | Speed up CPU/GPU | Speed up CPU/CPU |
+| ----------   | ------ | ------- | ------------------- | ------------------------ | ---------------- | ---------------- |
+| C180 (~51km) | 4x4    | 0.23s   | 0.04s               | 0.37s                    | 6.29x            | -1.62x           |
+
 
 <!-- ## Perturbed initial condition Fortran runs
 

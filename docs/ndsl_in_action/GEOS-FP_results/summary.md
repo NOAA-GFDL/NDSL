@@ -73,6 +73,7 @@ The data used for numerical validation are available on NCCS datashare:
 
 - [Dynamics (Pace)](https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/)
 - [Dynamics (GEOS v11.4.2)](https://portal.nccs.nasa.gov/datashare/astg/smt/geos-fp/translate/11.5.2/x86_GNU/Dycore/TBC_C24_L72_Debug/)
+- [Moist (GEOS v11.8.1)](https://portal.nccs.nasa.gov/datashare/astg/smt/geos-fp/translate/11.5.2/arm_clang/)
 
 ## Overviews and earlier results
 
