@@ -34,8 +34,17 @@ class OrchestratedProgram:
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, out_qty):
+    def __call__(self, out_qty):  # no typehint out_qty on purpose
         self.stencil(out_qty)
+
+
+class TypedOrchestratedProgram(NDSLRuntime):
+    def __init__(self, stencil_factory: StencilFactory) -> None:
+        super().__init__(stencil_factory)
+        self._stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
+
+    def __call__(self, out_qty: Quantity) -> None:
+        self._stencil(out_qty)
 
 
 class DSLTypeProgram(NDSLRuntime):
@@ -62,6 +71,25 @@ def test_memory_reallocation_blind_type():
         5, 5, 2, 0
     )
     code = OrchestratedProgram(stencil_factory)
+    qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+    qty_B = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "B")
+
+    code(qty_A)
+    assert (qty_A.field[0, 0, :] == 2).all()
+
+    code(qty_A)
+    assert (qty_A.field[0, 0, :] == 3).all()
+
+    code(qty_B)
+    assert (qty_A.field[0, 0, :] == 3).all()
+    assert (qty_B.field[0, 0, :] == 2).all()
+
+
+def test_memory_reallocation_quantity_type() -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0
+    )
+    code = TypedOrchestratedProgram(stencil_factory)
     qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
     qty_B = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "B")
 
