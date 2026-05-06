@@ -665,7 +665,9 @@ def orchestrate(
 
     # Remove type hint of Quantity to allow for __descriptor__ to be read in JIT
     for arg_name, annotation in func.__annotations__.items():
-        if annotation in [Quantity]:
+        if annotation in [Quantity] or (
+            isinstance(annotation, type) and issubclass(annotation, Quantity)
+        ):
             func.__annotations__[arg_name] = None
 
     # Build DaCe orchestrated wrapper
