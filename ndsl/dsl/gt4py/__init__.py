@@ -1,5 +1,6 @@
 # Import gt4py functions, all future references to gt4py should come through here
 from gt4py.cartesian.gtscript import (
+    __INLINED,
     BACKWARD,
     FORWARD,
     IJ,
@@ -62,6 +63,7 @@ from gt4py.cartesian.gtscript import (
 
 
 __all__ = [
+    "__INLINED",
     "BACKWARD",
     "FORWARD",
     "IJ",
