@@ -235,7 +235,7 @@ def test_dm_monitor_single_tile() -> None:
 
     # check output!
     assert Path("diag_manager_single_tile.nc").exists()
-    # ds = xr.open_dataset("diag_manager_single_tile.nc", decode_times=True)
+    ds = xr.open_dataset("diag_manager_single_tile.nc", decode_times=True)
     # print("Dataset opened through xarray")
     # assert "var_2d" in ds
     # np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))

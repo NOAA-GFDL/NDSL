@@ -60,7 +60,7 @@ jobs:
         run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
-        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -s -m "${{matrix.marker-parallel}}" tests
+        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -s -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |
