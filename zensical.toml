@@ -72,8 +72,6 @@ nav = [
 
       { "Technical" = [
           { "Internal" = "internal/release.md" },
-          { "pyMoist Docstrings" = "http://127.0.0.1:8000" },
-
           { "NDSL Docstrings" = [
               { "General Info" = "docstrings/index.md" },
 
