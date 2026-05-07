@@ -78,16 +78,9 @@ def test_dm_monitor_single_tile() -> None:
     layout_ndsl = (npes, 1)  # flipped to match fms domain decomposition
     global_indices = [0, nx - 1, 0, ny - 1]
 
-    print("")
-    print("INITIALIZED ALL VARIABLES")
-
     _create_input()
 
-    print("PASSED CALL TO _CREATE_INPUT")
-
     pyfms.fms.init(localcomm=MPIComm()._comm.py2f(), calendar_type=pyfms.fms.NOLEAP)
-
-    print("pyFMS initialized")
 
     domain = pyfms.mpp_domains.define_domains(
         global_indices=global_indices,
@@ -99,8 +92,6 @@ def test_dm_monitor_single_tile() -> None:
         domain_id=domain_id,
         io_layout=io_layout,
     )
-
-    print("Domains defined")
 
     if npes > 1:
         rank = MPIComm()._comm.Get_rank()
@@ -129,15 +120,11 @@ def test_dm_monitor_single_tile() -> None:
     )
     quantity_factory = QuantityFactory(sizer, backend=backend)
 
-    print("NDSL stuff created")
-
     # set up for diag manager for before the main loop, need to set timestep + end_time and register all axes and fields
     monitor = DiagManagerMonitor(domain_id=domain_id)
     start = datetime(2, 1, 1, 1, 1, 1)
     step = timedelta(seconds=3600)
     end = start + ntimesteps * step
-
-    print("diag_manager Monitor created")
 
     monitor.set_timestep(step)
     monitor.set_end_time(end)
@@ -196,8 +183,6 @@ def test_dm_monitor_single_tile() -> None:
     assert "var_2d" in monitor.fields
     assert "var_3d" in monitor.fields
 
-    print("Checks on monitor field registers done")
-
     # set up data to send for diagnostics
     var2_global = np.empty(shape=(nx, ny), dtype=np.float64)
     var3_global = np.empty(shape=(nx, ny, nz), dtype=np.float64)
@@ -231,8 +216,6 @@ def test_dm_monitor_single_tile() -> None:
 
     # cleanup writes and closes the file
     monitor.cleanup()
-
-    print("Monitor cleaned up")
 
     # check output!
     assert Path("diag_manager_single_tile.nc").exists()
