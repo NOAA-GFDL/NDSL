@@ -42,12 +42,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # - name: Install mpi (MPICH flavor)
-      #   if: ${{!contains(matrix.extra, 'pyfms')}}
-      #   run: pip3 install mpich
-
-      - name: Install pyFMS dependencies (includes system MPI)
-        # if: contains(matrix.extra, 'pyfms')
+      - name: Install dependencies
         run: |
           sudo apt-get update --fix-missing
           sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils

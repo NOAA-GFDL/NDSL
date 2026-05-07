@@ -7,11 +7,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import cftime
+import dask
 import numpy as np
 import pytest
 import xarray as xr
 import yaml
-import dask
 
 from ndsl import (
     DiagManagerMonitor,
@@ -219,7 +219,7 @@ def test_dm_monitor_single_tile() -> None:
 
     # check output!
     assert Path("diag_manager_single_tile.nc").exists()
-    with dask.config.set(scheduler='synchronous'):
+    with dask.config.set(scheduler="synchronous"):
         ds = xr.open_dataset("diag_manager_single_tile.nc", decode_times=True)
     print("Dataset opened through xarray")
     assert "var_2d" in ds
