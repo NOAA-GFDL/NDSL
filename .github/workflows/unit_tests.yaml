@@ -42,19 +42,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install mpi (MPICH flavor)
-        # if: ${{!contains(matrix.extra, 'pyfms')}}
-        run: pip3 install mpich
+      # - name: Install mpi (MPICH flavor)
+      #   if: ${{!contains(matrix.extra, 'pyfms')}}
+      #   run: pip3 install mpich
 
       - name: Install pyFMS dependencies (includes system MPI)
-        if: contains(matrix.extra, 'pyfms')
+        # if: contains(matrix.extra, 'pyfms')
         run: |
           sudo apt-get update --fix-missing
-          sudo apt-get install netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
+          sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
         run: |
-          pip3 install -v .[${{matrix.extra}}]
+          pip3 install .[${{matrix.extra}}]
 
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
