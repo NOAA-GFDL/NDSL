@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from collections.abc import Mapping, Sequence
 from types import ModuleType
-from typing import Any, Self, cast
+from typing import Any, Generic, Self, TypeVar, cast
 
 import numpy as np
 
@@ -42,16 +42,19 @@ def to_numpy(array, dtype=None) -> np.ndarray:  # type: ignore[no-untyped-def]
     return output
 
 
-class Communicator(abc.ABC):
+P = TypeVar("P", bound=Partitioner)
+
+
+class Communicator(abc.ABC, Generic[P]):
     def __init__(
         self,
         comm: CommABC,
-        partitioner: Partitioner,
+        partitioner: P,
         force_cpu: bool = False,
         timer: Timer | None = None,
     ):
         self.comm = comm
-        self.partitioner: Partitioner = partitioner
+        self.partitioner: P = partitioner
         self._force_cpu = force_cpu
         self._boundaries: Mapping[int, Boundary] | None = None
         self._last_halo_tag = 0
@@ -75,12 +78,12 @@ class Communicator(abc.ABC):
 
     @property
     def rank(self) -> int:
-        """rank of the current process within this communicator"""
+        """Rank of the current process within this communicator."""
         return self.comm.Get_rank()
 
     @property
     def size(self) -> int:
-        """Total number of ranks in this communicator"""
+        """Total number of ranks in this communicator."""
         return self.comm.Get_size()
 
     def _maybe_force_cpu(self, module: ModuleType) -> ModuleType:
@@ -101,7 +104,7 @@ class Communicator(abc.ABC):
     def _create_all_reduce_quantity(
         self, input_metadata: QuantityMetadata, input_data: Any
     ) -> Quantity:
-        """Create a Quantity for all_reduce data and metadata"""
+        """Create a Quantity for all_reduce data and metadata."""
         all_reduce_quantity = Quantity(
             input_data,
             dims=input_metadata.dims,
@@ -645,8 +648,8 @@ def bcast_metadata(comm: CommABC, array: Quantity):  # type: ignore[no-untyped-d
     return bcast_metadata_list(comm, [array])[0]
 
 
-class TileCommunicator(Communicator):
-    """Performs communications within a single tile or region of a tile"""
+class TileCommunicator(Communicator[TilePartitioner]):
+    """Performs communications within a single tile or region of a tile."""
 
     def __init__(
         self,
@@ -663,10 +666,7 @@ class TileCommunicator(Communicator):
             force_cpu: force all communication to go through central memory
             timer: Time communication operations.
         """
-        super(TileCommunicator, self).__init__(
-            comm, partitioner, force_cpu=force_cpu, timer=timer
-        )
-        self.partitioner: TilePartitioner = partitioner
+        super().__init__(comm, partitioner, force_cpu, timer)
 
     @classmethod
     def from_layout(
@@ -676,8 +676,7 @@ class TileCommunicator(Communicator):
         force_cpu: bool = False,
         timer: Timer | None = None,
     ) -> TileCommunicator:
-        partitioner = TilePartitioner(layout=layout)
-        return cls(comm=comm, partitioner=partitioner, force_cpu=force_cpu, timer=timer)
+        return cls(comm, TilePartitioner(layout=layout), force_cpu, timer)
 
     @property
     def tile(self) -> TileCommunicator:
@@ -701,8 +700,8 @@ class TileCommunicator(Communicator):
                 "refactoring our code to remove the assumption that any pair "
                 "of ranks only share one boundary"
             )
-        else:
-            return super().start_halo_update(quantity, n_points)
+
+        return super().start_halo_update(quantity, n_points)
 
     def start_vector_halo_update(
         self,
@@ -728,8 +727,8 @@ class TileCommunicator(Communicator):
                 "refactoring our code to remove the assumption that any pair "
                 "of ranks only share one boundary"
             )
-        else:
-            return super().start_vector_halo_update(x_quantity, y_quantity, n_points)
+
+        return super().start_vector_halo_update(x_quantity, y_quantity, n_points)
 
     def start_synchronize_vector_interfaces(
         self, x_quantity: Quantity, y_quantity: Quantity
@@ -758,15 +757,14 @@ class TileCommunicator(Communicator):
                 "refactoring our code to remove the assumption that any pair "
                 "of ranks only share one boundary"
             )
-        else:
-            return super().start_synchronize_vector_interfaces(x_quantity, y_quantity)
+
+        return super().start_synchronize_vector_interfaces(x_quantity, y_quantity)
 
 
-class CubedSphereCommunicator(Communicator):
-    """Performs communications within a cubed sphere"""
+class CubedSphereCommunicator(Communicator[CubedSpherePartitioner]):
+    """Performs communications within a cubed sphere."""
 
-    timer: Timer
-    partitioner: CubedSpherePartitioner
+    _tile_communicator: TileCommunicator | None
 
     def __init__(
         self,
@@ -794,12 +792,9 @@ class CubedSphereCommunicator(Communicator):
                 f"comm object with only {comm.Get_size()} ranks, are we running "
                 "with mpi and the correct number of ranks?"
             )
-        self._tile_communicator: TileCommunicator | None = None
-        self._force_cpu = force_cpu
-        super(CubedSphereCommunicator, self).__init__(
-            comm, partitioner, force_cpu, timer
-        )
-        self.partitioner: CubedSpherePartitioner = partitioner
+
+        super().__init__(comm, partitioner, force_cpu, timer)
+        self._tile_communicator = None
 
     @classmethod
     def from_layout(
@@ -814,55 +809,53 @@ class CubedSphereCommunicator(Communicator):
 
     @property
     def tile(self) -> TileCommunicator:
-        """communicator for within a tile"""
+        """Communicator for within a tile."""
         if self._tile_communicator is None:
-            self._initialize_tile_communicator()
-        return cast(TileCommunicator, self._tile_communicator)
+            tile_comm = self.comm.Split(
+                color=self.partitioner.tile_index(self.rank), key=self.rank
+            )
+            self._tile_communicator = TileCommunicator(tile_comm, self.partitioner.tile)
 
-    def _initialize_tile_communicator(self) -> None:
-        tile_comm = self.comm.Split(
-            color=self.partitioner.tile_index(self.rank), key=self.rank
-        )
-        self._tile_communicator = TileCommunicator(tile_comm, self.partitioner.tile)
+        return self._tile_communicator
 
     def _get_gather_recv_quantity(
-        self, global_extent: Sequence[int], metadata: QuantityMetadata
+        self, global_extent: Sequence[int], send_metadata: QuantityMetadata
     ) -> Quantity:
-        """Initialize a Quantity for use when receiving global data during gather
+        """Initialize a Quantity for use when receiving global data during gather.
 
         Args:
             shape: ndarray shape, numpy-style
-            metadata: metadata to the created Quantity
+            send_metadata: metadata to the created Quantity
         """
         # needs to change the quantity dimensions since we add a "tile" dimension,
         # unlike for tile scatter/gather which retains the same dimensions
         recv_quantity = Quantity(
-            metadata.np.zeros(global_extent, dtype=metadata.dtype),
-            dims=(constants.TILE_DIM,) + metadata.dims,
-            units=metadata.units,
-            origin=(0,) + tuple([0 for dim in metadata.dims]),
+            send_metadata.np.zeros(global_extent, dtype=send_metadata.dtype),
+            dims=(constants.TILE_DIM,) + send_metadata.dims,
+            units=send_metadata.units,
+            origin=(0,) + tuple([0 for dim in send_metadata.dims]),
             extent=global_extent,
-            backend=metadata.backend,
+            backend=send_metadata.backend,
             allow_mismatch_float_precision=True,
         )
         return recv_quantity
 
     def _get_scatter_recv_quantity(
-        self, shape: Sequence[int], metadata: QuantityMetadata
+        self, shape: Sequence[int], send_metadata: QuantityMetadata
     ) -> Quantity:
-        """Initialize a Quantity for use when receiving subtile data during scatter
+        """Initialize a Quantity for use when receiving subtile data during scatter.
 
         Args:
             shape: ndarray shape, numpy-style
-            metadata: metadata to the created Quantity
+            send_metadata: metadata to the created Quantity
         """
         # needs to change the quantity dimensions since we remove a "tile" dimension,
         # unlike for tile scatter/gather which retains the same dimensions
         recv_quantity = Quantity(
-            metadata.np.zeros(shape, dtype=metadata.dtype),
-            dims=metadata.dims[1:],
-            units=metadata.units,
-            backend=metadata.backend,
+            send_metadata.np.zeros(shape, dtype=send_metadata.dtype),
+            dims=send_metadata.dims[1:],
+            units=send_metadata.units,
+            backend=send_metadata.backend,
             allow_mismatch_float_precision=True,
         )
         return recv_quantity

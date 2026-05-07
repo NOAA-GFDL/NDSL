@@ -76,7 +76,7 @@ class Backend:
     on the frontend code. Additionally, it gives a hint toward the macro-strategy
     for loop ordering (IJK, KJI, etc.) or a more broad intent (debug, numpy).
 
-    For convenience, shorcuts are given to the most common needs (
+    For convenience, shortcuts are given to the most common needs (
     `backend_python`, `backend_cpu`, `backend_gpu`).
     """
 
