@@ -1,8 +1,4 @@
-# NDSL User Guide
-<!-- !!! note "Quick Links"
-    - [Install NDSL](./quickstart.md/)
-    - [Docs](./documentation/)
-    - [Community](./community.md) -->
+# NDSL User Manual
 
 The NASA–NOAA Domain-Specific Language (NDSL) is a modern framework for developing high-performance Earth system model components with a focus on portability, readability, and computational efficiency. NDSL enables scientists and developers to write expressive, maintainable code that can target multiple hardware architectures, including CPUs and GPUs, while preserving scientific integrity and performance.
 

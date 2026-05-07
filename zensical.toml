@@ -36,7 +36,7 @@ site_url = "https://www.ndsl_documentation.com/"
 #
 # Read more: https://zensical.org/docs/setup/basics/#copyright
 copyright = """
-&copy; 2026 Software Modernization Team
+&copy; 2026 
 """
 
 # Zensical supports both implicit navigation and explicitly defined navigation.
@@ -54,23 +54,20 @@ nav = [
 
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md" },
 
-  
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 15L9 12a13 13 0 0 1 9-9l3 3a13 13 0 0 1-9 9z'/><path d='M9 12H5a2 2 0 0 0-2 2v4l4-4'/><path d='M12 15v4a2 2 0 0 1-2 2H6l4-4'/><circle cx='15' cy='9' r='1'/></svg> Getting Started" = "quickstart.md" },
 
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
+    { "1. Introduction to NDSL" = "documentation/ndsl_introduction.md" },
+    { "2. Getting Started" = "documentation/user_manual/quickstart.md" },
+    { "3. Data Types and Storage" = "documentation/user_manual/data.md" },
+    { "4. Writing Code with NDSL" = "documentation/user_manual/writing_ndsl_code.md" },
+    { "5. Advanced Features" = "documentation/user_manual/advanced_features.md" },
+    { "6. Backends" = "documentation/user_manual/backends.md" },
+    { "7. Common Patterns" = "documentation/user_manual/common_patterns.md" },
+    { "8. Why Use Classes?" = "documentation/user_manual/why_use_classes.md" },
+    { "9. Best Coding Practices" = "documentation/user_manual/best_coding_practices.md" }
+]},
 
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> Docs" = [
-      { " User Guide" = [
-          { "1. Introduction to NDSL" = "documentation/ndsl_introduction.md" },
-          { "2. Data Types and Storage" = "documentation/user_manual/data.md" },
-          { "3. Writing Code with NDSL" = "documentation/user_manual/writing_ndsl_code.md" },
-          { "4. Advanced Features" = "documentation/user_manual/advanced_features.md" },
-          { "5. Backends" = "documentation/user_manual/backends.md" },
-          { "6. Common Patterns" = "documentation/user_manual/common_patterns.md" },
-          { "7. Why Use Classes?" = "documentation/user_manual/why_use_classes.md" },
-          { "8. Best Coding Practices" = "documentation/user_manual/best_coding_practices.md" }
-      ]},
-
-      { "Technical" = [
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
           { "Internal" = "internal/release.md" },
           { "NDSL Docstrings" = [
               { "General Info" = "docstrings/index.md" },
@@ -109,28 +106,28 @@ nav = [
 
               # Continue remaining sections the same way...
           ]}
-      ]}
   ]},
+  
 
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL in Action" = [
-      { "GEOS-FP Results" = [
+      { "Overview" = "ndsl_in_action/overview.md"},
+      { "GEOS-SCM" = [
+          { "Summary" = "ndsl_in_action/GEOS-SCM_results/scm_results.md" }
+      ]},
+      { "GEOS-FP" = [
           { "GFDL1M Microphysics" = "ndsl_in_action/GEOS-FP_results/early_microphys.md" },
           { "UW Shallow Convection" = "ndsl_in_action/GEOS-FP_results/early_uw.md" },
           { "Summary" = "ndsl_in_action/GEOS-FP_results/summary.md" }
       ]},
-
-      { "GEOS-SCM Results" = [
-          { "Summary" = "ndsl_in_action/GEOS-SCM_results/scm_results.md" }
-      ]},
-
       { "Performance & Benchmarking" = "ndsl_in_action/performance_and_benchmarking/benchmark_overview.md" }
   ]},
 
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Blog" = "blog.md" },
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes.md" },
 
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" },
 
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M16 13H8'/><path d='M16 17H8'/><path d='M10 9H8'/></svg> Publications & Presentations" = [
+      { "Overview" = "publications_and_presentations/cover.md" },
       { "Conference Presentations" = [
           { "SC23" = "publications_and_presentations/conference_presentations/SC23.md" }
       ]}

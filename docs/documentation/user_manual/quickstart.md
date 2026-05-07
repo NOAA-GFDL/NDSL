@@ -1,4 +1,4 @@
-# Quickstart
+# Getting Started
 
 Alright - let's get you up an running!
 
@@ -22,8 +22,6 @@ pip install .[demos]
 ```
 
 Now you can run through the Jupyter notebooks in `examples/NDSL` :rocket:.
-
-Read on in the [user manual](./user/index.md).
 
 !!! note "Supported compilers"
 
