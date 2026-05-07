@@ -54,7 +54,7 @@ jobs:
 
       - name: Install Python packages
         run: |
-          pip3 install .[${{matrix.extra}}]
+          pip3 install -v .[${{matrix.extra}}]
 
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
