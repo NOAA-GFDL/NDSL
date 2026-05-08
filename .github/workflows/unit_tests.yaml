@@ -27,7 +27,7 @@ jobs:
           - extra: 'test,pyfms'
             marker-serial: 'pyfms and not parallel'
             marker-parallel: 'pyfms and parallel'
-            python-version: '3.11'
+            python-version: '3.12'
       # don't cancel other jobs if one fails
       fail-fast: false
     name: Python ${{ matrix.python-version }}${{ contains(matrix.extra, 'pyfms') && ' (pyFMS)' || '' }}
