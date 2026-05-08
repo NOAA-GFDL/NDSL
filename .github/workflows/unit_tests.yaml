@@ -5,8 +5,8 @@ on:
   pull_request: # ... a PR is opened / updated
   merge_group: # ... the PR is added to the merge queue
   push:
-    # branches:
-    #   - main # ... when merging into the main branch
+    branches:
+      - main # ... when merging into the main branch
 
 # cancel running jobs if theres a newer push
 concurrency:
@@ -42,20 +42,22 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
+      - name: Install MPI
+        if: ${{!contains(matrix.extra, 'pyfms')}}
+        run: pip3 install mpich
+
+      - name: Install pyFMS dependencies (includes system MPI)
+        if: contains(matrix.extra, 'pyfms')
+        run: sudo apt-get install mpich libmpich-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
-        run: |
-          pip3 install -v .[${{matrix.extra}}]
+        run: pip3 install -v .[${{matrix.extra}}]
 
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
-        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -s -m "${{matrix.marker-parallel}}" tests
+        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -s -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |
