@@ -221,7 +221,7 @@ def test_dm_monitor_single_tile() -> None:
     assert Path("diag_manager_single_tile.nc").exists()
     lock = threading.Lock()
     ds = xr.open_dataset(
-        "diag_manager_single_tile.nc", decode_times=True, chunks={}, lock=lock
+        "diag_manager_single_tile.nc", decode_times=True, lock=lock
     )
     assert "var_2d" in ds
     np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))
