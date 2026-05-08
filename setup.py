@@ -15,7 +15,7 @@ requirements: list[str] = [
     "cftime",
     "xarray>=2025.01.2",  # datatree + fixes
     "f90nml>=1.1.0",
-    "netcdf4==1.7.2",
+    "netcdf4>=1.7.2",
     "scipy",  # restart capacities only
     "h5netcdf",  # for xarray
     "h5py",  # for h5netcdf >= 1.8
