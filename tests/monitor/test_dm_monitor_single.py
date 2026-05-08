@@ -3,12 +3,11 @@ This test case uses a single tile domain decomposition, and outputs a file from 
 with data gathered from any other processors.
 """
 
+import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import cftime
-
-# import dask
 import numpy as np
 import pytest
 import xarray as xr
@@ -220,10 +219,9 @@ def test_dm_monitor_single_tile() -> None:
 
     # check output!
     assert Path("diag_manager_single_tile.nc").exists()
-    MPIComm()._comm.Barrier()
-    # with dask.config.set(scheduler="synchronous"):
+    lock = threading.Lock()
     ds = xr.open_dataset(
-        "diag_manager_single_tile.nc", decode_times=True, engine="h5netcdf", chunks={}
+        "diag_manager_single_tile.nc", decode_times=True, chunks={}, lock=lock
     )
     assert "var_2d" in ds
     np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))
