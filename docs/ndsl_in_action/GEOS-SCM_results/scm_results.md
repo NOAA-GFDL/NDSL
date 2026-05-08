@@ -28,7 +28,7 @@ Early scientific validation results running the SCM on Discover HPC:
     ![Hovmoller](../../img/scm_arm_97jun_hovmoller_gpu_72.png)
 
 === "`arm_97jun` 14 hr, 181 lev"
-    ![Hovmoller](../../img/scm_arm_97jun_hovmoller_gpu_72.png)
+    ![Hovmoller](../../img/scm_arm_97jun_hovmoller_gpu_181.png)
 
 ## GF2020 Deep Convection
 

@@ -1,162 +1,342 @@
-# The NASA-NOAA Domain Specific Language (NDSL)
-!!! info "Quick Links"
-    - [User Manual](./documentation/ndsl_introduction.md)
-    - [Community](community.md)
-    - [NDSL in Action](./ndsl_in_action/overview.md)
+# 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NDSL Platform</title>
 
-The NASA–NOAA Domain-Specific Language (NDSL) is a modern framework for developing high-performance Earth system model components with a focus on portability, readability, and computational efficiency. NDSL enables scientists and developers to write expressive, maintainable code that can target multiple hardware architectures, including CPUs and GPUs, while preserving scientific integrity and performance.
+<style>
+  .dsl-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
 
-NDSL is designed to bridge the gap between atmospheric science and modern software engineering practices. By abstracting backend-specific implementation details, NDSL allows users to focus on scientific development while leveraging scalable and portable computational infrastructure underneath.
+  .section-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.25rem;
+    background: #fff;
+    margin-bottom: 0.9rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
 
-This documentation serves as both an introduction for new users and a reference for active developers working within the NDSL ecosystem.
+  .section-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+  }
 
-<h2 align="center">
-Want to learn more about NDSL, its capabilities, and decide whether it is suited for your needs? 
-</h2>
-<div style="display: flex; justify-content: center;">
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #185FA5;
+    margin: 0 0 0.35rem 0;
+  }
 
-<a class="md-button md-button--primary"
-   href="https://mm.smce.nasa.gov/astg/channels/smt"
-   style="
-      border-radius: 999px;
-      padding: 0.72em 1.45em;
-      font-size: 0.97rem;
-   ">
+  h3 {
+    margin: 0 0 0.35rem 0;
+  }
 
-  <svg xmlns="http://www.w3.org/2000/svg"
-       width="17"
-       height="17"
+  p {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.5;
+    margin: 0.25rem 0;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #185FA5;
+    color: #fff !important;
+    border-radius: 10px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+
+  .btn:hover {
+    background: #0C447C;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .code-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #f9fafb;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .code-header {
+    padding: 0.6rem 1rem;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 7px;
+    font-size: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+  }
+
+  .tab-btn.active {
+    color: #185FA5;
+    border-bottom: 2px solid #185FA5;
+    font-weight: 500;
+  }
+
+  .tab-panel {
+    display: none;
+    padding: 0.9rem;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  .code-block {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    white-space: pre;
+    overflow-x: auto;
+    color: #111827;
+  }
+
+  .apps-section h2 {
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .app-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1rem;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: 0.2s;
+  }
+
+  .app-card:hover {
+    border-color: #185FA5;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #E6F1FB;
+    color: #185FA5;
+    margin-bottom: 0.4rem;
+  }
+
+  @media (max-width: 768px) {
+    .two-col, .app-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cta-card {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f0f7ff, #ffffff);
+    box-shadow: 0 10px 25px rgba(24,95,165,0.10);
+  }
+</style>
+</head>
+
+<body>
+
+<div class="dsl-page">
+<!-- PAGE HEADER -->
+
+<div style="margin-bottom: 1.2rem;">
+
+  <h1 style="
+    font-size: 42px;
+    font-weight: 600;
+    color: #185FA5;
+    margin: 0 0 0.45rem 0;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  ">
+    NASA-NOAA Domain Specific Language (NDSL)
+  </h1>
+
+  <p style="
+    font-size: 15px;
+    color: #6b7280;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 760px;
+  ">
+    A modern domain-specific language for portable, high-performance atmospheric modeling across CPUs, GPUs, and emerging computing architectures.
+  </p>
+
+</div>
+    
+
+  <div class="section-card">
+    <span class="badge">Quickstart</span>
+    <h2>Install NDSL</h2>
+    <p>Install the latest version of NDSL with a few commands and start writing code.</p>
+    <a class="btn" href="#">NDSL v2026.03.00 →</a>
+  </div>
+
+  <div class="two-col">
+
+    <div class="section-card">
+      <span class="badge">Learn</span>
+      <h2>Getting Started</h2>
+      <p>New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.</p>
+      <a class="btn" href="#">User Manual →</a>
+    </div>
+
+    <div class="section-card">
+      <span class="badge">Connect</span>
+      <h2>Community</h2>
+      <p>Connect with developers, researchers, and contributors working on NDSL and atmospheric modeling tools.</p>
+      <a class="btn" href="#">Join Community →</a>
+    </div>
+
+  </div>
+
+  <div class="code-card">
+    <div class="code-header">Fortran to NDSL</div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(event,'fortran')">Fortran</button>
+      <button class="tab-btn" onclick="switchTab(event,'ndsl')">NDSL</button>
+      <button class="tab-btn" onclick="switchTab(event,'gen')">Generated</button>
+    </div>
+
+    <div id="fortran" class="tab-panel active">
+      <div class="code-block">   real function compute_alpha(del_CIN,ke)
+   ! ------------------------------------------------ !
+   ! Subroutine to compute proportionality factor for !
+   ! implicit CIN calculation.                        !   
+   ! ------------------------------------------------ !
+     real   :: del_CIN, ke
+     real*8 :: del_CIN8, ke8
+     real*8 :: x0, x1
+
+     integer  :: iteration
+
+     x0 = 0._r8
+     del_CIN8 = del_CIN
+     ke8 = ke
+     do iteration = 1, 10
+        x1 = x0 - (exp(-x0*ke8*del_CIN8) - x0)/(-ke8*del_CIN8*exp(-x0*ke8*del_CIN8) - 1.)
+        x0 = x1
+     end do
+     compute_alpha = x0
+
+     return</div>
+    </div>
+
+    <div id="ndsl" class="tab-panel">
+      <div class="code-block">NDSL code here...</div>
+    </div>
+
+    <div id="gen" class="tab-panel">
+      <div class="code-block">Generated code here...</div>
+    </div>
+
+  </div>
+
+  <div class="apps-section">
+    <h2>Applications</h2>
+
+    <div class="app-grid">
+      <div class="app-card">
+        <h3>GEOS</h3>
+        <p>Accelerating global climate model simulations with NDSL.</p>
+        <a class="btn" href="./ndsl_in_action/overview.md">Explore →</a>
+      </div>
+
+      <div class="app-card">
+        <h3>NOAA</h3>
+        <p>Supporting operational atmospheric modeling systems.</p>
+        <a class="btn" href="#">Explore →</a>
+      </div>
+
+      <div class="app-card">
+        <h3>Pace</h3>
+        <p>Next-generation scalable atmospheric modeling.</p>
+        <a class="btn" href="https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf">Explore →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-card">
+    <h2 style="margin-bottom:0.5rem; font-size:20px; font-weight:600; color:#185FA5;">
+      Want to Learn More?
+    </h2>
+    <p style="max-width:800px; margin:0 auto; font-size:14px; color:#4b5563; line-height:1.5;">
+      Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs?
+    </p>
+    <a class="btn" href="https://mm.smce.nasa.gov/astg/channels/smt" style="margin-top:1rem;">
+      <svg xmlns="http://www.w3.org/2000/svg"
+       width="15"
+       height="15"
        viewBox="0 0 24 24"
        fill="none"
        stroke="currentColor"
        stroke-width="2"
        stroke-linecap="round"
-       stroke-linejoin="round"
-       style="vertical-align: middle; margin-right: 7px;">
-
-    <path d="M22 2 11 13"/>
-    <path d="M22 2 15 22 11 13 2 9 22 2z"/>
-
-  </svg>
-
-  Contact us
-</a>
-
-</div>
-
-
-
-
-
-<!-- ## NDSL Highlights
-
-<div class="carousel">
-
-  <div class="slides fade">
-    <img src="./img/scm_moist_bomex_hovmoller_gpu_72.png">
-  </div>
-
-  <div class="slides fade">
-    <img src="./img/scm_moist_armtwp_ice_timeseries_gpu_72.png">
+       stroke-linejoin="round">
+      <path d="M22 2L11 13"></path>
+      <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+      </svg>
+      Contact Us →
+    </a>
   </div>
 
 </div>
 
 <script>
-let slideIndex = 0;
-showSlides();
-
-function showSlides() {
-  let i;
-  let slides = document.getElementsByClassName("slides");
-
-  for (i = 0; i < slides.length; i++) {
-    slides[i].style.display = "none";
-  }
-
-  slideIndex++;
-
-  if (slideIndex > slides.length) {
-    slideIndex = 1;
-  }
-
-  slides[slideIndex-1].style.display = "block";
-
-  setTimeout(showSlides, 3000);
+function switchTab(event, tabId) {
+  const parent = event.target.closest('.code-card');
+  parent.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+  parent.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  parent.querySelector('#' + tabId).classList.add('active');
+  event.target.classList.add('active');
 }
-</script> -->
+</script>
 
+</body>
+</html>
 
-!!! example ""
-
-    === "Fortran"
-
-        ``` fortran
-        real function compute_alpha(del_CIN,ke)
-        ! ------------------------------------------------ !
-        ! Subroutine to compute proportionality factor for !
-        ! implicit CIN calculation.                        !   
-        ! ------------------------------------------------ !
-          real   :: del_CIN, ke
-          real*8 :: del_CIN8, ke8
-          real*8 :: x0, x1
-
-          integer  :: iteration
-
-          x0 = 0._r8
-          del_CIN8 = del_CIN
-          ke8 = ke
-          do iteration = 1, 10
-              x1 = x0 - (exp(-x0*ke8*del_CIN8) - x0)/(-ke8*del_CIN8*exp(-x0*ke8*del_CIN8) - 1.)
-              x0 = x1
-          end do
-          compute_alpha = x0
-
-          return
-
-        end function compute_alpha 
-        ```
-
-    === "NDSL"
-
-        ``` python
-
-        @gtfunction
-        def compute_alpha(
-            del_CIN: Float,
-            ke: Float,
-        ):
-          """
-          Subroutine to compute proportionality factor for
-          implicit CIN calculation.
-
-          Arguments:
-              del_CIN [Float]: Difference between initial and final CIN calculations [J/kg]
-              ke [Float]: Evaporative efficiency [?]
-
-          Returns:
-              compute_alpha [Float]: Proportionality factor for CIN calculation [unitless]
-
-          reference Fortran: uwshcu.F90: function compute_alpha
-          """
-          x0: float64 = float64(0.0)
-          del_CIN8_f64: float64 = float64(del_CIN)
-          ke8_f64: float64 = ke
-          iteration = 0
-          while iteration < 10:
-              x1 = x0 - (exp(-x0 * ke8_f64 * del_CIN8_f64) - x0) / (
-                  -ke8_f64 * del_CIN8_f64 * exp(-x0 * ke8_f64 * del_CIN8_f64) - 1.0
-              )
-              x0 = x1
-              iteration += 1
-
-          compute_alpha = float32(x0)
-
-          return compute_alpha
-        ```
-
-    === "Generated code"
-
-        ``` markdown
-        Add gen code here
-        ```

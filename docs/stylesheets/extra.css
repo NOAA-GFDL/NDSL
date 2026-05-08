@@ -23,3 +23,29 @@
     from {opacity: .4}
     to {opacity: 1}
   }
+
+/* ONLY HOMEPAGE */
+
+
+/* ONLY homepage */
+
+/* REMOVE RIGHT TOC */
+body.homepage .md-sidebar--secondary {
+  display: none;
+}
+
+/* SHRINK LEFT SIDEBAR */
+body.homepage .md-sidebar--primary {
+  width: 140px;
+}
+
+/* WIDEN CONTENT */
+body.homepage .md-grid {
+  max-width: 1500px;
+}
+
+/* OPTIONAL: MORE CONTENT WIDTH */
+body.homepage .md-content__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}

@@ -55,8 +55,6 @@ For casual conversation, quick questions, and community interaction, please join
 
 </div>
 
-This is the best place for informal discussion, troubleshooting, and connecting with other users.
-
 
 ### Contact Us
 

@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <script>
+    document.body.classList.add("homepage");
+  </script>
+{% endblock %}
+
+{% block content %}
+  {{ page.content }}
+{% endblock %}
