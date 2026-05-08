@@ -3,7 +3,6 @@ This test case uses a single tile domain decomposition, and outputs a file from 
 with data gathered from any other processors.
 """
 
-import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -11,10 +10,7 @@ import cftime
 import numpy as np
 import pytest
 import yaml
-
-# import dask
-# import xarray as xr
-from netCDF4 import Dataset
+from netCDF4 import Dataset, num2date
 
 from ndsl import (
     DiagManagerMonitor,
@@ -222,36 +218,30 @@ def test_dm_monitor_single_tile() -> None:
 
     # check output!
     assert Path("diag_manager_single_tile.nc").exists()
-    # lock = threading.Lock()
-    # ds = xr.open_dataset("diag_manager_single_tile.nc", decode_times=True, lock=lock)
     ds = Dataset("diag_manager_single_tile.nc")
     assert "var_2d" in ds.variables
-    var2 = ds.variables["var_2d"]
-    assert var2.shape == (ntimesteps, ny, nx)
-    assert var2.units == "muntin"
-    # assert "var_2d" in ds
-    # np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))
-    # assert ds["var_2d"].dims == ("time", "y", "x")
-    # assert ds["var_2d"].attrs["units"] == "muntin"
-    # assert ds["var_3d"].dims == ("time", "z", "y", "x")
-    # assert ds["var_3d"].attrs["units"] == "muntin"
-    # assert ds["time"].shape == (ntimesteps,)
-    # assert ds["time"].dims == ("time",)
-    # assert ds["time"].values[0] == cftime.DatetimeNoLeap(2, 1, 1, 2, 1, 1)
-    # assert ds["time"].values[1] == cftime.DatetimeNoLeap(2, 1, 1, 3, 1, 1)
-    # assert ds["time"].values[2] == cftime.DatetimeNoLeap(2, 1, 1, 4, 1, 1)
-    # np.testing.assert_array_equal(ds["var_2d"].values[0, :, :], var2_global.transpose())
-    # np.testing.assert_array_equal(ds["var_2d"].values[1, :, :], var2_global.transpose())
-    # np.testing.assert_array_equal(ds["var_2d"].values[2, :, :], var2_global.transpose())
-    # # data is transposed when passed into fortran
-    # np.testing.assert_array_equal(
-    #     ds["var_3d"].values[0, :, :, :], var3_global.transpose()
-    # )
-    # np.testing.assert_array_equal(
-    #     ds["var_3d"].values[1, :, :, :], var3_global.transpose()
-    # )
-    # np.testing.assert_array_equal(
-    #     ds["var_3d"].values[2, :, :, :], var3_global.transpose()
-    # )
+    assert "time" in ds.variables
+    assert "var_3d" in ds.variables
+    var2_ds = ds.variables["var_2d"]
+    time_var = ds.variables["time"]
+    var3_ds = ds.variables["var_3d"]
+    np.testing.assert_array_equal(var2_ds.shape, (ntimesteps, nx, ny))
+    assert var2_ds.dimensions == ("time", "y", "x")
+    assert var2_ds.units == "muntin"
+    assert var3_ds.dimensions == ("time", "z", "y", "x")
+    assert var3_ds.units == "muntin"
+    assert time_var.shape == (ntimesteps,)
+    assert time_var.dimensions == ("time",)
+    dates = num2date(time_var[:], units=time_var.units, calendar=time_var.calendar)
+    assert dates[0] == cftime.DatetimeNoLeap(2, 1, 1, 2, 1, 1)
+    assert dates[1] == cftime.DatetimeNoLeap(2, 1, 1, 3, 1, 1)
+    assert dates[2] == cftime.DatetimeNoLeap(2, 1, 1, 4, 1, 1)
+    np.testing.assert_array_equal(var2_ds[0, :, :], var2_global.transpose())
+    np.testing.assert_array_equal(var2_ds[1, :, :], var2_global.transpose())
+    np.testing.assert_array_equal(var2_ds[2, :, :], var2_global.transpose())
+    # data is transposed when passed into fortran
+    np.testing.assert_array_equal(var3_ds[0, :, :, :], var3_global.transpose())
+    np.testing.assert_array_equal(var3_ds[1, :, :, :], var3_global.transpose())
+    np.testing.assert_array_equal(var3_ds[2, :, :, :], var3_global.transpose())
 
     pyfms.fms.end()
