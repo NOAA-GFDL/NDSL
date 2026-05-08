@@ -88,7 +88,6 @@ nav:
           - "tools": docstrings/performance/tools.md
       - quantity:
           - "bounds": docstrings/quantity/bounds.md
-          - "field_bundle": docstrings/quantity/field_bundle.md
           - "metadata": docstrings/quantity/metadata.md
           - "quantity": docstrings/quantity/quantity.md
           - "state": docstrings/quantity/state.md
