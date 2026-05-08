@@ -102,7 +102,53 @@ nav = [
                   { "local_comm" = "docstrings/comm/local_comm.md" },
                   { "mpi" = "docstrings/comm/mpi.md" },
                   { "partitioner" = "docstrings/comm/partitioner.md" }
-              ]}
+              ]},
+              { "debug" = [
+                  { "config" = "docstrings/debug/config.md" },
+                  { "debugger" = "docstrings/debug/debugger.md" },
+                  { "tooling" = "docstrings/debug/tooling.md" },
+              ]},
+              { "dsl" = [
+                  { "gt4py_utils" = "docstrings/dsl/gt4py_utils.md" },
+                  { "stencil_config" = "docstrings/dsl/stencil_config.md" },
+                  { "stencil" = "docstrings/dsl/stencil.md" },
+                  { "typing" = "docstrings/dsl/typing.md" },
+              ]},
+              { "grid" = [
+                  { "eta" = "docstrings/grid/eta.md" },
+                  { "generation" = "docstrings/grid/generation.md" },
+                  { "geometry" = "docstrings/grid/geometry.md" },
+                  { "global_setup" = "docstrings/grid/global_setup.md" },
+                  { "gnomonic" = "docstrings/grid/gnomonic.md" },
+                  { "helper" = "docstrings/grid/helper.md" },
+                  { "mirror" = "docstrings/grid/mirror.md" },
+                  { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" },
+              ]},
+              { "halo" = [
+                  { "cuda_kernels" = "docstrings/halo/cuda_kernels.md" },
+                  { "data_transformer" = "docstrings/halo/data_transformer.md" },
+                  { "rotate" = "docstrings/halo/rotate.md" },
+                  { "updater" = "docstrings/halo/updater.md" },
+              ]},
+              { "initialization" = [
+                  { "allocator" = "docstrings/initialization/allocator.md" },
+                  { "grid_sizer" = "docstrings/initialization/grid_sizer.md" },
+                  { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" },
+              ]},
+              { "monitor" = [
+                  { "convert" = "docstrings/monitor/convert.md" },
+                  { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
+                  { "protocol" = "docstrings/monitor/protocol.md" },
+                  { "zarr_monitor" = "docstrings/monitor/zarr_monitor.md" },
+              ]},
+              { "performance" = [
+                  { "collector" = "docstrings/performance/convert.md" },
+                  { "config" = "docstrings/performance/netcdf_monitor.md" },
+                  { "profiler" = "docstrings/performance/protocol.md" },
+                  { "report" = "docstrings/performance/zarr_monitor.md" },
+                  { "timer" = "docstrings/performance/zarr_monitor.md" },
+                  { "tools" = "docstrings/performance/zarr_monitor.md" },
+              ]},
 
               # Continue remaining sections the same way...
           ]}
@@ -433,3 +479,12 @@ combine_header_slug = true
 [project.markdown_extensions.pymdownx.tasklist]
 custom_checkbox = true
 [project.markdown_extensions.pymdownx.tilde]
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]
+paths = ["ndsl"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+show_source = false

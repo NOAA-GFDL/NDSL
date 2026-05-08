@@ -25,8 +25,35 @@ Please follow contribution guidelines outlined in the repository.
 ## Communication
 
 For casual conversation, quick questions, and community interaction, please join our Mattermost channel:
+<div style="display: flex; justify-content: center;">
 
-- Mattermost Channel: <https://mm.smce.nasa.gov/astg/channels/smt>
+<a class="md-button md-button--primary"
+   href="https://mm.smce.nasa.gov/astg/channels/smt"
+   style="
+      border-radius: 6px;
+      padding: 0.7em 1.4em;
+      font-size: 0.98rem;
+   ">
+
+  <svg xmlns="http://www.w3.org/2000/svg"
+       width="16"
+       height="16"
+       viewBox="0 0 24 24"
+       fill="none"
+       stroke="currentColor"
+       stroke-width="2"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       style="vertical-align: middle; margin-right: 7px;">
+
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+
+  </svg>
+
+  Join us on Mattermost
+</a>
+
+</div>
 
 This is the best place for informal discussion, troubleshooting, and connecting with other users.
 

@@ -10,7 +10,41 @@ NDSL is designed to bridge the gap between atmospheric science and modern softwa
 
 This documentation serves as both an introduction for new users and a reference for active developers working within the NDSL ecosystem.
 
-### To install NDSL and get started, please [contact us](./community.md)!
+<h2 align="center">
+Want to learn more about NDSL, its capabilities, and decide whether it is suited for your needs? 
+</h2>
+<div style="display: flex; justify-content: center;">
+
+<a class="md-button md-button--primary"
+   href="https://mm.smce.nasa.gov/astg/channels/smt"
+   style="
+      border-radius: 999px;
+      padding: 0.72em 1.45em;
+      font-size: 0.97rem;
+   ">
+
+  <svg xmlns="http://www.w3.org/2000/svg"
+       width="17"
+       height="17"
+       viewBox="0 0 24 24"
+       fill="none"
+       stroke="currentColor"
+       stroke-width="2"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       style="vertical-align: middle; margin-right: 7px;">
+
+    <path d="M22 2 11 13"/>
+    <path d="M22 2 15 22 11 13 2 9 22 2z"/>
+
+  </svg>
+
+  Contact us
+</a>
+
+</div>
+
+
 
 
 
@@ -52,7 +86,7 @@ function showSlides() {
 }
 </script> -->
 
-## From Fortran to NDSL
+
 !!! example ""
 
     === "Fortran"
