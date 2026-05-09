@@ -49,6 +49,18 @@ def add(summand_1: FloatField, summand_2: FloatField, sum: FloatField) -> None:
         sum = summand_1 + summand_2
 
 
+def add_to_self(field: FloatField, summand: FloatField) -> None:
+    """
+    Add a summand to a field.
+
+    Args:
+        field: field to be modifid
+        summand: modification to be made
+    """
+    with computation(PARALLEL), interval(...):
+        field = field + summand
+
+
 def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) -> None:
     """
     Add two inputs together, sum to a new field - 2D variant.
@@ -58,8 +70,20 @@ def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) 
         summand_2: input field
         sum: output field
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         sum = summand_1 + summand_2
+
+
+def add_to_self_2d(field: FloatFieldIJ, summand: FloatFieldIJ) -> None:
+    """
+    Add a summand to a field - 2D variant.
+
+    Args:
+        field: field to be modifid
+        summand: modification to be made
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field + summand
 
 
 def subtract(
@@ -77,6 +101,18 @@ def subtract(
         difference = minuend - subtrahend
 
 
+def subtract_to_self(field: FloatField, subtrahend: FloatField) -> None:
+    """
+    Subtract a subtrahend from a field.
+
+    Args:
+        field: field to be modifid
+        subtrahend: modification to be made
+    """
+    with computation(PARALLEL), interval(...):
+        field = field - subtrahend
+
+
 def subtract_2d(
     minuend: FloatFieldIJ, subtrahend: FloatFieldIJ, difference: FloatFieldIJ
 ) -> None:
@@ -88,8 +124,20 @@ def subtract_2d(
         summand_2: input field
         difference: output field
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         difference = minuend - subtrahend
+
+
+def subtract_to_self_2d(field: FloatFieldIJ, subtrahend: FloatFieldIJ) -> None:
+    """
+    Subtract a modification from a field - 2D variant.
+
+    Args:
+        field: field to be modifid
+        subtrahend: modification to be made
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field - subtrahend
 
 
 def multiply(factor_1: FloatField, factor_2: FloatField, product: FloatField) -> None:
@@ -105,6 +153,18 @@ def multiply(factor_1: FloatField, factor_2: FloatField, product: FloatField) ->
         product = factor_1 * factor_2
 
 
+def multiply_to_self(field: FloatField, factor: FloatField) -> None:
+    """
+    Muultiply a field by a factor.
+
+    Args:
+        field: field to be modifid
+        factor: modification factor
+    """
+    with computation(PARALLEL), interval(...):
+        field = field * factor
+
+
 def multiply_2d(
     factor_1: FloatFieldIJ, factor_2: FloatFieldIJ, product: FloatFieldIJ
 ) -> None:
@@ -116,8 +176,20 @@ def multiply_2d(
         factor_2: input field
         output: output field
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         product = factor_1 * factor_2
+
+
+def multiply_to_self_2d(field: FloatFieldIJ, factor: FloatFieldIJ) -> None:
+    """
+    Muultiply a field by a factor - 2D variant.
+
+    Args:
+        field: field to be modifid
+        factor: modification factor
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field * factor
 
 
 def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> None:
@@ -133,6 +205,18 @@ def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> N
         quotient = dividend / divisor
 
 
+def divide_to_self(field: FloatField, divisor: FloatField) -> None:
+    """
+    Muultiply a field by a factor - 2D variant.
+
+    Args:
+        field: field to be modifid
+        divisor: modification factor
+    """
+    with computation(PARALLEL), interval(...):
+        field = field / divisor
+
+
 def divide_2d(
     dividend: FloatFieldIJ, divisor: FloatFieldIJ, quotient: FloatFieldIJ
 ) -> None:
@@ -144,8 +228,20 @@ def divide_2d(
         divisor: input field
         quotient: output field
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         quotient = dividend / divisor
+
+
+def divide_to_self_2d(field: FloatFieldIJ, divisor: FloatFieldIJ) -> None:
+    """
+    Muultiply a field by a factor - 2D variant.
+
+    Args:
+        field: field to be modifid
+        divisor: modification factor
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field / divisor
 
 
 def set_value(field: FloatField, value: Float) -> None:

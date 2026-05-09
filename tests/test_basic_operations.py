@@ -5,17 +5,25 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.stencils import (
     add,
     add_2d,
+    add_to_self,
+    add_to_self_2d,
     adjust_divide_stencil,
     adjustmentfactor_stencil,
     copy,
     copy_2d,
     divide,
     divide_2d,
+    divide_to_self,
+    divide_to_self_2d,
     multiply,
     multiply_2d,
+    multiply_to_self,
+    multiply_to_self_2d,
     set_value,
     subtract,
     subtract_2d,
+    subtract_to_self,
+    subtract_to_self_2d,
 )
 
 
@@ -49,18 +57,30 @@ class Add(NDSLRuntime):
         self._add_2d_stencil = stencil_factory.from_dims_halo(
             func=add_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
+        self._add_to_self_stencil = stencil_factory.from_dims_halo(
+            func=add_to_self, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
+        self._add_to_self_2d_stencil = stencil_factory.from_dims_halo(
+            func=add_to_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
 
     def __call__(
         self,
         f_in_1: FloatField,
         f_in_2: FloatField,
+        f_in_3: FloatField,
+        f_in_4: FloatField,
         f_in_1_2d: FloatFieldIJ,
         f_in_2_2d: FloatFieldIJ,
+        f_in_3_2d: FloatFieldIJ,
+        f_in_4_2d: FloatFieldIJ,
         f_out: FloatField,
         f_out_2d: FloatFieldIJ,
     ):
         self._add_stencil(f_in_1, f_in_2, f_out)
         self._add_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
+        self._add_to_self_stencil(f_in_3, f_in_4)
+        self._add_to_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
 class Subtract(NDSLRuntime):
@@ -72,18 +92,30 @@ class Subtract(NDSLRuntime):
         self._subtract_2d_stencil = stencil_factory.from_dims_halo(
             func=subtract_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
+        self._subtract_to_self_stencil = stencil_factory.from_dims_halo(
+            func=subtract_to_self, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
+        self._subtract_to_self_2d_stencil = stencil_factory.from_dims_halo(
+            func=subtract_to_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
 
     def __call__(
         self,
         f_in_1: FloatField,
         f_in_2: FloatField,
+        f_in_3: FloatField,
+        f_in_4: FloatField,
         f_in_1_2d: FloatFieldIJ,
         f_in_2_2d: FloatFieldIJ,
+        f_in_3_2d: FloatFieldIJ,
+        f_in_4_2d: FloatFieldIJ,
         f_out: FloatField,
         f_out_2d: FloatFieldIJ,
     ):
         self._subtract_stencil(f_in_1, f_in_2, f_out)
         self._subtract_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
+        self._subtract_to_self_stencil(f_in_3, f_in_4)
+        self._subtract_to_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
 class Multiply(NDSLRuntime):
@@ -95,18 +127,30 @@ class Multiply(NDSLRuntime):
         self._multiply_2d_stencil = stencil_factory.from_dims_halo(
             func=multiply_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
+        self._multiply_to_self_stencil = stencil_factory.from_dims_halo(
+            func=multiply_to_self, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
+        self._multiply_to_self_2d_stencil = stencil_factory.from_dims_halo(
+            func=multiply_to_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
 
     def __call__(
         self,
         f_in_1: FloatField,
         f_in_2: FloatField,
+        f_in_3: FloatField,
+        f_in_4: FloatField,
         f_in_1_2d: FloatFieldIJ,
         f_in_2_2d: FloatFieldIJ,
+        f_in_3_2d: FloatFieldIJ,
+        f_in_4_2d: FloatFieldIJ,
         f_out: FloatField,
         f_out_2d: FloatFieldIJ,
     ):
         self._multiply_stencil(f_in_1, f_in_2, f_out)
         self._multiply_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
+        self._multiply_to_self_stencil(f_in_3, f_in_4)
+        self._multiply_to_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
 class Divide(NDSLRuntime):
@@ -118,18 +162,30 @@ class Divide(NDSLRuntime):
         self._divide_2d_stencil = stencil_factory.from_dims_halo(
             func=divide_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
+        self._divide_to_self_stencil = stencil_factory.from_dims_halo(
+            func=divide_to_self, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
+        self._divide_to_self_2d_stencil = stencil_factory.from_dims_halo(
+            func=divide_to_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
+        )
 
     def __call__(
         self,
         f_in_1: FloatField,
         f_in_2: FloatField,
+        f_in_3: FloatField,
+        f_in_4: FloatField,
         f_in_1_2d: FloatFieldIJ,
         f_in_2_2d: FloatFieldIJ,
+        f_in_3_2d: FloatFieldIJ,
+        f_in_4_2d: FloatFieldIJ,
         f_out: FloatField,
         f_out_2d: FloatFieldIJ,
     ):
         self._divide_stencil(f_in_1, f_in_2, f_out)
         self._divide_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
+        self._divide_to_self_stencil(f_in_3, f_in_4)
+        self._divide_to_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
 class AdjustmentFactor(NDSLRuntime):
@@ -208,10 +264,21 @@ def test_add():
         nx=20, ny=20, nz=79, nhalo=0
     )
 
+    value_1 = 3.0
+    value_2 = 4.0
+
     infield_1 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=1.0)
     infield_2 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
+    infield_3 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_1
+    )
+    infield_4 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_2
+    )
     infield_1_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=1.0)
     infield_2_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
+    infield_3_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_1)
+    infield_4_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_2)
     outfield = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="m")
     outfield_2d = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m")
 
@@ -219,14 +286,20 @@ def test_add():
     stencil(
         f_in_1=infield_1,
         f_in_2=infield_2,
+        f_in_3=infield_3,
+        f_in_4=infield_4,
         f_in_1_2d=infield_1_2d,
         f_in_2_2d=infield_2_2d,
+        f_in_3_2d=infield_3_2d,
+        f_in_4_2d=infield_4_2d,
         f_out=outfield,
         f_out_2d=outfield_2d,
     )
 
     assert (outfield.field == (infield_1.field + infield_2.field)).all()
     assert (outfield_2d.field == (infield_1_2d.field + infield_2_2d.field)).all()
+    assert (infield_3.field == (value_1 + value_2)).all()
+    assert (infield_3_2d.field == (value_1 + value_2)).all()
 
 
 def test_subtract():
@@ -234,10 +307,21 @@ def test_subtract():
         nx=20, ny=20, nz=79, nhalo=0
     )
 
+    value_1 = 3.0
+    value_2 = 4.0
+
     infield_1 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=1.0)
     infield_2 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
+    infield_3 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_1
+    )
+    infield_4 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_2
+    )
     infield_1_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=1.0)
     infield_2_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
+    infield_3_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_1)
+    infield_4_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_2)
     outfield = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="m")
     outfield_2d = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m")
 
@@ -245,14 +329,20 @@ def test_subtract():
     stencil(
         f_in_1=infield_1,
         f_in_2=infield_2,
+        f_in_3=infield_3,
+        f_in_4=infield_4,
         f_in_1_2d=infield_1_2d,
         f_in_2_2d=infield_2_2d,
+        f_in_3_2d=infield_3_2d,
+        f_in_4_2d=infield_4_2d,
         f_out=outfield,
         f_out_2d=outfield_2d,
     )
 
     assert (outfield.field == (infield_1.field - infield_2.field)).all()
     assert (outfield_2d.field == (infield_1_2d.field - infield_2_2d.field)).all()
+    assert (infield_3.field == (value_1 - value_2)).all()
+    assert (infield_3_2d.field == (value_1 - value_2)).all()
 
 
 def test_multiply():
@@ -260,10 +350,21 @@ def test_multiply():
         nx=20, ny=20, nz=79, nhalo=0
     )
 
+    value_1 = 3.0
+    value_2 = 4.0
+
     infield_1 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=1.0)
     infield_2 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
+    infield_3 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_1
+    )
+    infield_4 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_2
+    )
     infield_1_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=1.0)
     infield_2_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
+    infield_3_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_1)
+    infield_4_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_2)
     outfield = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="m")
     outfield_2d = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m")
 
@@ -271,14 +372,20 @@ def test_multiply():
     stencil(
         f_in_1=infield_1,
         f_in_2=infield_2,
+        f_in_3=infield_3,
+        f_in_4=infield_4,
         f_in_1_2d=infield_1_2d,
         f_in_2_2d=infield_2_2d,
+        f_in_3_2d=infield_3_2d,
+        f_in_4_2d=infield_4_2d,
         f_out=outfield,
         f_out_2d=outfield_2d,
     )
 
     assert (outfield.field == (infield_1.field * infield_2.field)).all()
     assert (outfield_2d.field == (infield_1_2d.field * infield_2_2d.field)).all()
+    assert (infield_3.field == (value_1 * value_2)).all()
+    assert (infield_3_2d.field == (value_1 * value_2)).all()
 
 
 def test_divide():
@@ -286,10 +393,21 @@ def test_divide():
         nx=20, ny=20, nz=79, nhalo=0
     )
 
+    value_1 = 3.0
+    value_2 = 4.0
+
     infield_1 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=1.0)
     infield_2 = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
+    infield_3 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_1
+    )
+    infield_4 = quantity_factory.full(
+        dims=[I_DIM, J_DIM, K_DIM], units="m", value=value_2
+    )
     infield_1_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=1.0)
     infield_2_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
+    infield_3_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_1)
+    infield_4_2d = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=value_2)
     outfield = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="m")
     outfield_2d = quantity_factory.zeros(dims=[I_DIM, J_DIM], units="m")
 
@@ -297,14 +415,20 @@ def test_divide():
     stencil(
         f_in_1=infield_1,
         f_in_2=infield_2,
+        f_in_3=infield_3,
+        f_in_4=infield_4,
         f_in_1_2d=infield_1_2d,
         f_in_2_2d=infield_2_2d,
+        f_in_3_2d=infield_3_2d,
+        f_in_4_2d=infield_4_2d,
         f_out=outfield,
         f_out_2d=outfield_2d,
     )
 
     assert (outfield.field == (infield_1.field / infield_2.field)).all()
     assert (outfield_2d.field == (infield_1_2d.field / infield_2_2d.field)).all()
+    assert (infield_3.field == (value_1 / value_2)).all()
+    assert (infield_3_2d.field == (value_1 / value_2)).all()
 
 
 def test_adjustment_factor():
