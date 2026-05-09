@@ -1,4 +1,4 @@
-from ndsl import StencilFactory
+from ndsl import NDSLRuntime, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
@@ -19,9 +19,9 @@ from ndsl.stencils import (
 )
 
 
-class Copy:
+class Copy(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
-        grid_indexing = stencil_factory.grid_indexing
+        super().__init__(stencil_factory)
         self._copy_stencil = stencil_factory.from_dims_halo(
             func=copy, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
@@ -40,9 +40,9 @@ class Copy:
         self._copy_2d_stencil(f_in_2d, f_out_2d)
 
 
-class Add:
+class Add(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
-        grid_indexing = stencil_factory.grid_indexing
+        super().__init__(stencil_factory)
         self._add_stencil = stencil_factory.from_dims_halo(
             func=add, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
@@ -63,9 +63,9 @@ class Add:
         self._add_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
 
 
-class Subtract:
+class Subtract(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
-        grid_indexing = stencil_factory.grid_indexing
+        super().__init__(stencil_factory)
         self._subtract_stencil = stencil_factory.from_dims_halo(
             func=subtract, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
@@ -86,9 +86,9 @@ class Subtract:
         self._subtract_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
 
 
-class Multiply:
+class Multiply(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
-        grid_indexing = stencil_factory.grid_indexing
+        super().__init__(stencil_factory)
         self._multiply_stencil = stencil_factory.from_dims_halo(
             func=multiply, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
@@ -109,9 +109,9 @@ class Multiply:
         self._multiply_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
 
 
-class Divide:
+class Divide(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
-        grid_indexing = stencil_factory.grid_indexing
+        super().__init__(stencil_factory)
         self._divide_stencil = stencil_factory.from_dims_halo(
             func=divide, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
@@ -132,8 +132,9 @@ class Divide:
         self._divide_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
 
 
-class AdjustmentFactor:
+class AdjustmentFactor(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
+        super().__init__(stencil_factory)
         grid_indexing = stencil_factory.grid_indexing
         self._adjustmentfactor_stencil = stencil_factory.from_origin_domain(
             adjustmentfactor_stencil,
@@ -149,8 +150,9 @@ class AdjustmentFactor:
         self._adjustmentfactor_stencil(factor, f_out)
 
 
-class SetValue:
+class SetValue(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
+        super().__init__(stencil_factory)
         grid_indexing = stencil_factory.grid_indexing
         self._set_value_stencil = stencil_factory.from_origin_domain(
             set_value,
@@ -166,8 +168,9 @@ class SetValue:
         self._set_value_stencil(f_out, value)
 
 
-class AdjustDivide:
+class AdjustDivide(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
+        super().__init__(stencil_factory)
         grid_indexing = stencil_factory.grid_indexing
         self._adjust_divide_stencil = stencil_factory.from_origin_domain(
             adjust_divide_stencil,

@@ -32,123 +32,125 @@ def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:
         input: input field
         output: output field
     """
-    with computation(FORWARD), interval(0, 1):
+    with computation(FORWARD), interval(...):
         output = input
 
 
-def add(input_1: FloatField, input_2: FloatField, output: FloatField) -> None:
+def add(summand_1: FloatField, summand_2: FloatField, sum: FloatField) -> None:
     """
-    Add two inputs together, output to a new field.
+    Add two inputs together, sum to a new field.
 
     Args:
-        input_1: input field
-        input_2: input field
-        output: output field
+        summand_1: input field
+        summand_2: input field
+        sum: output field
     """
     with computation(PARALLEL), interval(...):
-        output = input_1 + input_2
+        sum = summand_1 + summand_2
 
 
-def add_2d(input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ) -> None:
+def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) -> None:
     """
-    Add two inputs together, output to a new field - 2D variant.
+    Add two inputs together, sum to a new field - 2D variant.
 
     Args:
-        input_1: input field
-        input_2: input field
-        output: output field
+        summand_1: input field
+        summand_2: input field
+        sum: output field
     """
-    with computation(FORWARD), interval(0, 1):
-        output = input_1 + input_2
+    with computation(FORWARD), interval(...):
+        sum = summand_1 + summand_2
 
 
-def subtract(input_1: FloatField, input_2: FloatField, output: FloatField) -> None:
+def subtract(
+    minuend: FloatField, subtrahend: FloatField, difference: FloatField
+) -> None:
     """
-    Subtract input_2 from input_1, output to a new field.
+    Subtract subtrahend from minuend, output to a new field.
 
     Args:
-        input_1: input field
-        input_2: input field
-        output: output field
+        minuend: input field
+        subtrahend: input field
+        difference: output field
     """
     with computation(PARALLEL), interval(...):
-        output = input_1 - input_2
+        difference = minuend - subtrahend
 
 
 def subtract_2d(
-    input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ
+    minuend: FloatFieldIJ, subtrahend: FloatFieldIJ, difference: FloatFieldIJ
 ) -> None:
     """
-    Subtract input_2 from input_1, output to a new field - 2D variant.
+    Subtract summand_2 from minuend, output to a new field - 2D variant.
 
     Args:
-        input_1: input field
-        input_2: input field
-        output: output field
+        minuend: input field
+        summand_2: input field
+        difference: output field
     """
-    with computation(FORWARD), interval(0, 1):
-        output = input_1 - input_2
+    with computation(FORWARD), interval(...):
+        difference = minuend - subtrahend
 
 
-def multiply(input_1: FloatField, input_2: FloatField, output: FloatField) -> None:
+def multiply(factor_1: FloatField, factor_2: FloatField, product: FloatField) -> None:
     """
     Multiply two inputs together, output to a new field.
 
     Args:
-        input_1: input field
-        input_2: input field
+        factor_1: input field
+        factor_2: input field
         output: output field
     """
     with computation(PARALLEL), interval(...):
-        output = input_1 * input_2
+        product = factor_1 * factor_2
 
 
 def multiply_2d(
-    input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ
+    factor_1: FloatFieldIJ, factor_2: FloatFieldIJ, product: FloatFieldIJ
 ) -> None:
     """
     Multiply two inputs together, output to a new field - 2D variant.
 
     Args:
-        input_1: input field
-        input_2: input field
+        factor_1: input field
+        factor_2: input field
         output: output field
     """
-    with computation(FORWARD), interval(0, 1):
-        output = input_1 * input_2
+    with computation(FORWARD), interval(...):
+        product = factor_1 * factor_2
 
 
-def divide(input_1: FloatField, input_2: FloatField, output: FloatField) -> None:
+def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> None:
     """
-    Divide input_1 by input_2, output to a new field.
+    Divide dividend by divisor, output to a new field.
 
     Args:
-        input_1: input field
-        input_2: input field
-        output: output field
+        dividend: input field
+        divisor: input field
+        quotient: output field
     """
     with computation(PARALLEL), interval(...):
-        output = input_1 / input_2
+        quotient = dividend / divisor
 
 
 def divide_2d(
-    input_1: FloatFieldIJ, input_2: FloatFieldIJ, output: FloatFieldIJ
+    dividend: FloatFieldIJ, divisor: FloatFieldIJ, quotient: FloatFieldIJ
 ) -> None:
     """
-    Divide input_1 by input_2, output to a new field - 2D variant.
+    Divide dividend by divisor, output to a new field - 2D variant.
 
     Args:
-        input_1: input field
-        input_2: input field
-        output: output field
+        dividend: input field
+        divisor: input field
+        quotient: output field
     """
-    with computation(FORWARD), interval(0, 1):
-        output = input_1 / input_2
+    with computation(FORWARD), interval(...):
+        quotient = dividend / divisor
 
 
 def set_value(field: FloatField, value: Float) -> None:
     """
-    Sets every element of field a value.
+    Sets every element of a field to a single value.
 
     Args:
         field: output field
@@ -160,26 +162,26 @@ def set_value(field: FloatField, value: Float) -> None:
 
 def set_value_2D(field: FloatFieldIJ, value: Float) -> None:
     """
-    Sets every element of field a value - 2D variant.
+    Sets every element of a field to a single value - 2D variant.
 
     Args:
         field: output field
         value: value of Float type
     """
-    with computation(FORWARD), interval(0, 1):
+    with computation(FORWARD), interval(...):
         field = value
 
 
-def set_IJ_mask_value(mask: BoolFieldIJ, value: Bool) -> None:
+def set_bool_value_2D(field: BoolFieldIJ, value: Bool) -> None:
     """
-    Sets every element of buffer to the value specified by value argument.
+    Sets every element of buffer to either True or False.
 
     Args:
-        mask: output field
+        field: output field
         value: value of Bool type
     """
     with computation(FORWARD), interval(0, 1):
-        mask = value
+        field = value
 
 
 def adjustmentfactor_stencil(adjustment: FloatFieldIJ, field: FloatField) -> None:
