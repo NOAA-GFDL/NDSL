@@ -256,7 +256,7 @@ def set_value(field: FloatField, value: Float) -> None:
         field = value
 
 
-def set_value_2D(field: FloatFieldIJ, value: Float) -> None:
+def set_value_2d(field: FloatFieldIJ, value: Float) -> None:
     """
     Sets every element of a field to a single value - 2D variant.
 
