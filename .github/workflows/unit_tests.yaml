@@ -49,7 +49,7 @@ jobs:
       - name: Install pyFMS dependencies (includes system MPI)
         if: contains(matrix.extra, 'pyfms')
         run: |
-          sudo apt-get update 
+          sudo apt-get update
           sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
@@ -58,15 +58,12 @@ jobs:
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
 
-      # - name: Run parallel cpu tests for pyFMS
-      #   if: contains(matrix.extra, 'pyfms')
-      #   run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
-
-      # - name: Run parallel cpu tests
-      #   if: ${{!contains(matrix.extra, 'pyfms')}}
-      #   run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
+      - name: Run parallel cpu tests for pyFMS
+        if: contains(matrix.extra, 'pyfms')
+        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
 
       - name: Run parallel cpu tests
+        if: ${{!contains(matrix.extra, 'pyfms')}}
         run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
