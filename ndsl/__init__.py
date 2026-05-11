@@ -25,7 +25,6 @@ from .quantity.data_dimensions_field import (
     DataDimensionsField,
     DataDimensionsMarkupType,
 )
-from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
 from .types import Allocator
 from .utils import MetaEnumStr
 
@@ -84,8 +83,6 @@ __all__ = [
     "Report",
     "TimeReport",
     "Quantity",
-    "FieldBundle",
-    "FieldBundleType",
     "Allocator",
     "MetaEnumStr",
     "State",
