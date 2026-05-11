@@ -48,7 +48,7 @@ jobs:
 
       - name: Install pyFMS dependencies (includes system MPI)
         if: contains(matrix.extra, 'pyfms')
-        run: sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
+        run: sudo apt-get install -y --fix-missing libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
         run: pip3 install .[${{matrix.extra}}]
