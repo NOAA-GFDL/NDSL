@@ -7,10 +7,10 @@ import numpy as np
 from gt4py import storage as gt_storage
 
 from ndsl.config import Backend
-from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
+from ndsl.quantity.quantity import normalize_dimensions
 
 
 class QuantityFactory:
@@ -184,16 +184,7 @@ class QuantityFactory:
         origin = self.sizer.get_origin(dims)
         extent = self.sizer.get_extent(dims)
         shape = self.sizer.get_shape(dims)
-        dimensions = [
-            (
-                axis
-                if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
-                else str(shape[index])
-            )
-            for index, (dim, axis) in enumerate(
-                zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
-            )
-        ]
+        dimensions = normalize_dimensions(dims, shape)
 
         data = allocator(
             shape,
