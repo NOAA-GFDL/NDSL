@@ -100,7 +100,7 @@ class Quantity:
                 # Interface dimensions are cartesian dimensions for gt4py
                 # with an added point in the shape
                 if dim in constants.INTERFACE_DIMS:
-                    dim = dim[: -len("_interface")]
+                    dim = dim.removesuffix("_interface")
                 dims_as_list.append(dim.upper())
             else:
                 dims_as_list.append(str(data.shape[index]))

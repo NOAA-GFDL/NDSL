@@ -7,7 +7,7 @@ import numpy as np
 from gt4py import storage as gt_storage
 
 from ndsl.config import Backend
-from ndsl.constants import SPATIAL_DIMS
+from ndsl.constants import INTERFACE_DIMS, SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
@@ -184,16 +184,21 @@ class QuantityFactory:
         origin = self.sizer.get_origin(dims)
         extent = self.sizer.get_extent(dims)
         shape = self.sizer.get_shape(dims)
-        dimensions = [
-            (
-                axis
-                if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
-                else str(shape[index])
-            )
-            for index, (dim, axis) in enumerate(
-                zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
-            )
-        ]
+
+        # Normalize dimensions for the gt4py.cartesian allocator
+        # The allocator expects "I", "J" or "K", or  the size of the dimension
+        # as a string
+        dims_as_list = []
+        for index, dim in enumerate(dims):
+            if dim in SPATIAL_DIMS:
+                # Interface dimensions are cartesian dimensions for gt4py
+                # with an added point in the shape
+                if dim in INTERFACE_DIMS:
+                    dim = dim.removesuffix("_interface")
+                dims_as_list.append(dim.upper())
+            else:
+                dims_as_list.append(str(shape[index]))
+        dimensions = tuple(dims_as_list)
 
         data = allocator(
             shape,
