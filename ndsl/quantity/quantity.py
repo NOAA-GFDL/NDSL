@@ -25,6 +25,27 @@ if cupy is None:
     import numpy as cupy
 
 
+def normalize_dimensions(
+    dims: Sequence[str], shape: tuple[int, ...]
+) -> tuple[str, ...]:
+    """
+    Normalize dimensions for the gt4py.cartesian allocator.
+
+    The allocator expects "I", "J" or "K", or  the size of the dimension as a string.
+    """
+    dims_as_list = []
+    for index, dim in enumerate(dims):
+        if dim in constants.SPATIAL_DIMS:
+            # Interface dimensions are cartesian dimensions for gt4py
+            # with an added point in the shape
+            if dim in constants.INTERFACE_DIMS:
+                dim = dim.removesuffix("_interface")
+            dims_as_list.append(dim.upper())
+        else:
+            dims_as_list.append(str(shape[index]))
+    return tuple(dims_as_list)
+
+
 class Quantity:
     """Data container for physical quantities."""
 
@@ -88,23 +109,7 @@ class Quantity:
         _validate_quantity_property_lengths(data.shape, dims, origin, extent)
 
         gt4py_backend_cls = gt_backend.from_name(backend.as_gt4py())
-        is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
         device = gt4py_backend_cls.storage_info["device"]
-
-        # Normalize dimensions for the gt4py.cartesian allocator
-        # The allocator expects "I", "J" or "K", or  the size of the dimension
-        # as a string
-        dims_as_list = []
-        for index, dim in enumerate(dims):
-            if dim in constants.SPATIAL_DIMS:
-                # Interface dimensions are cartesian dimensions for gt4py
-                # with an added point in the shape
-                if dim in constants.INTERFACE_DIMS:
-                    dim = dim.removesuffix("_interface")
-                dims_as_list.append(dim.upper())
-            else:
-                dims_as_list.append(str(data.shape[index]))
-        dimensions = tuple(dims_as_list)
 
         if isinstance(data, np.ndarray):
             is_correct_device = device == "cpu"
@@ -114,6 +119,9 @@ class Quantity:
             raise ValueError(
                 f"Unknown device target for quantity allocation {type(data)}"
             )
+
+        is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
+        dimensions = normalize_dimensions(dims, data.shape)
 
         if is_optimal_layout(data, dimensions) and is_correct_device:
             self._data = data
