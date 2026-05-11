@@ -44,7 +44,7 @@ jobs:
 
       - name: Install MPI
         if: ${{!contains(matrix.extra, 'pyfms')}}
-        run: pip3 install mpich
+        run: pip3 install openmpi
 
       - name: Install pyFMS dependencies (includes system MPI)
         if: contains(matrix.extra, 'pyfms')
@@ -58,13 +58,8 @@ jobs:
       - name: Run serial cpu tests
         run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
 
-      - name: Run parallel cpu tests for pyFMS
-        if: contains(matrix.extra, 'pyfms')
-        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
-
       - name: Run parallel cpu tests
-        if: ${{!contains(matrix.extra, 'pyfms')}}
-        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
+        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |
