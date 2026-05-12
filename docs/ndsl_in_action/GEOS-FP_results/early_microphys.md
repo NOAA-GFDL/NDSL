@@ -7,9 +7,6 @@ Project call for the porting of the GFDL Single Moment Microphysics (GFDL1M). Th
 
 ## Validation
 
-!!! example "Hardware & software stack"
-    Validation using the [Discover hardware](./summary.md#hardware)
-
 Validation was done on a GEOS-FP run at [C180-L137](https://geos-esm.github.io/SMT-Nebulae/GEOS/) (~51 km horizontal resolution) over 7 days of simulated time. Only the GFDL Microphysics scheme was swapped from Fortran to NDSL, the rest of the model code is running the original Fortran.
 
 Below are the distribution of differences between the reference Fortran and the GPU performance backend after 7 days of simulation.

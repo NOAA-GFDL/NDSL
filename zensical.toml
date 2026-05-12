@@ -225,7 +225,6 @@ extra_javascript = ["javascripts/extra.js"]
 # Section for configuring theme options
 # ----------------------------------------------------------------------------
 [project.theme]
-
 # change this to "classic" to use the traditional Material for MkDocs look.
 #variant = "classic"
 
@@ -364,7 +363,7 @@ features = [
     # When sections are enabled, top-level sections are rendered as groups in
     # the sidebar for viewports above 1220px, but remain as-is on mobile.
     # https://zensical.org/docs/setup/navigation/#navigation-sections
-    #"navigation.sections",
+    "navigation.sections",
 
     # When tabs are enabled, top-level sections are rendered in a menu layer
     # below the header for viewports above 1220px, but remain as-is on mobile.
@@ -441,15 +440,16 @@ code = "Jetbrains Mono"
 # Read more:
 # - https://zensical.org/docs/setup/colors/
 # ----------------------------------------------------------------------------
-[[project.theme.palette]]
+[project.theme.palette]
 scheme="default"
-toggle.icon = "lucide/sun"
-toggle.name = "Switch to dark mode"
+#toggle.icon = "lucide/sun"
+#toggle.name = "Switch to dark mode"
 
-[[project.theme.palette]]
-scheme = "slate"
-toggle.icon = "lucide/moon"
-toggle.name = "Switch to light mode"
+
+#[[project.theme.palette]]
+#scheme = "slate"
+#toggle.icon = "lucide/moon"
+#toggle.name = "Switch to light mode"
 
 # ----------------------------------------------------------------------------
 # The "extra" section contains miscellaneous settings.

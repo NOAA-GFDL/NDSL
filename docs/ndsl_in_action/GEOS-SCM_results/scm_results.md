@@ -1,4 +1,6 @@
-# GEOS-SCM Results 
+<h1 style="color:#185FA5;">
+GEOS-SCM Results 
+</h1>
 ##### Last updated: May 1st, 2026
 
 
@@ -8,14 +10,18 @@ Early scientific validation results running the SCM on Discover HPC:
  - GEOS v11.8.1
 
 
-## Experiments
+<h2 style="color:#185FA5;">
+Experiments
+</h2>
 
 - `bomex`: [Barbados Oceanographic and Meteorological Experiment (BOMEX)](https://www.eol.ucar.edu/field_projects/bomex); a standard, benchmark case used to evaluate shallow cumulus convection over tropical oceans.
 - `arm_97jun`: ARM Summer 1997 Intensive Observation Period; used to test parameterizations, specifically deep convection triggers, by analyzing cloud development and convective activity.
 - `armtwp_ice`: [Tropical Warm Pool – International Cloud Experiment (TWP-ICE)](https://armgov.svcs.arm.gov/research/campaigns/twp2006twp-ice); primarily used in the SCM community to evaluate how well models simulate convective ice microphysics.
 
 
-## UW Shallow Convection
+<h2 style="color:#185FA5;">
+UW Shallow Convection
+</h2>
 
 === "`bomex` 6 hr, 72 lev"
     ![Hovmoller](../../img/scm_bomex_hovmoller_gpu_72.png)
@@ -30,7 +36,10 @@ Early scientific validation results running the SCM on Discover HPC:
 === "`arm_97jun` 14 hr, 181 lev"
     ![Hovmoller](../../img/scm_arm_97jun_hovmoller_gpu_181.png)
 
-## GF2020 Deep Convection
+
+<h2 style="color:#185FA5;">
+GF2020 Deep Convection
+</h2>
 
 === "`armtwp_ice` 6 days, 72 lev"
     ![Timeseries](../../img/scm_GF_armtwp_ice_timeseries_gpu_72.png)
@@ -42,7 +51,10 @@ Early scientific validation results running the SCM on Discover HPC:
 
 
 
-## GFDL1M Microphysics
+<h2 style="color:#185FA5;">
+GFDL1M Microphysics
+</h2>
+
 
 === "`armtwp_ice` 6 days, 72 lev"
     ![Timeseries](../../img/scm_armtwp_ice_timeseries_gpu_72.png)
@@ -53,8 +65,9 @@ Early scientific validation results running the SCM on Discover HPC:
     ![Hovmoller](../../img/scm_armtwp_ice_hovmoller_gpu_181.png)
 
 
-
-## Moist Physics
+<h2 style="color:#185FA5;">
+Moist Physics
+</h2>
 
 === "`bomex` 6 hr, 72 lev"
     ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_72.png)

@@ -30,36 +30,43 @@
   }
 
   h2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #185FA5;
-    margin: 0 0 0.35rem 0;
-  }
+  font-size: 22px;
+  font-weight: 600;
+  color: #185FA5;
+  margin: 0 0 0.2rem 0;
+  line-height: 1.2;
+}
 
   h3 {
-    margin: 0 0 0.35rem 0;
+    margin: 0 0 0.2rem 0;
+    color: #185FA5;
+    line-height: 1.2;
   }
 
   p {
     font-size: 14px;
     color: #6b7280;
     line-height: 1.5;
-    margin: 0.25rem 0;
+    margin: 0.15rem 0 0.6rem 0;
   }
 
   .btn {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #185FA5;
-    color: #fff !important;
-    border-radius: 10px;
-    font-size: 13px;
-    text-decoration: none;
-    transition: 0.2s;
-  }
+  display: inline-block;
+  padding: 8px 16px;
+  background: #185FA5;
+  color: #fff !important;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  text-decoration: none !important;
+  border: none;
+  transition: background 0.2s ease;
+}
 
   .btn:hover {
     background: #0C447C;
+    text-decoration: none !important;
   }
 
   .two-col {
@@ -117,7 +124,7 @@
   }
 
   .code-block {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     font-size: 12px;
     white-space: pre;
     overflow-x: auto;
@@ -151,13 +158,13 @@
   }
 
   .badge {
-    display: inline-block;
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: #E6F1FB;
-    color: #185FA5;
-    margin-bottom: 0.4rem;
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #E6F1FB;
+  color: #185FA5;
+  margin-bottom: 0rem;
   }
 
   @media (max-width: 768px) {
@@ -186,14 +193,14 @@
 <div style="margin-bottom: 1.2rem;">
 
   <h1 style="
-    font-size: 42px;
+    font-size: 40px;
     font-weight: 600;
     color: #185FA5;
     margin: 0 0 0.45rem 0;
     letter-spacing: -0.02em;
     line-height: 1.1;
   ">
-    NASA-NOAA Domain Specific Language (NDSL)
+    NASA-NOAA Domain Specific Language
   </h1>
 
   <p style="
@@ -203,7 +210,8 @@
     margin: 0;
     max-width: 760px;
   ">
-    A modern domain-specific language for portable, high-performance atmospheric modeling across CPUs, GPUs, and emerging computing architectures.
+    A modern domain-specific language for portable, high-performance atmospheric modeling across CPUs, GPUs, 
+    and emerging computing architectures.
   </p>
 
 </div>
@@ -213,7 +221,7 @@
     <span class="badge">Quickstart</span>
     <h2>Install NDSL</h2>
     <p>Install the latest version of NDSL with a few commands and start writing code.</p>
-    <a class="btn" href="#">NDSL v2026.03.00 →</a>
+    <a class="btn" href="./documentation/user_manual/quickstart.md">NDSL v2026.03.00 →</a>
   </div>
 
   <div class="two-col">
@@ -222,14 +230,14 @@
       <span class="badge">Learn</span>
       <h2>Getting Started</h2>
       <p>New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.</p>
-      <a class="btn" href="#">User Manual →</a>
+      <a class="btn" href="./documentation/user_manual/">User Manual →</a>
     </div>
 
     <div class="section-card">
       <span class="badge">Connect</span>
       <h2>Community</h2>
       <p>Connect with developers, researchers, and contributors working on NDSL and atmospheric modeling tools.</p>
-      <a class="btn" href="#">Join Community →</a>
+      <a class="btn" href="./community.md">Join Community →</a>
     </div>
 
   </div>
@@ -306,7 +314,7 @@
       Want to Learn More?
     </h2>
     <p style="max-width:800px; margin:0 auto; font-size:14px; color:#4b5563; line-height:1.5;">
-      Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs?
+      Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs? Talk to an NDSL expert.
     </p>
     <a class="btn" href="https://mm.smce.nasa.gov/astg/channels/smt" style="margin-top:1rem;">
       <svg xmlns="http://www.w3.org/2000/svg"

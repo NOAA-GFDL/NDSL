@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block htmltitle %}
+  <title>NDSL Documentation</title>
+{% endblock %}
+
+{% block tabs %}
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+
+{% if page.url == '' %}
+
+<style>
+.md-sidebar--primary {
+  display: none !important;
+}
+
+.md-sidebar--secondary {
+  display: none !important;
+}
+
+.md-content__inner {
+  margin: 0 auto !important;
+  max-width: 900px;
+}
+
+.md-grid {
+  max-width: 1400px;
+}
+
+.md-main__inner {
+  display: flex;
+  justify-content: center;
+}
+
+.md-content__inner:before {
+  display: none;
+}
+
+.md-path {
+  display: none;
+}
+</style>
+
+<style>
+  /* Remove extra top spacing on homepage */
+  
+  .md-main__inner {
+    margin-top: 0 !important;
+  }
+  
+  .md-content {
+    padding-top: 0 !important;
+  }
+  
+  .md-content__inner {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  /* Optional: tighten hero spacing even more */
+  
+  .dsl-page {
+    padding-top: 0.5rem !important;
+  }
+</style>
+
+<style>
+  .md-content__inner:before {
+    display: none !important;
+  }
+</style>
+<style>
+  /* Remove permalink anchor icons */
+  .headerlink,
+  .md-typeset .headerlink,
+  .md-typeset__scrollwrap .headerlink {
+    display: none !important;
+  }
+  
+  /* Remove extra top spacing before first heading */
+  .md-typeset h1 {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  /* Remove Material heading offset spacing */
+  .md-content__inner:before {
+    display: none !important;
+  }
+</style>
+
+
+{% endif %}
+
+{{ page.content }}
+
+{% endblock %}

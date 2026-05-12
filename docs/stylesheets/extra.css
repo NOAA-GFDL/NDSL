@@ -1,31 +1,3 @@
-.carousel {
-    max-width: 600px;
-    position: relative;
-    margin: 2rem auto;
-  }
-  
-  .slides {
-    display: none;
-  }
-  
-  .slides img {
-    width: 100%;
-    max-height: 400px;
-    object-fit: contain;
-    border-radius: 12px;
-  }
-  
-  .fade {
-    animation: fade 1s ease-in-out;
-  }
-  
-  @keyframes fade {
-    from {opacity: .4}
-    to {opacity: 1}
-  }
-
-/* ONLY HOMEPAGE */
-
 
 /* ONLY homepage */
 
@@ -48,4 +20,142 @@ body.homepage .md-grid {
 body.homepage .md-content__inner {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+
+
+<style>
+/* Force all markdown headers to use blue */
+
+.md-typeset h1{
+  color: #185FA5 !important;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Body text */
+
+.md-typeset {
+  color: #4b5563;
+}
+
+/* Links */
+
+.md-typeset a {
+  color: #185FA5;
+}
+
+.md-typeset a:hover {
+  color: #0C447C;
+}
+
+/* Tables */
+
+.md-typeset table:not([class]) {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.md-typeset table:not([class]) th {
+  background: #f8fafc;
+  color: #185FA5;
+}
+
+/* Sidebar text color */
+
+.md-nav__link {
+  color: #4b5563 !important;
+}
+
+/* Sidebar hover */
+
+.md-nav__link:hover {
+  color: #185FA5 !important;
+}
+
+/* Active/current page */
+
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: #185FA5 !important;
+  font-weight: 600;
+}
+
+/* Optional: section headers in sidebar */
+
+.md-nav__title {
+  color: #185FA5 !important;
+}
+
+/* Images */
+
+.md-typeset img {
+  border-radius: 12px;
+}
+
+
+/* Top-left logo/site title */
+
+.md-header__title,
+.md-header__topic,
+.md-header__ellipsis {
+  color: #185FA5 !important;
+  font-weight: 600;
+  font-size: 1.55rem !important;
+}
+/* Remove logo image */
+
+.md-header__button.md-logo {
+  display: none !important;
+}
+
+/* Shift site title fully left */
+
+.md-header__title {
+  margin-left: 50 !important;
+  padding-left: 50 !important;
+}
+
+/* Optional: tighten overall header spacing */
+
+.md-header__ellipsis {
+  margin-left: 50 !important;
+}
+
+/* GitHub header link */
+
+.md-header__source,
+.md-header__source a,
+.md-source,
+.md-source__repository {
+  color: #6b7280 !important;
+}
+
+/* Hover state */
+
+.md-header__source a:hover,
+.md-source:hover,
+.md-source__repository:hover {
+  color: #185FA5 !important;
+}
+
+/* Search bar text */
+
+.md-search__input,
+.md-search__input::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Search icon */
+
+.md-search__icon {
+  color: #6b7280 !important;
+}
+
+/* Optional: search bar background */
+
+.md-search__form {
+  background: #f8fafc !important;
+  border-radius: 10px;
 }
