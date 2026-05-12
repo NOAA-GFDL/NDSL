@@ -56,7 +56,7 @@ jobs:
         run: pip3 install .[${{matrix.extra}}]
 
       - name: Run serial cpu tests
-        run: coverage run --rcfile=pyproject.toml -m pytest -s -m "${{matrix.marker-serial}}" tests
+        run: coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
         run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
