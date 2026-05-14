@@ -246,7 +246,7 @@ def test_dm_monitor_single_tile() -> None:
     # np.testing.assert_array_equal(var3_ds[2, :, :, :], var3_global.transpose())
 
     assert Path("diag_manager_single_tile.nc").exists()
-    ds = xr.open_dataset("diag_manager_single_tile.nc", chunks=None)
+    ds = xr.open_dataset("diag_manager_single_tile.nc", decode_times=False, chunks=None)
     # assert "var_2d" in ds
     # np.testing.assert_array_equal(ds["var_2d"].shape, (ntimesteps, nx, ny))
     # assert ds["var_2d"].dims == ("time", "y", "x")
