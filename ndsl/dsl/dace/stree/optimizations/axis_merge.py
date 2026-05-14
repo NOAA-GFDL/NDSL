@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import itertools
 
 import dace
 from dace.properties import CodeBlock
@@ -14,22 +15,14 @@ from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
     detect_cycle,
     list_index,
     swap_node_position_in_tree,
+    is_axis_map,
+    is_axis_for
 )
 from ndsl.logging import ndsl_log
 
 
 # Buggy passes that should work
 PUSH_IFSCOPE_DOWNWARD = False  # Crashing the overall stree - bad algorithmics
-
-
-def _is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
-    """Returns true if node is a map over the given axis."""
-    map_parameter = node.node.map.params
-    return len(map_parameter) == 1 and map_parameter[0].startswith(axis.as_str())
-
-
-def _is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
-    return node.loop.loop_variable.startswith(axis.as_str())
 
 
 def _both_same_single_axis_maps(
@@ -39,8 +32,8 @@ def _both_same_single_axis_maps(
         (
             len(first.node.map.params) == 1 and len(second.node.map.params) == 1
         )  # Single axis
-        and _is_axis_map(first, axis)  # Correct axis in first map
-        and _is_axis_map(second, axis)  # Correct axis in second map
+        and is_axis_map(first, axis)  # Correct axis in first map
+        and is_axis_map(second, axis)  # Correct axis in second map
     )
 
 
@@ -109,25 +102,9 @@ def _last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> b
     return list_index(nodes, node) >= len(nodes) - 1
 
 
-class ReplaceAxisSymbol(tn.ScheduleNodeVisitor):
+class ReplaceAxisSymbolInTasklet(tn.ScheduleNodeVisitor):
     def __init__(self, axis: AxisIterator) -> None:
         self._axis = axis
-
-    def visit_MapScope(
-        self,
-        map_scope: tn.MapScope,
-        axis_replacements: dict[str, str] | None = None,
-    ) -> None:
-        if axis_replacements is None:
-            axis_replacements = {}
-
-        for index, param in enumerate(map_scope.node.params):
-            if param in axis_replacements:
-                map_scope.node.params[index] = axis_replacements[param]
-
-        # visit children
-        for child in map_scope.children:
-            self.visit(child, axis_replacements=axis_replacements)
 
     def visit_TaskletNode(
         self,
@@ -138,11 +115,13 @@ class ReplaceAxisSymbol(tn.ScheduleNodeVisitor):
             # Noop if there are no replacements to do.
             return
 
-        for memlets in node.in_memlets.values():
-            memlets.replace(axis_replacements)
-        for memlets in node.out_memlets.values():
-            memlets.replace(axis_replacements)
-
+        # Dev NOTE: We directly replace the memlet.subset because the `memlet.replace`
+        #           function sometimes doesn't work
+        for memlet in itertools.chain(node.in_memlets.values(), node.out_memlets.values()):
+            if memlet.subset is not None:
+                memlet.subset.replace(axis_replacements)
+            if memlet.other_subset is not None:
+                memlet.other_subset.replace(axis_replacements)
 
 class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     """Merge a cartesian axis if they are contiguous in code-flow.
@@ -197,7 +176,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     def _for_merge(self, the_for_scope: tn.ForScope) -> int:
         merged = 0
 
-        if _is_axis_for(the_for_scope, self.axis):
+        if is_axis_for(the_for_scope, self.axis):
             # TODO: if the for scope is on a cartesian axis it can be
             # merged with other for scope going in the same direction
             pass
@@ -206,7 +185,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             if (
                 len(the_for_scope.children) == 1
                 and isinstance(the_for_scope.children[0], tn.MapScope)
-                and _is_axis_map(the_for_scope.children[0], self.axis)
+                and is_axis_map(the_for_scope.children[0], self.axis)
             ):
                 swap_node_position_in_tree(the_for_scope, the_for_scope.children[0])
                 merged += 1
@@ -327,7 +306,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # End of nodes OR
         # Not the right axis
         # --> recurse
-        if _last_node(nodes, the_map) or not _is_axis_map(the_map, self.axis):
+        if _last_node(nodes, the_map) or not is_axis_map(the_map, self.axis):
             merged = 0
             for child in the_map.children:
                 merged += self._merge_node(child, the_map.children)
@@ -384,9 +363,9 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # K-maps use unique iterators (i.e. every k-map iterates over `k__[0-9]*`).
         # After merge, we need to replace the axis symbols of the second map's children
         # with the axis symbol of the first map.
-        if next_node.node.map.params[0] != the_map.node.map.params[0]:
-            replacements = {next_node.node.map.params[0]: the_map.node.map.params[0]}
-            ReplaceAxisSymbol(self.axis).visit(
+        if second_map.node.map.params[0] != first_map.node.map.params[0]:
+            replacements = {second_map.node.map.params[0]: first_map.node.map.params[0]}
+            ReplaceAxisSymbolInTasklet(self.axis).visit(
                 first_map, axis_replacements=replacements
             )
 
