@@ -1,7 +1,7 @@
 <h1 style="color:#185FA5;">
 GEOS-SCM Results 
 </h1>
-##### Last updated: May 1st, 2026
+##### Last updated: May 14th, 2026
 
 
 Early scientific validation results running the SCM on Discover HPC:
@@ -24,17 +24,17 @@ UW Shallow Convection
 </h2>
 
 === "`bomex` 6 hr, 72 lev"
-    ![Hovmoller](../../img/scm_bomex_hovmoller_gpu_72.png)
+    ![Hovmoller](../../img/scm_uw_bomex_hovmoller_gpu_72.png)
 
 === "`bomex` 6 hr, 181 lev"
-    ![Hovmoller](../../img/scm_bomex_hovmoller_gpu_181.png)
+    ![Hovmoller](../../img/scm_uw_bomex_hovmoller_gpu_181.png)
 
 
 === "`arm_97jun` 14 hr, 72 lev"
-    ![Hovmoller](../../img/scm_arm_97jun_hovmoller_gpu_72.png)
+    ![Hovmoller](../../img/scm_uw_arm_97jun_hovmoller_gpu_72.png)
 
 === "`arm_97jun` 14 hr, 181 lev"
-    ![Hovmoller](../../img/scm_arm_97jun_hovmoller_gpu_181.png)
+    ![Hovmoller](../../img/scm_uw_arm_97jun_hovmoller_gpu_181.png)
 
 
 <h2 style="color:#185FA5;">
@@ -42,12 +42,12 @@ GF2020 Deep Convection
 </h2>
 
 === "`armtwp_ice` 6 days, 72 lev"
-    ![Timeseries](../../img/scm_GF_armtwp_ice_timeseries_gpu_72.png)
-    ![Hovmoller](../../img/scm_GF_armtwp_ice_hovmoller_gpu_72.png)
+    ![Timeseries](../../img/scm_gf_armtwp_ice_timeseries_gpu_72.png)
+    ![Hovmoller](../../img/scm_gf_armtwp_ice_hovmoller_gpu_72.png)
 
 === "`armtwp_ice` 6 days, 181 lev"
-    ![Timeseries](../../img/scm_GF_armtwp_ice_timeseries_gpu_181.png)
-    ![Hovmoller](../../img/scm_GF_armtwp_ice_hovmoller_gpu_181.png)
+    ![Timeseries](../../img/scm_gf_armtwp_ice_timeseries_gpu_181.png)
+    ![Hovmoller](../../img/scm_gf_armtwp_ice_hovmoller_gpu_181.png)
 
 
 
@@ -57,12 +57,12 @@ GFDL1M Microphysics
 
 
 === "`armtwp_ice` 6 days, 72 lev"
-    ![Timeseries](../../img/scm_armtwp_ice_timeseries_gpu_72.png)
-    ![Hovmoller](../../img/scm_armtwp_ice_hovmoller_gpu_72.png)
+    ![Timeseries](../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
+    ![Hovmoller](../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
 
 === "`armtwp_ice` 6 days, 181 lev"
-    ![Timeseries](../../img/scm_armtwp_ice_timeseries_gpu_181.png)
-    ![Hovmoller](../../img/scm_armtwp_ice_hovmoller_gpu_181.png)
+    ![Timeseries](../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
+    ![Hovmoller](../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
 
 
 <h2 style="color:#185FA5;">
@@ -72,8 +72,14 @@ Moist Physics
 === "`bomex` 6 hr, 72 lev"
     ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_72.png)
 
+=== "`bomex` 6 hr, 181 lev"
+    ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_181.png)
+
 === "`arm_97jun` 14 hr, 72 lev"
     ![Hovmoller](../../img/scm_moist_arm_97jun_hovmoller_gpu_72.png)
+
+=== "`arm_97jun` 14 hr, 181 lev"
+    ![Hovmoller](../../img/scm_moist_arm_97jun_hovmoller_gpu_181.png)
 
 === "`armtwp_ice` 6 days, 72 lev"
     ![Timeseries](../../img/scm_moist_armtwp_ice_timeseries_gpu_72.png)
