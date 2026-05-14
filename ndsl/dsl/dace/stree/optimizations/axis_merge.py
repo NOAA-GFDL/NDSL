@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import copy
-import itertools
 
 import dace
 from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
+from ndsl.config import Backend, BackendLoopOrder
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
     AxisIterator,
     no_data_dependencies_on_cartesian_axis,
+)
+from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
+    ReplaceAxisSymbolInTasklet,
 )
 from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
     detect_cycle,
@@ -100,30 +103,6 @@ def _get_next_node(
 
 def _last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
     return list_index(nodes, node) >= len(nodes) - 1
-
-
-class ReplaceAxisSymbolInTasklet(tn.ScheduleNodeVisitor):
-    def __init__(self, axis: AxisIterator) -> None:
-        self._axis = axis
-
-    def visit_TaskletNode(
-        self,
-        node: tn.TaskletNode,
-        axis_replacements: dict[str, str] | None = None,
-    ) -> None:
-        if not axis_replacements:
-            # Noop if there are no replacements to do.
-            return
-
-        # Dev NOTE: We directly replace the memlet.subset because the `memlet.replace`
-        #           function sometimes doesn't work
-        for memlet in itertools.chain(
-            node.in_memlets.values(), node.out_memlets.values()
-        ):
-            if memlet.subset is not None:
-                memlet.subset.replace(axis_replacements)
-            if memlet.other_subset is not None:
-                memlet.other_subset.replace(axis_replacements)
 
 
 class CartesianAxisMerge(tn.ScheduleNodeTransformer):
@@ -368,7 +347,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # with the axis symbol of the first map.
         if second_map.node.map.params[0] != first_map.node.map.params[0]:
             replacements = {second_map.node.map.params[0]: first_map.node.map.params[0]}
-            ReplaceAxisSymbolInTasklet(self.axis).visit(
+            ReplaceAxisSymbolInTasklet().visit(
                 first_map, axis_replacements=replacements
             )
 
@@ -447,3 +426,37 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         ndsl_log.debug(
             f"🚀 {self}: {overall_merged} maps merged in {passes_apply} passes"
         )
+
+
+class CartesianMerge(tn.ScheduleNodeTransformer):
+    """Merge Cartesian axis loops"""
+
+    def __init__(self, backend: Backend, *, eager: bool = True) -> None:
+        self._backend = backend
+        self.eager = eager
+
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
+        if self._backend.loop_order == BackendLoopOrder.IJK:
+            CartesianAxisMerge(AxisIterator._I).visit(node)
+            CartesianAxisMerge(AxisIterator._J).visit(node)
+            CartesianAxisMerge(AxisIterator._K).visit(node)
+        elif self._backend.loop_order == BackendLoopOrder.IKJ:
+            CartesianAxisMerge(AxisIterator._I).visit(node)
+            CartesianAxisMerge(AxisIterator._K).visit(node)
+            CartesianAxisMerge(AxisIterator._J).visit(node)
+        elif self._backend.loop_order == BackendLoopOrder.JIK:
+            CartesianAxisMerge(AxisIterator._J).visit(node)
+            CartesianAxisMerge(AxisIterator._I).visit(node)
+            CartesianAxisMerge(AxisIterator._K).visit(node)
+        elif self._backend.loop_order == BackendLoopOrder.JKI:
+            CartesianAxisMerge(AxisIterator._J).visit(node)
+            CartesianAxisMerge(AxisIterator._K).visit(node)
+            CartesianAxisMerge(AxisIterator._I).visit(node)
+        elif self._backend.loop_order == BackendLoopOrder.KIJ:
+            CartesianAxisMerge(AxisIterator._K).visit(node)
+            CartesianAxisMerge(AxisIterator._I).visit(node)
+            CartesianAxisMerge(AxisIterator._J).visit(node)
+        elif self._backend.loop_order == BackendLoopOrder.KJI:
+            CartesianAxisMerge(AxisIterator._K).visit(node)
+            CartesianAxisMerge(AxisIterator._J).visit(node)
+            CartesianAxisMerge(AxisIterator._I).visit(node)

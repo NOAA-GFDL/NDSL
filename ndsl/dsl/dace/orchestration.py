@@ -24,7 +24,6 @@ from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl.comm.mpi import MPI
-from ndsl.config import BackendLoopOrder
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
@@ -40,8 +39,7 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
 )
 from ndsl.dsl.dace.stree import CPUPipeline
 from ndsl.dsl.dace.stree.optimizations import (
-    AxisIterator,
-    CartesianAxisMerge,
+    CartesianMerge,
     CartesianRefineTransients,
     CleanUpScheduleTree,
 )
@@ -198,44 +196,14 @@ def _build_sdfg(
                         f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
-                passes = []
-                if backend_name.loop_order == BackendLoopOrder.IJK:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianRefineTransients(backend_name),
-                        ]
-                    )
-                elif backend_name.loop_order == BackendLoopOrder.KJI:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianRefineTransients(backend_name),
-                        ]
-                    )
-                elif backend_name.loop_order == BackendLoopOrder.KIJ:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianRefineTransients(backend_name),
-                        ]
-                    )
-                else:
-                    raise NotImplementedError(
-                        f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
-                    )
-                CPUPipeline(passes=passes, cache_directory=Path(sdfg.build_folder)).run(
-                    stree, verbose=config.verbose_schedule_tree_optimizations
-                )
+                CPUPipeline(
+                    passes=[
+                        CleanUpScheduleTree(),
+                        CartesianMerge(backend_name),
+                        CartesianRefineTransients(backend_name),
+                    ],
+                    cache_directory=Path(sdfg.build_folder),
+                ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
                 if config.verbose_orchestration:
                     with open(
                         os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),
