@@ -256,7 +256,7 @@ def set_value(field: FloatField, value: Float) -> None:
         field = value
 
 
-def set_value_2d(field: FloatFieldIJ, value: Float) -> None:
+def set_value_2D(field: FloatFieldIJ, value: Float) -> None:
     """
     Sets every element of a field to a single value - 2D variant.
 
@@ -268,7 +268,7 @@ def set_value_2d(field: FloatFieldIJ, value: Float) -> None:
         field = value
 
 
-def set_bool_value_2D(field: BoolFieldIJ, value: Bool) -> None:
+def set_IJ_mask_value(field: BoolFieldIJ, value: Bool) -> None:
     """
     Sets every element of buffer to either True or False.
 
