@@ -3,6 +3,7 @@ from pathlib import Path
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
 from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
+from ndsl.dsl.dace.stree.optimizations.statistics import TreeOptimizationStatistics
 from ndsl.logging import ndsl_log_on_rank_0
 
 
@@ -30,6 +31,9 @@ class StreePipeline:
         stree: stree.ScheduleTreeRoot,
         verbose: bool = False,
     ) -> stree.ScheduleTreeRoot:
+        tree_stats = TreeOptimizationStatistics()
+        tree_stats.original(stree)
+
         for i, p in enumerate(self.passes):
             if verbose:
                 path = self.cache_directory / f"pass{i}_{p}.txt"
@@ -40,6 +44,10 @@ class StreePipeline:
             if verbose:
                 with open(path, "w+") as f:
                     f.write(stree.as_string())
+
+        tree_stats.optimized(stree)
+        if verbose:
+            ndsl_log_on_rank_0.info(tree_stats.report())
 
         return stree
 

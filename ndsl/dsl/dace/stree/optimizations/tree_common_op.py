@@ -1,7 +1,9 @@
 from typing import Collection
 
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
+
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
+
 
 def swap_node_position_in_tree(
     top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
@@ -62,4 +64,3 @@ def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
 def is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
     """Returns true if node is a For over the given axis."""
     return node.loop.loop_variable.startswith(axis.as_str())
-

@@ -13,10 +13,10 @@ from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
 )
 from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
     detect_cycle,
+    is_axis_for,
+    is_axis_map,
     list_index,
     swap_node_position_in_tree,
-    is_axis_map,
-    is_axis_for
 )
 from ndsl.logging import ndsl_log
 
@@ -117,11 +117,14 @@ class ReplaceAxisSymbolInTasklet(tn.ScheduleNodeVisitor):
 
         # Dev NOTE: We directly replace the memlet.subset because the `memlet.replace`
         #           function sometimes doesn't work
-        for memlet in itertools.chain(node.in_memlets.values(), node.out_memlets.values()):
+        for memlet in itertools.chain(
+            node.in_memlets.values(), node.out_memlets.values()
+        ):
             if memlet.subset is not None:
                 memlet.subset.replace(axis_replacements)
             if memlet.other_subset is not None:
                 memlet.other_subset.replace(axis_replacements)
+
 
 class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     """Merge a cartesian axis if they are contiguous in code-flow.
