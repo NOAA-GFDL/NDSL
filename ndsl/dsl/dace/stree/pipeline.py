@@ -2,7 +2,13 @@ from pathlib import Path
 
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
-from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
+from ndsl import Backend
+from ndsl.dsl.dace.stree.optimizations import (
+    CartesianMerge,
+    CartesianRefineTransients,
+    CleanUpScheduleTree,
+    InlineVertical2DWrite,
+)
 from ndsl.dsl.dace.stree.optimizations.statistics import TreeOptimizationStatistics
 from ndsl.logging import ndsl_log_on_rank_0
 
@@ -55,14 +61,20 @@ class StreePipeline:
 class CPUPipeline(StreePipeline):
     def __init__(
         self,
+        backend: Backend,
         *,
         passes: list[stree.ScheduleNodeTransformer] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
+        if passes is None:
+            passes = [
+                CleanUpScheduleTree(),
+                InlineVertical2DWrite(),
+                CartesianMerge(backend),
+                CartesianRefineTransients(backend),
+            ]
         super().__init__(
-            passes=(
-                passes if passes is not None else [CartesianAxisMerge(AxisIterator._K)]
-            ),
+            passes=passes,
             cache_directory=cache_directory,
         )
 

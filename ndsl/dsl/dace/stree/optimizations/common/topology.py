@@ -2,8 +2,6 @@ from typing import Collection
 
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
-from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
-
 
 def swap_node_position_in_tree(
     top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
@@ -55,12 +53,13 @@ def list_index(
     return next(index for index, element in enumerate(collection) if element is node)
 
 
-def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
-    """Returns true if node is a Map over the given axis."""
-    map_parameter = node.node.map.params
-    return len(map_parameter) == 1 and map_parameter[0].startswith(axis.as_str())
+def get_next_node(
+    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
+) -> tn.ScheduleTreeNode:
+    """Get next node in the children from given node"""
+    return nodes[list_index(nodes, node) + 1]
 
 
-def is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
-    """Returns true if node is a For over the given axis."""
-    return node.loop.loop_variable.startswith(axis.as_str())
+def last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
+    """Test for last node of list"""
+    return list_index(nodes, node) >= len(nodes) - 1

@@ -38,11 +38,6 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     sdfg_nan_checker,
 )
 from ndsl.dsl.dace.stree import CPUPipeline
-from ndsl.dsl.dace.stree.optimizations import (
-    CartesianMerge,
-    CartesianRefineTransients,
-    CleanUpScheduleTree,
-)
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -197,11 +192,7 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 CPUPipeline(
-                    passes=[
-                        CleanUpScheduleTree(),
-                        CartesianMerge(backend_name),
-                        CartesianRefineTransients(backend_name),
-                    ],
+                    backend=backend_name,
                     cache_directory=Path(sdfg.build_folder),
                 ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
                 if config.verbose_orchestration:

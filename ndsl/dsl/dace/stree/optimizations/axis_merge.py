@@ -7,19 +7,19 @@ from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl.config import Backend, BackendLoopOrder
-from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
+from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
+    detect_cycle,
+    get_next_node,
+    is_axis_for,
+    is_axis_map,
+    last_node,
+    list_index,
     no_data_dependencies_on_cartesian_axis,
+    swap_node_position_in_tree,
 )
 from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
     ReplaceAxisSymbolInTasklet,
-)
-from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
-    detect_cycle,
-    is_axis_for,
-    is_axis_map,
-    list_index,
-    swap_node_position_in_tree,
 )
 from ndsl.logging import ndsl_log
 
@@ -93,16 +93,6 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
 
         node.children = self.visit(node.children)
         return node
-
-
-def _get_next_node(
-    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
-) -> tn.ScheduleTreeNode:
-    return nodes[list_index(nodes, node) + 1]
-
-
-def _last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
-    return list_index(nodes, node) >= len(nodes) - 1
 
 
 class CartesianAxisMerge(tn.ScheduleNodeTransformer):
@@ -288,13 +278,13 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # End of nodes OR
         # Not the right axis
         # --> recurse
-        if _last_node(nodes, the_map) or not is_axis_map(the_map, self.axis):
+        if last_node(nodes, the_map) or not is_axis_map(the_map, self.axis):
             merged = 0
             for child in the_map.children:
                 merged += self._merge_node(child, the_map.children)
             return merged
 
-        next_node = _get_next_node(nodes, the_map)
+        next_node = get_next_node(nodes, the_map)
 
         # Next node is not a MapScope - no merge
         if not isinstance(next_node, tn.MapScope):

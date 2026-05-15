@@ -3,8 +3,11 @@ import dataclasses
 import dace
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
-from ndsl.dsl.dace.stree.optimizations.memlet_helpers import AxisIterator
-from ndsl.dsl.dace.stree.optimizations.tree_common_op import is_axis_for, is_axis_map
+from ndsl.dsl.dace.stree.optimizations.common import (
+    AxisIterator,
+    is_axis_for,
+    is_axis_map,
+)
 
 
 class CountCartesianLoops(stree.ScheduleNodeVisitor):
