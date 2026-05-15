@@ -19,3 +19,6 @@ class SpecializeCartesianMaps(stree.ScheduleNodeVisitor):
         node.node.map.range = sbs.Range(dims)
 
         self.visit(node.children)
+
+    def __str__(self) -> str:
+        return "SpecializeCartesianMaps"

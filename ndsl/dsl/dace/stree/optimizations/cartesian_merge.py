@@ -3,13 +3,13 @@ from __future__ import annotations
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl.config import Backend, BackendLoopOrder
-from ndsl.dsl.dace.stree.optimizations import (
-    CartesianAxisMerge,
+from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
+from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
+from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
     ExtractOffgridConditionals,
     InlineOffgridConditionals,
     MergeConditionals,
 )
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
 
 
 class CartesianMerge(tn.ScheduleNodeTransformer):
