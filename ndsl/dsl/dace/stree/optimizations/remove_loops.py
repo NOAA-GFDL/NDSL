@@ -34,19 +34,21 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
         return "InlineVertical2DWrite"
 
     def visit_ForScope(self, the_for: tn.ForScope) -> tn.ForScope | tn.ScheduleTreeNode:
-        if (
-            AxisIterator._K.is_equal(the_for.loop.loop_variable)
-            and the_for.loop.executions == 1
-            and the_for.parent
-        ):
-            # Retrieve init value by executing the code and replace usage of it
+        if AxisIterator._K.is_equal(the_for.loop.loop_variable) and the_for.parent:
+            # Retrieve init/bound value by executing the code and replace usage of it
             # If the code cannot be executed (no-literal variable part of the op, etc.)
             # we will _not_ inline
             try:
                 exec(ast.unparse(the_for.loop.init_statement.code[0]))
+                init_value = locals()[the_for.loop.loop_variable]
+                bound_value = eval(
+                    ast.unparse(the_for.loop.loop_condition.code[0].value.comparators)
+                )
             except Exception as _:
                 return the_for
-            init_value = locals()[the_for.loop.loop_variable]
+            if abs(bound_value - init_value) != 1:
+                return the_for
+
             ReplaceAxisSymbolInTasklet().visit(
                 the_for, axis_replacements={the_for.loop.loop_variable: str(init_value)}
             )

@@ -23,16 +23,18 @@ def stencil_2D_write_at_K(in_field: FloatField, out_fieldIJ: FloatFieldIJ) -> No
         out_fieldIJ = in_field
 
 
+def stencil_forward_at_K(in_field: FloatField, out_field: FloatField) -> None:
+    with computation(FORWARD), interval(...):
+        out_field = in_field
+
+
 class OrchestratedCode:
     def __init__(
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
     ) -> None:
-        orchestratable_methods = [
-            "write_at_0",
-            "write_at_top",
-        ]
+        orchestratable_methods = ["write_at_0", "write_at_top", "do_not_inline"]
         for method in orchestratable_methods:
             orchestrate(
                 obj=self,
@@ -46,6 +48,10 @@ class OrchestratedCode:
         )
         self.stencil_2D_write_at_K = stencil_factory.from_dims_halo(
             func=stencil_2D_write_at_K,
+            compute_dims=[I_DIM, J_DIM, K_DIM],
+        )
+        self.stencil_do_not_inline = stencil_factory.from_dims_halo(
+            func=stencil_forward_at_K,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
@@ -62,6 +68,13 @@ class OrchestratedCode:
         out_field: FloatFieldIJ,
     ) -> None:
         self.stencil_2D_write_at_K(in_field, out_field)
+
+    def do_not_inline(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_do_not_inline(in_field, out_field)
 
 
 Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
@@ -130,3 +143,27 @@ class TestStree2DWriteInline:
         assert len(all_maps) == 2
         assert len(all_loop_region) == 0
         assert (out_qty.field[:] == Float(32.0)).all()
+
+    def test_do_not_inline(self, code: OrchestratedCode, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        with StreeOptimization():
+            code.do_not_inline(in_qty, out_qty)
+
+        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+        all_maps = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        all_loop_region = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, LoopRegion)
+        ]
+
+        assert len(all_maps) == 2
+        assert len(all_loop_region) == 1
+        assert (out_qty.field[:] == Float(1)).all()
