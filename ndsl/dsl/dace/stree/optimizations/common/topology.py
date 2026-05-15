@@ -3,6 +3,22 @@ from typing import Collection
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 
+def reparent_scope_node(
+    original_parent: tn.ScheduleTreeScope,
+    new_parent: tn.ScheduleTreeNode,
+    prepend: bool = True,
+) -> None:
+    """Re-parent children between two scope nodes"""
+
+    for child in original_parent.children:
+        child.parent = new_parent
+
+    if prepend:
+        new_parent.children = [*original_parent.children, *new_parent.children]
+    else:
+        new_parent.children = [*new_parent.children, *original_parent.children]
+
+
 def swap_node_position_in_tree(
     top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
 ) -> None:

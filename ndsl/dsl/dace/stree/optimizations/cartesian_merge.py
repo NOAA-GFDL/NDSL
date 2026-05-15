@@ -19,6 +19,9 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         self._backend = backend
         self.eager = eager
 
+    def __str__(self) -> str:
+        return "CartesianMerge"
+
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         InlineOffgridConditionals().visit(node)
         MergeConditionals().visit(node)

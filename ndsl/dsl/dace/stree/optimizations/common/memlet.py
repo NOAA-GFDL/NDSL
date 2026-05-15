@@ -17,6 +17,9 @@ class AxisIterator(Enum):
     def as_cartesian_index(self) -> int:
         return self.value[1]
 
+    def is_equal(self, other: str) -> bool:
+        return other.startswith(self.as_str())
+
 
 def no_data_dependencies_on_cartesian_axis(
     first: stree.MapScope,

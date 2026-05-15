@@ -38,11 +38,7 @@ def _reduce_cartesian_axis_size_to_1(
 
     # Assume 3D cartesian!
     if len(transient_data.shape) < 3:
-        warnings.warn(
-            f"Potential non-3D array: {transient_data}, skipping.",
-            UserWarning,
-            stacklevel=2,
-        )
+        ndsl_log.debug(f"Potential non-3D array: {transient_data}, skipping.")
         return False
 
     read_write_range: dace.subsets.Range = dace.subsets.union(

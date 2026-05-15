@@ -5,6 +5,7 @@ from .topology import (
     get_next_node,
     last_node,
     list_index,
+    reparent_scope_node,
     swap_node_position_in_tree,
 )
 
@@ -19,4 +20,5 @@ __all__ = [
     "swap_node_position_in_tree",
     "detect_cycle",
     "list_index",
+    "reparent_scope_node",
 ]

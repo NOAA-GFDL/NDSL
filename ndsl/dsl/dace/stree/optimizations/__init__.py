@@ -1,4 +1,4 @@
-from .axis_merge import AxisIterator, CartesianAxisMerge
+from .axis_merge import CartesianAxisMerge
 from .cartesian_merge import CartesianMerge
 from .clean_tree import CleanUpScheduleTree
 from .offgrid_conditionals import (
@@ -11,7 +11,6 @@ from .remove_loops import InlineVertical2DWrite
 
 
 __all__ = [
-    "AxisIterator",
     "CartesianAxisMerge",
     "CartesianMerge",
     "CartesianRefineTransients",
