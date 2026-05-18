@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl.config import Backend, BackendLoopOrder

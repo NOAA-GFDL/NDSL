@@ -34,7 +34,7 @@ def _reduce_cartesian_axis_size_to_1(
     are atomic"""
 
     # Dev Note: Better dataflow analysis would look at exactly
-    #           what's goin on here!
+    #           what's going on here!
 
     # Assume 3D cartesian!
     if len(transient_data.shape) < 3:
@@ -206,7 +206,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         cartesian axis) it will reduce that axis to 1 if all access are atomic
         (exactly _one_ element of the array is ever worked on in a single loop)
         - It will refuse to merge if the transient is used in multiple loops of for
-        a given axis - irrigardless of it's access pattern (e.g. even if it could be
+        a given axis - regardless of it's access pattern (e.g. even if it could be
         refine because it's always written first.)
 
     It should but cannot do/will bug if:

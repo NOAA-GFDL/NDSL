@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 import itertools
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 
 class ReplaceAxisSymbolInTasklet(tn.ScheduleNodeVisitor):
-    def __init__(self) -> None:
-        pass
-
     def visit_TaskletNode(
         self,
         node: tn.TaskletNode,

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 
@@ -26,9 +24,6 @@ class InlineOffgridConditionals(tn.ScheduleNodeTransformer):
     ```
     """
 
-    def __init__(self) -> None:
-        pass
-
     def __str__(self) -> str:
         return "InlineOffgridConditionals"
 
@@ -38,9 +33,6 @@ class ExtractOffgridConditionals(tn.ScheduleNodeTransformer):
 
     Reverse transform from InlineOffgridConditionals
     """
-
-    def __init__(self) -> None:
-        pass
 
     def __str__(self) -> str:
         return "ExtractOffgridConditionals"
@@ -67,13 +59,10 @@ class MergeConditionals(tn.ScheduleNodeTransformer):
                 [ops...]
     ```
 
-    Outside of user code, vombination of ExtractOffgridConditionals,
+    Outside of user code, combination of ExtractOffgridConditionals,
     InlineOffgridConditionals and CartesianMapMerge can lead to this
     pattern.
     """
-
-    def __init__(self) -> None:
-        pass
 
     def __str__(self) -> str:
         return "MergeConditionals"

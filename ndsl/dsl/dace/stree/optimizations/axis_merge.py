@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 import copy
 
 import dace
 from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
+from ndsl import ndsl_log
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
@@ -21,7 +20,6 @@ from ndsl.dsl.dace.stree.optimizations.common import (
 from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
     ReplaceAxisSymbolInTasklet,
 )
-from ndsl.logging import ndsl_log
 
 
 # Buggy passes that should work

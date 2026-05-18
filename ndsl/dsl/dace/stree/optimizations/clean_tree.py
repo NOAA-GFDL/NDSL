@@ -1,14 +1,13 @@
-from __future__ import annotations
-
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl.logging import ndsl_log
+from ndsl import ndsl_log
 
 
 class CleanUpScheduleTree(tn.ScheduleNodeTransformer):
     """Remove `StateBoundary` nodes from children of ScheduleTreeScopes."""
 
     def __init__(self) -> None:
+        super().__init__()
         self._removed_state_boundaries = 0
 
     def __str__(self) -> str:
