@@ -334,7 +334,11 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # After merge, we need to replace the axis symbols of the second map's children
         # with the axis symbol of the first map.
         if second_map.node.map.params[0] != first_map.node.map.params[0]:
-            replacements = {second_map.node.map.params[0]: first_map.node.map.params[0]}
+            replacements = {
+                dace.symbol(second_map.node.map.params[0]): dace.symbol(
+                    first_map.node.map.params[0]
+                )
+            }
             ReplaceAxisSymbolInTasklet().visit(
                 first_map, axis_replacements=replacements
             )

@@ -1,5 +1,7 @@
 import ast
+from typing import Any
 
+import dace
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
@@ -39,8 +41,14 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
             # If the code cannot be executed (no-literal variable part of the op, etc.)
             # we will _not_ inline
             try:
-                exec(ast.unparse(the_for.loop.init_statement.code[0]))
-                init_value = locals()[the_for.loop.loop_variable]
+                exec_locals: dict[str, Any] = {}
+                exec_globals: dict[str, Any] = {}
+                exec(
+                    ast.unparse(the_for.loop.init_statement.code[0]),
+                    exec_globals,
+                    exec_locals,
+                )
+                init_value = exec_locals[the_for.loop.loop_variable]
                 bound_value = eval(
                     ast.unparse(the_for.loop.loop_condition.code[0].value.comparators)
                 )
@@ -50,7 +58,10 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
                 return the_for
 
             ReplaceAxisSymbolInTasklet().visit(
-                the_for, axis_replacements={the_for.loop.loop_variable: str(init_value)}
+                the_for,
+                axis_replacements={
+                    dace.symbol(the_for.loop.loop_variable): str(init_value)
+                },
             )
 
             # Prepend children of the ForScope to parent

@@ -81,11 +81,12 @@ Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
 
 
 class TestStree2DWriteInline:
-    @pytest.fixture(params=[Backend("orch:dace:cpu:IJK"), Backend("orch:dace:cpu:KJI")])
+    @pytest.fixture(params=["orch:dace:cpu:IJK", "orch:dace:cpu:KJI"])
     def factories(self, request) -> Factories:
+
         domain = (3, 3, 4)
         return get_factories_single_tile(
-            domain[0], domain[1], domain[2], 0, backend=request.param
+            domain[0], domain[1], domain[2], 0, backend=Backend(request.param)
         )
 
     @pytest.fixture

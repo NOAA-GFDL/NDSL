@@ -18,10 +18,7 @@ class ReplaceAxisSymbolInTasklet(tn.ScheduleNodeVisitor):
         for memlet in itertools.chain(
             node.in_memlets.values(), node.out_memlets.values()
         ):
-            if memlet.subset is not None:
-                memlet.subset.replace(axis_replacements)
-            if memlet.other_subset is not None:
-                memlet.other_subset.replace(axis_replacements)
+            memlet.replace(axis_replacements)
 
     def __str__(self) -> str:
         return "ReplaceAxisSymbolInTasklet"
