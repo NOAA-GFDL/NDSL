@@ -16,7 +16,7 @@
 <div style="
   padding: 1.75rem 1.75rem;
   border-radius: 18px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
   border: 1px solid #e5e7eb;
   margin-bottom: 1.5rem;
 ">
@@ -103,9 +103,9 @@
   line-height:1.8;
   padding-left:1.1rem;
 ">
-  <li>Blah</li>
-  <li>Blah</li>
-  <li>Blah</li>
+  <li>Serialization of Fortran reference state</li>
+  <li>Translate tests used to evaluate DSL vs Fortran</li>
+  <li>Differences were checked against numerical thresholds</li>
 </ul>
 
 </div>
@@ -265,7 +265,7 @@
     scroll-snap-align:start;
   ">
 
-    <img src="../images/results_1.png"
+    <img src="../img/scm_moist_arm_97jun_hovmoller_gpu_72.png"
          alt="Scientific Validation"
          style="
            width:100%;
@@ -352,7 +352,7 @@
     scroll-snap-align:start;
   ">
 
-    <img src="../images/results_3.png"
+    <img src="../img/results_3.png"
          alt="Numerical Validation"
          style="
            width:100%;
