@@ -5,7 +5,6 @@ from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.config import Backend, BackendLoopOrder
 from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
     detect_cycle,
@@ -98,22 +97,20 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
     Can do:
         - merge a given axis with the next maps at the same recursion level
-        - can overcompute (eager) to allow for more merging at the cost of an if
+        - does overcompute to allow for more merging at the cost of an if
 
     It expects:
         - All Maps and ForLoop are on a single axis - but doesn't check for it.
 
     Args:
         axis: AxisIterator to be merged
-        eager: overcompute with a conditional guard
     """
 
-    def __init__(self, axis: AxisIterator, *, eager: bool = True) -> None:
+    def __init__(self, axis: AxisIterator) -> None:
         self.axis = axis
-        self.eager = eager
 
     def __str__(self) -> str:
-        return f"CartesianAxisMerge_{self.axis.name}_{'eager' if self.eager else ''}"
+        return f"CartesianAxisMerge_{self.axis.name}"
 
     def _merge_node(
         self, node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode]
@@ -418,37 +415,3 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         ndsl_log.debug(
             f"🚀 {self}: {overall_merged} maps merged in {passes_apply} passes"
         )
-
-
-class CartesianMerge(tn.ScheduleNodeTransformer):
-    """Merge Cartesian axis loops"""
-
-    def __init__(self, backend: Backend, *, eager: bool = True) -> None:
-        self._backend = backend
-        self.eager = eager
-
-    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
-        if self._backend.loop_order == BackendLoopOrder.IJK:
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.IKJ:
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.JIK:
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.JKI:
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.KIJ:
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.KJI:
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)

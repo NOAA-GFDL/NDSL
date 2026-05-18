@@ -6,6 +6,7 @@ import dace.sdfg.analysis.schedule_tree.treenodes as tn
 def reparent_scope_node(
     original_parent: tn.ScheduleTreeScope,
     new_parent: tn.ScheduleTreeNode,
+    *,
     prepend: bool = True,
 ) -> None:
     """Re-parent children between two scope nodes"""

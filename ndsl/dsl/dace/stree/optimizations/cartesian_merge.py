@@ -13,9 +13,9 @@ from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
 class CartesianMerge(tn.ScheduleNodeTransformer):
     """Merge Cartesian computation blocks"""
 
-    def __init__(self, backend: Backend, *, eager: bool = True) -> None:
+    def __init__(self, backend: Backend) -> None:
+        super().__init__()
         self._backend = backend
-        self.eager = eager
 
     def __str__(self) -> str:
         return "CartesianMerge"

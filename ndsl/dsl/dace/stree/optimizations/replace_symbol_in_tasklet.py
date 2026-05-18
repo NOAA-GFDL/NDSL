@@ -13,8 +13,6 @@ class ReplaceAxisSymbolInTasklet(tn.ScheduleNodeVisitor):
             # Noop if there are no replacements to do.
             return
 
-        # Dev NOTE: We directly replace the memlet.subset because the `memlet.replace`
-        #           function sometimes doesn't work
         for memlet in itertools.chain(
             node.in_memlets.values(), node.out_memlets.values()
         ):
