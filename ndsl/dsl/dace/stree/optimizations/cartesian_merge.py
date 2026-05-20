@@ -21,33 +21,31 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         return "CartesianMerge"
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
-        InlineOffgridConditionals().visit(node)
+        for axis in self._backend_order():
+            InlineOffgridConditionals(axis).visit(node)
         MergeConditionals().visit(node)
 
-        if self._backend.loop_order == BackendLoopOrder.IJK:
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.IKJ:
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.JIK:
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.JKI:
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.KIJ:
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-        elif self._backend.loop_order == BackendLoopOrder.KJI:
-            CartesianAxisMerge(AxisIterator._K).visit(node)
-            CartesianAxisMerge(AxisIterator._J).visit(node)
-            CartesianAxisMerge(AxisIterator._I).visit(node)
+        for axis in self._backend_order():
+            CartesianAxisMerge(axis).visit(node)
 
         ExtractOffgridConditionals().visit(node)
         MergeConditionals().visit(node)
+
+    def _backend_order(self) -> tuple[AxisIterator, AxisIterator, AxisIterator]:
+        if self._backend.loop_order == BackendLoopOrder.IJK:
+            return (AxisIterator._I, AxisIterator._J, AxisIterator._K)
+
+        if self._backend.loop_order == BackendLoopOrder.IKJ:
+            return (AxisIterator._I, AxisIterator._K, AxisIterator._J)
+
+        if self._backend.loop_order == BackendLoopOrder.JIK:
+            return (AxisIterator._J, AxisIterator._I, AxisIterator._K)
+
+        if self._backend.loop_order == BackendLoopOrder.JKI:
+            return (AxisIterator._J, AxisIterator._K, AxisIterator._I)
+
+        if self._backend.loop_order == BackendLoopOrder.KIJ:
+            return (AxisIterator._K, AxisIterator._I, AxisIterator._J)
+
+        assert self._backend.loop_order == BackendLoopOrder.KJI
+        return (AxisIterator._K, AxisIterator._J, AxisIterator._I)

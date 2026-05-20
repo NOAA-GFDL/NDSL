@@ -75,20 +75,20 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
         all_children_are_maps = all(
             [isinstance(child, tn.MapScope) for child in node.children]
         )
-        if not all_children_are_maps:
-            if self._merged_range != self._original_range:
-                if_scope = tn.IfScope(
-                    condition=self._execution_condition(),
-                    children=node.children,
-                    parent=node,
-                )
-                # Re-parent to IF
-                for child in node.children:
-                    child.parent = if_scope
-                node.children = [if_scope]
+        if all_children_are_maps:
+            node.children = self.visit(node.children)
             return node
 
-        node.children = self.visit(node.children)
+        if self._merged_range != self._original_range:
+            if_scope = tn.IfScope(
+                condition=self._execution_condition(),
+                children=node.children,
+                parent=node,
+            )
+            # Re-parent to IF
+            for child in node.children:
+                child.parent = if_scope
+            node.children = [if_scope]
         return node
 
 
