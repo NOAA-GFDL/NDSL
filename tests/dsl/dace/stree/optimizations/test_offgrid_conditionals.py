@@ -161,7 +161,7 @@ class TestStreeInlineOffgridConditionals:
         # can't merge because the K-iterators are different. To be fixed (and simplified
         # here) with a subsequent commit.
         assert (
-            len(all_maps) == 6
+            len(all_maps) == 5
             if stencil_factory.backend == Backend("orch:dace:cpu:IJK")
             else 9
         )
