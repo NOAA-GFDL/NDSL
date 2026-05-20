@@ -21,10 +21,6 @@ from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
 )
 
 
-# Buggy passes that should work
-PUSH_IFSCOPE_DOWNWARD = False  # Crashing the overall stree - bad algorithmics
-
-
 def _both_same_single_axis_maps(
     first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
@@ -125,9 +121,6 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         if isinstance(node, tn.MapScope):
             return self._map_overcompute_merge(node, nodes)
 
-        if PUSH_IFSCOPE_DOWNWARD and isinstance(node, tn.IfScope):
-            return self._push_ifelse_down(node, nodes)
-
         if isinstance(node, tn.ForScope):
             return self._for_merge(node)
 
@@ -191,79 +184,6 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             the_tasklet.parent = next_node
             nodes.remove(the_tasklet)
             merged += self._merge_node(next_node, nodes)
-
-        return merged
-
-    def _push_ifelse_down(
-        self, the_if: tn.IfScope, nodes: list[tn.ScheduleTreeNode]
-    ) -> int:
-        merged = 0
-
-        # Recurse down if/else/elif
-        if_index = list_index(nodes, the_if)
-        if len(the_if.children) != 0:
-            merged += self._merge_node(the_if.children[0], the_if.children)
-        for else_index in range(if_index + 1, len(nodes)):
-            else_node = nodes[else_index]
-            if else_index < len(nodes) and (
-                isinstance(else_node, tn.ElseScope)
-                or isinstance(else_node, tn.ElifScope)
-            ):
-                merged += self._merge_node(else_node, else_node.children)
-            else:
-                break
-
-        # Look at swapping if/else/elif first map w/ control flow
-
-        # Gather all first maps - if they do not exists, get out
-        all_maps = []
-        if isinstance(the_if.children[0], tn.MapScope):
-            all_maps.append(the_if.children[0])
-        else:
-            return merged
-        for else_index in range(if_index + 1, len(nodes)):
-            else_node = nodes[else_index]
-            if else_index < len(nodes) and (
-                isinstance(else_node, tn.ElseScope)
-                or isinstance(else_node, tn.ElifScope)
-            ):
-                if isinstance(else_node.children[0], tn.MapScope):
-                    all_maps.append(else_node.children[0])
-                else:
-                    return merged
-
-            else:
-                break
-
-        # Check for mergeability
-        if len(all_maps) > 1:
-            the_map = all_maps[0]
-            for _map in all_maps[1:]:
-                if not _can_merge_axis_maps(the_map, _map, self.axis):
-                    return merged
-
-        # We are good to go - swap it all
-        inner_if_map = the_if.children[0]
-
-        # Swap IF & maps
-        if_index = list_index(nodes, the_if)
-        swap_node_position_in_tree(the_if, inner_if_map)
-
-        # Swap ELIF/ELSE & maps
-        for else_index in range(if_index + 1, len(nodes)):
-            if else_index < len(nodes) and (
-                isinstance(nodes[else_index], tn.ElseScope)
-                or isinstance(nodes[else_index], tn.ElifScope)
-            ):
-                swap_node_position_in_tree(
-                    nodes[else_index], nodes[else_index].children[0]
-                )
-            else:
-                break
-
-        # Merge the Maps
-        assert isinstance(nodes[if_index], tn.MapScope)
-        merged += self._map_overcompute_merge(nodes[if_index], nodes)
 
         return merged
 
