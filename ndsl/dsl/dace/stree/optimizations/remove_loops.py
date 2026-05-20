@@ -7,7 +7,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from ndsl import ndsl_log
 from ndsl.dsl.dace.stree.optimizations.common import AxisIterator, reparent_scope_node
 from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
-    ReplaceAxisSymbolInTasklet,
+    ReplaceAxisSymbol,
 )
 
 
@@ -57,12 +57,9 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
             if abs(bound_value - init_value) != 1:
                 return the_for
 
-            ReplaceAxisSymbolInTasklet().visit(
-                the_for,
-                axis_replacements={
-                    dace.symbol(the_for.loop.loop_variable): str(init_value)
-                },
-            )
+            ReplaceAxisSymbol(
+                {dace.symbol(the_for.loop.loop_variable): str(init_value)}
+            ).visit(the_for)
 
             # Prepend children of the ForScope to parent
             # the_for.parent.children = [*the_for.children, *the_for.parent.children]

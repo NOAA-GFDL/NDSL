@@ -17,7 +17,7 @@ from ndsl.dsl.dace.stree.optimizations.common import (
     swap_node_position_in_tree,
 )
 from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
-    ReplaceAxisSymbolInTasklet,
+    ReplaceAxisSymbol,
 )
 
 
@@ -211,7 +211,6 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         # Over compute to merge:
         # - force-merge by expanding the ranges
-        # - then, guard children to only run in their respective range
         first_range = the_map.node.map.range
         second_range = next_node.node.map.range
         merged_range = dace.subsets.Range(
@@ -224,7 +223,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             ]
         )
 
-        # push IfScope down if children are just maps
+        # - then, guard children to only run in their respective range
         axis_as_str = the_map.node.params[0]
         first_map = InsertOvercomputationGuard(
             axis_as_str, merged_range=merged_range, original_range=first_range
@@ -256,9 +255,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
                     first_map.node.map.params[0]
                 )
             }
-            ReplaceAxisSymbolInTasklet().visit(
-                first_map, axis_replacements=replacements
-            )
+            ReplaceAxisSymbol(replacements).visit(first_map)
 
         # delete now-merged second_map
         del nodes[list_index(nodes, next_node)]
