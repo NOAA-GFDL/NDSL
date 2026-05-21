@@ -19,7 +19,10 @@ class AxisIterator(Enum):
         return self.value[1]
 
     def is_equal(self, other: str) -> bool:
-        return other.startswith(self.as_str())
+        if self == AxisIterator._K:
+            return other.startswith(self.as_str())
+
+        return other == self.as_str()
 
 
 def normalize_cartesian_indexation(index: symbol, axis: AxisIterator) -> symbol:
