@@ -30,7 +30,7 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
 
     def __init__(self) -> None:
         super().__init__()
-        self._for_scope_removed = 0
+        self._for_scopes_removed = 0
 
     def __str__(self) -> str:
         return "InlineVertical2DWrite"
@@ -67,7 +67,7 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
 
             # Remove ForScope
             the_for.parent.children.remove(the_for)
-            self._for_scope_removed += 1
+            self._for_scopes_removed += 1
             assert len(the_for.children) > 0
             return the_for.parent.children[0]
 
@@ -76,10 +76,11 @@ class InlineVertical2DWrite(tn.ScheduleNodeTransformer):
     def visit_ScheduleTreeRoot(
         self, the_root: tn.ScheduleTreeRoot
     ) -> tn.ScheduleTreeRoot:
+        self._for_scopes_removed = 0
 
         for child in the_root.children:
             self.visit(child)
 
-        ndsl_log.debug(f"🚀 {self}: {self._for_scope_removed} inlined")
+        ndsl_log.debug(f"🚀 {self}: {self._for_scopes_removed} inlined")
 
         return the_root
