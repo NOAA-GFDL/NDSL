@@ -5,7 +5,7 @@ import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 def reparent_scope_node(
     original_parent: tn.ScheduleTreeScope,
-    new_parent: tn.ScheduleTreeNode,
+    new_parent: tn.ScheduleTreeScope,
     *,
     prepend: bool = True,
 ) -> None:
@@ -26,6 +26,7 @@ def swap_node_position_in_tree(
     """Top node becomes child, child becomes top node."""
     # Ensue parent/children relationship is valid
     tn.validate_children_and_parents_align(top_node)
+    assert top_node.parent is not None
 
     # Take refs before swap
     top_children = top_node.parent.children
