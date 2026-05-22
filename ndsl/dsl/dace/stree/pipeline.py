@@ -70,7 +70,8 @@ class CPUPipeline(StreePipeline):
         if passes is None:
             passes = [
                 CleanUpScheduleTree(),
-                InlineVertical2DWrite(),
+                # TODO: Is it safe? Deactivate for now
+                # InlineVertical2DWrite(),
                 CartesianMerge(backend),
                 CartesianRefineTransients(backend),
             ]
@@ -91,7 +92,8 @@ class GPUPipeline(StreePipeline):
         if passes is None:
             passes = [
                 CleanUpScheduleTree(),
-                InlineVertical2DWrite(),
+                # TODO: Is it safe? Deactivate for now
+                # InlineVertical2DWrite(),
                 CartesianMerge(backend),
                 # 🐞 Transient refine can't be used
                 #    because of bugs transients showing in code generation
