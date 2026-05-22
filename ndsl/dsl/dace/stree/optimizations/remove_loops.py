@@ -10,7 +10,7 @@ from ndsl.dsl.dace.stree.optimizations.common import (
     is_axis_for,
     list_index,
 )
-from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
+from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import (
     ReplaceAxisSymbol,
 )
 

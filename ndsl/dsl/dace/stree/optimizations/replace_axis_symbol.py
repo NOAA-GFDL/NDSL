@@ -14,6 +14,13 @@ class ReplaceAxisSymbol(tn.ScheduleNodeVisitor):
         ):
             memlet.replace(self._axis_replacements)
 
+        if node.node.label.startswith("masklet"):
+            for old, new in self._axis_replacements.items():
+                node.node.code.as_string = node.node.code.as_string.replace(
+                    str(old), str(new)
+                )
+        
+
     def visit_IfScope(self, node: tn.IfScope) -> None:
         for old, new in self._axis_replacements.items():
             node.condition.as_string = node.condition.as_string.replace(

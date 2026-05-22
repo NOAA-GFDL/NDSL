@@ -16,7 +16,7 @@ from ndsl.dsl.dace.stree.optimizations.common import (
     no_data_dependencies_on_cartesian_axis,
     swap_node_position_in_tree,
 )
-from ndsl.dsl.dace.stree.optimizations.replace_symbol_in_tasklet import (
+from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import (
     ReplaceAxisSymbol,
 )
 
