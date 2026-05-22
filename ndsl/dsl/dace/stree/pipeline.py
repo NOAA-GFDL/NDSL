@@ -7,7 +7,6 @@ from ndsl.dsl.dace.stree.optimizations import (
     CartesianMerge,
     CartesianRefineTransients,
     CleanUpScheduleTree,
-    InlineVertical2DWrite,
 )
 from ndsl.dsl.dace.stree.optimizations.statistics import TreeOptimizationStatistics
 from ndsl.logging import ndsl_log_on_rank_0

@@ -10,9 +10,7 @@ from ndsl.dsl.dace.stree.optimizations.common import (
     is_axis_for,
     list_index,
 )
-from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import (
-    ReplaceAxisSymbol,
-)
+from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import ReplaceAxisSymbol
 
 
 class InlineVertical2DWrite(tn.ScheduleNodeVisitor):

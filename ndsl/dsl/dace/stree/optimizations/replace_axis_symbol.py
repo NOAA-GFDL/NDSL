@@ -19,7 +19,6 @@ class ReplaceAxisSymbol(tn.ScheduleNodeVisitor):
                 node.node.code.as_string = node.node.code.as_string.replace(
                     str(old), str(new)
                 )
-        
 
     def visit_IfScope(self, node: tn.IfScope) -> None:
         for old, new in self._axis_replacements.items():
