@@ -6,19 +6,20 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
-from dace import SDFG, CompiledSDFG
+from dace import SDFG, CompiledSDFG, DeviceType
 from dace import compiletime as DaceCompiletime
 from dace import dtypes
 from dace import method as dace_method
 from dace import nodes
 from dace import program as dace_program
 from dace.dtypes import DeviceType as DaceDeviceType
+from dace.dtypes import ScheduleType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
 from dace.frontend.python.parser import DaceProgram
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.transformation.auto.auto_optimize import make_transients_persistent
-from dace.transformation.dataflow import MapExpansion
+from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
@@ -37,7 +38,7 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
-from ndsl.dsl.dace.stree import CPUPipeline
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -181,7 +182,18 @@ def _build_sdfg(
             # Here be 🐉 - but tests exists in test_optimization.py
             with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
                 # Break all loops into uni-dimensional loops to simplify optimizations
-                sdfg.apply_transformations_repeated(MapExpansion, validate=True)
+                sdfg.apply_transformations_repeated(
+                    MapExpansion,
+                    options={
+                        "inner_schedule": (
+                            ScheduleType.GPU_Device
+                            if device_type is DeviceType.GPU
+                            else ScheduleType.Default
+                        )
+                    },
+                    validate=True,
+                    print_report=True,
+                )
                 stree = sdfg.as_schedule_tree()
                 if config.verbose_orchestration:
                     with open(
@@ -191,10 +203,16 @@ def _build_sdfg(
                         f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
-                CPUPipeline(
-                    backend=backend_name,
-                    cache_directory=Path(sdfg.build_folder),
-                ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
+                if device_type == device_type.CPU:
+                    CPUPipeline(
+                        backend=backend_name,
+                        cache_directory=Path(sdfg.build_folder),
+                    ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
+                elif device_type == DeviceType.GPU:
+                    GPUPipeline(
+                        backend=backend_name,
+                        cache_directory=Path(sdfg.build_folder),
+                    ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
                 if config.verbose_orchestration:
                     with open(
                         os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),
@@ -209,6 +227,7 @@ def _build_sdfg(
                         os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
                         compress=True,
                     )
+                sdfg.apply_transformations_repeated(MapCollapse)
 
         # Make the transients array persistents
         if config.is_gpu_backend():

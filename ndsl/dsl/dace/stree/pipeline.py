@@ -17,7 +17,7 @@ class StreePipeline:
     def __init__(
         self,
         *,
-        passes: list[stree.ScheduleNodeTransformer],
+        passes: list[stree.ScheduleNodeVisitor],
         cache_directory: Path | None = None,
     ) -> None:
         if cache_directory is None:
@@ -64,7 +64,7 @@ class CPUPipeline(StreePipeline):
         self,
         backend: Backend,
         *,
-        passes: list[stree.ScheduleNodeTransformer] | None = None,
+        passes: list[stree.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
@@ -83,9 +83,24 @@ class CPUPipeline(StreePipeline):
 class GPUPipeline(StreePipeline):
     def __init__(
         self,
-        passes: list[stree.ScheduleNodeTransformer] | None = None,
+        backend: Backend,
+        *,
+        passes: list[stree.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
+        if passes is None:
+            passes = [
+                CleanUpScheduleTree(),
+                InlineVertical2DWrite(),
+                CartesianMerge(backend),
+                # 🐞 Transient refine can't be used
+                #    because of bugs transients showing in code generation
+                # CartesianRefineTransients(backend),
+            ]
+        super().__init__(
+            passes=passes,
+            cache_directory=cache_directory,
+        )
         super().__init__(
             passes=passes if passes is not None else [],
             cache_directory=cache_directory,
