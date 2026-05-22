@@ -119,7 +119,7 @@
 
 .timeline-card {
   width: 190px;
-  background: white;
+  background: #f8fbff;
   border: 1px solid #e5e7eb;
   border-radius: 18px;
   padding: 1rem;
@@ -219,7 +219,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 1.2rem;
-  background: white;
+  background: #f8fbff;
   transition: all 0.2s ease;
   min-height: 220px;
 }
@@ -227,7 +227,7 @@
 .release-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 22px rgba(0,0,0,0.05);
-  border-color: #c7d7ea;
+  border-color: #f8fbff;
 }
 
 .release-month {

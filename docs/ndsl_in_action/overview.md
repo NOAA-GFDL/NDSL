@@ -211,8 +211,8 @@
   padding-left:1.1rem;
 ">
   <li>CPU vs GPU acceleration</li>
-  <li>Blah</li>
-  <li>Blah</li>
+  <li>Throughput improvements (days/day)</li>
+  <li>Scaling efficiency with increased grid resolution</li>
 </ul>
 
 </div>

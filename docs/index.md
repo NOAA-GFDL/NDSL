@@ -124,7 +124,11 @@
   }
 
   .code-block {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family: "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
     font-size: 12px;
     white-space: pre;
     overflow-x: auto;
@@ -252,31 +256,96 @@
     </div>
 
     <div id="fortran" class="tab-panel active">
-      <div class="code-block">   real function compute_alpha(del_CIN,ke)
-   ! ------------------------------------------------ !
-   ! Subroutine to compute proportionality factor for !
-   ! implicit CIN calculation.                        !   
-   ! ------------------------------------------------ !
-     real   :: del_CIN, ke
-     real*8 :: del_CIN8, ke8
-     real*8 :: x0, x1
+      <div class="code-block">subroutine calculate_cape_cin(virtual_temp_environment, virtual_temp_parcel, pressure_interface, cape, cin, source_level, level_free_convection, equilibrium_level, ni, nj, nk)
 
-     integer  :: iteration
+    integer, intent(in)  :: ni, nj, nk
+    real,    intent(in)  :: virtual_temp_environment(ni, nj, nk)
+    real,    intent(in)  :: virtual_temp_parcel(ni, nj, nk)
+    real,    intent(in)  :: pressure_interface(ni, nj, nk+1)
+    real,    intent(out) :: cape(ni, nj)
+    real,    intent(out) :: cin(ni, nj)
+    integer, intent(in)  :: source_level(ni, nj)
+    integer, intent(in)  :: level_free_convection(ni, nj)
+    integer, intent(in)  :: equilibrium_level(ni, nj)
 
-     x0 = 0._r8
-     del_CIN8 = del_CIN
-     ke8 = ke
-     do iteration = 1, 10
-        x1 = x0 - (exp(-x0*ke8*del_CIN8) - x0)/(-ke8*del_CIN8*exp(-x0*ke8*del_CIN8) - 1.)
-        x0 = x1
-     end do
-     compute_alpha = x0
+    integer :: i, j, k
 
-     return</div>
+    do j = 1, nj
+        do i = 1, ni
+            if (source_level(i,j) == -1) then
+                cape(i,j) = FILL_VALUE
+                cin(i,j)  = FILL_VALUE
+            else
+                cape(i,j) = 0.0
+                cin(i,j)  = 0.0
+            end if
+
+            if (source_level(i,j) /= -1) then
+                do k = 1, nk
+                    if (k >= source_level(i,j) .and. k < level_free_convection(i,j)) then
+                        cin(i,j) = cin(i,j) + (Rd * (virtual_temp_parcel(i,j,k) - virtual_temp_environment(i,j,k)) * log(pressure_interface(i,j,k) / pressure_interface(i,j,k+1)))
+                    end if
+
+                    if (k >= level_free_convection(i,j) .and. k <= equilibrium_level(i,j)) then
+                        cape(i,j) = cape(i,j) + (Rd * (virtual_temp_parcel(i,j,k) - virtual_temp_environment(i,j,k)) * log(pressure_interface(i,j,k) / pressure_interface(i,j,k+1)))
+                    end if
+                end do
+            end if
+        end do
+    end do
+
+end subroutine calculate_cape_cin </div>
     </div>
 
     <div id="ndsl" class="tab-panel">
-      <div class="code-block">NDSL code here...</div>
+      <div class="code-block">def calculate_cape_cin(
+    virtual_temp_environment: FloatField,
+    virtual_temp_parcel: FloatField,
+    pressure_interface: FloatField,
+    cape: FloatFieldIJ,
+    cin: FloatFieldIJ,
+    source_level: IntFieldIJ,
+    level_free_convection: IntFieldIJ,
+    equilibrium_level: IntFieldIJ,
+):
+    """Compute CAPE and CIN for a parcel originating at source_level.
+
+    A source_level of -1 indicates no convection is occuring at this grid point, in which case the computation is skipped and CAPE/CIN are filled with FILL_VALUE.
+
+    Some requirements:
+        level_free_convection must be less than (lower than)
+        equilibrium_level
+        both level_free_convection and equilibrium_level must be larger than (higher than) source_level
+        pressure_interface must have one more point in the vertical dimension than all other 3D non-interface fields
+
+    Args:
+        virtual_temp_environment (FloatField): virtual temperature of the environment
+        virtual_temp_parcel (FloatField): virtual temperature of the parcel
+        pressure_interface (FloatField): pressure at the grid interface
+        cape (FloatFieldIJ): convective available potential energy
+        cin (FloatFieldIJ): convective inhibition
+        level_free_convection (IntFieldIJ): level of free convection for a parcel originating at source level
+        equilibrium_level (IntFieldIJ): equilibrium level for a parcel originating at source level
+    """
+    with computation(FORWARD), interval(0, 1):
+        cape = 0.0
+        cin = 0.0
+
+        if source_level == -1:
+            # no convection, use fill value
+            cape = FILL_VALUE
+            cin = FILL_VALUE
+
+    with computation(FORWARD), interval(...):
+        # check if convection is enabled for the current grid point
+        if source_level != -1:
+            if K >= source_level and K < level_free_convection:
+                cin = cin + (Rd * (virtual_temp_parcel - virtual_temp_environment) * (log(pressure_interface / pressure_interface[0, 0, 1])))
+
+            if K >= level_free_convection and K <= equilibrium_level:
+                cape = cape + (Rd * (virtual_temp_parcel - virtual_temp_environment) * (log(pressure_interface / pressure_interface[0, 0, 1])))
+
+</div>
     </div>
 
     <div id="gen" class="tab-panel">
