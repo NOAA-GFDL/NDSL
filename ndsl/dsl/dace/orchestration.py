@@ -24,6 +24,7 @@ from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
+from ndsl import Backend
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
@@ -39,6 +40,7 @@ from ndsl.dsl.dace.sdfg_debug_passes import (
     sdfg_nan_checker,
 )
 from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -53,6 +55,8 @@ _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = (
     os.environ.get("NDSL_STREE_OPT", "False") == "True"
 )
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
+
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -143,6 +147,24 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
     return stree.as_sdfg(skip={"ScalarToSymbolPromotion", "ControlFlowRaising"})
 
 
+def _optimization_pipeline(
+    device_type: DeviceType,
+    backend: Backend,
+    *,
+    passes: list[tn.ScheduleNodeVisitor] | None = None,
+    cache_directory: Path | None = None,
+) -> StreePipeline:
+    if device_type == device_type.CPU:
+        return CPUPipeline(backend, passes=passes, cache_directory=cache_directory)
+
+    if device_type == DeviceType.GPU:
+        return GPUPipeline(backend, passes=passes, cache_directory=cache_directory)
+
+    raise ValueError(
+        f"Unknown device type `{device_type}`, expected {DeviceType.CPU} or {DeviceType.GPU}."
+    )
+
+
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
 ) -> None:
@@ -203,16 +225,13 @@ def _build_sdfg(
                         f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
-                if device_type == device_type.CPU:
-                    CPUPipeline(
-                        backend=backend_name,
-                        cache_directory=Path(sdfg.build_folder),
-                    ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
-                elif device_type == DeviceType.GPU:
-                    GPUPipeline(
-                        backend=backend_name,
-                        cache_directory=Path(sdfg.build_folder),
-                    ).run(stree, verbose=config.verbose_schedule_tree_optimizations)
+                pipeline = _optimization_pipeline(
+                    device_type,
+                    backend_name,
+                    cache_directory=Path(sdfg.build_folder),
+                    passes=_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES,
+                )
+                pipeline.run(stree, verbose=config.verbose_schedule_tree_optimizations)
                 if config.verbose_orchestration:
                     with open(
                         os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),

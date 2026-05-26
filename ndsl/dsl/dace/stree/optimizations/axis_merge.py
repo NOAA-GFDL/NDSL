@@ -134,7 +134,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     def _for_merge(self, the_for_scope: tn.ForScope) -> int:
         merged = 0
 
-        if is_axis_for(the_for_scope, self.axis):
+        if is_axis_for(the_for_scope, AxisIterator._K):
             # TODO: if the for scope is on a cartesian axis it can be
             # merged with other for scope going in the same direction
             pass

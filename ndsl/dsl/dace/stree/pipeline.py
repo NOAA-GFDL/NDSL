@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend
 from ndsl.dsl.dace.stree.optimizations import (
@@ -16,7 +16,7 @@ class StreePipeline:
     def __init__(
         self,
         *,
-        passes: list[stree.ScheduleNodeVisitor],
+        passes: list[tn.ScheduleNodeVisitor],
         cache_directory: Path | None = None,
     ) -> None:
         if cache_directory is None:
@@ -33,9 +33,9 @@ class StreePipeline:
 
     def run(
         self,
-        stree: stree.ScheduleTreeRoot,
+        stree: tn.ScheduleTreeRoot,
         verbose: bool = False,
-    ) -> stree.ScheduleTreeRoot:
+    ) -> tn.ScheduleTreeRoot:
         tree_stats = TreeOptimizationStatistics()
         tree_stats.original(stree)
 
@@ -63,7 +63,7 @@ class CPUPipeline(StreePipeline):
         self,
         backend: Backend,
         *,
-        passes: list[stree.ScheduleNodeVisitor] | None = None,
+        passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
@@ -85,7 +85,7 @@ class GPUPipeline(StreePipeline):
         self,
         backend: Backend,
         *,
-        passes: list[stree.ScheduleNodeVisitor] | None = None,
+        passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:

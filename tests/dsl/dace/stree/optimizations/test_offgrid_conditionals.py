@@ -88,14 +88,13 @@ class TestStreeInlineOffgridConditionals:
             code.happy_case(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        assert precompiled_sdfg.sdfg
 
         all_maps = [
             (me, state)
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3
+        assert len(all_maps) == 1  # all merged and collapsed
 
     def test_happy_case_2(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -108,14 +107,13 @@ class TestStreeInlineOffgridConditionals:
             code.happy_case_2(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        assert precompiled_sdfg.sdfg
 
         all_maps = [
             (me, state)
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3
+        assert len(all_maps) == 1  # all merged and collapsed
 
     def test_blocked_by_else(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -128,14 +126,13 @@ class TestStreeInlineOffgridConditionals:
             code.blocked_by_else(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        assert precompiled_sdfg.sdfg
 
         all_maps = [
             (me, state)
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 9
+        assert len(all_maps) == 3  # 3 * IJK/KJI
 
     def test_blocked_by_other_nodes(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -148,7 +145,6 @@ class TestStreeInlineOffgridConditionals:
             code.blocked_by_other_nodes(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        assert precompiled_sdfg.sdfg
 
         all_maps = [
             (me, state)
@@ -157,7 +153,7 @@ class TestStreeInlineOffgridConditionals:
         ]
 
         # ⚠️ Dev note:
-        # This should be just `assert len(all_maps) == 6`, but currently, the K-loops
+        # This should be just `assert len(all_maps) == 2`, but currently, the K-loops
         # can't merge because the K-iterators are different. To be fixed (and simplified
         # here) with a subsequent commit.
-        assert len(all_maps) == 9
+        assert len(all_maps) == 3
