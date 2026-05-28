@@ -13,8 +13,8 @@ from ndsl.stencils import (
     copy_2d,
     divide,
     divide_2d,
-    divide_to_self,
-    divide_to_self_2d,
+    divide_self,
+    divide_self_2d,
     multiply,
     multiply_2d,
     multiply_to_self,
@@ -22,8 +22,8 @@ from ndsl.stencils import (
     set_value,
     subtract,
     subtract_2d,
-    subtract_to_self,
-    subtract_to_self_2d,
+    subtract_from_self,
+    subtract_from_self_2d,
 )
 
 
@@ -92,11 +92,11 @@ class Subtract(NDSLRuntime):
         self._subtract_2d_stencil = stencil_factory.from_dims_halo(
             func=subtract_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self._subtract_to_self_stencil = stencil_factory.from_dims_halo(
-            func=subtract_to_self, compute_dims=[I_DIM, J_DIM, K_DIM]
+        self._subtract_from_self_stencil = stencil_factory.from_dims_halo(
+            func=subtract_from_self, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self._subtract_to_self_2d_stencil = stencil_factory.from_dims_halo(
-            func=subtract_to_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
+        self._subtract_from_self_2d_stencil = stencil_factory.from_dims_halo(
+            func=subtract_from_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
 
     def __call__(
@@ -114,8 +114,8 @@ class Subtract(NDSLRuntime):
     ):
         self._subtract_stencil(f_in_1, f_in_2, f_out)
         self._subtract_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
-        self._subtract_to_self_stencil(f_in_3, f_in_4)
-        self._subtract_to_self_2d_stencil(f_in_3_2d, f_in_4_2d)
+        self._subtract_from_self_stencil(f_in_3, f_in_4)
+        self._subtract_from_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
 class Multiply(NDSLRuntime):
@@ -162,11 +162,11 @@ class Divide(NDSLRuntime):
         self._divide_2d_stencil = stencil_factory.from_dims_halo(
             func=divide_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self._divide_to_self_stencil = stencil_factory.from_dims_halo(
-            func=divide_to_self, compute_dims=[I_DIM, J_DIM, K_DIM]
+        self._divide_self_stencil = stencil_factory.from_dims_halo(
+            func=divide_self, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
-        self._divide_to_self_2d_stencil = stencil_factory.from_dims_halo(
-            func=divide_to_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
+        self._divide_self_2d_stencil = stencil_factory.from_dims_halo(
+            func=divide_self_2d, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
 
     def __call__(
@@ -184,8 +184,8 @@ class Divide(NDSLRuntime):
     ):
         self._divide_stencil(f_in_1, f_in_2, f_out)
         self._divide_2d_stencil(f_in_1_2d, f_in_2_2d, f_out_2d)
-        self._divide_to_self_stencil(f_in_3, f_in_4)
-        self._divide_to_self_2d_stencil(f_in_3_2d, f_in_4_2d)
+        self._divide_self_stencil(f_in_3, f_in_4)
+        self._divide_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
 class AdjustmentFactor(NDSLRuntime):
