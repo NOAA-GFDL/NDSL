@@ -34,8 +34,22 @@ class OrchestratedProgram:
         orchestrate(obj=self, config=stencil_factory.config.dace_config)
         self.stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
 
-    def __call__(self, out_qty):
+    def __call__(self, out_qty):  # no typehint out_qty on purpose
         self.stencil(out_qty)
+
+
+class MyQuantity(Quantity):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+
+class TypedOrchestratedProgram(NDSLRuntime):
+    def __init__(self, stencil_factory: StencilFactory) -> None:
+        super().__init__(stencil_factory)
+        self._stencil = stencil_factory.from_dims_halo(_stencil, [I_DIM, J_DIM, K_DIM])
+
+    def __call__(self, out_qty: Quantity, qty_custom: MyQuantity) -> None:
+        self._stencil(out_qty)
 
 
 class DSLTypeProgram(NDSLRuntime):
@@ -72,6 +86,38 @@ def test_memory_reallocation_blind_type():
     assert (qty_A.field[0, 0, :] == 3).all()
 
     code(qty_B)
+    assert (qty_A.field[0, 0, :] == 3).all()
+    assert (qty_B.field[0, 0, :] == 2).all()
+
+
+def test_memory_reallocation_quantity_type() -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0
+    )
+    code = TypedOrchestratedProgram(stencil_factory)
+    qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+    _qty_custom = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+
+    qty_custom = MyQuantity(
+        data=_qty_custom.data,
+        dims=_qty_custom.dims,
+        units=_qty_custom.units,
+        backend=_qty_custom.backend,
+        origin=_qty_custom.origin,
+        extent=_qty_custom.extent,
+        allow_mismatch_float_precision=False,
+        number_of_halo_points=_qty_custom._metadata.n_halo,
+    )
+
+    qty_B = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "B")
+
+    code(qty_A, qty_custom)
+    assert (qty_A.field[0, 0, :] == 2).all()
+
+    code(qty_A, qty_custom)
+    assert (qty_A.field[0, 0, :] == 3).all()
+
+    code(qty_B, qty_custom)
     assert (qty_A.field[0, 0, :] == 3).all()
     assert (qty_B.field[0, 0, :] == 2).all()
 

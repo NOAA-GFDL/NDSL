@@ -8,11 +8,12 @@ from typing import Annotated
 from ndsl.comm.mpi import MPI
 
 
-# Python log levels are hierarchical, therefore setting INFO
-# means DEBUG and everything lower will be logged.
+# Python log levels are hierarchical. The following dict is sorted by
+# severity. Setting the log level to "info" means that "info" and everything
+# more severe (e.g. "warning") will be logged.
 AVAILABLE_LOG_LEVELS = {
-    "info": logging.INFO,
     "debug": logging.DEBUG,
+    "info": logging.INFO,
     "warning": logging.WARNING,
     "error": logging.ERROR,
     "critical": logging.CRITICAL,
