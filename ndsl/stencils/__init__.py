@@ -24,6 +24,7 @@ from .basic_operations_2d import (
     subtract_2d,
     subtract_from_self_2d,
 )
+from .column_operations import column_max, column_max_ddim, column_min, column_min_ddim
 from .corners import FillCornersBGrid
 
 
@@ -51,4 +52,8 @@ __all__ = [
     "subtract_2d",
     "subtract_from_self_2d",
     "set_boolean_value_2d",
+    "column_max",
+    "column_max_ddim",
+    "column_min",
+    "column_min_ddim",
 ]
