@@ -1,5 +1,3 @@
-from typing import TypeAlias
-
 import dace
 import pytest
 from dace import nodes
@@ -13,6 +11,7 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree.optimizations import Factories
 
 
 def stencil(in_field: FloatField, out_field: FloatField) -> None:
@@ -128,9 +127,6 @@ class OrchestratedCode:
         self.stencil(in_field, out_field)
         for _ in dace.nounroll(range(2)):
             self.stencil(in_field, out_field)
-
-
-Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
 
 
 class TestStreeMergeMapsIJK:

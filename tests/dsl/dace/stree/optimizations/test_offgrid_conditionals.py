@@ -1,20 +1,12 @@
-from typing import TypeAlias
-
 import pytest
 from dace import nodes
 
-from ndsl import (
-    Backend,
-    NDSLRuntime,
-    QuantityFactory,
-    StencilFactory,
-    orchestrate,
-    stencils,
-)
+from ndsl import Backend, NDSLRuntime, StencilFactory, orchestrate, stencils
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree.optimizations import Factories
 
 
 class OrchestratedCode(NDSLRuntime):
@@ -66,12 +58,9 @@ class OrchestratedCode(NDSLRuntime):
         self._copy_stencil(in_field, out_field)
 
 
-Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
-
-
 class TestStreeInlineOffgridConditionals:
     @pytest.fixture(params=["orch:dace:cpu:IJK", "orch:dace:cpu:KJI"])
-    def factories(self, request) -> Factories:
+    def factories(self, request: pytest.FixtureRequest) -> Factories:
         domain = (3, 3, 4)
         return get_factories_single_tile(
             domain[0], domain[1], domain[2], 0, backend=Backend(request.param)

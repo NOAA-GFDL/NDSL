@@ -1,10 +1,8 @@
-from typing import TypeAlias
-
 import pytest
 from dace import nodes
 from dace.sdfg.state import LoopRegion
 
-from ndsl import QuantityFactory, StencilFactory, orchestrate
+from ndsl import StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
@@ -18,6 +16,7 @@ from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.stencils import copy
 from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree.optimizations import Factories
 
 
 def stencil_simple_2D_write(in_field: FloatField, out_fieldIJ: FloatFieldIJ) -> None:
@@ -114,12 +113,9 @@ class OrchestratedCode:
         self.stencil_multiple_2D_write(in_field, out_field, out_field2)
 
 
-Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
-
-
 class TestStree2DWriteInline:
     @pytest.fixture(params=["orch:dace:cpu:IJK", "orch:dace:cpu:KJI"])
-    def factories(self, request) -> Factories:
+    def factories(self, request: pytest.FixtureRequest) -> Factories:
 
         domain = (3, 3, 4)
         return get_factories_single_tile(
