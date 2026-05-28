@@ -68,7 +68,7 @@ def communicator_list(cube_partitioner, total_ranks):
 
 
 @pytest.fixture
-def rank_quantity_list(total_ranks, numpy, dtype, units=units):
+def rank_quantity_list(total_ranks, numpy, dtype, units):
     """
     Quantities whose values are equal to the rank
     """
@@ -136,7 +136,7 @@ def test_correct_ranks_are_synchronized_with_no_halos(
 
 
 @pytest.fixture
-def counting_quantity_list(total_ranks, numpy, dtype, units=units):
+def counting_quantity_list(total_ranks, numpy, dtype, units):
     """
     A list of quantities whose entries increase sequentially in memory,
     with y values starting at 36 and x values starting at 0.
