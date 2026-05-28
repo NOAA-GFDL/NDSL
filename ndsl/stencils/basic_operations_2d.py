@@ -1,10 +1,5 @@
 from ndsl.dsl.gt4py import FORWARD, computation, interval
-from ndsl.dsl.typing import (
-    Bool,
-    BoolFieldIJ,
-    Float,
-    FloatFieldIJ,
-)
+from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ
 
 
 def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:

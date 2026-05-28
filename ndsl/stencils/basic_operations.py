@@ -1,10 +1,5 @@
-from ndsl.dsl.gt4py import FORWARD, K, PARALLEL, computation, interval
-from ndsl.dsl.typing import (
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    IntFieldIJ,
-)
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntFieldIJ
 
 
 def copy(input: FloatField, output: FloatField) -> None:

@@ -19,6 +19,7 @@ from .basic_operations_2d import (
     divide_self_2d,
     multiply_2d,
     multiply_to_self_2d,
+    set_boolean_value_2d,
     set_value_2d,
     subtract_2d,
     subtract_from_self_2d,
@@ -49,4 +50,5 @@ __all__ = [
     "set_value_2d",
     "subtract_2d",
     "subtract_from_self_2d",
+    "set_boolean_value_2d",
 ]
