@@ -7,8 +7,6 @@ from ndsl.stencils import (
     add_2d,
     add_to_self,
     add_to_self_2d,
-    adjust_divide_stencil,
-    adjustmentfactor_stencil,
     copy,
     copy_2d,
     divide,
@@ -188,24 +186,6 @@ class Divide(NDSLRuntime):
         self._divide_self_2d_stencil(f_in_3_2d, f_in_4_2d)
 
 
-class AdjustmentFactor(NDSLRuntime):
-    def __init__(self, stencil_factory: StencilFactory):
-        super().__init__(stencil_factory)
-        grid_indexing = stencil_factory.grid_indexing
-        self._adjustmentfactor_stencil = stencil_factory.from_origin_domain(
-            adjustmentfactor_stencil,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
-
-    def __call__(
-        self,
-        factor: FloatFieldIJ,
-        f_out: FloatField,
-    ):
-        self._adjustmentfactor_stencil(factor, f_out)
-
-
 class SetValue(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory):
         super().__init__(stencil_factory)
@@ -222,24 +202,6 @@ class SetValue(NDSLRuntime):
         value: Float,
     ):
         self._set_value_stencil(f_out, value)
-
-
-class AdjustDivide(NDSLRuntime):
-    def __init__(self, stencil_factory: StencilFactory):
-        super().__init__(stencil_factory)
-        grid_indexing = stencil_factory.grid_indexing
-        self._adjust_divide_stencil = stencil_factory.from_origin_domain(
-            adjust_divide_stencil,
-            origin=grid_indexing.origin_compute(),
-            domain=grid_indexing.domain_compute(),
-        )
-
-    def __call__(
-        self,
-        factor: FloatField,
-        f_out: FloatField,
-    ):
-        self._adjust_divide_stencil(factor, f_out)
 
 
 def test_copy():
@@ -431,19 +393,6 @@ def test_divide():
     assert (infield_3_2d.field == (value_1 / value_2)).all()
 
 
-def test_adjustment_factor():
-    stencil_factory, quantity_factory = get_factories_single_tile(
-        nx=20, ny=20, nz=79, nhalo=0
-    )
-
-    factor = quantity_factory.full(dims=[I_DIM, J_DIM], units="m", value=2.0)
-    outfield = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
-
-    stencil = AdjustmentFactor(stencil_factory)
-    stencil(factor=factor, f_out=outfield)
-    assert (outfield.field == 4.0).all()
-
-
 def test_setvalue():
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=20, ny=20, nz=79, nhalo=0
@@ -459,17 +408,3 @@ def test_setvalue():
     stencil(f_out=outfield, value=fill_value)
 
     assert (outfield.field == fill_value).all()
-
-
-def test_adjust_divide():
-    stencil_factory, quantity_factory = get_factories_single_tile(
-        nx=20, ny=20, nz=79, nhalo=0
-    )
-
-    factor = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
-    outfield = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="m", value=2.0)
-
-    stencil = AdjustDivide(stencil_factory)
-    stencil(factor=factor, f_out=outfield)
-
-    assert (outfield.field == 1.0).all()
