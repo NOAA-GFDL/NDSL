@@ -469,7 +469,7 @@ def _report_results(
     os.makedirs(detail_dir, exist_ok=True)
 
     # Summary
-    header = f"{savepoint_name} w/ f{backend.as_humanly_readable()}"
+    header = f"{savepoint_name} w/ {backend.as_humanly_readable()}"
     lines = []
     for varname, metric in results.items():
         lines.append(f"{varname}: {metric.one_line_report()}")
