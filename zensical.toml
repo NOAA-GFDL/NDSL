@@ -60,6 +60,7 @@ nav = [
       ]},
       { "GEOS-FP" = [
           { "GFDL1M Microphysics" = "ndsl_in_action/GEOS-FP_results/early_microphys.md" },
+          { "GF2020 Deep Convection" = "ndsl_in_action/GEOS-FP_results/early_gf2020.md" },
           { "UW Shallow Convection" = "ndsl_in_action/GEOS-FP_results/early_uw.md" },
           { "Summary" = "ndsl_in_action/GEOS-FP_results/summary.md" }
       ]},

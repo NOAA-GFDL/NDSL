@@ -1,18 +1,18 @@
 
 <h1 style="color:#185FA5;">
-GFDL1M Microphysics
+GF2020 Deep Convection
 </h1>
 
 !!! abstract ""
     [Back to GEOS-FP results summary](summary.md)
 
-This page showcases results from the NDSL port of GFDL Single Moment Microphysics (GFDL1M). The work was concluded in June 2026 with validation on performance backends and early pre-optimization benchmarks.
+This page showcases results from the NDSL port of GF2020 Deep Convection Scheme (GF2020). The work was concluded in June 2026 with validation on performance backends and early pre-optimization benchmarks.
 
 <h2 style="color:#185FA5;">
 Validation
 </h2>
 
-Validation was performed by comparing NDSL simulations against the reference Fortran implementation using 7-day GEOS-FP integrations at C180, C360, and C720 horizontal resolutions. For this analysis, only the GFDL1M microphysics scheme was replaced with its NDSL implementation, while all other model components remained in their original Fortran form.
+Validation was performed by comparing NDSL simulations against the reference Fortran implementation using 7-day GEOS-FP integrations at C180, C360, and C720 horizontal resolutions. For this analysis, only the GF2020 deep convection scheme was replaced with its NDSL implementation, while all other model components remained in their original Fortran form.
 
 <h3 style="color:#185FA5;">
 Histograms of Diagnostic Variables
@@ -21,10 +21,10 @@ Histograms of Diagnostic Variables
 Histograms of differences between the Fortran and NDSL simulations for temperature, relative humidity, zonal wind, and meridional wind after 7 days. The distributions are centered near zero, indicating strong agreement between the two model implementations.
 
 === "C48 CPU"
-    ![Histogram](../../img/hist_gfdl1m_dace_cpu_C48_v_Fortran__sfc.png)
+    ![Histogram](../../img/hist_gf2020_dace_cpu_C48_v_Fortran__sfc.png)
 
 === "C48 GPU"
-    ![Histogram](../../img/hist_gfdl1m_dace_cpu_C48_v_Fortran__sfc.png)
+    ![Histogram](../../img/hist_gf2020_dace_cpu_C48_v_Fortran__sfc.png)
 
 <h3 style="color:#185FA5;">
 Spatial Distribution of Diagnostic Variables
@@ -33,16 +33,16 @@ Spatial Distribution of Diagnostic Variables
 The figures below compare Fortran vs NDSL after 7 days of integration. The largest differences are concentrated in regions of active weather, particularly near frontal systems and convective activity. In these areas, small shifts in the position or timing of weather features can produce locally large point-by-point differences, even when the overall meteorological structures remain very similar.
 
 === "C48 T"
-    ![Temp](../../img/gcm_T_gfdl1m_c48_l72_7days.png)
+    ![Temp](../../img/gcm_T_gf2020_c48_l72_7days.png)
 
 === "C48 QV"
-    ![QV](../../img/gcm_QV_gfdl1m_c48_l72_7days.png)
+    ![QV](../../img/gcm_QV_gf2020_c48_l72_7days.png)
 
 === "C48 U"
-    ![U](../../img/gcm_U_gfdl1m_c48_l72_7days.png)
+    ![U](../../img/gcm_U_gf2020_c48_l72_7days.png)
 
 === "C48 V"
-    ![V](../../img/gcm_V_gfdl1m_c48_l72_7days.png)
+    ![V](../../img/gcm_V_gf2020_c48_l72_7days.png)
 
 
 <h2 style="color:#185FA5;">
