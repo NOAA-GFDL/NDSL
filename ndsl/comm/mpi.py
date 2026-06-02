@@ -14,6 +14,9 @@ from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
 T = TypeVar("T")
 
+UNDEFINED = MPI.UNDEFINED
+DOUBLE = MPI.DOUBLE
+
 
 class MPIComm(Comm):
     _op_mapping: dict[ReductionOperator, MPI.Op] = {
