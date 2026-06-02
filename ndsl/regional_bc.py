@@ -15,7 +15,6 @@ class RegionalBoundaryConditions:
     comm: Communicator
     root_pe: int
     color: int
-    recv_buf: np.NDArray
     is_root: bool = False
 
     def __init__(self, file: Path, locale: str, comm: Communicator):
@@ -56,4 +55,4 @@ class RegionalBoundaryConditions:
       self.to_netcdf(bc_file_name)
 
     def scatter_bcs(self):
-       pass
+       
