@@ -166,8 +166,8 @@ class DaceConfig:
         Args:
             communicator: used for setting the distributed caches
             backend: string for the backend
-            tile_nx: x/y domain size for a single time
-            tile_nz: z domain size for a single time
+            tile_nx: x/y domain size for a single tile
+            tile_nz: z domain size for a single tile
             orchestration: orchestration mode from DaCeOrchestration
             time: trigger performance collection, available to user with
                 `performance_collector`
@@ -412,4 +412,11 @@ class DaceConfig:
         config.rank_size = data["rank_size"]
         config.layout = data["layout"]
         config.tile_resolution = data["tile_resolution"]
-        return config
+        # TODO
+        # Computed properties like `self.code_path` and `self.do_compile`
+        # aren't updated.
+        # We also don't `set_distributed_caches()` based on that updated
+        # information.
+        raise NotImplementedError(
+            "Implementation of `DaceConfig.from_dict()` is incomplete."
+        )
