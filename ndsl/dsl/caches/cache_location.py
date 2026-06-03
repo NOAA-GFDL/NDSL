@@ -7,46 +7,48 @@ def identify_code_path(
     partitioner: Partitioner,
     single_code_path: bool,
 ) -> FV3CodePath:
-    """Determine which code path your rank will hit.
+    """
+    Determine which code path your rank will hit.
 
-    If single_code_path is True, single_code_path is True,
-    only one code path exists (case of doubly periodic grid).
+    If single_code_path is True, only one code path exists,
+    e.g. in case of a doubly periodic grid.
     If single_code_path is False, we are in the case of the
-    cube-sphere and we will look at our position on the tile."""
+    cube-sphere and we will look at our position on the tile.
+    """
 
     # Doubly-periodic or single tile grid
-    if single_code_path:
+    if single_code_path or partitioner.layout == (1, 1):
         return FV3CodePath.All
 
     # Cube-sphere
-    if partitioner.layout == (1, 1):
-        return FV3CodePath.All
-    elif partitioner.layout[0] == 1 or partitioner.layout[1] == 1:
+    if partitioner.layout[0] <= 1 or partitioner.layout[1] <= 1:
         raise NotImplementedError(
-            f"Build for layout {partitioner.layout} is not handled"
+            f"Build for layout {partitioner.layout} is not handled."
         )
-    else:
-        if partitioner.tile.on_tile_bottom(rank):
-            if partitioner.tile.on_tile_left(rank):
-                return FV3CodePath.BottomLeft
-            if partitioner.tile.on_tile_right(rank):
-                return FV3CodePath.BottomRight
-            else:
-                return FV3CodePath.Bottom
-        if partitioner.tile.on_tile_top(rank):
-            if partitioner.tile.on_tile_left(rank):
-                return FV3CodePath.TopLeft
-            if partitioner.tile.on_tile_right(rank):
-                return FV3CodePath.TopRight
-            else:
-                return FV3CodePath.Top
-        else:
-            if partitioner.tile.on_tile_left(rank):
-                return FV3CodePath.Left
-            if partitioner.tile.on_tile_right(rank):
-                return FV3CodePath.Right
-            else:
-                return FV3CodePath.Center
+
+    # Bottom row
+    if partitioner.tile.on_tile_bottom(rank):
+        if partitioner.tile.on_tile_left(rank):
+            return FV3CodePath.BottomLeft
+        if partitioner.tile.on_tile_right(rank):
+            return FV3CodePath.BottomRight
+        return FV3CodePath.Bottom
+
+    # Top row
+    if partitioner.tile.on_tile_top(rank):
+        if partitioner.tile.on_tile_left(rank):
+            return FV3CodePath.TopLeft
+        if partitioner.tile.on_tile_right(rank):
+            return FV3CodePath.TopRight
+        return FV3CodePath.Top
+
+    # Left & right column with corners already handled
+    if partitioner.tile.on_tile_left(rank):
+        return FV3CodePath.Left
+    if partitioner.tile.on_tile_right(rank):
+        return FV3CodePath.Right
+
+    return FV3CodePath.Center
 
 
 def get_cache_fullpath(code_path: FV3CodePath) -> str:
