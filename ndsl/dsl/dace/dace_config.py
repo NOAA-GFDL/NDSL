@@ -181,16 +181,10 @@ class DaceConfig:
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
         self.loaded_dace_executables: DaceExecutables = {}
-        self.performance_collector = (
-            PerformanceCollector(
-                "InternalOrchestrationTimer",
-                comm=(
-                    LocalComm(0, 6, {}) if communicator is None else communicator.comm
-                ),
-            )
-            if time
-            else NullPerformanceCollector()
-        )
+        if not time:
+            self.performance_collector = NullPerformanceCollector()
+        else:
+            self.set_timer(communicator.comm if communicator else None)
 
         # Temporary. This is a bit too out of the ordinary for the common user.
         # We should refactor the architecture to allow for a `gtc:orchestrated:dace:X`
@@ -264,11 +258,12 @@ class DaceConfig:
             march_option = "-mcpu=native" if is_arm_neoverse else "-march=native"
             # Removed --fast-math
             gpu_config = gpu_configuration(GT4PY_COMPILE_OPT_LEVEL)
+            gpu_cflags = " ".join(gpu_config.gpu_compile_flags).strip()
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_config.gpu_compile_flags}",
+                value=f"-std=c++14 -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_cflags}",
             )
 
             cuda_sm = cp.cuda.Device(0).compute_capability if cp else 60
@@ -419,4 +414,13 @@ class DaceConfig:
         # information.
         raise NotImplementedError(
             "Implementation of `DaceConfig.from_dict()` is incomplete."
+        )
+
+    def set_timer(self, comm):
+        """Set timer on configuration externally"""
+        # TODO: this absolutely should not be a on a Configuration object
+        #      and even less setup outside. Madness, we have lost our ways...
+        self.performance_collector = PerformanceCollector(
+            "InternalOrchestrationTimer",
+            comm=(LocalComm(0, 6, {}) if comm is None else comm),
         )
