@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import logging
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
@@ -9,7 +10,7 @@ import dace.config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
 
-from ndsl import LocalComm
+from ndsl import LocalComm, ndsl_log
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
@@ -244,11 +245,12 @@ class DaceConfig:
             march_cpu = "armv8-a" if is_arm_neoverse else "native"
             # Removed --fmath
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
+            warnings_policy = "-Wall" if ndsl_log.level <= logging.WARNING else "-w"
             dace.config.Config.set(
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-march={march_cpu} -std=c++17 -fPIC -Wall -Wextra -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
+                value=f"-march={march_cpu} -std=c++17 -fPIC {warnings_policy} -Wextra -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -268,7 +270,7 @@ class DaceConfig:
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_config.gpu_compile_flags}",
+                value=f"-std=c++14 {warnings_policy} -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_config.gpu_compile_flags}",
             )
 
             cuda_sm = cp.cuda.Device(0).compute_capability if cp else 60
