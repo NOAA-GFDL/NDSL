@@ -89,7 +89,7 @@ def _ndsl_logger_on_rank_0() -> logging.Logger:
         formatter = logging.Formatter(
             fmt=(
                 f"%(asctime)s|%(levelname)s|rank {MPI.COMM_WORLD.Get_rank()}|"
-                "%(name)s:%(message)s"
+                ": %(message)s"
             ),
             datefmt="%Y-%m-%d %H:%M:%S",
         )
@@ -103,6 +103,7 @@ def _ndsl_logger_on_rank_0() -> logging.Logger:
 ndsl_log: Annotated[logging.Logger, "NDSL Python logger, logs on all rank"] = (
     _ndsl_logger()
 )
+ndsl_log.info(f"Log level: {_get_log_level()}")
 
 ndsl_log_on_rank_0: Annotated[
     logging.Logger, "NDSL Python logger, logs on rank 0 only"
