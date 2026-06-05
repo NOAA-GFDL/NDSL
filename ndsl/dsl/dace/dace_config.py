@@ -10,6 +10,7 @@ from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
 
 from ndsl import LocalComm
+from ndsl.comm import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
@@ -17,7 +18,11 @@ from ndsl.dsl import NDSL_GLOBAL_PRECISION
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.optional_imports import cupy as cp
-from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
+from ndsl.performance.collector import (
+    AbstractPerformanceCollector,
+    NullPerformanceCollector,
+    PerformanceCollector,
+)
 
 
 if TYPE_CHECKING:
@@ -182,7 +187,9 @@ class DaceConfig:
         #       with this. Should be refactored into a DaceExecutor carrying a config
         self.loaded_dace_executables: DaceExecutables = {}
         if not time:
-            self.performance_collector = NullPerformanceCollector()
+            self.performance_collector: AbstractPerformanceCollector = (
+                NullPerformanceCollector()
+            )
         else:
             self.set_timer(communicator.comm if communicator else None)
 
@@ -416,7 +423,7 @@ class DaceConfig:
             "Implementation of `DaceConfig.from_dict()` is incomplete."
         )
 
-    def set_timer(self, comm):
+    def set_timer(self, comm: Comm | None) -> None:
         """Set timer on configuration externally"""
         # TODO: this absolutely should not be a on a Configuration object
         #      and even less setup outside. Madness, we have lost our ways...
