@@ -1,5 +1,4 @@
 # Literal precision for both GT4Py & NDSL
-import logging
 import os
 import sys
 from typing import Literal
@@ -62,6 +61,7 @@ if not any([name.startswith("dace") for name in gt_backend.REGISTRY.names]):
 ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")
 
 # We remove warnings from the compiler for higher level of logging
-if ndsl_log.level > logging.WARNING:
+NDSL_COMPILER_SILENCE = os.getenv("NDSL_COMPILER_SILENCE", "False").lower() == "true"
+if NDSL_COMPILER_SILENCE:
     gt4py.cartesian.config.build_settings["extra_compile_args"]["cxx"].append("-w")
     gt4py.cartesian.config.build_settings["extra_compile_args"]["cuda"].append("-w")

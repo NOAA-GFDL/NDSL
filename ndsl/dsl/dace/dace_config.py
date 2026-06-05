@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import enum
-import logging
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
@@ -10,11 +9,11 @@ import dace.config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
 
-from ndsl import LocalComm, ndsl_log
+from ndsl import LocalComm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
-from ndsl.dsl import NDSL_GLOBAL_PRECISION
+from ndsl.dsl import NDSL_COMPILER_SILENCE, NDSL_GLOBAL_PRECISION
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
 from ndsl.optional_imports import cupy as cp
@@ -245,7 +244,7 @@ class DaceConfig:
             march_cpu = "armv8-a" if is_arm_neoverse else "native"
             # Removed --fmath
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
-            warnings_policy = "-Wall" if ndsl_log.level <= logging.WARNING else "-w"
+            warnings_policy = "-Wall" if NDSL_COMPILER_SILENCE else "-w"
             dace.config.Config.set(
                 "compiler",
                 "cpu",
