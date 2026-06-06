@@ -244,7 +244,7 @@ class DaceConfig:
             march_cpu = "armv8-a" if is_arm_neoverse else "native"
             # Removed --fmath
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
-            warnings_policy = "-Wall" if NDSL_COMPILER_SILENCE else "-w"
+            warnings_policy = "-w" if NDSL_COMPILER_SILENCE else "-Wall"
             dace.config.Config.set(
                 "compiler",
                 "cpu",

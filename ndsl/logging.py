@@ -36,10 +36,7 @@ class LogLowerLevelsOnRankZeroOnly(logging.Filter):
         if record.levelno >= logging.ERROR:
             return True
 
-        if rank == 0:
-            return True
-
-        return False
+        return rank == 0
 
 
 def _get_log_level(default: str = "info") -> str:
