@@ -33,6 +33,7 @@ from ndsl.dsl.dace.dace_config import (
     DaCeOrchestration,
 )
 from ndsl.dsl.dace.dace_executable import DaceExecutable
+from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.dsl.dace.labeler import set_label
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
@@ -248,43 +249,52 @@ def _build_sdfg(
                     )
                 sdfg.apply_transformations_repeated(MapCollapse)
 
-        # Make the transients array persistents
+        with DaCeProgress(config, "Make transient persistents"):
+            # Make the transients array persistents
+            if config.is_gpu_backend():
+                # TODO
+                # The following should happen on the stree level
+                _to_gpu(sdfg)
+                make_transients_persistent(sdfg=sdfg, device=device_type)
+
+                # Upload args to device
+                _upload_to_device(list(args) + list(kwargs.values()))
+            else:
+                # TODO
+                # The following should happen on the stree level
+                for _sd, _aname, arr in sdfg.arrays_recursive():
+                    if arr.shape == (1,):
+                        arr.storage = DaceStorageType.Register
+                make_transients_persistent(sdfg=sdfg, device=device_type)
+
         if config.is_gpu_backend():
-            # TODO
-            # The following should happen on the stree level
-            _to_gpu(sdfg)
-
-            sdfg.apply_gpu_transformations()
-
-            make_transients_persistent(sdfg=sdfg, device=device_type)
-
-            # Upload args to device
-            _upload_to_device(list(args) + list(kwargs.values()))
+            with DaCeProgress(config, "Apply GPU transformations"):
+                # Set block size on GPU maps
+                gpu_defaults = get_gpu_hardware_defaults()
+                for me, _state in sdfg.all_nodes_recursive():
+                    if (
+                        isinstance(me, nodes.MapEntry)
+                        and me.map.schedule == ScheduleType.GPU_Device
+                    ):
+                        if me.map.gpu_block_size is None:
+                            me.map.gpu_block_size = gpu_defaults.block_size
+                # Apply common GPU transforms (includes a simplify)
+                sdfg.apply_gpu_transformations()
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(
+                            f"{sdfg.build_folder}/05-apply_gpu_xforms.sdfgz"
+                        ),
+                        compress=True,
+                    )
         else:
-            # TODO
-            # The following should happen on the stree level
-            for _sd, _aname, arr in sdfg.arrays_recursive():
-                if arr.shape == (1,):
-                    arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=sdfg, device=device_type)
-
-        # Build non-constants & non-transients from the sdfg_kwargs
-        sdfg_kwargs = dace_program._create_sdfg_args(sdfg, args, kwargs)
-        for k in dace_program.constant_args:
-            if k in sdfg_kwargs:
-                del sdfg_kwargs[k]
-        sdfg_kwargs = {k: v for k, v in sdfg_kwargs.items() if v is not None}
-        for k, tup in dace_program.resolver.closure_arrays.items():
-            if k in sdfg_kwargs and tup[1].transient:
-                del sdfg_kwargs[k]
-
-        with DaCeProgress(config, "Simplify (2)"):
-            _simplify(sdfg)
-            if config.verbose_orchestration:
-                sdfg.save(
-                    os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
-                    compress=True,
-                )
+            with DaCeProgress(config, "Simplify (2)"):
+                _simplify(sdfg)
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
+                        compress=True,
+                    )
         # Move all memory that can be into a pool to lower memory pressure for GPU
         # We skip this memory optimization for CPU because we don't have a memory
         # pool available yet (DaCe v1)
@@ -313,7 +323,12 @@ def _build_sdfg(
 
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
-            sdfg.compile()
+            compiled_sdfg = sdfg.compile()
+            config.loaded_dace_executables[dace_program] = DaceExecutable(
+                compiled_sdfg=compiled_sdfg,
+                arguments={},
+                arguments_hash=0,
+            )
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):
@@ -352,18 +367,21 @@ def _build_sdfg(
             )
         MPI.COMM_WORLD.Barrier()
 
-        with DaCeProgress(config, "Loading"):
-            sdfg_path = get_sdfg_path(dace_program.name, config, override_run_only=True)
-            if sdfg_path is None:
-                raise ValueError("Couldn't load SDFG post build")
-            compiledSDFG, _ = dace_program.load_precompiled_sdfg(
-                sdfg_path, *args, **kwargs
-            )
-            config.loaded_dace_executables[dace_program] = DaceExecutable(
-                compiled_sdfg=compiledSDFG,
-                arguments={},
-                arguments_hash=0,
-            )
+        if not is_compiling:
+            with DaCeProgress(config, "Loading"):
+                sdfg_path = get_sdfg_path(
+                    dace_program.name, config, override_run_only=True
+                )
+                if sdfg_path is None:
+                    raise ValueError("Couldn't load SDFG post build")
+                compiledSDFG, _ = dace_program.load_precompiled_sdfg(
+                    sdfg_path, *args, **kwargs
+                )
+                config.loaded_dace_executables[dace_program] = DaceExecutable(
+                    compiled_sdfg=compiledSDFG,
+                    arguments={},
+                    arguments_hash=0,
+                )
 
 
 def _call_sdfg(
