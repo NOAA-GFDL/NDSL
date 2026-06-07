@@ -247,7 +247,11 @@ def _build_sdfg(
                         os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
                         compress=True,
                     )
-                sdfg.apply_transformations_repeated(MapCollapse)
+
+        # We want all maps properly collapse to make sure the codegen will see nD parallel
+        # axis as a single kernelizable map
+        with DaCeProgress(config, "Collapse maps"):
+            sdfg.apply_transformations_repeated(MapCollapse)
 
         with DaCeProgress(config, "Make transient persistents"):
             # Make the transients array persistents
