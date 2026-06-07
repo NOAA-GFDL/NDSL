@@ -1,4 +1,5 @@
 # isort:skip_file
+from .internal import hmm
 from . import dsl  # isort:skip
 from .logging import ndsl_log  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
@@ -40,6 +41,7 @@ from .dsl.dace.orchestration import orchestrate, orchestrate_function
 
 
 __all__ = [
+    "hmm",
     "dsl",
     "Backend",
     "CubedSphereCommunicator",
