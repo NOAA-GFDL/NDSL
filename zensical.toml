@@ -48,7 +48,7 @@ extra_javascript = [
   "javascripts/extra.js",
 ]
 
-extra_css        = ["stylesheets/extra.css"]
+extra_css = ["stylesheets/extra.css"]
 
 nav = [
 
@@ -58,10 +58,12 @@ nav = [
   # ── NDSL in Action ────────────────────────────────────────────────────────
   # Real-world results from running NDSL in GEOS model configurations.
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL in Action" = [
-      { "Overview"      = "pages/ndsl_in_action/overview.md" },
-      { "GEOS-SCM"      = "pages/ndsl_in_action/scm.md" },
-      { "GEOS-FP"       = "pages/ndsl_in_action/geos_fp.md" },
-      { "Benchmarks"    = "pages/ndsl_in_action/benchmarks.md" }
+      { "NDSL In Action" = "pages/ndsl_in_action/ndsl_in_action.md" },
+      { "HIDDEN" = [
+          { "GEOS-SCM"   = "pages/ndsl_in_action/scm.md" },
+          { "GEOS-FP"    = "pages/ndsl_in_action/geos_fp.md" },
+          { "Benchmarks" = "pages/ndsl_in_action/benchmarks.md" }
+      ]}
   ]},
 
   # ── User Manual ───────────────────────────────────────────────────────────

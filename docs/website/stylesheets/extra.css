@@ -12,36 +12,6 @@
   }
 
 /* -----------------------------------------------------------------------------
-   HOMEPAGE-ONLY LAYOUT
-   These rules only apply on pages with the "homepage" body class.
-   ----------------------------------------------------------------------------- */
-
-/* Hide the right-hand table of contents on the homepage */
-/* body.homepage .md-sidebar--secondary {
-  display: none;
-} */
-
-/* Widen the main content grid on the homepage */
-/* body.homepage .md-grid {
-  max-width: 1500px;
-} */
-
-/* body.homepage .md-content__inner {
-  max-width: 1200px;
-  margin: 0 auto;
-} */
-
-/* Shrink the left sidebar on the homepage — desktop only.
-   On mobile the sidebar becomes the nav drawer, so we leave it full-width
-   there to avoid clipping the drawer contents. */
-/* @media screen and (min-width: 76.25em) {
-  body.homepage .md-sidebar--primary {
-    width: 140px;
-  }
-} */
-
-
-/* -----------------------------------------------------------------------------
    INDEX PAGE — attr_list heading class
    ----------------------------------------------------------------------------- */
 
@@ -334,10 +304,6 @@
    SIDEBAR / NAVIGATION
    ----------------------------------------------------------------------------- */
 
-.md-nav__link {
-  color: var(--custom_dark_grey);
-}
-
 .md-nav__link:hover {
   color: var(--custom_blue);
 }
@@ -351,6 +317,16 @@
 .md-nav__title {
   color: var(--custom_blue);
   font-size: x-large; /* NOTE this is not doing anything right now, need to solve */
+}
+
+/* Zensical cannot have groups without a name, so group name "HIDDEN" can be used anywhere and will always be... hidden :) */
+.md-nav__item--section > label[for]:has(+ .md-nav) {
+  display: none;
+}
+
+/* Hide the "On This Page" section */
+.md-sidebar--secondary {
+  display: none !important;
 }
 
 
