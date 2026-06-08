@@ -6,7 +6,6 @@ Our NDSL port of GEOS has been evaluated through numerical verification, scienti
 
 <div class="app-grid" markdown>
 <div class="app-card" markdown>
-<span class="badge">Verification</span>
 
 ## Numerical Validation
 
@@ -18,7 +17,6 @@ Numerical checks were performed to verify agreement between NDSL-generated code 
 </div>
 
 <div class="app-card" markdown>
-<span class="badge">Validation</span>
 
 ## Scientific Validation
 
@@ -30,7 +28,6 @@ NDSL-enabled GEOS simulations were compared against reference simulations to val
 </div>
 
 <div class="app-card" markdown>
-<span class="badge">Benchmarking</span>
 
 ## Performance Benchmarking
 

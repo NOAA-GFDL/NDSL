@@ -1,8 +1,7 @@
 /* =============================================================================
-   NDSL Documentation — extra.css
-   Custom styles applied on top of the Zensical/Material base theme.
-   Organized by: Homepage overrides → Typography → Navigation → Header → Search
-   ============================================================================= */
+NDSL Documentation — extra.css
+Custom styles applied on top of the Zensical/Material base theme.
+============================================================================= */
 
   :root{
     --custom_blue: #185FA5;
@@ -12,8 +11,8 @@
   }
 
 /* -----------------------------------------------------------------------------
-   INDEX PAGE — attr_list heading class
-   ----------------------------------------------------------------------------- */
+Special formatting for "page-title" class
+----------------------------------------------------------------------------- */
 
 /* Applied via { .page-title } attr_list syntax on the h1 in index.md */
 .page-title {
@@ -25,7 +24,11 @@
   line-height: 1.1 !important;
 }
 
-/* pymdownx.tabbed tabs rendered inside .code-card */
+/* -----------------------------------------------------------------------------
+Special formatting for "code-card" class
+----------------------------------------------------------------------------- */
+
+/* remove dead space above panel names */
 .code-card .tabbed-set {
   margin: 0;
 }
@@ -33,42 +36,25 @@
 .code-card .tabbed-labels > label {
   flex: 1;
   text-align: center;
-  padding: 7px;
-  font-size: 12px;
-  color: var(--md-default-fg-color--light);
-  border-bottom: 2px solid transparent;
-}
-
-.code-card .tabbed-labels > label:hover {
-  color: var(--custom_blue);
-}
-
-.code-card .tabbed-set > input:checked + label {
-  color: var(--custom_blue);
-  border-bottom-color: var(--custom_blue);
-  font-weight: 500;
+  font-size: 16px;
 }
 
 .code-card .tabbed-content {
   padding: 0.9rem;
 }
 
-.code-card .tabbed-content pre {
-  margin: 0;
+.code-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  background: var(--md-code-bg-color);
+  overflow: hidden;
+  margin-bottom: 1rem;
 }
 
 /* -----------------------------------------------------------------------------
    SHARED CARD COMPONENTS
    Used across multiple pages — homepage, ndsl_in_action, etc.
    ----------------------------------------------------------------------------- */
-
-.dsl-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-}
 
 .section-card {
   border: 1px solid var(--md-typeset-table-color);
@@ -77,11 +63,6 @@
   background: var(--md-code-bg-color);
   margin-bottom: 0.9rem;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.section-card:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-  transform: translateY(-1px);
 }
 
 .app-card {
@@ -93,27 +74,6 @@
   flex-direction: column;
   justify-content: space-between;
   transition: 0.2s;
-}
-
-.app-card:hover {
-  border-color: var(--custom_blue);
-}
-
-.code-card {
-  border: 1px solid var(--md-typeset-table-color);
-  border-radius: 14px;
-  background: var(--md-code-bg-color);
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.code-header {
-  padding: 0.6rem 1rem;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9ca3af;
-  border-bottom: 1px solid var(--md-typeset-table-color);
 }
 
 .tab-bar {
@@ -319,83 +279,19 @@
   font-size: x-large; /* NOTE this is not doing anything right now, need to solve */
 }
 
-/* Zensical cannot have groups without a name, so group name "HIDDEN" can be used anywhere and will always be... hidden :) */
-.md-nav__item--section > label[for]:has(+ .md-nav) {
-  display: none;
-}
+/* hide all side navigation bar subgroup names */
 
-/* Hide the "On This Page" section */
+/* Hide the "On This Page" section everywhere */
 .md-sidebar--secondary {
   display: none !important;
 }
 
-
 /* -----------------------------------------------------------------------------
-   HEADER
-   ----------------------------------------------------------------------------- */
-
-/* 1. Make the container header area relative so the link stays inside it */
-.md-header__title {
-  position: relative;
-}
-
-/* 2. Stretch the existing logo anchor tag over the title text */
-.md-header__button.md-logo::after {
-  display: none; /* hide logo */
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1; /* Places the invisible link box over the header text */
-}
-
-/* 3. Ensure the cursor displays a hand pointer over the text */
-
-.md-header__topic,
-.md-header__ellipsis {
-  cursor: pointer;
+HEADER
+----------------------------------------------------------------------------- */
+.md-header__topic span.md-ellipsis {
   color: var(--custom_blue);
   font-weight: 600;
-  font-size: 1.55rem;
-  margin-left: 50px;
-}
-
-/* Softly dim the title text on hover to signal interactivity */
-.md-header__title:hover {
-  opacity: 0.85;
-}
-
-/* GitHub source link */
-.md-header__source,
-.md-header__source a,
-.md-source,
-.md-source__repository {
-  color: var(--custom_light_grey);
-}
-
-.md-header__source a:hover,
-.md-source:hover,
-.md-source__repository:hover {
-  color: var(--custom_blue);
-}
-
-
-/* -----------------------------------------------------------------------------
-   SEARCH
-   ----------------------------------------------------------------------------- */
-
-.md-search__input,
-.md-search__input::placeholder {
-  color: var(--custom_light_grey);
-}
-
-.md-search__icon {
-  color: var(--custom_light_grey);
-}
-
-.md-search__form {
-  background: var(--custom_white);
-  border-radius: 10px;
+  font-size: 2rem;
+  margin-left: 100px;
 }

@@ -1,4 +1,12 @@
-<div class="dsl-page" markdown>
+<style>
+  /* disable the nav bar only on the homepage */
+  /* this stype block must remain on this page so that other pages are not effected */
+  .md-sidebar--primary {
+  display: none !important;
+  }
+</style>
+
+<div markdown>
 
 <div style="margin-bottom: 1.2rem;" markdown>
 
@@ -9,28 +17,25 @@ A modern domain-specific language for portable, high-performance atmospheric mod
 </div>
 
 <div class="section-card" markdown>
-<span class="badge">Quickstart</span>
 
 ## Install NDSL
 
 Install the latest version of NDSL with a few commands and start writing code.
 
-[NDSL v2026.03.00 →](./documentation/user_manual/quickstart.md){ .btn }
+[NDSL v2026.03.00 →](./pages/install_ndsl.md){ .btn }
 </div>
 
 <div class="two-col" markdown>
 <div class="section-card" markdown>
-<span class="badge">Learn</span>
 
 ## Getting Started
 
 New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.
 
-[User Manual →](./documentation/user_manual/){ .btn }
+[User Manual →](./pages/user_manual/ndsl_introduction.md){ .btn }
 </div>
 
 <div class="section-card" markdown>
-<span class="badge">Connect</span>
 
 ## Community
 
@@ -41,7 +46,6 @@ Connect with developers, researchers, and contributors working on NDSL and atmos
 </div>
 
 <div class="code-card" markdown>
-<div class="code-header">FORTRAN TO NDSL</div>
 
 === "Fortran"
 
