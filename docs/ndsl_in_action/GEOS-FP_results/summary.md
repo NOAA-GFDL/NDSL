@@ -1,14 +1,9 @@
-
-<h1 style="color:#185FA5;">
-Numerical Validation & Benchmarking
-</h1>
+# Numerical Validation & Benchmarking
 
 !!! bug
     A one-liner of bench & validation results
 
-<h2 style="color:#185FA5;">
-Table of results
-</h2>
+## Table of results
 
 | Science Code               | Numerical Validation(C24) | Scientific Validation(C180) | CPU Benchmark (C180) |   GPU Benchmark (C180) | GPU Benchmark (C720) |
 | ------------               | --------------------      | ---------------------       | -------------        |   -------------        | ---------------      |
@@ -19,16 +14,12 @@ Table of results
 
 C24 resolutions have 72 levels. All other resolutions have 137 levels.
 
-<h2 style="color:#185FA5;">
-Methodology
-</h2>
+## Methodology
 
 !!! bug
     Expand
 
-<h3 style="color:#185FA5;">
-Validation
-</h3>
+### Validation
 
 _Numerical validation:_
 
@@ -48,9 +39,7 @@ Scientific validation is done by comparing the results of 7 days of GEOS runs.
 
 <TODO INSERT EXPLANATION ON METRICS USED RMSE, ETC.>
 
-<h3 style="color:#185FA5;">
-Benchmark
-</h3>
+### Benchmark
 
 Benchmark is done both on CPU and GPU at C180 L137. To showcase the difference in device bandwidth, we also run GPU on C720 L137.
 
@@ -58,10 +47,7 @@ Benchmark are done online in GEOS but measure several performance which are all 
 
 <TODO INSERT GRAPH SHOWING GEOS / COMP / F-PY INTERFACE / DATA MANIP / NUMERICS >
 
-
-<h3 style="color:#185FA5;">
-Hardware
-</h3>
+### Hardware
 
 NCCS's Discover A100 partition, referred as **"Discover"**, per node:
 
@@ -74,25 +60,20 @@ NCCS's PRISM GH partition, referred as **"Prism GH"**, per node:
 - GH200: 1x H100 (96 GB HBME3) + 1 Grace (72 cores @ 2GHz- 480 GB LPPDR5) on the same die (released 2023)
 - Dual HDR Infiniband 2x100 Gbps
 
-<h3 style="color:#185FA5;">
-Software stack
-</h3>
+### Software stack
 
 !!! bug
     TODO
 
-<h2 style="color:#185FA5;">
-Data
-</h2>
+## Data
+
 The data used for numerical validation are available on NCCS datashare:
 
 - [Dynamics (Pace)](https://portal.nccs.nasa.gov/datashare/astg/smt/pace-regression-data/)
 - [Dynamics (GEOS v11.4.2)](https://portal.nccs.nasa.gov/datashare/astg/smt/geos-fp/translate/11.5.2/x86_GNU/Dycore/TBC_C24_L72_Debug/)
 - [Moist (GEOS v11.8.1)](https://portal.nccs.nasa.gov/datashare/astg/smt/geos-fp/translate/11.5.2/arm_clang/)
 
-<h2 style="color:#185FA5;">
-Overviews and earlier results
-</h2>
+## Overviews and earlier results
 
 <!-- - [Validation - overview](./validation_overview.md) -->
 - [Benchmark - Overview](../performance_and_benchmarking/benchmark_overview.md)

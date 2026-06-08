@@ -1,201 +1,223 @@
 # ============================================================================
+# zensical.toml — NDSL Documentation Site Configuration
 #
-# The configuration produced by default is meant to highlight the features
-# that Zensical provides and to serve as a starting point for your own
-# projects.
-#
+# Sections in this file:
+#   1. Site Identity       — name, URL, author, copyright
+#   2. Assets & Navigation — JS/CSS assets and nav structure
+#   3. Theme               — fonts, colors, layout features
+#   4. Markdown Extensions — rendering capabilities
+#   5. Plugins             — mkdocstrings (auto API docs)
 # ============================================================================
 
+
+# ----------------------------------------------------------------------------
+# 1. SITE IDENTITY
+# Basic metadata used in the HTML head, browser title bar, and page footer.
+# ----------------------------------------------------------------------------
+
 [project]
-repo_url = "https://github.com/NOAA-GFDL/NDSL" 
-repo_name = "NDSL"
-
-# The site_name is shown in the page header and the browser window title
-#
-# Read more: https://zensical.org/docs/setup/basics/#site_name
-site_name = "NDSL"
-
-# The site_description is included in the HTML head and should contain a
-# meaningful description of the site content for use by search engines.
-#
-# Read more: https://zensical.org/docs/setup/basics/#site_description
-#site_description = "A new project generated from the default template project."
-
-# The site_author attribute. This is used in the HTML head element.
-#
-# Read more: https://zensical.org/docs/setup/basics/#site_author
+repo_url    = "https://github.com/NOAA-GFDL/NDSL"
+repo_name   = "NDSL"
+site_name   = "NDSL"
 site_author = "Software Modernization Team"
+site_url    = "https://www.ndsl_documentation.com/"
+copyright   = "&copy; 2026"
 
-# The site_url is the canonical URL for your site. When building online
-# documentation you should set this.
-# Read more: https://zensical.org/docs/setup/basics/#site_url
-site_url = "https://www.ndsl_documentation.com/"
+# Uncomment to add a site description for search engines:
+#site_description = "NDSL — NOAA Dominance Stencil Library documentation."
 
-# The copyright notice appears in the page footer and can contain an HTML
-# fragment.
+
+# ----------------------------------------------------------------------------
+# 2. ASSETS & NAVIGATION
 #
-# Read more: https://zensical.org/docs/setup/basics/#copyright
-copyright = """
-&copy; 2026 
-"""
-
-# Zensical supports both implicit navigation and explicitly defined navigation.
-# If you decide not to define a navigation here then Zensical will simply
-# derive the navigation structure from the directory structure of your
-# "docs_dir". The definition below demonstrates how a navigation structure
-# can be defined using TOML syntax.
+# extra_css / extra_javascript: additional files loaded on every page.
+# Paths are relative to docs_dir unless they are full URLs.
 #
-# Read more: https://zensical.org/docs/setup/navigation/
-extra_js = [ "https://unpkg.com/lucide@latest",
-             "./docs/js/lucide-init.js" ]
+# nav: defines the top-level tabs and nested sidebar structure. Each entry maps
+# a visible label to either a single .md file or a list of sub-entries. Labels
+# use inline SVG icons powered by the Lucide library loaded below.
+# If nav is removed entirely, Zensical will auto-generate it from your docs
+# folder structure. Read more: https://zensical.org/docs/setup/navigation/
+# ----------------------------------------------------------------------------
 
+# Lucide icon library — required for the SVG icons used in nav labels.
+extra_javascript = [
+  "https://unpkg.com/lucide@latest",
+  "javasctipt/lucide-init.js",
+  "javascripts/extra.js",
+]
+
+extra_css        = ["stylesheets/extra.css"]
 
 nav = [
 
+  # ── Home ──────────────────────────────────────────────────────────────────
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md" },
+
+  # ── NDSL in Action ────────────────────────────────────────────────────────
+  # Real-world results from running NDSL in GEOS model configurations.
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL in Action" = [
-      { "Overview" = "ndsl_in_action/overview.md"},
-      { "GEOS-SCM" = [
-          { "Summary" = "ndsl_in_action/GEOS-SCM_results/scm_results.md" }
+      { "Overview"                   = "ndsl_in_action/overview.md" },
+      { "GEOS-SCM"                   = [
+          { "Summary"                = "ndsl_in_action/GEOS-SCM_results/scm_results.md" }
       ]},
-      { "GEOS-FP" = [
-          { "GFDL1M Microphysics" = "ndsl_in_action/GEOS-FP_results/early_microphys.md" },
+      { "GEOS-FP"                    = [
+          { "GFDL1M Microphysics"    = "ndsl_in_action/GEOS-FP_results/early_microphys.md" },
           { "GF2020 Deep Convection" = "ndsl_in_action/GEOS-FP_results/early_gf2020.md" },
-          { "UW Shallow Convection" = "ndsl_in_action/GEOS-FP_results/early_uw.md" },
-          { "Summary" = "ndsl_in_action/GEOS-FP_results/summary.md" }
+          { "UW Shallow Convection"  = "ndsl_in_action/GEOS-FP_results/early_uw.md" },
+          { "Summary"                = "ndsl_in_action/GEOS-FP_results/summary.md" }
       ]},
       { "Performance & Benchmarking" = "ndsl_in_action/performance_and_benchmarking/benchmark_overview.md" }
   ]},
 
-
+  # ── User Manual ───────────────────────────────────────────────────────────
+  # Step-by-step guide for developers using NDSL.
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
-    { "1. Introduction to NDSL" = "documentation/ndsl_introduction.md" },
-    { "2. Getting Started" = "documentation/user_manual/quickstart.md" },
-    { "3. Data Types and Storage" = "documentation/user_manual/data.md" },
-    { "4. Writing Code with NDSL" = "documentation/user_manual/writing_ndsl_code.md" },
-    { "5. Advanced Features" = "documentation/user_manual/advanced_features.md" },
-    { "6. Backends" = "documentation/user_manual/backends.md" },
-    { "7. Common Patterns" = "documentation/user_manual/common_patterns.md" },
-    { "8. Why Use Classes?" = "documentation/user_manual/why_use_classes.md" },
-    { "9. Best Coding Practices" = "documentation/user_manual/best_coding_practices.md" }
-   ]},
-
-    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
-          { "API Docs" = "api_docs.md" },
-          { "Internal" = "internal/release.md" },
-          { "NDSL Docstrings" = [
-              { "General Info" = "docstrings/index.md" },
-
-              { "Top" = [
-                  { "boilerplate" = "docstrings/top/boilerplate.md" },
-                  { "buffer" = "docstrings/top/buffer.md" },
-                  { "constants" = "docstrings/top/constants.md" },
-                  { "io" = "docstrings/top/io.md" },
-                  { "logging" = "docstrings/top/logging.md" },
-                  { "optional_imports" = "docstrings/top/optional_imports.md" },
-                  { "types" = "docstrings/top/types.md" },
-                  { "typing" = "docstrings/top/typing.md" },
-                  { "utils" = "docstrings/top/utils.md" }
-              ]},
-
-              { "checkpointer" = [
-                  { "base" = "docstrings/checkpointer/base.md" },
-                  { "null" = "docstrings/checkpointer/null.md" },
-                  { "snapshots" = "docstrings/checkpointer/snapshots.md" },
-                  { "thresholds" = "docstrings/checkpointer/thresholds.md" },
-                  { "validation" = "docstrings/checkpointer/validation.md" }
-              ]},
-
-              { "comm" = [
-                  { "_boundary_utils" = "docstrings/comm/_boundary_utils.md" },
-                  { "boundary" = "docstrings/comm/boundary.md" },
-                  { "caching_comm" = "docstrings/comm/caching_comm.md" },
-                  { "comm_abc" = "docstrings/comm/comm_abc.md" },
-                  { "communicator" = "docstrings/comm/communicator.md" },
-                  { "decomposition" = "docstrings/comm/decomposition.md" },
-                  { "local_comm" = "docstrings/comm/local_comm.md" },
-                  { "mpi" = "docstrings/comm/mpi.md" },
-                  { "partitioner" = "docstrings/comm/partitioner.md" }
-              ]},
-              { "debug" = [
-                  { "config" = "docstrings/debug/config.md" },
-                  { "debugger" = "docstrings/debug/debugger.md" },
-                  { "tooling" = "docstrings/debug/tooling.md" },
-              ]},
-              { "dsl" = [
-                  { "gt4py_utils" = "docstrings/dsl/gt4py_utils.md" },
-                  { "stencil_config" = "docstrings/dsl/stencil_config.md" },
-                  { "stencil" = "docstrings/dsl/stencil.md" },
-                  { "typing" = "docstrings/dsl/typing.md" },
-              ]},
-              { "grid" = [
-                  { "eta" = "docstrings/grid/eta.md" },
-                  { "generation" = "docstrings/grid/generation.md" },
-                  { "geometry" = "docstrings/grid/geometry.md" },
-                  { "global_setup" = "docstrings/grid/global_setup.md" },
-                  { "gnomonic" = "docstrings/grid/gnomonic.md" },
-                  { "helper" = "docstrings/grid/helper.md" },
-                  { "mirror" = "docstrings/grid/mirror.md" },
-                  { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" },
-              ]},
-              { "halo" = [
-                  { "cuda_kernels" = "docstrings/halo/cuda_kernels.md" },
-                  { "data_transformer" = "docstrings/halo/data_transformer.md" },
-                  { "rotate" = "docstrings/halo/rotate.md" },
-                  { "updater" = "docstrings/halo/updater.md" },
-              ]},
-              { "initialization" = [
-                  { "allocator" = "docstrings/initialization/allocator.md" },
-                  { "grid_sizer" = "docstrings/initialization/grid_sizer.md" },
-                  { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" },
-              ]},
-              { "monitor" = [
-                  { "convert" = "docstrings/monitor/convert.md" },
-                  { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
-                  { "protocol" = "docstrings/monitor/protocol.md" },
-                  { "zarr_monitor" = "docstrings/monitor/zarr_monitor.md" },
-              ]},
-              { "performance" = [
-                  { "collector" = "docstrings/performance/convert.md" },
-                  { "config" = "docstrings/performance/netcdf_monitor.md" },
-                  { "profiler" = "docstrings/performance/protocol.md" },
-                  { "report" = "docstrings/performance/zarr_monitor.md" },
-                  { "timer" = "docstrings/performance/zarr_monitor.md" },
-                  { "tools" = "docstrings/performance/zarr_monitor.md" },
-              ]},
-              { "quantity" = [
-                  { "bounds" = "docstrings/quantity/bounds.md" },
-                  { "field_bundle" = "docstrings/quantity/field_bundle.md" },
-                  { "metadata" = "docstrings/quantity/metadata.md" },
-                  { "quantity" = "docstrings/quantity/quantity.md" },
-                  { "state" = "docstrings/quantity/state.md" },
-              ]},
-              { "restart" = [
-                  { "_legacy_restart" = "docstrings/restart/_legacy_restart.md" },
-                  { "_properties" = "docstrings/restart/_properties.md" },
-              ]},
-              { "stencils" = [
-                  { "basic_operations" = "docstrings/stencils/basic_operations.md" },
-                  { "c2l_ord" = "docstrings/stencils/c2l_ord.md" },
-                  { "corners" = "docstrings/stencils/corners.md" },
-                  { "tridiag" = "docstrings/stencils/tridiag.md" },
-              ]},
-              { "testing" = [
-                  { "comparison" = "docstrings/testing/comparison.md" },
-                  { "perturbation" = "docstrings/testing/perturbation.md" },
-              ]},
-              { "viz" = [
-                  { "cube_sphere" = "docstrings/viz/cube_sphere.md" },
-              ]},
-
-              # Continue remaining sections the same way...
-          ]}
+      { "1. Introduction to NDSL"   = "documentation/ndsl_introduction.md" },
+      { "2. Getting Started"        = "documentation/user_manual/quickstart.md" },
+      { "3. Data Types and Storage" = "documentation/user_manual/data.md" },
+      { "4. Writing Code with NDSL" = "documentation/user_manual/writing_ndsl_code.md" },
+      { "5. Advanced Features"      = "documentation/user_manual/advanced_features.md" },
+      { "6. Backends"               = "documentation/user_manual/backends.md" },
+      { "7. Common Patterns"        = "documentation/user_manual/common_patterns.md" },
+      { "8. Why Use Classes?"       = "documentation/user_manual/why_use_classes.md" },
+      { "9. Best Coding Practices"  = "documentation/user_manual/best_coding_practices.md" }
   ]},
-  
+
+  # ── API Docs ──────────────────────────────────────────────────────────────
+  # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
+  # Organized to mirror the ndsl/ package structure.
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
+      { "API Docs"        = "api_docs.md" },
+      { "Internal"        = "internal/release.md" },
+      { "NDSL Docstrings" = [
+          { "General Info" = "docstrings/index.md" },
+
+          { "Top-level" = [
+              { "boilerplate"      = "docstrings/top/boilerplate.md" },
+              { "buffer"           = "docstrings/top/buffer.md" },
+              { "constants"        = "docstrings/top/constants.md" },
+              { "io"               = "docstrings/top/io.md" },
+              { "logging"          = "docstrings/top/logging.md" },
+              { "optional_imports" = "docstrings/top/optional_imports.md" },
+              { "types"            = "docstrings/top/types.md" },
+              { "typing"           = "docstrings/top/typing.md" },
+              { "utils"            = "docstrings/top/utils.md" }
+          ]},
+
+          { "checkpointer" = [
+              { "base"       = "docstrings/checkpointer/base.md" },
+              { "null"       = "docstrings/checkpointer/null.md" },
+              { "snapshots"  = "docstrings/checkpointer/snapshots.md" },
+              { "thresholds" = "docstrings/checkpointer/thresholds.md" },
+              { "validation" = "docstrings/checkpointer/validation.md" }
+          ]},
+
+          { "comm" = [
+              { "_boundary_utils" = "docstrings/comm/_boundary_utils.md" },
+              { "boundary"        = "docstrings/comm/boundary.md" },
+              { "caching_comm"    = "docstrings/comm/caching_comm.md" },
+              { "comm_abc"        = "docstrings/comm/comm_abc.md" },
+              { "communicator"    = "docstrings/comm/communicator.md" },
+              { "decomposition"   = "docstrings/comm/decomposition.md" },
+              { "local_comm"      = "docstrings/comm/local_comm.md" },
+              { "mpi"             = "docstrings/comm/mpi.md" },
+              { "partitioner"     = "docstrings/comm/partitioner.md" }
+          ]},
+
+          { "debug" = [
+              { "config"   = "docstrings/debug/config.md" },
+              { "debugger" = "docstrings/debug/debugger.md" },
+              { "tooling"  = "docstrings/debug/tooling.md" }
+          ]},
+
+          { "dsl" = [
+              { "gt4py_utils"    = "docstrings/dsl/gt4py_utils.md" },
+              { "stencil_config" = "docstrings/dsl/stencil_config.md" },
+              { "stencil"        = "docstrings/dsl/stencil.md" },
+              { "typing"         = "docstrings/dsl/typing.md" }
+          ]},
+
+          { "grid" = [
+              { "eta"                    = "docstrings/grid/eta.md" },
+              { "generation"             = "docstrings/grid/generation.md" },
+              { "geometry"               = "docstrings/grid/geometry.md" },
+              { "global_setup"           = "docstrings/grid/global_setup.md" },
+              { "gnomonic"               = "docstrings/grid/gnomonic.md" },
+              { "helper"                 = "docstrings/grid/helper.md" },
+              { "mirror"                 = "docstrings/grid/mirror.md" },
+              { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" }
+          ]},
+
+          { "halo" = [
+              { "cuda_kernels"     = "docstrings/halo/cuda_kernels.md" },
+              { "data_transformer" = "docstrings/halo/data_transformer.md" },
+              { "rotate"           = "docstrings/halo/rotate.md" },
+              { "updater"          = "docstrings/halo/updater.md" }
+          ]},
+
+          { "initialization" = [
+              { "allocator"          = "docstrings/initialization/allocator.md" },
+              { "grid_sizer"         = "docstrings/initialization/grid_sizer.md" },
+              { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" }
+          ]},
+
+          { "monitor" = [
+              { "convert"        = "docstrings/monitor/convert.md" },
+              { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
+              { "protocol"       = "docstrings/monitor/protocol.md" },
+              { "zarr_monitor"   = "docstrings/monitor/zarr_monitor.md" }
+          ]},
+
+          # NOTE: paths below were duplicated in the original file — update
+          # each entry to its correct .md path once known.
+          { "performance" = [
+              { "collector" = "docstrings/performance/collector.md" },
+              { "config"    = "docstrings/performance/config.md" },
+              { "profiler"  = "docstrings/performance/profiler.md" },
+              { "report"    = "docstrings/performance/report.md" },
+              { "timer"     = "docstrings/performance/timer.md" },
+              { "tools"     = "docstrings/performance/tools.md" }
+          ]},
+
+          { "quantity" = [
+              { "bounds"       = "docstrings/quantity/bounds.md" },
+              { "field_bundle" = "docstrings/quantity/field_bundle.md" },
+              { "metadata"     = "docstrings/quantity/metadata.md" },
+              { "quantity"     = "docstrings/quantity/quantity.md" },
+              { "state"        = "docstrings/quantity/state.md" }
+          ]},
+
+          { "restart" = [
+              { "_legacy_restart" = "docstrings/restart/_legacy_restart.md" },
+              { "_properties"     = "docstrings/restart/_properties.md" }
+          ]},
+
+          { "stencils" = [
+              { "basic_operations" = "docstrings/stencils/basic_operations.md" },
+              { "c2l_ord"          = "docstrings/stencils/c2l_ord.md" },
+              { "corners"          = "docstrings/stencils/corners.md" },
+              { "tridiag"          = "docstrings/stencils/tridiag.md" }
+          ]},
+
+          { "testing" = [
+              { "comparison"   = "docstrings/testing/comparison.md" },
+              { "perturbation" = "docstrings/testing/perturbation.md" }
+          ]},
+
+          { "viz" = [
+              { "cube_sphere" = "docstrings/viz/cube_sphere.md" }
+          ]}
+      ]}
+  ]},
+
+  # ── Dev Notes ─────────────────────────────────────────────────────────────
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes.md" },
 
+  # ── Community ─────────────────────────────────────────────────────────────
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" },
 
+  # ── Publications & Presentations ──────────────────────────────────────────
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M16 13H8'/><path d='M16 17H8'/><path d='M10 9H8'/></svg> Publications & Presentations" = [
       { "Overview" = "publications_and_presentations/cover.md" },
       { "Conference Presentations" = [
@@ -205,310 +227,176 @@ nav = [
 ]
 
 
-# With the "extra_css" option you can add your own CSS styling to customize
-# your Zensical project according to your needs. You can add any number of
-# CSS files.
-#
-# The path provided should be relative to the "docs_dir".
-#
-# Read more: https://zensical.org/docs/customization/#additional-css
-#
-extra_css = ["stylesheets/extra.css"]
-
-# With the `extra_javascript` option you can add your own JavaScript to your
-# project to customize the behavior according to your needs.
-#
-# The path provided should be relative to the "docs_dir".
-#
-# Read more: https://zensical.org/docs/customization/#additional-javascript
-extra_javascript = ["javascripts/extra.js"]
-
 # ----------------------------------------------------------------------------
-# Section for configuring theme options
+# 3. THEME
+#
+# Controls the visual appearance and interactive behavior of the site.
 # ----------------------------------------------------------------------------
+
 [project.theme]
-# change this to "classic" to use the traditional Material for MkDocs look.
+language   = "en"
+custom_dir = "./docs/overrides"   # folder for template overrides
+
+# Uncomment to switch to the traditional Material for MkDocs look:
 #variant = "classic"
 
-# Zensical allows you to override specific blocks, partials, or whole
-# templates as well as to define your own templates. To do this, uncomment
-# the custom_dir setting below and set it to a directory in which you
-# keep your template overrides.
-#
-# Read more:
-# - https://zensical.org/docs/customization/#extending-the-theme
-#
-custom_dir = "./docs/overrides"
-
-# With the "favicon" option you can set your own image to use as the icon
-# browsers will use in the browser title bar or tab bar. The path provided
-# must be relative to the "docs_dir".
-#
-# Read more:
-# - https://zensical.org/docs/setup/logo-and-icons/#favicon
-# - https://developer.mozilla.org/en-US/docs/Glossary/Favicon
-#
+# Uncomment to set a custom favicon (path relative to docs_dir):
 #favicon = "images/favicon.png"
 
-# Zensical supports more than 60 different languages. This means that the
-# labels and tooltips that Zensical's templates produce are translated.
-# The "language" option allows you to set the language used. This language
-# is also indicated in the HTML head element to help with accessibility
-# and guide search engines and translation tools.
-#
-# The default language is "en" (English). It is possible to create
-# sites with multiple languages and configure a language selector. See
-# the documentation for details.
-#
-# Read more:
-# - https://zensical.org/docs/setup/language/
-#
-language = "en"
-
-# Zensical provides a number of feature toggles that change the behavior
-# of the documentation site.
-features = [
-    # Zensical includes an announcement bar. This feature allows users to
-    # dismiss it when they have read the announcement.
-    # https://zensical.org/docs/setup/header/#announcement-bar
-    "announce.dismiss",
-
-    # If you have a repository configured and turn on this feature, Zensical
-    # will generate an edit button for the page. This works for common
-    # repository hosting services.
-    # https://zensical.org/docs/setup/repository/#content-actions
-    #"content.action.edit",
-
-    # If you have a repository configured and turn on this feature, Zensical
-    # will generate a button that allows the user to view the Markdown
-    # code for the current page.
-    # https://zensical.org/docs/setup/repository/#content-actions
-    #"content.action.view",
-
-    # Code annotations allow you to add an icon with a tooltip to your
-    # code blocks to provide explanations at crucial points.
-    # https://zensical.org/docs/authoring/code-blocks/#code-annotations
-    "content.code.annotate",
-
-    # This feature turns on a button in code blocks that allow users to
-    # copy the content to their clipboard without first selecting it.
-    # https://zensical.org/docs/authoring/code-blocks/#code-copy-button
-    "content.code.copy",
-
-    # Code blocks can include a button to allow for the selection of line
-    # ranges by the user.
-    # https://zensical.org/docs/authoring/code-blocks/#code-selection-button
-    "content.code.select",
-
-    # Zensical can render footnotes as inline tooltips, so the user can read
-    # the footnote without leaving the context of the document.
-    # https://zensical.org/docs/authoring/footnotes/#footnote-tooltips
-    "content.footnote.tooltips",
-
-    # If you have many content tabs that have the same titles (e.g., "Python",
-    # "JavaScript", "Cobol"), this feature causes all of them to switch to
-    # at the same time when the user chooses their language in one.
-    # https://zensical.org/docs/authoring/content-tabs/#linked-content-tabs
-    "content.tabs.link",
-
-    # With this feature enabled users can add tooltips to links that will be
-    # displayed when the mouse pointer hovers the link.
-    # https://zensical.org/docs/authoring/tooltips/#improved-tooltips
-    "content.tooltips",
-
-    # With this feature enabled, Zensical will automatically hide parts
-    # of the header when the user scrolls past a certain point.
-    # https://zensical.org/docs/setup/header/#automatic-hiding
-    #"header.autohide",
-
-    # Turn on this feature to expand all collapsible sections in the
-    # navigation sidebar by default.
-    # https://zensical.org/docs/setup/navigation/#navigation-expansion
-    # "navigation.expand",
-
-    # This feature turns on navigation elements in the footer that allow the
-    # user to navigate to a next or previous page.
-    # https://zensical.org/docs/setup/footer/#navigation
-    "navigation.footer",
-
-    # When section index pages are enabled, documents can be directly attached
-    # to sections, which is particularly useful for providing overview pages.
-    # https://zensical.org/docs/setup/navigation/#section-index-pages
-    "navigation.indexes",
-
-    # When instant navigation is enabled, clicks on all internal links will be
-    # intercepted and dispatched via XHR without fully reloading the page.
-    # https://zensical.org/docs/setup/navigation/#instant-navigation
-    "navigation.instant",
-
-    # With instant prefetching, your site will start to fetch a page once the
-    # user hovers over a link. This will reduce the perceived loading time
-    # for the user.
-    # https://zensical.org/docs/setup/navigation/#instant-prefetching
-    "navigation.instant.prefetch",
-
-    # In order to provide a better user experience on slow connections when
-    # using instant navigation, a progress indicator can be enabled.
-    # https://zensical.org/docs/setup/navigation/#progress-indicator
-    #"navigation.instant.progress",
-
-    # When navigation paths are activated, a breadcrumb navigation is rendered
-    # above the title of each page
-    # https://zensical.org/docs/setup/navigation/#navigation-path
-    "navigation.path",
-
-    # When pruning is enabled, only the visible navigation items are included
-    # in the rendered HTML, reducing the size of the built site by 33% or more.
-    # https://zensical.org/docs/setup/navigation/#navigation-pruning
-    #"navigation.prune",
-
-    # When sections are enabled, top-level sections are rendered as groups in
-    # the sidebar for viewports above 1220px, but remain as-is on mobile.
-    # https://zensical.org/docs/setup/navigation/#navigation-sections
-    "navigation.sections",
-
-    # When tabs are enabled, top-level sections are rendered in a menu layer
-    # below the header for viewports above 1220px, but remain as-is on mobile.
-    # https://zensical.org/docs/setup/navigation/#navigation-tabs
-    "navigation.tabs",
-
-    # When sticky tabs are enabled, navigation tabs will lock below the header
-    # and always remain visible when scrolling down.
-    # https://zensical.org/docs/setup/navigation/#sticky-navigation-tabs
-    #"navigation.tabs.sticky",
-
-    # A back-to-top button can be shown when the user, after scrolling down,
-    # starts to scroll up again.
-    # https://zensical.org/docs/setup/navigation/#back-to-top-button
-    "navigation.top",
-
-    # When anchor tracking is enabled, the URL in the address bar is
-    # automatically updated with the active anchor as highlighted in the table
-    # of contents.
-    # https://zensical.org/docs/setup/navigation/#anchor-tracking
-    "navigation.tracking",
-
-    # When search highlighting is enabled and a user clicks on a search result,
-    # Zensical will highlight all occurrences after following the link.
-    # https://zensical.org/docs/setup/search/#search-highlighting
-    "search.highlight",
-
-    # When anchor following for the table of contents is enabled, the sidebar
-    # is automatically scrolled so that the active anchor is always visible.
-    # https://zensical.org/docs/setup/navigation/#anchor-following
-    # "toc.follow",
-
-    # When navigation integration for the table of contents is enabled, it is
-    # always rendered as part of the navigation sidebar on the left.
-    # https://zensical.org/docs/setup/navigation/#navigation-integration
-    #"toc.integrate",
-]
-
-# ----------------------------------------------------------------------------
-# You can configure your own logo to be shown in the header using the "logo"
-# option in the "theme" subsection. The logo must be a relative path to a file
-# in your "docs_dir", e.g., to use `docs/assets/logo.png` you would set:
-# ----------------------------------------------------------------------------
+# Uncomment to use a custom logo image (path relative to docs_dir):
 #logo = "assets/logo.png"
 
-# ----------------------------------------------------------------------------
-# If you don't have a dedicated project logo, you can use a built-in icon from
-# the icon sets shipped in Zensical. Please note that the setting lives in a
-# different subsection, and that the above take precedence over the icon.
-#
-# Read more:
-# - https://zensical.org/docs/setup/logo-and-icons
-# - https://github.com/zensical/ui/tree/master/dist/.icons
-# ----------------------------------------------------------------------------
+# Uncomment to use a built-in Lucide icon as the logo instead:
 #[project.theme.icon]
 #logo = "lucide/smile"
 
-# ----------------------------------------------------------------------------
-# In the "font" subsection you can configure the fonts used. By default, fonts
-# are loaded from Google Fonts, giving you a wide range of choices from a set
-# of suitably licensed fonts. There are options for a normal text font and for
-# a monospaced font used in code blocks.
-# ----------------------------------------------------------------------------
-[project.theme.font]
-text = "Inter"
-code = "Jetbrains Mono"
+# ── Feature toggles ───────────────────────────────────────────────────────────
+# NOTE: features must live here, directly under [project.theme], before any
+# [project.theme.*] sub-tables open — otherwise TOML assigns it to the wrong table.
+# Each string enables a specific UI behaviour; uncomment a line to enable it.
 
-# ----------------------------------------------------------------------------
-# In the "palette" subsection you can configure options for the color scheme.
-# You can configure different color schemes, e.g., to turn on dark mode,
-# that the user can switch between. Each color scheme can be further
-# customized.
-#
-# Read more:
-# - https://zensical.org/docs/setup/colors/
-# ----------------------------------------------------------------------------
-[project.theme.palette]
-scheme="default"
-#toggle.icon = "lucide/sun"
-#toggle.name = "Switch to dark mode"
+features = [
 
+  # Header
+  "announce.dismiss",            # let users dismiss the announcement bar
+  #"header.autohide",            # hide header when scrolling down
 
-#[[project.theme.palette]]
-#scheme = "slate"
-#toggle.icon = "lucide/moon"
-#toggle.name = "Switch to light mode"
+  # Content / code blocks
+  "content.code.annotate",       # icon+tooltip annotations inside code blocks
+  "content.code.copy",           # copy-to-clipboard button on code blocks
+  "content.code.select",         # line-range selection button on code blocks
+  "content.footnote.tooltips",   # render footnotes as inline popovers
+  "content.tabs.link",           # sync all same-titled content tabs across pages
+  "content.tooltips",            # hover tooltips on links
 
-# ----------------------------------------------------------------------------
-# The "extra" section contains miscellaneous settings.
-# ----------------------------------------------------------------------------
+  # Navigation
+  "navigation.footer",           # previous/next page links in the footer
+  "navigation.indexes",          # attach overview pages directly to sections
+  "navigation.instant",          # SPA-style navigation (no full page reload)
+  "navigation.instant.prefetch", # prefetch pages on link hover
+  "navigation.path",             # breadcrumb trail above each page title
+  "navigation.sections",         # group top-level sections in the sidebar
+  "navigation.tabs",             # render top-level nav as tabs below the header
+  "navigation.top",              # back-to-top button
+  "navigation.tracking",         # update URL hash as you scroll through anchors
+  #"navigation.expand",          # expand all sidebar sections by default
+  #"navigation.prune",           # strip invisible nav items from HTML (saves ~33%)
+  #"navigation.tabs.sticky",     # keep tabs visible while scrolling
+  #"navigation.instant.progress", # loading progress bar for slow connections
+
+  # Search
+  "search.highlight",            # highlight search terms after clicking a result
+
+  # Table of contents
+  #"toc.follow",                 # auto-scroll TOC sidebar to the active anchor
+  #"toc.integrate",              # merge TOC into the left navigation sidebar
+
+  # Repository (requires repo_url to be set above)
+  #"content.action.edit",        # show an "Edit this page" button
+  #"content.action.view",        # show a "View source" button
+]
+
+# ── Social links (footer) ─────────────────────────────────────────────────────
+# Uncomment and repeat for each social/external link to show icons in the footer.
 #[[project.extra.social]]
 #icon = "fontawesome/brands/github"
-#link = "https://github.com/user/repo"
+#link = "https://github.com/NOAA-GFDL/NDSL"
+
+
+# ── Fonts ─────────────────────────────────────────────────────────────────────
+# Loaded from Google Fonts. "text" for body copy, "code" for code blocks.
+
+[project.theme.font]
+text = "Inter"
+code = "JetBrains Mono"
+
+
+# ── Color scheme ──────────────────────────────────────────────────────────────
+# Use scheme = "default" for light mode, "slate" for dark mode.
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
 
 # ----------------------------------------------------------------------------
-# In this section you can configure the Markdown extensions that are used when
-# rendering your documentation. We enable the most useful extensions by default,
-# but you can customize this list to your needs.
+# 4. MARKDOWN EXTENSIONS
 #
-# Read more:
-# - https://zensical.org/docs/setup/extensions/
+# Controls how Markdown is parsed and rendered. Extensions come from
+# Python-Markdown and PyMdown Extensions (pymdownx.*).
+#
+# Read more: https://zensical.org/docs/setup/extensions/
 # ----------------------------------------------------------------------------
-[project.markdown_extensions.abbr]
-[project.markdown_extensions.admonition]
-[project.markdown_extensions.attr_list]
-[project.markdown_extensions.def_list]
-[project.markdown_extensions.footnotes]
-[project.markdown_extensions.md_in_html]
+
+# ── Standard Python-Markdown ──────────────────────────────────────────────────
+[project.markdown_extensions.abbr]        # abbreviation tooltips
+[project.markdown_extensions.admonition]  # note/warning/tip callout boxes
+[project.markdown_extensions.attr_list]   # add HTML attributes to elements
+[project.markdown_extensions.def_list]    # definition lists
+[project.markdown_extensions.footnotes]   # [^1] style footnotes
+[project.markdown_extensions.md_in_html]  # Markdown inside raw HTML blocks
+
 [project.markdown_extensions.toc]
-permalink = true
+permalink = true   # add anchor links to every heading
+
+
+# ── PyMdown extensions ────────────────────────────────────────────────────────
 [project.markdown_extensions.pymdownx.arithmatex]
-generic = true
-[project.markdown_extensions.pymdownx.betterem]
-[project.markdown_extensions.pymdownx.caret]
-[project.markdown_extensions.pymdownx.details]
+generic = true     # render LaTeX math via MathJax
+
+[project.markdown_extensions.pymdownx.betterem]     # smarter em/strong parsing
+[project.markdown_extensions.pymdownx.caret]        # superscript (^text^)
+[project.markdown_extensions.pymdownx.details]      # collapsible <details> blocks
+[project.markdown_extensions.pymdownx.inlinehilite] # inline `code` syntax highlighting
+[project.markdown_extensions.pymdownx.keys]         # keyboard key rendering (++ctrl+c++)
+[project.markdown_extensions.pymdownx.magiclink]    # auto-linkify URLs and GitHub refs
+[project.markdown_extensions.pymdownx.mark]         # ==highlighted text==
+[project.markdown_extensions.pymdownx.smartsymbols] # (c) → © and similar
+[project.markdown_extensions.pymdownx.tilde]        # subscript (~text~) and strikethrough
+
 [project.markdown_extensions.pymdownx.emoji]
 emoji_generator = "zensical.extensions.emoji.to_svg"
-emoji_index = "zensical.extensions.emoji.twemoji"
+emoji_index     = "zensical.extensions.emoji.twemoji"
+
 [project.markdown_extensions.pymdownx.highlight]
-anchor_linenums = true
-line_spans = "__span"
-pygments_lang_class = true
-[project.markdown_extensions.pymdownx.inlinehilite]
-[project.markdown_extensions.pymdownx.keys]
-[project.markdown_extensions.pymdownx.magiclink]
-[project.markdown_extensions.pymdownx.mark]
-[project.markdown_extensions.pymdownx.smartsymbols]
+anchor_linenums     = true       # add anchor links to line numbers
+line_spans          = "__span"   # wrap each line in a <span> for styling
+pygments_lang_class = true       # add language class to code blocks
+
 [project.markdown_extensions.pymdownx.superfences]
+# Allows non-fenced code blocks and enables Mermaid diagram rendering.
 custom_fences = [
   { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
 ]
+
 [project.markdown_extensions.pymdownx.tabbed]
-alternate_style = true
+alternate_style     = true   # use the newer tab style
 combine_header_slug = true
+
 [project.markdown_extensions.pymdownx.tasklist]
-custom_checkbox = true
-[project.markdown_extensions.pymdownx.tilde]
+custom_checkbox = true   # render [ ] / [x] as styled checkboxes
+
+
+# ----------------------------------------------------------------------------
+# 5. PLUGINS — mkdocstrings
+#
+# Generates API reference pages automatically from Python docstrings.
+# Points at the ndsl/ source directory and expects Google-style docstrings.
+#
+# Read more: https://mkdocstrings.github.io/
+# ----------------------------------------------------------------------------
 
 [project.plugins.mkdocstrings.handlers.python]
-inventories = ["https://docs.python.org/3/objects.inv"]
-paths = ["ndsl"]
+paths       = ["ndsl"]
+inventories = ["https://docs.python.org/3/objects.inv"]  # cross-ref stdlib docs
 
 [project.plugins.mkdocstrings.handlers.python.options]
-docstring_style = "google"
-inherited_members = true
-show_source = false
+docstring_style   = "google"
+inherited_members = true    # include methods inherited from parent classes
+show_source       = false   # hide raw source code in the rendered docs

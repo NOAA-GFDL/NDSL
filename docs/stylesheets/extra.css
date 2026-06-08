@@ -1,161 +1,378 @@
+/* =============================================================================
+   NDSL Documentation — extra.css
+   Custom styles applied on top of the Zensical/Material base theme.
+   Organized by: Homepage overrides → Typography → Navigation → Header → Search
+   ============================================================================= */
 
-/* ONLY homepage */
+  :root{
+    --custom_blue: #185FA5;
+    --custom_light_grey: #6b7280;
+    --custom_dark_grey: #4b5563;
+    --custom_white: #f8fafc;
+  }
 
-/* REMOVE RIGHT TOC */
-body.homepage .md-sidebar--secondary {
+/* -----------------------------------------------------------------------------
+   HOMEPAGE-ONLY LAYOUT
+   These rules only apply on pages with the "homepage" body class.
+   ----------------------------------------------------------------------------- */
+
+/* Hide the right-hand table of contents on the homepage */
+/* body.homepage .md-sidebar--secondary {
   display: none;
-}
+} */
 
-/* SHRINK LEFT SIDEBAR */
-body.homepage .md-sidebar--primary {
-  width: 140px;
-}
-
-/* WIDEN CONTENT */
-body.homepage .md-grid {
+/* Widen the main content grid on the homepage */
+/* body.homepage .md-grid {
   max-width: 1500px;
-}
+} */
 
-/* OPTIONAL: MORE CONTENT WIDTH */
-body.homepage .md-content__inner {
+/* body.homepage .md-content__inner {
   max-width: 1200px;
   margin: 0 auto;
+} */
+
+/* Shrink the left sidebar on the homepage — desktop only.
+   On mobile the sidebar becomes the nav drawer, so we leave it full-width
+   there to avoid clipping the drawer contents. */
+/* @media screen and (min-width: 76.25em) {
+  body.homepage .md-sidebar--primary {
+    width: 140px;
+  }
+} */
+
+
+/* -----------------------------------------------------------------------------
+   SHARED CARD COMPONENTS
+   Used across multiple pages — homepage, ndsl_in_action, etc.
+   ----------------------------------------------------------------------------- */
+
+.dsl-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.section-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: var(--md-code-bg-color);
+  margin-bottom: 0.9rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.section-card:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+.app-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  padding: 1rem;
+  background: var(--md-code-bg-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: 0.2s;
+}
+
+.app-card:hover {
+  border-color: var(--custom_blue);
+}
+
+.code-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  background: var(--md-code-bg-color);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.code-header {
+  padding: 0.6rem 1rem;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  border-bottom: 1px solid var(--md-typeset-table-color);
+}
+
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--md-typeset-table-color);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 7px;
+  font-size: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--md-default-fg-color--light);
+}
+
+.tab-btn.active {
+  color: var(--custom_blue);
+  border-bottom: 2px solid var(--custom_blue);
+  font-weight: 500;
+}
+
+.tab-panel {
+  display: none;
+  padding: 0.9rem;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.code-block {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--md-code-fg-color);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.apps-section h2 {
+  margin: 1rem 0 0.5rem 0;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(24, 95, 165, 0.15);
+  color: var(--custom_blue);
+  margin-bottom: 0rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--custom_blue);
+  color: #fff !important;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  text-decoration: none !important;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: #0C447C;
+  text-decoration: none !important;
+}
+
+.cta-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  border: none;
+  border-radius: 14px;
+  background: var(--md-code-bg-color);
+  box-shadow: 0 10px 25px rgba(24,95,165,0.10);
+}
+
+@media (max-width: 768px) {
+  .two-col, .app-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 
+/* -----------------------------------------------------------------------------
+   PAGE HERO
+   Reusable hero block for API docs, overview pages, etc.
+   ----------------------------------------------------------------------------- */
 
-<style>
-/* Force all markdown headers to use blue */
+.page-hero {
+  margin-bottom: 2rem;
+}
 
-.md-typeset h1{
-  color: #185FA5 !important;
+.page-hero h1 {
+  font-size: 38px;
+  font-weight: 650;
+  color: var(--custom_blue);
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.page-hero p {
+  max-width: 800px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--md-default-fg-color--light);
+  margin: 0;
+}
+
+/* Tag/pill row — sits below the hero description */
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.5rem 0 2rem 0;
+}
+
+
+/* -----------------------------------------------------------------------------
+   TYPOGRAPHY
+   ----------------------------------------------------------------------------- */
+
+/* Page headings */
+.md-typeset h1 {
+  color: var(--custom_blue);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 /* Body text */
-
 .md-typeset {
-  color: #4b5563;
+  color: var(--custom_light_grey);
 }
 
 /* Links */
-
 .md-typeset a {
-  color: #185FA5;
+  color: var(--custom_blue);
 }
 
 .md-typeset a:hover {
   color: #0C447C;
 }
 
-/* Tables */
-
-.md-typeset table:not([class]) {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-}
-
-.md-typeset table:not([class]) th {
-  background: #f8fafc;
-  color: #185FA5;
-}
-
-/* Sidebar text color */
-
-.md-nav__link {
-  color: #4b5563 !important;
-}
-
-/* Sidebar hover */
-
-.md-nav__link:hover {
-  color: #185FA5 !important;
-}
-
-/* Active/current page */
-
-.md-nav__link--active,
-.md-nav__item .md-nav__link--active {
-  color: #185FA5 !important;
-  font-weight: 600;
-}
-
-/* Optional: section headers in sidebar */
-
-.md-nav__title {
-  color: #185FA5 !important;
-}
-
 /* Images */
-
 .md-typeset img {
   border-radius: 12px;
 }
 
 
-/* Top-left logo/site title */
+/* -----------------------------------------------------------------------------
+   TABLES
+   ----------------------------------------------------------------------------- */
 
-.md-header__title,
+/* .md-typeset table:not([class]) {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+} */
+
+.md-typeset table:not([class]) th {
+  background: #275482;
+  color: var(--custom_blue);
+}
+
+
+/* -----------------------------------------------------------------------------
+   SIDEBAR / NAVIGATION
+   ----------------------------------------------------------------------------- */
+
+.md-nav__link {
+  color: var(--custom_dark_grey);
+}
+
+.md-nav__link:hover {
+  color: var(--custom_blue);
+}
+
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: var(--custom_blue);
+  font-weight: 600;
+}
+
+.md-nav__title {
+  color: var(--custom_blue);
+}
+
+
+/* -----------------------------------------------------------------------------
+   HEADER
+   ----------------------------------------------------------------------------- */
+
+/* 1. Make the container header area relative so the link stays inside it */
+.md-header__title {
+  position: relative;
+}
+
+/* 2. Stretch the existing logo anchor tag over the title text */
+.md-header__button.md-logo::after {
+  display: none; /* hide logo */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1; /* Places the invisible link box over the header text */
+}
+
+/* 3. Ensure the cursor displays a hand pointer over the text */
+
 .md-header__topic,
 .md-header__ellipsis {
-  color: #185FA5 !important;
+  cursor: pointer;
+  color: var(--custom_blue);
   font-weight: 600;
-  font-size: 1.55rem !important;
-}
-/* Remove logo image */
-
-.md-header__button.md-logo {
-  display: none !important;
+  font-size: 1.55rem;
+  margin-left: 50px;
 }
 
-/* Shift site title fully left */
-
-.md-header__title {
-  margin-left: 50 !important;
-  padding-left: 50 !important;
+/* Softly dim the title text on hover to signal interactivity */
+.md-header__title:hover {
+  opacity: 0.85;
 }
 
-/* Optional: tighten overall header spacing */
-
-.md-header__ellipsis {
-  margin-left: 50 !important;
-}
-
-/* GitHub header link */
-
+/* GitHub source link */
 .md-header__source,
 .md-header__source a,
 .md-source,
 .md-source__repository {
-  color: #6b7280 !important;
+  color: var(--custom_light_grey);
 }
-
-/* Hover state */
 
 .md-header__source a:hover,
 .md-source:hover,
 .md-source__repository:hover {
-  color: #185FA5 !important;
+  color: var(--custom_blue);
 }
 
-/* Search bar text */
+
+/* -----------------------------------------------------------------------------
+   SEARCH
+   ----------------------------------------------------------------------------- */
 
 .md-search__input,
 .md-search__input::placeholder {
-  color: #6b7280 !important;
+  color: var(--custom_light_grey);
 }
-
-/* Search icon */
 
 .md-search__icon {
-  color: #6b7280 !important;
+  color: var(--custom_light_grey);
 }
 
-/* Optional: search bar background */
-
 .md-search__form {
-  background: #f8fafc !important;
+  background: var(--custom_white);
   border-radius: 10px;
 }

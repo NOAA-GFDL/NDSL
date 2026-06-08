@@ -5,188 +5,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>NDSL Platform</title>
-
-<style>
-  .dsl-page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 1rem 1.5rem;
-    box-sizing: border-box;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  }
-
-  .section-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 1.25rem;
-    background: #fff;
-    margin-bottom: 0.9rem;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-  }
-
-  .section-card:hover {
-    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-    transform: translateY(-1px);
-  }
-
-  h2 {
-  font-size: 22px;
-  font-weight: 600;
-  color: #185FA5;
-  margin: 0 0 0.2rem 0;
-  line-height: 1.2;
-}
-
-  h3 {
-    margin: 0 0 0.2rem 0;
-    color: #185FA5;
-    line-height: 1.2;
-  }
-
-  p {
-    font-size: 14px;
-    color: #6b7280;
-    line-height: 1.5;
-    margin: 0.15rem 0 0.6rem 0;
-  }
-
-  .btn {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #185FA5;
-  color: #fff !important;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  text-decoration: none !important;
-  border: none;
-  transition: background 0.2s ease;
-}
-
-  .btn:hover {
-    background: #0C447C;
-    text-decoration: none !important;
-  }
-
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .code-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    background: #f9fafb;
-    overflow: hidden;
-    margin-bottom: 1rem;
-  }
-
-  .code-header {
-    padding: 0.6rem 1rem;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #9ca3af;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .tab-bar {
-    display: flex;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 7px;
-    font-size: 12px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #6b7280;
-  }
-
-  .tab-btn.active {
-    color: #185FA5;
-    border-bottom: 2px solid #185FA5;
-    font-weight: 500;
-  }
-
-  .tab-panel {
-    display: none;
-    padding: 0.9rem;
-  }
-
-  .tab-panel.active {
-    display: block;
-  }
-
-  .code-block {
-    font-family: "SFMono-Regular",
-    Consolas,
-    "Liberation Mono",
-    Menlo,
-    monospace;
-    font-size: 12px;
-    white-space: pre;
-    overflow-x: auto;
-    color: #111827;
-  }
-
-  .apps-section h2 {
-    margin: 1rem 0 0.5rem 0;
-  }
-
-  .app-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .app-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 1rem;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: 0.2s;
-  }
-
-  .app-card:hover {
-    border-color: #185FA5;
-  }
-
-  .badge {
-  display: inline-block;
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #E6F1FB;
-  color: #185FA5;
-  margin-bottom: 0rem;
-  }
-
-  @media (max-width: 768px) {
-    .two-col, .app-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .cta-card {
-    margin-top: 1.5rem;
-    padding: 1.5rem;
-    text-align: center;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #f0f7ff, #ffffff);
-    box-shadow: 0 10px 25px rgba(24,95,165,0.10);
-  }
-</style>
 </head>
 
 <body>
@@ -209,7 +27,7 @@
 
   <p style="
     font-size: 15px;
-    color: #6b7280;
+    color: var(--md-default-fg-color--light);
     line-height: 1.6;
     margin: 0;
     max-width: 760px;
@@ -382,7 +200,7 @@ end subroutine calculate_cape_cin </div>
     <h2 style="margin-bottom:0.5rem; font-size:20px; font-weight:600; color:#185FA5;">
       Want to Learn More?
     </h2>
-    <p style="max-width:800px; margin:0 auto; font-size:14px; color:#4b5563; line-height:1.5;">
+    <p style="max-width:800px; margin:0 auto; font-size:14px; color:var(--md-default-fg-color--light); line-height:1.5;">
       Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs? Talk to an NDSL expert.
     </p>
     <a class="btn" href="https://mm.smce.nasa.gov/astg/channels/smt" style="margin-top:1rem;">
@@ -416,4 +234,3 @@ function switchTab(event, tabId) {
 
 </body>
 </html>
-
