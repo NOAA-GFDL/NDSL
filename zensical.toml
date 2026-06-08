@@ -22,6 +22,7 @@ site_name   = "NDSL"
 site_author = "Software Modernization Team"
 site_url    = "https://www.ndsl_documentation.com/"
 copyright   = "&copy; 2026"
+docs_dir    = "docs/website"
 
 # Uncomment to add a site description for search engines:
 #site_description = "NDSL — NOAA Dominance Stencil Library documentation."
@@ -235,7 +236,7 @@ nav = [
 
 [project.theme]
 language   = "en"
-custom_dir = "./docs/overrides"   # folder for template overrides
+custom_dir = "./docs/website/overrides"   # folder for template overrides
 
 # Uncomment to switch to the traditional Material for MkDocs look:
 #variant = "classic"
