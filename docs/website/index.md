@@ -1,236 +1,192 @@
-# 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NDSL Platform</title>
-</head>
+<div class="dsl-page" markdown>
 
-<body>
+<div style="margin-bottom: 1.2rem;" markdown>
 
-<div class="dsl-page">
-<!-- PAGE HEADER -->
+# NASA-NOAA Domain Specific Language { .page-title }
 
-<div style="margin-bottom: 1.2rem;">
-
-  <h1 style="
-    font-size: 40px;
-    font-weight: 600;
-    color: #185FA5;
-    margin: 0 0 0.45rem 0;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  ">
-    NASA-NOAA Domain Specific Language
-  </h1>
-
-  <p style="
-    font-size: 15px;
-    color: var(--md-default-fg-color--light);
-    line-height: 1.6;
-    margin: 0;
-    max-width: 760px;
-  ">
-    A modern domain-specific language for portable, high-performance atmospheric modeling across CPUs, GPUs, 
-    and emerging computing architectures.
-  </p>
+A modern domain-specific language for portable, high-performance atmospheric modeling across CPUs, GPUs, and emerging computing architectures.
 
 </div>
-    
 
-  <div class="section-card">
-    <span class="badge">Quickstart</span>
-    <h2>Install NDSL</h2>
-    <p>Install the latest version of NDSL with a few commands and start writing code.</p>
-    <a class="btn" href="./documentation/user_manual/quickstart.md">NDSL v2026.03.00 →</a>
-  </div>
+<div class="section-card" markdown>
+<span class="badge">Quickstart</span>
 
-  <div class="two-col">
+## Install NDSL
 
-    <div class="section-card">
-      <span class="badge">Learn</span>
-      <h2>Getting Started</h2>
-      <p>New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.</p>
-      <a class="btn" href="./documentation/user_manual/">User Manual →</a>
-    </div>
+Install the latest version of NDSL with a few commands and start writing code.
 
-    <div class="section-card">
-      <span class="badge">Connect</span>
-      <h2>Community</h2>
-      <p>Connect with developers, researchers, and contributors working on NDSL and atmospheric modeling tools.</p>
-      <a class="btn" href="./community.md">Join Community →</a>
-    </div>
+[NDSL v2026.03.00 →](./documentation/user_manual/quickstart.md){ .btn }
+</div>
 
-  </div>
+<div class="two-col" markdown>
+<div class="section-card" markdown>
+<span class="badge">Learn</span>
 
-  <div class="code-card">
-    <div class="code-header">Fortran to NDSL</div>
+## Getting Started
 
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab(event,'fortran')">Fortran</button>
-      <button class="tab-btn" onclick="switchTab(event,'ndsl')">NDSL</button>
-      <button class="tab-btn" onclick="switchTab(event,'gen')">Generated</button>
-    </div>
+New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.
 
-    <div id="fortran" class="tab-panel active">
-      <div class="code-block">subroutine calculate_cape_cin(virtual_temp_environment, virtual_temp_parcel, pressure_interface, cape, cin, source_level, level_free_convection, equilibrium_level, ni, nj, nk)
+[User Manual →](./documentation/user_manual/){ .btn }
+</div>
 
-    integer, intent(in)  :: ni, nj, nk
-    real,    intent(in)  :: virtual_temp_environment(ni, nj, nk)
-    real,    intent(in)  :: virtual_temp_parcel(ni, nj, nk)
-    real,    intent(in)  :: pressure_interface(ni, nj, nk+1)
-    real,    intent(out) :: cape(ni, nj)
-    real,    intent(out) :: cin(ni, nj)
-    integer, intent(in)  :: source_level(ni, nj)
-    integer, intent(in)  :: level_free_convection(ni, nj)
-    integer, intent(in)  :: equilibrium_level(ni, nj)
+<div class="section-card" markdown>
+<span class="badge">Connect</span>
 
-    integer :: i, j, k
+## Community
 
-    do j = 1, nj
-        do i = 1, ni
-            if (source_level(i,j) == -1) then
-                cape(i,j) = FILL_VALUE
-                cin(i,j)  = FILL_VALUE
-            else
-                cape(i,j) = 0.0
-                cin(i,j)  = 0.0
-            end if
+Connect with developers, researchers, and contributors working on NDSL and atmospheric modeling tools.
 
-            if (source_level(i,j) /= -1) then
-                do k = 1, nk
-                    if (k >= source_level(i,j) .and. k < level_free_convection(i,j)) then
-                        cin(i,j) = cin(i,j) + (Rd * (virtual_temp_parcel(i,j,k) - virtual_temp_environment(i,j,k)) * log(pressure_interface(i,j,k) / pressure_interface(i,j,k+1)))
-                    end if
+[Join Community →](./community.md){ .btn }
+</div>
+</div>
 
-                    if (k >= level_free_convection(i,j) .and. k <= equilibrium_level(i,j)) then
-                        cape(i,j) = cape(i,j) + (Rd * (virtual_temp_parcel(i,j,k) - virtual_temp_environment(i,j,k)) * log(pressure_interface(i,j,k) / pressure_interface(i,j,k+1)))
-                    end if
-                end do
-            end if
+<div class="code-card" markdown>
+<div class="code-header">FORTRAN TO NDSL</div>
+
+=== "Fortran"
+
+    ```fortran
+    subroutine calculate_cape_cin(virtual_temp_environment, virtual_temp_parcel, pressure_interface, cape, cin, source_level, level_free_convection, equilibrium_level, ni, nj, nk)
+
+        integer, intent(in)  :: ni, nj, nk
+        real,    intent(in)  :: virtual_temp_environment(ni, nj, nk)
+        real,    intent(in)  :: virtual_temp_parcel(ni, nj, nk)
+        real,    intent(in)  :: pressure_interface(ni, nj, nk+1)
+        real,    intent(out) :: cape(ni, nj)
+        real,    intent(out) :: cin(ni, nj)
+        integer, intent(in)  :: source_level(ni, nj)
+        integer, intent(in)  :: level_free_convection(ni, nj)
+        integer, intent(in)  :: equilibrium_level(ni, nj)
+
+        integer :: i, j, k
+
+        do j = 1, nj
+            do i = 1, ni
+                if (source_level(i,j) == -1) then
+                    cape(i,j) = FILL_VALUE
+                    cin(i,j)  = FILL_VALUE
+                else
+                    cape(i,j) = 0.0
+                    cin(i,j)  = 0.0
+                end if
+
+                if (source_level(i,j) /= -1) then
+                    do k = 1, nk
+                        if (k >= source_level(i,j) .and. k < level_free_convection(i,j)) then
+                            cin(i,j) = cin(i,j) + (Rd * (virtual_temp_parcel(i,j,k) - virtual_temp_environment(i,j,k)) * log(pressure_interface(i,j,k) / pressure_interface(i,j,k+1)))
+                        end if
+
+                        if (k >= level_free_convection(i,j) .and. k <= equilibrium_level(i,j)) then
+                            cape(i,j) = cape(i,j) + (Rd * (virtual_temp_parcel(i,j,k) - virtual_temp_environment(i,j,k)) * log(pressure_interface(i,j,k) / pressure_interface(i,j,k+1)))
+                        end if
+                    end do
+                end if
+            end do
         end do
-    end do
 
-end subroutine calculate_cape_cin </div>
-    </div>
+    end subroutine calculate_cape_cin
+    ```
 
-    <div id="ndsl" class="tab-panel">
-      <div class="code-block">def calculate_cape_cin(
-    virtual_temp_environment: FloatField,
-    virtual_temp_parcel: FloatField,
-    pressure_interface: FloatField,
-    cape: FloatFieldIJ,
-    cin: FloatFieldIJ,
-    source_level: IntFieldIJ,
-    level_free_convection: IntFieldIJ,
-    equilibrium_level: IntFieldIJ,
-):
-    """Compute CAPE and CIN for a parcel originating at source_level.
+=== "NDSL"
 
-    A source_level of -1 indicates no convection is occuring at this grid point, in which case the computation is skipped and CAPE/CIN are filled with FILL_VALUE.
+    ```python
+    def calculate_cape_cin(
+        virtual_temp_environment: FloatField,
+        virtual_temp_parcel: FloatField,
+        pressure_interface: FloatField,
+        cape: FloatFieldIJ,
+        cin: FloatFieldIJ,
+        source_level: IntFieldIJ,
+        level_free_convection: IntFieldIJ,
+        equilibrium_level: IntFieldIJ,
+    ):
+        """Compute CAPE and CIN for a parcel originating at source_level.
 
-    Some requirements:
-        level_free_convection must be less than (lower than)
-        equilibrium_level
-        both level_free_convection and equilibrium_level must be larger than (higher than) source_level
-        pressure_interface must have one more point in the vertical dimension than all other 3D non-interface fields
+        A source_level of -1 indicates no convection is occuring at this grid
+        point, in which case the computation is skipped and CAPE/CIN are filled
+        with FILL_VALUE.
 
-    Args:
-        virtual_temp_environment (FloatField): virtual temperature of the environment
-        virtual_temp_parcel (FloatField): virtual temperature of the parcel
-        pressure_interface (FloatField): pressure at the grid interface
-        cape (FloatFieldIJ): convective available potential energy
-        cin (FloatFieldIJ): convective inhibition
-        level_free_convection (IntFieldIJ): level of free convection for a parcel originating at source level
-        equilibrium_level (IntFieldIJ): equilibrium level for a parcel originating at source level
-    """
-    with computation(FORWARD), interval(0, 1):
-        cape = 0.0
-        cin = 0.0
+        Some requirements:
+            level_free_convection must be less than (lower than) equilibrium_level
+            both level_free_convection and equilibrium_level must be larger than
+            (higher than) source_level
+            pressure_interface must have one more point in the vertical dimension
+            than all other 3D non-interface fields
 
-        if source_level == -1:
-            # no convection, use fill value
-            cape = FILL_VALUE
-            cin = FILL_VALUE
+        Args:
+            virtual_temp_environment (FloatField): virtual temperature of the environment
+            virtual_temp_parcel (FloatField): virtual temperature of the parcel
+            pressure_interface (FloatField): pressure at the grid interface
+            cape (FloatFieldIJ): convective available potential energy
+            cin (FloatFieldIJ): convective inhibition
+            level_free_convection (IntFieldIJ): level of free convection for a parcel originating at source level
+            equilibrium_level (IntFieldIJ): equilibrium level for a parcel originating at source level
+        """
+        with computation(FORWARD), interval(0, 1):
+            cape = 0.0
+            cin = 0.0
 
-    with computation(FORWARD), interval(...):
-        # check if convection is enabled for the current grid point
-        if source_level != -1:
-            if K >= source_level and K < level_free_convection:
-                cin = cin + (Rd * (virtual_temp_parcel - virtual_temp_environment) * (log(pressure_interface / pressure_interface[0, 0, 1])))
+            if source_level == -1:
+                # no convection, use fill value
+                cape = FILL_VALUE
+                cin = FILL_VALUE
 
-            if K >= level_free_convection and K <= equilibrium_level:
-                cape = cape + (Rd * (virtual_temp_parcel - virtual_temp_environment) * (log(pressure_interface / pressure_interface[0, 0, 1])))
+        with computation(FORWARD), interval(...):
+            # check if convection is enabled for the current grid point
+            if source_level != -1:
+                if K >= source_level and K < level_free_convection:
+                    cin = cin + (Rd * (virtual_temp_parcel - virtual_temp_environment) * (log(pressure_interface / pressure_interface[0, 0, 1])))
 
-</div>
-    </div>
+                if K >= level_free_convection and K <= equilibrium_level:
+                    cape = cape + (Rd * (virtual_temp_parcel - virtual_temp_environment) * (log(pressure_interface / pressure_interface[0, 0, 1])))
+    ```
 
-    <div id="gen" class="tab-panel">
-      <div class="code-block">Generated code here...</div>
-    </div>
+=== "Generated"
 
-  </div>
-
-  <div class="apps-section">
-    <h2>Applications</h2>
-
-    <div class="app-grid">
-      <div class="app-card">
-        <h3>GEOS</h3>
-        <p>Accelerating global climate model simulations with NDSL.</p>
-        <a class="btn" href="./ndsl_in_action/overview.md">Explore →</a>
-      </div>
-
-      <div class="app-card">
-        <h3>NOAA</h3>
-        <p>Supporting operational atmospheric modeling systems.</p>
-        <a class="btn" href="#">Explore →</a>
-      </div>
-
-      <div class="app-card">
-        <h3>Pace</h3>
-        <p>Next-generation scalable atmospheric modeling.</p>
-        <a class="btn" href="https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf">Explore →</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="cta-card">
-    <h2 style="margin-bottom:0.5rem; font-size:20px; font-weight:600; color:#185FA5;">
-      Want to Learn More?
-    </h2>
-    <p style="max-width:800px; margin:0 auto; font-size:14px; color:var(--md-default-fg-color--light); line-height:1.5;">
-      Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs? Talk to an NDSL expert.
-    </p>
-    <a class="btn" href="https://mm.smce.nasa.gov/astg/channels/smt" style="margin-top:1rem;">
-      <svg xmlns="http://www.w3.org/2000/svg"
-       width="15"
-       height="15"
-       viewBox="0 0 24 24"
-       fill="none"
-       stroke="currentColor"
-       stroke-width="2"
-       stroke-linecap="round"
-       stroke-linejoin="round">
-      <path d="M22 2L11 13"></path>
-      <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-      </svg>
-      Contact Us →
-    </a>
-  </div>
+    Generated code here...
 
 </div>
 
-<script>
-function switchTab(event, tabId) {
-  const parent = event.target.closest('.code-card');
-  parent.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
-  parent.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  parent.querySelector('#' + tabId).classList.add('active');
-  event.target.classList.add('active');
-}
-</script>
+<div class="apps-section" markdown>
 
-</body>
-</html>
+## Applications
+
+<div class="app-grid" markdown>
+<div class="app-card" markdown>
+
+### GEOS
+
+Accelerating global climate model simulations with NDSL.
+
+[Explore →](./ndsl_in_action/overview.md){ .btn }
+</div>
+
+<div class="app-card" markdown>
+
+### NOAA
+
+Supporting operational atmospheric modeling systems.
+
+</div>
+
+<div class="app-card" markdown>
+
+### Pace
+
+Next-generation scalable atmospheric modeling.
+
+[Explore →](https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf){ .btn }
+</div>
+</div>
+</div>
+
+<div class="cta-card" markdown>
+
+## Want to Learn More?
+
+Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs? Talk to an NDSL expert.
+
+[✉ Contact Us →](https://mm.smce.nasa.gov/astg/channels/smt){ .btn }
+</div>
+
+</div>

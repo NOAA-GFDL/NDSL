@@ -58,31 +58,24 @@ nav = [
   # ── NDSL in Action ────────────────────────────────────────────────────────
   # Real-world results from running NDSL in GEOS model configurations.
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL in Action" = [
-      { "Overview"                   = "ndsl_in_action/overview.md" },
-      { "GEOS-SCM"                   = [
-          { "Summary"                = "ndsl_in_action/GEOS-SCM_results/scm_results.md" }
-      ]},
-      { "GEOS-FP"                    = [
-          { "GFDL1M Microphysics"    = "ndsl_in_action/GEOS-FP_results/early_microphys.md" },
-          { "GF2020 Deep Convection" = "ndsl_in_action/GEOS-FP_results/early_gf2020.md" },
-          { "UW Shallow Convection"  = "ndsl_in_action/GEOS-FP_results/early_uw.md" },
-          { "Summary"                = "ndsl_in_action/GEOS-FP_results/summary.md" }
-      ]},
-      { "Performance & Benchmarking" = "ndsl_in_action/performance_and_benchmarking/benchmark_overview.md" }
+      { "Overview"      = "pages/ndsl_in_action/overview.md" },
+      { "GEOS-SCM"      = "pages/ndsl_in_action/scm.md" },
+      { "GEOS-FP"       = "pages/ndsl_in_action/geos_fp.md" },
+      { "Benchmarks"    = "pages/ndsl_in_action/benchmarks.md" }
   ]},
 
   # ── User Manual ───────────────────────────────────────────────────────────
   # Step-by-step guide for developers using NDSL.
   { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
-      { "1. Introduction to NDSL"   = "documentation/ndsl_introduction.md" },
-      { "2. Getting Started"        = "documentation/user_manual/quickstart.md" },
-      { "3. Data Types and Storage" = "documentation/user_manual/data.md" },
-      { "4. Writing Code with NDSL" = "documentation/user_manual/writing_ndsl_code.md" },
-      { "5. Advanced Features"      = "documentation/user_manual/advanced_features.md" },
-      { "6. Backends"               = "documentation/user_manual/backends.md" },
-      { "7. Common Patterns"        = "documentation/user_manual/common_patterns.md" },
-      { "8. Why Use Classes?"       = "documentation/user_manual/why_use_classes.md" },
-      { "9. Best Coding Practices"  = "documentation/user_manual/best_coding_practices.md" }
+      { "1. Introduction to NDSL"   = "pages/documentation/ndsl_introduction.md" },
+      { "2. Getting Started"        = "pages/documentation/user_manual/quickstart.md" },
+      { "3. Data Types and Storage" = "pages/documentation/user_manual/data.md" },
+      { "4. Writing Code with NDSL" = "pages/documentation/user_manual/writing_ndsl_code.md" },
+      { "5. Advanced Features"      = "pages/documentation/user_manual/advanced_features.md" },
+      { "6. Backends"               = "pages/documentation/user_manual/backends.md" },
+      { "7. Common Patterns"        = "pages/documentation/user_manual/common_patterns.md" },
+      { "8. Why Use Classes?"       = "pages/documentation/user_manual/why_use_classes.md" },
+      { "9. Best Coding Practices"  = "pages/documentation/user_manual/best_coding_practices.md" }
   ]},
 
   # ── API Docs ──────────────────────────────────────────────────────────────
