@@ -22,7 +22,7 @@ A modern domain-specific language for portable, high-performance atmospheric mod
 
 Install the latest version of NDSL with a few commands and start writing code.
 
-[NDSL v2026.03.00 →](./pages/install_ndsl.md){ .btn }
+[NDSL v2026.03.00 →](./pages/install_ndsl.md){ .pretty-internal-link }
 </div>
 
 <div class="two-col" markdown>
@@ -32,7 +32,7 @@ Install the latest version of NDSL with a few commands and start writing code.
 
 New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.
 
-[User Manual →](./pages/user_manual/ndsl_introduction.md){ .btn }
+[User Manual →](./pages/user_manual/ndsl_introduction.md){ .pretty-internal-link }
 </div>
 
 <div class="section-card" markdown>
@@ -41,7 +41,7 @@ New to NDSL? Walk through our beginner-friendly user manual to learn the core sy
 
 Connect with developers, researchers, and contributors working on NDSL and atmospheric modeling tools.
 
-[Join Community →](./community.md){ .btn }
+[Join Community →](./community.md){ .pretty-internal-link }
 </div>
 </div>
 
@@ -151,21 +151,21 @@ Connect with developers, researchers, and contributors working on NDSL and atmos
 
 </div>
 
-<div class="apps-section" markdown>
+<div class="section-title" markdown>
 
 ## Applications
 
-<div class="app-grid" markdown>
-<div class="app-card" markdown>
+<div class="three-col" markdown>
+<div class="section-card" markdown>
 
 ### GEOS
 
 Accelerating global climate model simulations with NDSL.
 
-[Explore →](./ndsl_in_action/overview.md){ .btn }
+[Explore →](./ndsl_in_action/overview.md){ .pretty-internal-link }
 </div>
 
-<div class="app-card" markdown>
+<div class="section-card" markdown>
 
 ### NOAA
 
@@ -173,24 +173,24 @@ Supporting operational atmospheric modeling systems.
 
 </div>
 
-<div class="app-card" markdown>
+<div class="section-card" markdown>
 
 ### Pace
 
 Next-generation scalable atmospheric modeling.
 
-[Explore →](https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf){ .btn }
+[Explore →](https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf){ .pretty-internal-link }
 </div>
 </div>
 </div>
 
-<div class="cta-card" markdown>
+<div class="section-card centered-text" markdown>
 
 ## Want to Learn More?
 
 Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs? Talk to an NDSL expert.
 
-[✉ Contact Us →](https://mm.smce.nasa.gov/astg/channels/smt){ .btn }
+[✉ Contact Us →](https://mm.smce.nasa.gov/astg/channels/smt){ .pretty-internal-link }
 </div>
 
 </div>

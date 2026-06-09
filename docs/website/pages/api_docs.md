@@ -4,15 +4,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NDSL API Docs</title>
+<title>NDSL API Docs I NEED TO BE REWORKED, FORMATTING HAS BEEN NEGLECTED</title>
 </head>
 
 <body>
 
-<div class="dsl-page">
+<div>
 
   <!-- HERO -->
-  <div class="page-hero">
+  <div class="section-card">
 
     <h1>API Documentation</h1>
 
@@ -21,15 +21,6 @@
       data structures, runtime orchestration,
       and scalable backend execution across CPUs and GPUs.
     </p>
-
-    <div class="tag-row">
-      <div class="badge">DSL</div>
-      <div class="badge">Runtime</div>
-      <div class="badge">Backends</div>
-      <div class="badge">Diagnostics</div>
-      <div class="badge">Testing</div>
-      <div class="badge">Performance</div>
-    </div>
 
   </div>
 
@@ -42,7 +33,7 @@
         APIs for stencil configuration, data types, storage,
         and GT4Py utilities.
       </p>
-      <a class="btn" href="./docstrings/dsl/gt4py_utils.md">Explore →</a>
+      <a class="pretty-internal-link" href="./docstrings/dsl/gt4py_utils.md">Explore →</a>
     </div>
 
     <div class="section-card">
@@ -51,7 +42,7 @@
         Structured grid indexing, halo regions,
         dimensional metadata, and quantity management.
       </p>
-      <a class="btn" href="./docstrings/grid/eta.md">Explore →</a>
+      <a class="pretty-internal-link" href="./docstrings/grid/eta.md">Explore →</a>
     </div>
 
     <div class="section-card">
@@ -59,7 +50,7 @@
       <p>
         Profiling, monitoring, debugging, and scalable execution analysis.
       </p>
-      <a class="btn" href="./docstrings/performance/collector.md">Explore →</a>
+      <a class="pretty-internal-link" href="./docstrings/performance/collector.md">Explore →</a>
     </div>
 
     <div class="section-card">
@@ -67,7 +58,7 @@
       <p>
         APIs and helpful tools for testing NDSL against the reference Fortran.
       </p>
-      <a class="btn" href="./docstrings/testing/comparison.md">Explore →</a>
+      <a class="pretty-internal-link" href="./docstrings/testing/comparison.md">Explore →</a>
     </div>
 
   </div>

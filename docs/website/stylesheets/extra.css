@@ -11,21 +11,81 @@ Custom styles applied on top of the Zensical/Material base theme.
   }
 
 /* -----------------------------------------------------------------------------
-Special formatting for "page-title" class
+Override some default template settings
 ----------------------------------------------------------------------------- */
 
-/* Applied via { .page-title } attr_list syntax on the h1 in index.md */
-.page-title {
+/* Custom h1 */
+.md-typeset h1 {
   font-size: 40px !important;
   font-weight: 600 !important;
-  color: #185FA5 !important;
+  color: var(--custom_blue) !important;
   margin: 0 0 0.45rem 0 !important;
   letter-spacing: -0.02em !important;
   line-height: 1.1 !important;
 }
 
+/* Body Text */
+.md-typeset {
+  color: var(--custom_light_grey);
+}
+
+/* Links */
+.md-typeset a {
+  color: var(--custom_blue); /* make links theme blue instead of default blue */
+}
+
+/* Images */
+.md-typeset img {
+  border-radius: 12px; /* rounded corners */
+}
+
 /* -----------------------------------------------------------------------------
-Special formatting for "code-card" class
+Create special organization/structure classes
+----------------------------------------------------------------------------- */
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+
+/* -----------------------------------------------------------------------------
+Create a generic "block" of formatting. This block should be the primary
+building block for all "complex" entities - everything that requires more
+than basic markdown formatting
+
+This card can be used in conjunction with any shaping classes to create
+more complex arrangements
+
+Highly specialized applications may require a separate definition (see below)
+----------------------------------------------------------------------------- */
+
+.section-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: var(--md-code-bg-color);
+  margin-bottom: 0.9rem;
+}
+
+/* Modifiers - these can be added on to the section-card 
+definition to create more complex structures */
+
+.centered-text {
+  text-align: center
+}
+
+/* -----------------------------------------------------------------------------
+Create a specialized "code-card" class
 ----------------------------------------------------------------------------- */
 
 /* remove dead space above panel names */
@@ -51,198 +111,29 @@ Special formatting for "code-card" class
   margin-bottom: 1rem;
 }
 
+
 /* -----------------------------------------------------------------------------
-   SHARED CARD COMPONENTS
-   Used across multiple pages — homepage, ndsl_in_action, etc.
-   ----------------------------------------------------------------------------- */
+Little button to use for internal links
+----------------------------------------------------------------------------- */
 
-.section-card {
-  border: 1px solid var(--md-typeset-table-color);
-  border-radius: 14px;
-  padding: 1.25rem;
-  background: var(--md-code-bg-color);
-  margin-bottom: 0.9rem;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.app-card {
-  border: 1px solid var(--md-typeset-table-color);
-  border-radius: 14px;
-  padding: 1rem;
-  background: var(--md-code-bg-color);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: 0.2s;
-}
-
-.tab-bar {
-  display: flex;
-  border-bottom: 1px solid var(--md-typeset-table-color);
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 7px;
-  font-size: 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--md-default-fg-color--light);
-}
-
-.tab-btn.active {
-  color: var(--custom_blue);
-  border-bottom: 2px solid var(--custom_blue);
-  font-weight: 500;
-}
-
-.tab-panel {
-  display: none;
-  padding: 0.9rem;
-}
-
-.tab-panel.active {
-  display: block;
-}
-
-.code-block {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 12px;
-  white-space: pre;
-  overflow-x: auto;
-  color: var(--md-code-fg-color);
-}
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 0.9rem;
-}
-
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.apps-section h2 {
-  margin: 1rem 0 0.5rem 0;
-}
-
-.badge {
-  display: inline-block;
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(24, 95, 165, 0.15);
-  color: var(--custom_blue);
-  margin-bottom: 0rem;
-}
-
-.btn {
+.pretty-internal-link {
   display: inline-block;
   padding: 8px 16px;
   background: var(--custom_blue);
-  color: #fff !important;
+  color: var(--custom_white) !important;
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  text-decoration: none !important;
+  text-decoration: none !important; /* removes hyperlink underlining */
   border: none;
-  transition: background 0.2s ease;
+  transition: 0.2s ease; /* not working, transitions are instant */
 }
 
-.btn:hover {
-  background: #0C447C;
-  text-decoration: none !important;
+.pretty-internal-link:hover {
+  text-decoration: none !important; /* removes hyperlink underlining */
+  opacity: 0.75;
 }
-
-.cta-card {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  border: none;
-  border-radius: 14px;
-  background: var(--md-code-bg-color);
-  box-shadow: 0 10px 25px rgba(24,95,165,0.10);
-}
-
-@media (max-width: 768px) {
-  .two-col, .app-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-/* -----------------------------------------------------------------------------
-   PAGE HERO
-   Reusable hero block for API docs, overview pages, etc.
-   ----------------------------------------------------------------------------- */
-
-.page-hero {
-  margin-bottom: 2rem;
-}
-
-.page-hero h1 {
-  font-size: 38px;
-  font-weight: 650;
-  color: var(--custom_blue);
-  margin: 0 0 0.75rem 0;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-}
-
-.page-hero p {
-  max-width: 800px;
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--md-default-fg-color--light);
-  margin: 0;
-}
-
-/* Tag/pill row — sits below the hero description */
-.tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 1.5rem 0 2rem 0;
-}
-
-
-/* -----------------------------------------------------------------------------
-   TYPOGRAPHY
-   ----------------------------------------------------------------------------- */
-
-/* Page headings */
-.md-typeset h1 {
-  color: var(--custom_blue);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-/* Body text */
-.md-typeset {
-  color: var(--custom_light_grey);
-}
-
-/* Links */
-.md-typeset a {
-  color: var(--custom_blue);
-}
-
-.md-typeset a:hover {
-  color: #0C447C;
-}
-
-/* Images */
-.md-typeset img {
-  border-radius: 12px;
-}
-
 
 /* -----------------------------------------------------------------------------
    TABLES

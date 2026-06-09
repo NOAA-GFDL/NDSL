@@ -126,7 +126,7 @@
   students, and users across the Earth system modeling community.
 </p>
 
-<a class="md-button md-button--primary community-btn"
+<a class="md-button md-button--primary community-pretty-internal-link"
    href="https://github.com/NOAA-GFDL/NDSL"
    style="
       margin-top:0.5rem;
@@ -212,7 +212,7 @@ GitHub Repository
 
 <div style="margin-top:2rem;">
 
-<a class="md-button md-button--primary community-btn"
+<a class="md-button md-button--primary community-pretty-internal-link"
    href="https://mm.smce.nasa.gov/astg/channels/smt"
    style="
       border-radius:10px;
@@ -503,14 +503,14 @@ charles.kropiewnicki@nasa.gov
 </div>
 
 <style>
-.community-btn {
+.community-pretty-internal-link {
   background: #185FA5 !important;
   color: white !important;
   border: 1px solid #185FA5 !important;
   transition: all 0.2s ease;
 }
 
-.community-btn:hover {
+.community-pretty-internal-link:hover {
   background: #0C447C !important;
   border-color: #0C447C !important;
   transform: translateY(-1px);

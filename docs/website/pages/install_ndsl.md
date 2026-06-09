@@ -50,7 +50,7 @@
       so be sure to clone recursively.
     </p>
 
-<pre class="code-block"><code>git clone --recurse-submodules git@github.com:NOAA-GFDL/NDSL.git
+<pre class="section-card"><code>git clone --recurse-submodules git@github.com:NOAA-GFDL/NDSL.git
 
 cd NDSL/
 </code></pre>
@@ -75,7 +75,7 @@ cd NDSL/
       Create and activate a clean Python environment.
     </p>
 
-<pre class="code-block"><code>python -m venv .venv
+<pre class="section-card"><code>python -m venv .venv
 
 source .venv/bin/activate
 </code></pre>
@@ -95,7 +95,7 @@ source .venv/bin/activate
       you can install OpenMPI using pip.
     </p>
 
-<pre class="code-block"><code>pip install openmpi
+<pre class="section-card"><code>pip install openmpi
 </code></pre>
 
   </section>
