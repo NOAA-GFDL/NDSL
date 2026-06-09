@@ -30,7 +30,10 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.optional_imports import numpy_allocator as np_allocator
 
 
-def _is_hmm_available() -> bool:
+_IS_HMM_AVAILABLE: bool | None = None
+
+
+def _internal_is_hmm_available() -> bool:
     if cp is None:
         return False
 
@@ -50,7 +53,17 @@ def _is_hmm_available() -> bool:
     return True
 
 
-if _is_hmm_available():
+def is_hmm_available() -> bool:
+    """Can Heterogeneous Memory Management be used on the current hardware"""
+    global _IS_HMM_AVAILABLE
+    if _IS_HMM_AVAILABLE is not None:
+        return _IS_HMM_AVAILABLE
+
+    _IS_HMM_AVAILABLE = _internal_is_hmm_available()
+    return _IS_HMM_AVAILABLE
+
+
+if is_hmm_available():
     # Based on https://github.com/cupy/cupy/issues/8711 and
     # https://docs.cupy.dev/en/stable/user_guide/memory.html#unified-memory-programming-ump-support-experimental
     import cupy._core.numpy_allocator as ac
