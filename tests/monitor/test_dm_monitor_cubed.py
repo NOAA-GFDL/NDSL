@@ -8,8 +8,8 @@ from pathlib import Path
 import cftime
 import numpy as np
 import pytest
-import xarray as xr
 import yaml
+from netCDF4 import Dataset, num2date
 
 from ndsl import (
     CubedSphereCommunicator,
@@ -21,9 +21,7 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.initialization import SubtileGridSizer
-
-
-pyfms = pytest.importorskip("pyfms")
+from ndsl.optional_imports import pyfms
 
 
 # init fms mpi and set up a simple domain
@@ -52,7 +50,7 @@ def fms_mpp_init():
     return domain_id
 
 
-def _create_input(reduction: str = "none"):
+def _create_input(reduction: str = "none") -> None:
     diag_config = {
         "title": "ndsl_diag_manager_test",
         "base_date": "1 1 1 0 0 0",
@@ -89,9 +87,9 @@ def _create_input(reduction: str = "none"):
 
 
 # Simple test, uses a lat/lon grid and (1, npes) layout
+@pytest.mark.pyfms
 @pytest.mark.parallel
-def test_dm_monitor():
-
+def test_dm_monitor() -> None:
     npes = MPIComm()._comm.Get_size()
     if npes % 6 != 0:
         raise RuntimeError("this test requires npes to be a multiple of 6 to run")
@@ -203,24 +201,28 @@ def test_dm_monitor():
     pe = MPIComm()._comm.Get_rank() + 1
     filename = "diag_manager_cubed_sphere.tile" + str(pe) + ".nc"
     assert Path(filename).exists()
-    ds = xr.open_mfdataset(filename, decode_times=True)
-    assert "var1" in ds
-    np.testing.assert_array_equal(ds["var1"].shape, (ntimesteps, ny, nx))
-    assert "var2" in ds
-    np.testing.assert_array_equal(ds["var2"].shape, (ntimesteps, nz, ny, nx))
-    assert ds["var1"].dims == ("time", "y", "x")
-    assert ds["var2"].dims == ("time", "z", "y", "x")
-    assert ds["time"].shape == (ntimesteps,)
-    assert ds["time"].dims == ("time",)
-    assert ds["time"].values[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 15)
-    assert ds["time"].values[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 30)
-    assert ds["time"].values[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 45)
+    ds = Dataset(filename)
+    assert "var1" in ds.variables
+    var1_ds = ds.variables["var1"]
+    np.testing.assert_array_equal(var1_ds.shape, (ntimesteps, ny, nx))
+    assert "var2" in ds.variables
+    var2_ds = ds.variables["var2"]
+    np.testing.assert_array_equal(var2_ds.shape, (ntimesteps, nz, ny, nx))
+    assert var1_ds.dimensions == ("time", "y", "x")
+    assert var2_ds.dimensions == ("time", "z", "y", "x")
+    time_var = ds["time"]
+    dates = num2date(time_var[:], units=time_var.units, calendar=time_var.calendar)
+    assert time_var.shape == (ntimesteps,)
+    assert time_var.dimensions == ("time",)
+    assert dates[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 15)
+    assert dates[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 30)
+    assert dates[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 45)
     # data is just the timestep number
-    np.testing.assert_array_equal(ds["var1"].values[0, :, :], 1)
-    np.testing.assert_array_equal(ds["var1"].values[1, :, :], 2)
-    np.testing.assert_array_equal(ds["var1"].values[2, :, :], 3)
-    np.testing.assert_array_equal(ds["var2"].values[0, :, :, :], 2)
-    np.testing.assert_array_equal(ds["var2"].values[1, :, :, :], 4)
-    np.testing.assert_array_equal(ds["var2"].values[2, :, :, :], 6)
+    np.testing.assert_array_equal(var1_ds[0, :, :], 1)
+    np.testing.assert_array_equal(var1_ds[1, :, :], 2)
+    np.testing.assert_array_equal(var1_ds[2, :, :], 3)
+    np.testing.assert_array_equal(var2_ds[0, :, :, :], 2)
+    np.testing.assert_array_equal(var2_ds[1, :, :, :], 4)
+    np.testing.assert_array_equal(var2_ds[2, :, :, :], 6)
 
     pyfms.fms.end()

@@ -18,6 +18,11 @@ except ModuleNotFoundError as err:
     zarr = RaiseWhenAccessed(err)
 
 try:
+    import pyfms
+except ModuleNotFoundError as err:
+    pyfms = RaiseWhenAccessed(err)
+
+try:
     import cupy
 except ImportError:
     cupy = None
