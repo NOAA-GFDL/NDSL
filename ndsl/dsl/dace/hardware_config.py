@@ -1,13 +1,16 @@
 import dataclasses
-import os
 import sys
+from pathlib import Path
+from typing import Literal
 
 from ndsl import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
+GPUVendor = Literal["Nvidia"] | Literal["AMD"] | Literal["Intel"] | Literal["Unknown"]
+
 # Taken straight out of https://pcisig.com/membership/member-companies
-_VENDOR_PCI_SIGNAURES = {
+_VENDOR_PCI_SIGNATURES: dict[int, GPUVendor] = {
     0x10DE: "Nvidia",
     0x1002: "AMD",
     0x8086: "Intel",
@@ -18,46 +21,49 @@ _VENDOR_PCI_SIGNAURES = {
 _GPU_HARDWARE_DEFAULTS = None
 
 
-def _get_vendor() -> str:
+def _get_vendor() -> GPUVendor:
     """Retrieve vendor using the current device PCI id to query the PCI vendor
-    from the kernel logs
+    from the kernel logs.
 
-    ⚠️ Only works on Linux - kicks back to "Unknwon" in other cases
+    ⚠️ Only works on Linux - kicks back to "Unknown" in other cases.
     """
     if not sys.platform.startswith("linux"):
-        return _VENDOR_PCI_SIGNAURES[0x0]
-
-    pci_device_id = cp.cuda.runtime.deviceGetPCIBusId(0)
-    dev_path = f"/sys/bus/pci/devices/{pci_device_id}"
-    if not os.path.exists(dev_path):
+        ndsl_log.info("GPU hardware detection only possible on Linux system.")
         return "Unknown"
 
-    with open(os.path.join(dev_path, "vendor"), "r") as f:
+    pci_device_id = cp.cuda.runtime.deviceGetPCIBusId(0)
+    dev_path = Path("/sys", "bus", "pci", "devices", f"{pci_device_id}")
+    if not dev_path.exists():
+        ndsl_log.info(f"GPU detection: PCI device not found at {dev_path}.")
+        return "Unknown"
+
+    with open(dev_path / "vendor", "r") as f:
         vendor_str = f.read().strip().replace("0x", "")
         vendor_id = int(vendor_str, 16)
 
-    if vendor_id not in _VENDOR_PCI_SIGNAURES:
-        ndsl_log.error(f"Unknown GPU vendor with PCI-SIG ID of {vendor_id:#X}")
+    if vendor_id not in _VENDOR_PCI_SIGNATURES:
+        ndsl_log.error(f"Unknown GPU vendor with PCI-SIG ID of {vendor_id:#X}.")
         return "Unknown"
-    return _VENDOR_PCI_SIGNAURES[int(vendor_str, 16)]
+
+    return _VENDOR_PCI_SIGNATURES[vendor_id]
 
 
 @dataclasses.dataclass
 class GPUHardwareDefaults:
     """Compute defaults for common GPUs"""
 
-    vendor: str
+    vendor: GPUVendor
     block_size: list[int] = dataclasses.field(default_factory=list)
     compute_capability: int = -1  # Nvidia specific
 
 
 def get_gpu_hardware_defaults() -> GPUHardwareDefaults:
-    """Retrieve default values for GPU computation configuration"""
+    """Retrieve default values for GPU computation configuration."""
     global _GPU_HARDWARE_DEFAULTS
     if _GPU_HARDWARE_DEFAULTS is not None:
         return _GPU_HARDWARE_DEFAULTS  # type: ignore[unreachable]
 
-    if not cp or not cp.cuda.is_available():
+    if cp is None or not cp.cuda.is_available():
         ndsl_log.warning("No cupy - defaulting for GPU hardware")
         _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
             vendor="Unknown",
@@ -97,7 +103,8 @@ def get_gpu_hardware_defaults() -> GPUHardwareDefaults:
         )
     elif vendor == "AMD":
         _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
-            vendor=vendor, block_size=[64, 1, 1]  # Default RDNA architectue is Wave64
+            vendor=vendor,
+            block_size=[64, 1, 1],  # Default RDNA architecture is Wave64
         )
     elif vendor == "Intel":
         _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
