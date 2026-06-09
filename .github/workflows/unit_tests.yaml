@@ -19,7 +19,18 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    name: Python ${{ matrix.python-version }}
+        extra: ['test,zarr']
+        marker-serial: ['not parallel and not gpu and not pyfms']
+        marker-parallel: ['parallel and not gpu and not pyfms']
+        include:
+          # add pyfms tests for 3.12
+          - extra: 'test,pyfms'
+            marker-serial: 'pyfms and not parallel'
+            marker-parallel: 'pyfms and parallel'
+            python-version: '3.12'
+      # don't cancel other jobs if one fails
+      fail-fast: false
+    name: Python ${{ matrix.python-version }}${{ contains(matrix.extra, 'pyfms') && ' (pyFMS)' || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -31,17 +42,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install mpi (MPICH flavor)
-        run: pip3 install mpich
+      - name: Install MPI
+        if: ${{!contains(matrix.extra, 'pyfms')}}
+        run: pip3 install openmpi
+
+      - name: Install pyFMS dependencies (includes system MPI)
+        if: contains(matrix.extra, 'pyfms')
+        run: |
+          sudo apt-get update
+          sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Install Python packages
-        run: pip3 install .[test,zarr]
+        run: pip3 install .[${{matrix.extra}}]
 
       - name: Run serial cpu tests
-        run: coverage run --rcfile=pyproject.toml -m pytest -m "not parallel and not gpu" tests
+        run: coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
-        run: mpiexec -np 6 coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "parallel and not gpu" tests
+        run: mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |

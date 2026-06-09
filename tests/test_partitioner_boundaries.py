@@ -459,6 +459,7 @@ def test_single_3_by_3_top_left_corner(
 def test_tile_boundary(layout, boundary_type, from_rank, to_rank):
     tile = TilePartitioner(layout)
     boundary = tile.boundary(boundary_type, from_rank)
+    assert boundary is not None
     assert boundary.from_rank == from_rank
     assert boundary.to_rank == to_rank
     assert boundary.n_clockwise_rotations == 0
@@ -661,6 +662,7 @@ def test_boundary_returns_correct_boundary_type():
     partitioner = CubedSpherePartitioner(tile)
     for boundary_type in BOUNDARY_TYPES:
         boundary = partitioner.boundary(boundary_type, rank=4)  # center face
+        assert boundary is not None
         assert boundary.boundary_type == boundary_type
 
 
@@ -699,12 +701,15 @@ def test_edge_boundaries_pair(layout, subtests):
         for boundary_type in EDGE_BOUNDARY_TYPES:
             with subtests.test(rank=rank, boundary_type=boundary_type):
                 out_boundary = partitioner.boundary(boundary_type, rank)
+                assert out_boundary is not None
+
                 in_boundary = partitioner.boundary(
                     rotate(
                         boundary_type, 2 - out_boundary.n_clockwise_rotations, order
                     ),
                     out_boundary.to_rank,
                 )
+                assert in_boundary is not None
                 assert out_boundary.to_rank == in_boundary.from_rank
                 assert in_boundary.to_rank == out_boundary.from_rank
                 assert (
@@ -734,6 +739,7 @@ def test_corner_boundaries_pair(layout, subtests):
                         ),
                         out_boundary.to_rank,
                     )
+                    assert in_boundary is not None
                     assert out_boundary.to_rank == in_boundary.from_rank
                     assert in_boundary.to_rank == out_boundary.from_rank
                     assert (
