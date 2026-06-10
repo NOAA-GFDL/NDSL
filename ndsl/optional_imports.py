@@ -33,3 +33,8 @@ if cupy is not None:
         cupy.cuda.runtime.deviceSynchronize()
     except cupy.cuda.runtime.CUDARuntimeError:
         cupy = None
+
+try:
+    import numpy_allocator
+except ModuleNotFoundError:
+    numpy_allocator = None
