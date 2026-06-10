@@ -14,14 +14,10 @@ For the purposes of this work, numerical validation has been performed on both s
 conflating errors associated with different hardware types with true porting errors, numerical validation is performed with all optimization turned off - for both
 the Fortran and NDSL.
 
-KATRINA PUT YOUR PICTURES FOR SCM AND GCM HERE
+A selection of results can be seen below. More details on how numerical validation is performed and access to full results and associated data sets can be
+found [here](./full_results.md).
 
-i don't think we need a whole lot more words just pictures people can flip through that show
-
-a. the component tested
-b. the resolution (or gcm/scm, idk)
-
-i feel like less is more here, so maybe we don't even show all the components. just a few. I don't forsee people having interest in flipping through 20 plots or something
+SOME RESULTS HERE
 
 ##### Benchmarking
 
