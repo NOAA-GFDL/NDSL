@@ -1,0 +1,3 @@
+# profiler
+
+::: performance.profiler

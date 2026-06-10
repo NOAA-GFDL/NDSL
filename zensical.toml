@@ -81,131 +81,124 @@ nav = [
     # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
     # Organized to mirror the ndsl/ package structure.
     { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
-        { "API Docs"        = "pages/api_docs.md" },
-        { "Internal"        = "internal/release.md" },
-        { "NDSL Docstrings" = [
-            { "General Info" = "docstrings/index.md" },
+        "pages/docstrings/index.md",
+        { "Top-level" = [
+            { "boilerplate"      = "pages/docstrings/top/boilerplate.md" },
+            { "buffer"           = "pages/docstrings/top/buffer.md" },
+            { "constants"        = "pages/docstrings/top/constants.md" },
+            { "io"               = "pages/docstrings/top/io.md" },
+            { "logging"          = "pages/docstrings/top/logging.md" },
+            { "optional_imports" = "pages/docstrings/top/optional_imports.md" },
+            { "types"            = "pages/docstrings/top/types.md" },
+            { "typing"           = "pages/docstrings/top/typing.md" },
+            { "utils"            = "pages/docstrings/top/utils.md" }
+        ]},
 
-            { "Top-level" = [
-                { "boilerplate"      = "docstrings/top/boilerplate.md" },
-                { "buffer"           = "docstrings/top/buffer.md" },
-                { "constants"        = "docstrings/top/constants.md" },
-                { "io"               = "docstrings/top/io.md" },
-                { "logging"          = "docstrings/top/logging.md" },
-                { "optional_imports" = "docstrings/top/optional_imports.md" },
-                { "types"            = "docstrings/top/types.md" },
-                { "typing"           = "docstrings/top/typing.md" },
-                { "utils"            = "docstrings/top/utils.md" }
-            ]},
+        { "checkpointer" = [
+            { "base"       = "pages/docstrings/checkpointer/base.md" },
+            { "null"       = "pages/docstrings/checkpointer/null.md" },
+            { "snapshots"  = "pages/docstrings/checkpointer/snapshots.md" },
+            { "thresholds" = "pages/docstrings/checkpointer/thresholds.md" },
+            { "validation" = "pages/docstrings/checkpointer/validation.md" }
+        ]},
 
-            { "checkpointer" = [
-                { "base"       = "docstrings/checkpointer/base.md" },
-                { "null"       = "docstrings/checkpointer/null.md" },
-                { "snapshots"  = "docstrings/checkpointer/snapshots.md" },
-                { "thresholds" = "docstrings/checkpointer/thresholds.md" },
-                { "validation" = "docstrings/checkpointer/validation.md" }
-            ]},
+        { "comm" = [
+            { "_boundary_utils" = "pages/docstrings/comm/_boundary_utils.md" },
+            { "boundary"        = "pages/docstrings/comm/boundary.md" },
+            { "caching_comm"    = "pages/docstrings/comm/caching_comm.md" },
+            { "comm_abc"        = "pages/docstrings/comm/comm_abc.md" },
+            { "communicator"    = "pages/docstrings/comm/communicator.md" },
+            { "decomposition"   = "pages/docstrings/comm/decomposition.md" },
+            { "local_comm"      = "pages/docstrings/comm/local_comm.md" },
+            { "mpi"             = "pages/docstrings/comm/mpi.md" },
+            { "partitioner"     = "pages/docstrings/comm/partitioner.md" }
+        ]},
 
-            { "comm" = [
-                { "_boundary_utils" = "docstrings/comm/_boundary_utils.md" },
-                { "boundary"        = "docstrings/comm/boundary.md" },
-                { "caching_comm"    = "docstrings/comm/caching_comm.md" },
-                { "comm_abc"        = "docstrings/comm/comm_abc.md" },
-                { "communicator"    = "docstrings/comm/communicator.md" },
-                { "decomposition"   = "docstrings/comm/decomposition.md" },
-                { "local_comm"      = "docstrings/comm/local_comm.md" },
-                { "mpi"             = "docstrings/comm/mpi.md" },
-                { "partitioner"     = "docstrings/comm/partitioner.md" }
-            ]},
+        { "debug" = [
+            { "config"   = "pages/docstrings/debug/config.md" },
+            { "debugger" = "pages/docstrings/debug/debugger.md" },
+            { "tooling"  = "pages/docstrings/debug/tooling.md" }
+        ]},
 
-            { "debug" = [
-                { "config"   = "docstrings/debug/config.md" },
-                { "debugger" = "docstrings/debug/debugger.md" },
-                { "tooling"  = "docstrings/debug/tooling.md" }
-            ]},
+        { "dsl" = [
+            { "gt4py_utils"    = "pages/docstrings/dsl/gt4py_utils.md" },
+            { "stencil_config" = "pages/docstrings/dsl/stencil_config.md" },
+            { "stencil"        = "pages/docstrings/dsl/stencil.md" },
+            { "typing"         = "pages/docstrings/dsl/typing.md" }
+        ]},
 
-            { "dsl" = [
-                { "gt4py_utils"    = "docstrings/dsl/gt4py_utils.md" },
-                { "stencil_config" = "docstrings/dsl/stencil_config.md" },
-                { "stencil"        = "docstrings/dsl/stencil.md" },
-                { "typing"         = "docstrings/dsl/typing.md" }
-            ]},
+        { "grid" = [
+            { "eta"                    = "pages/docstrings/grid/eta.md" },
+            { "generation"             = "pages/docstrings/grid/generation.md" },
+            { "geometry"               = "pages/docstrings/grid/geometry.md" },
+            { "global_setup"           = "pages/docstrings/grid/global_setup.md" },
+            { "gnomonic"               = "pages/docstrings/grid/gnomonic.md" },
+            { "helper"                 = "pages/docstrings/grid/helper.md" },
+            { "mirror"                 = "pages/docstrings/grid/mirror.md" },
+            { "stretch_transformation" = "pages/docstrings/grid/stretch_transformation.md" }
+        ]},
 
-            { "grid" = [
-                { "eta"                    = "docstrings/grid/eta.md" },
-                { "generation"             = "docstrings/grid/generation.md" },
-                { "geometry"               = "docstrings/grid/geometry.md" },
-                { "global_setup"           = "docstrings/grid/global_setup.md" },
-                { "gnomonic"               = "docstrings/grid/gnomonic.md" },
-                { "helper"                 = "docstrings/grid/helper.md" },
-                { "mirror"                 = "docstrings/grid/mirror.md" },
-                { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" }
-            ]},
+        { "halo" = [
+            { "cuda_kernels"     = "pages/docstrings/halo/cuda_kernels.md" },
+            { "data_transformer" = "pages/docstrings/halo/data_transformer.md" },
+            { "rotate"           = "pages/docstrings/halo/rotate.md" },
+            { "updater"          = "pages/docstrings/halo/updater.md" }
+        ]},
 
-            { "halo" = [
-                { "cuda_kernels"     = "docstrings/halo/cuda_kernels.md" },
-                { "data_transformer" = "docstrings/halo/data_transformer.md" },
-                { "rotate"           = "docstrings/halo/rotate.md" },
-                { "updater"          = "docstrings/halo/updater.md" }
-            ]},
+        { "initialization" = [
+            { "allocator"          = "pages/docstrings/initialization/allocator.md" },
+            { "grid_sizer"         = "pages/docstrings/initialization/grid_sizer.md" },
+            { "subtile_grid_sizer" = "pages/docstrings/initialization/subtile_grid_sizer.md" }
+        ]},
 
-            { "initialization" = [
-                { "allocator"          = "docstrings/initialization/allocator.md" },
-                { "grid_sizer"         = "docstrings/initialization/grid_sizer.md" },
-                { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" }
-            ]},
+        { "monitor" = [
+            { "convert"        = "pages/docstrings/monitor/convert.md" },
+            { "netcdf_monitor" = "pages/docstrings/monitor/netcdf_monitor.md" },
+            { "protocol"       = "pages/docstrings/monitor/protocol.md" },
+            { "zarr_monitor"   = "pages/docstrings/monitor/zarr_monitor.md" }
+        ]},
 
-            { "monitor" = [
-                { "convert"        = "docstrings/monitor/convert.md" },
-                { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
-                { "protocol"       = "docstrings/monitor/protocol.md" },
-                { "zarr_monitor"   = "docstrings/monitor/zarr_monitor.md" }
-            ]},
+        { "performance" = [
+            { "collector" = "pages/docstrings/performance/collector.md" },
+            { "config"    = "pages/docstrings/performance/config.md" },
+            { "profiler"  = "pages/docstrings/performance/profiler.md" },
+            { "report"    = "pages/docstrings/performance/report.md" },
+            { "timer"     = "pages/docstrings/performance/timer.md" },
+            { "tools"     = "pages/docstrings/performance/tools.md" }
+        ]},
 
-            # NOTE: paths below were duplicated in the original file — update
-            # each entry to its correct .md path once known.
-            { "performance" = [
-                { "collector" = "docstrings/performance/collector.md" },
-                { "config"    = "docstrings/performance/config.md" },
-                { "profiler"  = "docstrings/performance/profiler.md" },
-                { "report"    = "docstrings/performance/report.md" },
-                { "timer"     = "docstrings/performance/timer.md" },
-                { "tools"     = "docstrings/performance/tools.md" }
-            ]},
+        { "quantity" = [
+            { "bounds"       = "pages/docstrings/quantity/bounds.md" },
+            { "field_bundle" = "pages/docstrings/quantity/field_bundle.md" },
+            { "metadata"     = "pages/docstrings/quantity/metadata.md" },
+            { "quantity"     = "pages/docstrings/quantity/quantity.md" },
+            { "state"        = "pages/docstrings/quantity/state.md" }
+        ]},
 
-            { "quantity" = [
-                { "bounds"       = "docstrings/quantity/bounds.md" },
-                { "field_bundle" = "docstrings/quantity/field_bundle.md" },
-                { "metadata"     = "docstrings/quantity/metadata.md" },
-                { "quantity"     = "docstrings/quantity/quantity.md" },
-                { "state"        = "docstrings/quantity/state.md" }
-            ]},
+        { "restart" = [
+            { "_legacy_restart" = "pages/docstrings/restart/_legacy_restart.md" },
+            { "_properties"     = "pages/docstrings/restart/_properties.md" }
+        ]},
 
-            { "restart" = [
-                { "_legacy_restart" = "docstrings/restart/_legacy_restart.md" },
-                { "_properties"     = "docstrings/restart/_properties.md" }
-            ]},
+        { "stencils" = [
+            { "basic_operations" = "pages/docstrings/stencils/basic_operations.md" },
+            { "c2l_ord"          = "pages/docstrings/stencils/c2l_ord.md" },
+            { "corners"          = "pages/docstrings/stencils/corners.md" },
+            { "tridiag"          = "pages/docstrings/stencils/tridiag.md" }
+        ]},
 
-            { "stencils" = [
-                { "basic_operations" = "docstrings/stencils/basic_operations.md" },
-                { "c2l_ord"          = "docstrings/stencils/c2l_ord.md" },
-                { "corners"          = "docstrings/stencils/corners.md" },
-                { "tridiag"          = "docstrings/stencils/tridiag.md" }
-            ]},
+        { "testing" = [
+            { "comparison"   = "pages/docstrings/testing/comparison.md" },
+            { "perturbation" = "pages/docstrings/testing/perturbation.md" }
+        ]},
 
-            { "testing" = [
-                { "comparison"   = "docstrings/testing/comparison.md" },
-                { "perturbation" = "docstrings/testing/perturbation.md" }
-            ]},
-
-            { "viz" = [
-                { "cube_sphere" = "docstrings/viz/cube_sphere.md" }
-            ]}
+        { "viz" = [
+            { "cube_sphere" = "pages/docstrings/viz/cube_sphere.md" }
         ]}
     ]},
 
     # ── Dev Notes ─────────────────────────────────────────────────────────────
-    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes.md" },
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "pages/dev_notes/index.md" },
 
     # ── Community ─────────────────────────────────────────────────────────────
     { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" },

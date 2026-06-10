@@ -84,16 +84,22 @@ definition to create more complex structures */
   text-align: center
 }
 
-/* Quiet CTA — low visual weight, suitable for page footers */
-.muted {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--md-typeset-table-color) 50%, transparent);
-  opacity: 0.75;
+/* Tightens the card snugly around its content */
+.compact {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0;
 }
 
-.compact {
-  padding: 0.85rem 1.25rem;
-}
+/* Background color overrides - add alongside .section-card */
+.bg-red    { background: #f28b82; }
+.bg-blue   { background: #aecbfa; }
+.bg-green  { background: #ccff90; }
+.bg-yellow { background: #ffd966; }
+.bg-purple { background: #d7aefb; }
+.bg-orange { background: #fbbc04; }
+.bg-white  { background: #ffffff; }
+.bg-none   { background: transparent; }
 
 /* -----------------------------------------------------------------------------
 Create a specialized "code-card" class
@@ -181,9 +187,7 @@ Little button to use for internal links
   font-size: x-large; /* NOTE this is not doing anything right now, need to solve */
 }
 
-/* Disable the navigation bar on this page */
-/* Hide on desktop only, preserving mobile drawer */
-/* this stype block must remain on this page so that other pages are not effected */
+/* Hide the desktop window navigation section on all pages. Mobile navigation drawer is untouched */
 @media screen and (min-width: 76.1875em) {
   .md-sidebar--primary {
     display: none !important;

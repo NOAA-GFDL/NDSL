@@ -6,7 +6,7 @@ Our NDSL port of GEOS has been evaluated through numerical verification, scienti
 
 ---
 
-<div class="three-col" markdown>
+<div class="two-col" markdown>
 <div class="section-card" markdown>
 ### NASA
 
@@ -21,14 +21,6 @@ NDSL has been integrated into the Goddard Earth Observing System
 FV3 dynamics with NDSL and a standalone PACE model written entirely with NDSL
 
 [NDSL at NOAA →](./noaa/index.md){ .pretty-internal-link }
-</div>
-
-<div class="section-card" markdown>
-### International Users
-
-DRAFT highlight various international partners
-
-[NDSL Around the World →](./international/index.md){ .pretty-internal-link }
 </div>
 </div>
 

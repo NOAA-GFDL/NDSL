@@ -1,17 +1,13 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NDSL API Docs I NEED TO BE REWORKED, FORMATTING HAS BEEN NEGLECTED</title>
-</head>
-
-<body>
+<style>
+/* re-enable the left side navigation bar for this page */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: block !important;
+  }
+}
+</style>
 
 <div>
-
-  <!-- HERO -->
   <div class="section-card">
 
     <h1>API Documentation</h1>
@@ -24,11 +20,10 @@
 
   </div>
 
-  <!-- API GRID -->
   <div class="two-col">
 
     <div class="section-card">
-      <h2>Core DSL</h2>
+      <h2>Core DSL THESE CARDS ARE USELESS IN THEIR CURRENT STATE. REWORK</h2>
       <p>
         APIs for stencil configuration, data types, storage,
         and GT4Py utilities.
