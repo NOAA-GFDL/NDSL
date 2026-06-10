@@ -1,8 +1,11 @@
 <style>
-  /* disable the nav bar only on the homepage */
+  /* Disable the navigation bar on this page */
+  /* Hide on desktop only, preserving mobile drawer */
   /* this stype block must remain on this page so that other pages are not effected */
-  .md-sidebar--primary {
-  display: none !important;
+  @media screen and (min-width: 76.1875em) {
+    .md-sidebar--primary {
+      display: none !important;
+    }
   }
 </style>
 
@@ -16,6 +19,7 @@ A modern domain-specific language for portable, high-performance atmospheric mod
 
 </div>
 
+<div class="two-col" markdown>
 <div class="section-card" markdown>
 
 ## Install NDSL
@@ -25,7 +29,6 @@ Install the latest version of NDSL with a few commands and start writing code.
 [NDSL v2026.03.00 →](./pages/install_ndsl.md){ .pretty-internal-link }
 </div>
 
-<div class="two-col" markdown>
 <div class="section-card" markdown>
 
 ## Getting Started
@@ -34,18 +37,31 @@ New to NDSL? Walk through our beginner-friendly user manual to learn the core sy
 
 [User Manual →](./pages/user_manual/ndsl_introduction.md){ .pretty-internal-link }
 </div>
+</div>
+
+<div class="two-col" markdown>
+<div class="section-card" markdown>
+
+## Current Applications
+
+NDSL is currently deployed in a number of applications involving multiple national agencies and international partners.
+
+[CATCHY PHRASE →](./pages/user_manual/ndsl_introduction.md){ .pretty-internal-link }
+</div>
 
 <div class="section-card" markdown>
 
 ## Community
 
-Connect with developers, researchers, and contributors working on NDSL and atmospheric modeling tools.
+Stap up to date on the latest NDSL news, and connect with developers, researchers, and contributors using NDSL in various atmospheric models.
 
-[Join Community →](./community.md){ .pretty-internal-link }
+[Join The Community →](./community.md){ .pretty-internal-link }
 </div>
 </div>
 
 <div class="code-card" markdown>
+
+# FIND A BETTER SPOT FOR THIS
 
 === "Fortran"
 
@@ -148,49 +164,5 @@ Connect with developers, researchers, and contributors working on NDSL and atmos
 === "Generated"
 
     Generated code here...
-
-</div>
-
-<div class="section-title" markdown>
-
-## Applications
-
-<div class="three-col" markdown>
-<div class="section-card" markdown>
-
-### GEOS
-
-Accelerating global climate model simulations with NDSL.
-
-[Explore →](./ndsl_in_action/overview.md){ .pretty-internal-link }
-</div>
-
-<div class="section-card" markdown>
-
-### NOAA
-
-Supporting operational atmospheric modeling systems.
-
-</div>
-
-<div class="section-card" markdown>
-
-### Pace
-
-Next-generation scalable atmospheric modeling.
-
-[Explore →](https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf){ .pretty-internal-link }
-</div>
-</div>
-</div>
-
-<div class="section-card centered-text" markdown>
-
-## Want to Learn More?
-
-Do you want to learn more about NDSL, its capabilities, and decide whether the platform is suited for your needs? Talk to an NDSL expert.
-
-[✉ Contact Us →](https://mm.smce.nasa.gov/astg/channels/smt){ .pretty-internal-link }
-</div>
 
 </div>

@@ -84,6 +84,17 @@ definition to create more complex structures */
   text-align: center
 }
 
+/* Quiet CTA — low visual weight, suitable for page footers */
+.muted {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--md-typeset-table-color) 50%, transparent);
+  opacity: 0.75;
+}
+
+.compact {
+  padding: 0.85rem 1.25rem;
+}
+
 /* -----------------------------------------------------------------------------
 Create a specialized "code-card" class
 ----------------------------------------------------------------------------- */
@@ -170,9 +181,16 @@ Little button to use for internal links
   font-size: x-large; /* NOTE this is not doing anything right now, need to solve */
 }
 
-/* hide all side navigation bar subgroup names */
+/* Disable the navigation bar on this page */
+/* Hide on desktop only, preserving mobile drawer */
+/* this stype block must remain on this page so that other pages are not effected */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: none !important;
+  }
+}
 
-/* Hide the "On This Page" section everywhere */
+/* Hide the table of contents on all pages */
 .md-sidebar--secondary {
   display: none !important;
 }
@@ -180,9 +198,19 @@ Little button to use for internal links
 /* -----------------------------------------------------------------------------
 HEADER
 ----------------------------------------------------------------------------- */
+/* ensure the NDSL title looks correct  */
 .md-header__topic span.md-ellipsis {
   color: var(--custom_blue);
   font-weight: 600;
-  font-size: 2rem;
-  margin-left: 100px;
+  font-size: 1.9rem;
+  margin-left: 40px;
+}
+
+/* ensure the NDSL badge is always visible, even when scrolling */
+.md-header__ellipsis .md-header__topic {
+  opacity: 1 !important;
+  transform: none !important;
+}
+.md-header__ellipsis .md-header__topic ~ .md-header__topic {
+  display: none !important;
 }

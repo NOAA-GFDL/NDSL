@@ -52,172 +52,172 @@ extra_css = ["stylesheets/extra.css"]
 
 nav = [
 
-  # ── Home ──────────────────────────────────────────────────────────────────
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md" },
+    # ── Home ──────────────────────────────────────────────────────────────────
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md" },
 
-  # ── NDSL in Action ────────────────────────────────────────────────────────
-  # Real-world results from running NDSL in GEOS model configurations.
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL in Action" = [
-      { "NDSL In Action" = "pages/ndsl_in_action/ndsl_in_action.md" },
-      { "- GEOS-SCM"   = "pages/ndsl_in_action/scm.md" },
-      { "- GEOS-FP"    = "pages/ndsl_in_action/geos_fp.md" },
-      { "- Benchmarks" = "pages/ndsl_in_action/benchmarks.md" },
+    # ── User Manual ───────────────────────────────────────────────────────────
+    # Step-by-step guide for developers using NDSL.
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
+        { "Introduction to NDSL"   = "pages/user_manual/ndsl_introduction.md" },
+        { "1. Data Types and Storage" = "pages/user_manual/data.md" },
+        { "2. Writing Code with NDSL" = "pages/user_manual/writing_ndsl_code.md" },
+        { "3. Advanced Features"      = "pages/user_manual/advanced_features.md" },
+        { "4. Backends"               = "pages/user_manual/backends.md" },
+        { "5. Common Patterns"        = "pages/user_manual/common_patterns.md" },
+        { "6. Why Use Classes?"       = "pages/user_manual/why_use_classes.md" },
+        { "7. Best Coding Practices"  = "pages/user_manual/best_coding_practices.md" }
     ]},
 
-  # ── User Manual ───────────────────────────────────────────────────────────
-  # Step-by-step guide for developers using NDSL.
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
-      { "Introduction to NDSL"   = "pages/user_manual/ndsl_introduction.md" },
-      { "1. Data Types and Storage" = "pages/user_manual/data.md" },
-      { "2. Writing Code with NDSL" = "pages/user_manual/writing_ndsl_code.md" },
-      { "3. Advanced Features"      = "pages/user_manual/advanced_features.md" },
-      { "4. Backends"               = "pages/user_manual/backends.md" },
-      { "5. Common Patterns"        = "pages/user_manual/common_patterns.md" },
-      { "6. Why Use Classes?"       = "pages/user_manual/why_use_classes.md" },
-      { "7. Best Coding Practices"  = "pages/user_manual/best_coding_practices.md" }
-  ]},
+    # ── NDSL In Action ────────────────────────────────────────────────────────
+    # Real-world results from running NDSL in GEOS model configurations.
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL In Action" = [
+        "pages/ndsl_in_action/index.md",
+        { "NASA"          = ["pages/ndsl_in_action/nasa/index.md"] },
+        { "NOAA"          = ["pages/ndsl_in_action/noaa/index.md"] },
+        { "International" = ["pages/ndsl_in_action/international/index.md"] },
+    ]},
 
-  # ── API Docs ──────────────────────────────────────────────────────────────
-  # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
-  # Organized to mirror the ndsl/ package structure.
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
-      { "API Docs"        = "api_docs.md" },
-      { "Internal"        = "internal/release.md" },
-      { "NDSL Docstrings" = [
-          { "General Info" = "docstrings/index.md" },
+    # ── API Docs ──────────────────────────────────────────────────────────────
+    # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
+    # Organized to mirror the ndsl/ package structure.
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
+        { "API Docs"        = "pages/api_docs.md" },
+        { "Internal"        = "internal/release.md" },
+        { "NDSL Docstrings" = [
+            { "General Info" = "docstrings/index.md" },
 
-          { "Top-level" = [
-              { "boilerplate"      = "docstrings/top/boilerplate.md" },
-              { "buffer"           = "docstrings/top/buffer.md" },
-              { "constants"        = "docstrings/top/constants.md" },
-              { "io"               = "docstrings/top/io.md" },
-              { "logging"          = "docstrings/top/logging.md" },
-              { "optional_imports" = "docstrings/top/optional_imports.md" },
-              { "types"            = "docstrings/top/types.md" },
-              { "typing"           = "docstrings/top/typing.md" },
-              { "utils"            = "docstrings/top/utils.md" }
-          ]},
+            { "Top-level" = [
+                { "boilerplate"      = "docstrings/top/boilerplate.md" },
+                { "buffer"           = "docstrings/top/buffer.md" },
+                { "constants"        = "docstrings/top/constants.md" },
+                { "io"               = "docstrings/top/io.md" },
+                { "logging"          = "docstrings/top/logging.md" },
+                { "optional_imports" = "docstrings/top/optional_imports.md" },
+                { "types"            = "docstrings/top/types.md" },
+                { "typing"           = "docstrings/top/typing.md" },
+                { "utils"            = "docstrings/top/utils.md" }
+            ]},
 
-          { "checkpointer" = [
-              { "base"       = "docstrings/checkpointer/base.md" },
-              { "null"       = "docstrings/checkpointer/null.md" },
-              { "snapshots"  = "docstrings/checkpointer/snapshots.md" },
-              { "thresholds" = "docstrings/checkpointer/thresholds.md" },
-              { "validation" = "docstrings/checkpointer/validation.md" }
-          ]},
+            { "checkpointer" = [
+                { "base"       = "docstrings/checkpointer/base.md" },
+                { "null"       = "docstrings/checkpointer/null.md" },
+                { "snapshots"  = "docstrings/checkpointer/snapshots.md" },
+                { "thresholds" = "docstrings/checkpointer/thresholds.md" },
+                { "validation" = "docstrings/checkpointer/validation.md" }
+            ]},
 
-          { "comm" = [
-              { "_boundary_utils" = "docstrings/comm/_boundary_utils.md" },
-              { "boundary"        = "docstrings/comm/boundary.md" },
-              { "caching_comm"    = "docstrings/comm/caching_comm.md" },
-              { "comm_abc"        = "docstrings/comm/comm_abc.md" },
-              { "communicator"    = "docstrings/comm/communicator.md" },
-              { "decomposition"   = "docstrings/comm/decomposition.md" },
-              { "local_comm"      = "docstrings/comm/local_comm.md" },
-              { "mpi"             = "docstrings/comm/mpi.md" },
-              { "partitioner"     = "docstrings/comm/partitioner.md" }
-          ]},
+            { "comm" = [
+                { "_boundary_utils" = "docstrings/comm/_boundary_utils.md" },
+                { "boundary"        = "docstrings/comm/boundary.md" },
+                { "caching_comm"    = "docstrings/comm/caching_comm.md" },
+                { "comm_abc"        = "docstrings/comm/comm_abc.md" },
+                { "communicator"    = "docstrings/comm/communicator.md" },
+                { "decomposition"   = "docstrings/comm/decomposition.md" },
+                { "local_comm"      = "docstrings/comm/local_comm.md" },
+                { "mpi"             = "docstrings/comm/mpi.md" },
+                { "partitioner"     = "docstrings/comm/partitioner.md" }
+            ]},
 
-          { "debug" = [
-              { "config"   = "docstrings/debug/config.md" },
-              { "debugger" = "docstrings/debug/debugger.md" },
-              { "tooling"  = "docstrings/debug/tooling.md" }
-          ]},
+            { "debug" = [
+                { "config"   = "docstrings/debug/config.md" },
+                { "debugger" = "docstrings/debug/debugger.md" },
+                { "tooling"  = "docstrings/debug/tooling.md" }
+            ]},
 
-          { "dsl" = [
-              { "gt4py_utils"    = "docstrings/dsl/gt4py_utils.md" },
-              { "stencil_config" = "docstrings/dsl/stencil_config.md" },
-              { "stencil"        = "docstrings/dsl/stencil.md" },
-              { "typing"         = "docstrings/dsl/typing.md" }
-          ]},
+            { "dsl" = [
+                { "gt4py_utils"    = "docstrings/dsl/gt4py_utils.md" },
+                { "stencil_config" = "docstrings/dsl/stencil_config.md" },
+                { "stencil"        = "docstrings/dsl/stencil.md" },
+                { "typing"         = "docstrings/dsl/typing.md" }
+            ]},
 
-          { "grid" = [
-              { "eta"                    = "docstrings/grid/eta.md" },
-              { "generation"             = "docstrings/grid/generation.md" },
-              { "geometry"               = "docstrings/grid/geometry.md" },
-              { "global_setup"           = "docstrings/grid/global_setup.md" },
-              { "gnomonic"               = "docstrings/grid/gnomonic.md" },
-              { "helper"                 = "docstrings/grid/helper.md" },
-              { "mirror"                 = "docstrings/grid/mirror.md" },
-              { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" }
-          ]},
+            { "grid" = [
+                { "eta"                    = "docstrings/grid/eta.md" },
+                { "generation"             = "docstrings/grid/generation.md" },
+                { "geometry"               = "docstrings/grid/geometry.md" },
+                { "global_setup"           = "docstrings/grid/global_setup.md" },
+                { "gnomonic"               = "docstrings/grid/gnomonic.md" },
+                { "helper"                 = "docstrings/grid/helper.md" },
+                { "mirror"                 = "docstrings/grid/mirror.md" },
+                { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" }
+            ]},
 
-          { "halo" = [
-              { "cuda_kernels"     = "docstrings/halo/cuda_kernels.md" },
-              { "data_transformer" = "docstrings/halo/data_transformer.md" },
-              { "rotate"           = "docstrings/halo/rotate.md" },
-              { "updater"          = "docstrings/halo/updater.md" }
-          ]},
+            { "halo" = [
+                { "cuda_kernels"     = "docstrings/halo/cuda_kernels.md" },
+                { "data_transformer" = "docstrings/halo/data_transformer.md" },
+                { "rotate"           = "docstrings/halo/rotate.md" },
+                { "updater"          = "docstrings/halo/updater.md" }
+            ]},
 
-          { "initialization" = [
-              { "allocator"          = "docstrings/initialization/allocator.md" },
-              { "grid_sizer"         = "docstrings/initialization/grid_sizer.md" },
-              { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" }
-          ]},
+            { "initialization" = [
+                { "allocator"          = "docstrings/initialization/allocator.md" },
+                { "grid_sizer"         = "docstrings/initialization/grid_sizer.md" },
+                { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" }
+            ]},
 
-          { "monitor" = [
-              { "convert"        = "docstrings/monitor/convert.md" },
-              { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
-              { "protocol"       = "docstrings/monitor/protocol.md" },
-              { "zarr_monitor"   = "docstrings/monitor/zarr_monitor.md" }
-          ]},
+            { "monitor" = [
+                { "convert"        = "docstrings/monitor/convert.md" },
+                { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
+                { "protocol"       = "docstrings/monitor/protocol.md" },
+                { "zarr_monitor"   = "docstrings/monitor/zarr_monitor.md" }
+            ]},
 
-          # NOTE: paths below were duplicated in the original file — update
-          # each entry to its correct .md path once known.
-          { "performance" = [
-              { "collector" = "docstrings/performance/collector.md" },
-              { "config"    = "docstrings/performance/config.md" },
-              { "profiler"  = "docstrings/performance/profiler.md" },
-              { "report"    = "docstrings/performance/report.md" },
-              { "timer"     = "docstrings/performance/timer.md" },
-              { "tools"     = "docstrings/performance/tools.md" }
-          ]},
+            # NOTE: paths below were duplicated in the original file — update
+            # each entry to its correct .md path once known.
+            { "performance" = [
+                { "collector" = "docstrings/performance/collector.md" },
+                { "config"    = "docstrings/performance/config.md" },
+                { "profiler"  = "docstrings/performance/profiler.md" },
+                { "report"    = "docstrings/performance/report.md" },
+                { "timer"     = "docstrings/performance/timer.md" },
+                { "tools"     = "docstrings/performance/tools.md" }
+            ]},
 
-          { "quantity" = [
-              { "bounds"       = "docstrings/quantity/bounds.md" },
-              { "field_bundle" = "docstrings/quantity/field_bundle.md" },
-              { "metadata"     = "docstrings/quantity/metadata.md" },
-              { "quantity"     = "docstrings/quantity/quantity.md" },
-              { "state"        = "docstrings/quantity/state.md" }
-          ]},
+            { "quantity" = [
+                { "bounds"       = "docstrings/quantity/bounds.md" },
+                { "field_bundle" = "docstrings/quantity/field_bundle.md" },
+                { "metadata"     = "docstrings/quantity/metadata.md" },
+                { "quantity"     = "docstrings/quantity/quantity.md" },
+                { "state"        = "docstrings/quantity/state.md" }
+            ]},
 
-          { "restart" = [
-              { "_legacy_restart" = "docstrings/restart/_legacy_restart.md" },
-              { "_properties"     = "docstrings/restart/_properties.md" }
-          ]},
+            { "restart" = [
+                { "_legacy_restart" = "docstrings/restart/_legacy_restart.md" },
+                { "_properties"     = "docstrings/restart/_properties.md" }
+            ]},
 
-          { "stencils" = [
-              { "basic_operations" = "docstrings/stencils/basic_operations.md" },
-              { "c2l_ord"          = "docstrings/stencils/c2l_ord.md" },
-              { "corners"          = "docstrings/stencils/corners.md" },
-              { "tridiag"          = "docstrings/stencils/tridiag.md" }
-          ]},
+            { "stencils" = [
+                { "basic_operations" = "docstrings/stencils/basic_operations.md" },
+                { "c2l_ord"          = "docstrings/stencils/c2l_ord.md" },
+                { "corners"          = "docstrings/stencils/corners.md" },
+                { "tridiag"          = "docstrings/stencils/tridiag.md" }
+            ]},
 
-          { "testing" = [
-              { "comparison"   = "docstrings/testing/comparison.md" },
-              { "perturbation" = "docstrings/testing/perturbation.md" }
-          ]},
+            { "testing" = [
+                { "comparison"   = "docstrings/testing/comparison.md" },
+                { "perturbation" = "docstrings/testing/perturbation.md" }
+            ]},
 
-          { "viz" = [
-              { "cube_sphere" = "docstrings/viz/cube_sphere.md" }
-          ]}
-      ]}
-  ]},
+            { "viz" = [
+                { "cube_sphere" = "docstrings/viz/cube_sphere.md" }
+            ]}
+        ]}
+    ]},
 
-  # ── Dev Notes ─────────────────────────────────────────────────────────────
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes.md" },
+    # ── Dev Notes ─────────────────────────────────────────────────────────────
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes.md" },
 
-  # ── Community ─────────────────────────────────────────────────────────────
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" },
+    # ── Community ─────────────────────────────────────────────────────────────
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" },
 
-  # ── Publications & Presentations ──────────────────────────────────────────
-  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M16 13H8'/><path d='M16 17H8'/><path d='M10 9H8'/></svg> Publications & Presentations" = [
-      { "Overview" = "publications_and_presentations/cover.md" },
-      { "Conference Presentations" = [
-          { "SC23" = "publications_and_presentations/conference_presentations/SC23.md" }
-      ]}
-  ]}
-]
+    # ── Publications & Presentations ──────────────────────────────────────────
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M16 13H8'/><path d='M16 17H8'/><path d='M10 9H8'/></svg> Publications & Presentations" = [
+        { "Overview" = "publications_and_presentations/cover.md" },
+        { "Conference Presentations" = [
+            { "SC23" = "publications_and_presentations/conference_presentations/SC23.md" }
+        ]}
+    ]}
+    ]
 
 
 # ----------------------------------------------------------------------------
@@ -263,7 +263,7 @@ features = [
   "content.tooltips",            # hover tooltips on links
 
   # Navigation
-  "navigation.footer",           # previous/next page links in the footer
+  #"navigation.footer",           # previous/next page links in the footer
   "navigation.indexes",          # attach overview pages directly to sections
   "navigation.instant",          # SPA-style navigation (no full page reload)
   "navigation.instant.prefetch", # prefetch pages on link hover
@@ -273,9 +273,9 @@ features = [
   "navigation.top",              # back-to-top button
   "navigation.tracking",         # update URL hash as you scroll through anchors
   #"navigation.expand",          # expand all sidebar sections by default
-  #"navigation.prune",           # strip invisible nav items from HTML (saves ~33%)
-  #"navigation.tabs.sticky",     # keep tabs visible while scrolling
-  #"navigation.instant.progress", # loading progress bar for slow connections
+  "navigation.prune",           # strip invisible nav items from HTML (saves ~33%)
+  "navigation.tabs.sticky",     # keep tabs visible while scrolling
+  "navigation.instant.progress", # loading progress bar for slow connections
 
   # Search
   "search.highlight",            # highlight search terms after clicking a result
