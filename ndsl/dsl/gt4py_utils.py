@@ -6,11 +6,10 @@ import numpy as np
 import numpy.typing as npt
 from gt4py import storage as gt_storage
 
-from ndsl import xumpy
+from ndsl import ndsl_log, xumpy
 from ndsl.config.backend import Backend
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import Float
-from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 

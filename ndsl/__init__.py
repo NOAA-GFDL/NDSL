@@ -1,7 +1,7 @@
 # isort:skip_file
 from .internal import hmm
 from . import dsl  # isort:skip
-from .logging import ndsl_log  # isort:skip
+from .logging import ndsl_log, ndsl_log_on_rank_0  # isort:skip
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
@@ -76,6 +76,7 @@ __all__ = [
     "GridSizer",
     "SubtileGridSizer",
     "ndsl_log",
+    "ndsl_log_on_rank_0",
     "NetCDFMonitor",
     "NullPerformanceCollector",
     "PerformanceCollector",

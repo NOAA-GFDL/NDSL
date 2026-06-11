@@ -148,7 +148,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             sdfg: SDFG,
             state: SDFGState,
             data_dim_index: int,
-        ) -> Int:
+        ) -> Int:  # type: ignore[valid-type]
             size = cls._type_registrar[name].size(data_dim_index)
             return Int(size)
 

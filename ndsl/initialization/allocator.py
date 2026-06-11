@@ -62,7 +62,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = Float,
+        dtype: type | np.dtype = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -108,7 +108,7 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
-        dtype: type = Float,
+        dtype: type | np.dtype = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -209,7 +209,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         n_halo: int | None = None,
-        dtype: type = Float,
+        dtype: type | np.dtype = Float,
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update.
 

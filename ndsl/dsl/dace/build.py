@@ -2,10 +2,10 @@ from dace import config as dace_conf
 from dace.sdfg import SDFG
 from gt4py.cartesian import config as gt_config
 
+from ndsl import ndsl_log
 from ndsl.config import Backend
 from ndsl.dsl.caches.cache_location import get_cache_directory, get_cache_fullpath
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
-from ndsl.logging import ndsl_log
 
 
 ################################################
