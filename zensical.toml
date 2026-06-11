@@ -55,6 +55,9 @@ nav = [
     # ── Home ──────────────────────────────────────────────────────────────────
     { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md" },
 
+    # ── Install ─────────────────────────────────────────────────────────────
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v10'/><path d='M8 9l4 4 4-4'/><rect x='3' y='14' width='18' height='7' rx='2'/></svg> Install" = "pages/install_ndsl.md" },
+
     # ── User Manual ───────────────────────────────────────────────────────────
     # Step-by-step guide for developers using NDSL.
     { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
@@ -201,15 +204,8 @@ nav = [
     { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "pages/dev_notes/index.md" },
 
     # ── Community ─────────────────────────────────────────────────────────────
-    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" },
+    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "pages/community.md" },
 
-    # ── Publications & Presentations ──────────────────────────────────────────
-    { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path d='M14 2v6h6'/><path d='M16 13H8'/><path d='M16 17H8'/><path d='M10 9H8'/></svg> Publications & Presentations" = [
-        { "Overview" = "publications_and_presentations/cover.md" },
-        { "Conference Presentations" = [
-            { "SC23" = "publications_and_presentations/conference_presentations/SC23.md" }
-        ]}
-    ]}
     ]
 
 
