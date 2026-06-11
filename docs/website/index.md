@@ -44,6 +44,6 @@ NDSL is currently deployed in a number of applications involving multiple nation
 
 Stay up to date on the latest NDSL news, and connect with developers, researchers, and contributors using NDSL in various atmospheric models.
 
-[Join The Community →](./community.md){ .pretty-internal-link }
+[Join The Community →](./pages/community.md){ .pretty-internal-link }
 </div>
 </div>
