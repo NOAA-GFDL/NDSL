@@ -22,6 +22,24 @@ durations, while GCM runs were limited to 10 days.
 
 Finally, benchmarking is performed BY WAVING FLORIAN'S MAGICAL WAND AT THE GPU.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 
 ## University of Washington Shallow Convection And Moist Turbulence Scheme
