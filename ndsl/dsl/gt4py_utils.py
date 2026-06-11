@@ -82,13 +82,15 @@ def make_storage_data(
         shape: Shape of the new storage. Number of indices should be equal
             to number of unmasked axes
         origin: Default origin for gt4py stencil calls
+        backend: current backend in use
         dtype: Data type
         mask: Tuple indicating the axes used when initializing the storage.
             True indicates a masked axis, False is a used axis.
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        backend: current backend in use
+        max_dim: ?
+        read_only: ?
 
     Returns:
         Field[..., dtype]: New storage
@@ -149,6 +151,14 @@ def make_storage_data(
             dtype=dtype,
             backend=backend,
         )
+    elif n_dims == 3:
+        data = _make_storage_data_3d(
+            data,
+            shape,
+            start,
+            dtype=dtype,
+            backend=backend,
+        )
     elif n_dims >= 4:
         data = _make_storage_data_Nd(
             data,
@@ -157,25 +167,16 @@ def make_storage_data(
             dtype=dtype,
             backend=backend,
         )
-    elif n_dims >= 4:
-        data = _make_storage_data_Nd(data, shape, start, backend=backend)
     else:
-        data = _make_storage_data_3d(
-            data,
-            shape,
-            start,
-            dtype=dtype,
-            backend=backend,
-        )
+        raise ValueError(f"Expected `n_dims >= 1`, got {n_dims} instead.")
 
-    storage = gt_storage.from_array(
+    return gt_storage.from_array(
         data,
         dtype,
         backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, data.shape),
     )
-    return storage
 
 
 def _make_storage_data_1d(
