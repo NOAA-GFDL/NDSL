@@ -20,7 +20,7 @@ Next, scientific validity is assesed by comparing the output of a full model run
 performed with three SCM experiments ("bomex", "armtwp-ice", and "armtwp-july97") and a GCM run initialized on 14 April 2000. SCM experiments ran for their entire
 durations, while GCM runs were limited to 10 days.
 
-Finally, benchmarking is performed BY WAVING FLORIAN'S MAGICAL WAND AT THE GPU.
+**Finally, benchmarking is performed BY WAVING FLORIAN'S MAGICAL WAND AT THE GPU.**
 
 ---
 
@@ -30,17 +30,35 @@ Work concluded August 2025.
 
 ### Validation
 
-Histograms of differences between the reference Fortran and the CPU performance backend after 7 days of simulation. While most differences are centered near zero, there are non-zero outliers — particularly for relative humidity and wind — likely due to small numerical differences in the UW scheme that can grow over a 7-day run.
+**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
 
-![Histograms of diagnostic variables differences](../img/hist__dace_cpu_C180_v_Fortran__sfc.png)
+=== "SCM"
 
-Temperature fields after 7 days, comparing the reference Fortran and the NDSL CPU backend. Patterns are very similar overall, with some local differences where temperature gradients are slightly displaced.
+    === "`bomex` 6 hr, 72 lev"
+        ![Hovmoller](../../../img/scm_uw_bomex_hovmoller_gpu_72.png)
 
-![Temperature Field - Reference Fortran](../img/UW_T_fortran_world_C180.png)
+    === "`bomex` 6 hr, 181 lev"
+        ![Hovmoller](../../../img/scm_uw_bomex_hovmoller_gpu_181.png)
 
-![Temperature Field - NDSL CPU (dace:cpu)](../img/UW_T_dacecpu_world_C180.png)
+    === "`arm_97jun` 14 hr, 72 lev"
+        ![Hovmoller](../../../img/scm_uw_arm_97jun_hovmoller_gpu_72.png)
 
-![Temperature Field Diffs - NDSL CPU (dace:cpu)](../img/UW_T_diff_world_C180.png)
+    === "`arm_97jun` 14 hr, 181 lev"
+        ![Hovmoller](../../../img/scm_uw_arm_97jun_hovmoller_gpu_181.png)
+
+=== "GCM"
+
+    === "C180 T"
+        ![Temp](../../../img/gcm_T_uw_c180_l72_7days.png)
+
+    === "C180 QV"
+        ![QV](../../../img/gcm_QV_uw_c180_l72_7days.png)
+
+    === "C180 U"
+        ![U](../../../img/gcm_U_uw_c180_l72_7days.png)
+
+    === "C180 V"
+        ![V](../../../img/gcm_V_uw_c180_l72_7days.png)
 
 ### Benchmarks
 
@@ -56,27 +74,31 @@ Work concluded June 2026.
 
 ### Validation
 
-Histograms of differences between the Fortran and NDSL simulations for temperature, relative humidity, zonal wind, and meridional wind after 7 days. Distributions are centered near zero, indicating strong agreement.
+**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
 
-=== "C48 CPU"
-    ![Histogram](../img/hist_gfdl1m_dace_cpu_C48_v_Fortran__sfc.png)
+=== "SCM"
 
-=== "C48 GPU"
-    ![Histogram](../img/hist_gfdl1m_dace_cpu_C48_v_Fortran__sfc.png)
+    === "`armtwp_ice` 6 days, 72 lev"
+        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
 
-Spatial distribution of differences after 7 days. The largest differences are concentrated in regions of active weather near frontal systems and convective activity, where small positional shifts can produce large point-by-point differences even when overall structures remain similar.
+    === "`armtwp_ice` 6 days, 181 lev"
+        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
+        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
 
-=== "C48 T"
-    ![Temp](../img/gcm_T_gfdl1m_c48_l72_7days.png)
+=== "GCM"
 
-=== "C48 QV"
-    ![QV](../img/gcm_QV_gfdl1m_c48_l72_7days.png)
+    === "C180 T"
+        ![Temp](../../../img/gcm_T_gfdl1m_c180_l72_7days.png)
 
-=== "C48 U"
-    ![U](../img/gcm_U_gfdl1m_c48_l72_7days.png)
+    === "C180 QV"
+        ![QV](../../../img/gcm_QV_gfdl1m_c180_l72_7days.png)
 
-=== "C48 V"
-    ![V](../img/gcm_V_gfdl1m_c48_l72_7days.png)
+    === "C180 U"
+        ![U](../../../img/gcm_U_gfdl1m_c180_l72_7days.png)
+
+    === "C180 V"
+        ![V](../../../img/gcm_V_gfdl1m_c180_l72_7days.png)
 
 ### Benchmarks
 
@@ -94,27 +116,31 @@ Work concluded June 2026.
 
 ### Validation
 
-Histograms of differences between the Fortran and NDSL simulations for temperature, relative humidity, zonal wind, and meridional wind after 7 days. Distributions are centered near zero, indicating strong agreement.
+**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
 
-=== "C48 CPU"
-    ![Histogram](../img/hist_gf2020_dace_cpu_C48_v_Fortran__sfc.png)
+=== "SCM"
 
-=== "C48 GPU"
-    ![Histogram](../img/hist_gf2020_dace_cpu_C48_v_Fortran__sfc.png)
+    === "`armtwp_ice` 6 days, 72 lev"
+        ![Timeseries](../../../img/scm_gf_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../../img/scm_gf_armtwp_ice_hovmoller_gpu_72.png)
 
-Spatial distribution of differences after 7 days.
+    === "`armtwp_ice` 6 days, 181 lev"
+        ![Timeseries](../../../img/scm_gf_armtwp_ice_timeseries_gpu_181.png)
+        ![Hovmoller](../../../img/scm_gf_armtwp_ice_hovmoller_gpu_181.png)
 
-=== "C48 T"
-    ![Temp](../img/gcm_T_gf2020_c48_l72_7days.png)
+=== "GCM"
 
-=== "C48 QV"
-    ![QV](../img/gcm_QV_gf2020_c48_l72_7days.png)
+    === "C48 T"
+        ![Temp](../../../img/gcm_T_gf2020_c48_l72_7days.png)
 
-=== "C48 U"
-    ![U](../img/gcm_U_gf2020_c48_l72_7days.png)
+    === "C48 QV"
+        ![QV](../../../img/gcm_QV_gf2020_c48_l72_7days.png)
 
-=== "C48 V"
-    ![V](../img/gcm_V_gf2020_c48_l72_7days.png)
+    === "C48 U"
+        ![U](../../../img/gcm_U_gf2020_c48_l72_7days.png)
+
+    === "C48 V"
+        ![V](../../../img/gcm_V_gf2020_c48_l72_7days.png)
 
 ### Benchmarks
 
@@ -124,70 +150,36 @@ Spatial distribution of differences after 7 days.
 | C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
 | C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
 
-
-# GEOS-SCM Results
-
-Last updated: May 14th, 2026
-
-Early scientific validation results running the SCM on Discover HPC:
-
-- NDSL 2026.03.00
-- GEOS v11.8.1
-
-## Experiments
-
-- `bomex`: [Barbados Oceanographic and Meteorological Experiment (BOMEX)](https://www.eol.ucar.edu/field_projects/bomex) — a standard benchmark case used to evaluate shallow cumulus convection over tropical oceans.
-- `arm_97jun`: ARM Summer 1997 Intensive Observation Period — used to test parameterizations, specifically deep convection triggers, by analyzing cloud development and convective activity.
-- `armtwp_ice`: [Tropical Warm Pool – International Cloud Experiment (TWP-ICE)](https://armgov.svcs.arm.gov/research/campaigns/twp2006twp-ice) — primarily used in the SCM community to evaluate how well models simulate convective ice microphysics.
-
-## UW Shallow Convection
-
-=== "`bomex` 6 hr, 72 lev"
-    ![Hovmoller](../../img/scm_uw_bomex_hovmoller_gpu_72.png)
-
-=== "`bomex` 6 hr, 181 lev"
-    ![Hovmoller](../../img/scm_uw_bomex_hovmoller_gpu_181.png)
-
-=== "`arm_97jun` 14 hr, 72 lev"
-    ![Hovmoller](../../img/scm_uw_arm_97jun_hovmoller_gpu_72.png)
-
-=== "`arm_97jun` 14 hr, 181 lev"
-    ![Hovmoller](../../img/scm_uw_arm_97jun_hovmoller_gpu_181.png)
-
-## GF2020 Deep Convection
-
-=== "`armtwp_ice` 6 days, 72 lev"
-    ![Timeseries](../../img/scm_gf_armtwp_ice_timeseries_gpu_72.png)
-    ![Hovmoller](../../img/scm_gf_armtwp_ice_hovmoller_gpu_72.png)
-
-=== "`armtwp_ice` 6 days, 181 lev"
-    ![Timeseries](../../img/scm_gf_armtwp_ice_timeseries_gpu_181.png)
-    ![Hovmoller](../../img/scm_gf_armtwp_ice_hovmoller_gpu_181.png)
-
-## GFDL1M Microphysics
-
-=== "`armtwp_ice` 6 days, 72 lev"
-    ![Timeseries](../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
-    ![Hovmoller](../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
-
-=== "`armtwp_ice` 6 days, 181 lev"
-    ![Timeseries](../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
-    ![Hovmoller](../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
-
 ## Moist Physics
 
-=== "`bomex` 6 hr, 72 lev"
-    ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_72.png)
+Work concluded June 2026.
 
-=== "`bomex` 6 hr, 181 lev"
-    ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_181.png)
+### Validation
 
-=== "`arm_97jun` 14 hr, 72 lev"
-    ![Hovmoller](../../img/scm_moist_arm_97jun_hovmoller_gpu_72.png)
+**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
 
-=== "`arm_97jun` 14 hr, 181 lev"
-    ![Hovmoller](../../img/scm_moist_arm_97jun_hovmoller_gpu_181.png)
+=== "SCM"
 
-=== "`armtwp_ice` 6 days, 72 lev"
-    ![Timeseries](../../img/scm_moist_armtwp_ice_timeseries_gpu_72.png)
-    ![Hovmoller](../../img/scm_moist_armtwp_ice_hovmoller_gpu_72.png)
+    === "`bomex` 6 hr, 72 lev"
+        ![Hovmoller](../../../img/scm_moist_bomex_hovmoller_gpu_72.png)
+
+    === "`bomex` 6 hr, 181 lev"
+        ![Hovmoller](../../../img/scm_moist_bomex_hovmoller_gpu_181.png)
+
+    === "`arm_97jun` 14 hr, 72 lev"
+        ![Hovmoller](../../../img/scm_moist_arm_97jun_hovmoller_gpu_72.png)
+
+    === "`arm_97jun` 14 hr, 181 lev"
+        ![Hovmoller](../../../img/scm_moist_arm_97jun_hovmoller_gpu_181.png)
+
+    === "`armtwp_ice` 6 days, 72 lev"
+        ![Timeseries](../../../img/scm_moist_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../../img/scm_moist_armtwp_ice_hovmoller_gpu_72.png)
+
+### Benchmarks
+
+| Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
+|---|---|---|---|---|---|---|
+| C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
+| C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
+| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |

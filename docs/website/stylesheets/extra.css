@@ -218,3 +218,13 @@ HEADER
 .md-header__ellipsis .md-header__topic ~ .md-header__topic {
   display: none !important;
 }
+
+/* -----------------------------------------------------------------------------
+NESTED TABS
+----------------------------------------------------------------------------- */
+/* Increase font size for nested tabs */
+.md-typeset .tabbed-labels > label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.55rem 0.5rem;
+}
