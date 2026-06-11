@@ -63,7 +63,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -78,7 +78,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -93,7 +93,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -109,7 +109,7 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -179,7 +179,7 @@ class QuantityFactory:
         allocator: Callable,
         dims: Sequence[str],
         units: str,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         origin = self.sizer.get_origin(dims)
@@ -210,7 +210,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         n_halo: int | None = None,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update.
 
