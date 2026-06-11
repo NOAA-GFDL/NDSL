@@ -1,3 +1,0 @@
-# snapshots
-
-::: checkpointer.snapshots

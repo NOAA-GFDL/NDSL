@@ -1,3 +1,0 @@
-# tridiag
-
-::: stencils.tridiag

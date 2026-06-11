@@ -1,3 +1,0 @@
-# validation
-
-::: checkpointer.validation

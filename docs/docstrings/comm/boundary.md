@@ -1,3 +1,0 @@
-# boundary
-
-::: comm.boundary

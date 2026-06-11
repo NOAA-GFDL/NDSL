@@ -1,3 +1,0 @@
-# partitioner
-
-::: comm.partitioner

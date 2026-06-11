@@ -1,3 +1,0 @@
-# allocator
-
-::: initialization.allocator

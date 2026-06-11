@@ -1,3 +1,0 @@
-# bounds
-
-::: quantity.bounds
