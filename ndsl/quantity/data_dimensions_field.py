@@ -26,7 +26,7 @@ SparseNameMapping = dict[str, DataDimensionIndex]
 
 
 class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
-    """Extension to the gt4py.cartesian.Field to account for sparsly
+    """Extension to the gt4py.cartesian.Field to account for sparsely
     named indexed data dimensions.
     """
 
@@ -182,7 +182,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             quantity_factory: Factory carrying the proper data dimensions axis described
                 in `data_dimensions_names`.
             data_dimensions_names: list of name of data dimension axis.
-            name_mapping: for each dimensions, a sparse dictionnary giving a name/index
+            name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
         """

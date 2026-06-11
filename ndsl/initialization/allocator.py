@@ -4,6 +4,7 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from gt4py import storage as gt_storage
 
 from ndsl.config import Backend
@@ -62,7 +63,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -77,7 +78,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -92,7 +93,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -108,7 +109,7 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -178,7 +179,7 @@ class QuantityFactory:
         allocator: Callable,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         origin = self.sizer.get_origin(dims)
@@ -209,7 +210,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         n_halo: int | None = None,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update.
 

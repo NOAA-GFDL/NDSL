@@ -6,12 +6,12 @@ We rely on Nvidia's docs and CuPy's evolving support (reference in inline commen
 
 HMM requires:
     - a device that can access paged RAM on an OS that has an HMM service running on kernel
-    - the `CUPY_ENABLE_UMP` environement variable set to 1
+    - the `CUPY_ENABLE_UMP` environment variable set to 1
 
 ⚠️ If `CUPY_ENABLE_UMP` is set _but_ the device/OS cannot support pageable memory, the upload/download
 will fail as CuPy does blind pointer-binding. ⚠️
 
-If HMM is availbale we:
+If HMM is available we:
     - flip `cupy` malloc managed allocator to the system one
     - set the `numpy` allocator to the system one (using the `numpy_allocator` package)
 
