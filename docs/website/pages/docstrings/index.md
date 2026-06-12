@@ -28,7 +28,7 @@
         APIs for stencil configuration, data types, storage,
         and GT4Py utilities.
       </p>
-      <a class="pretty-internal-link" href="./docstrings/dsl/gt4py_utils.md">Explore →</a>
+      <a class="pretty-link" href="./docstrings/dsl/gt4py_utils.md">Explore →</a>
     </div>
 
     <div class="section-card">
@@ -37,7 +37,7 @@
         Structured grid indexing, halo regions,
         dimensional metadata, and quantity management.
       </p>
-      <a class="pretty-internal-link" href="./docstrings/grid/eta.md">Explore →</a>
+      <a class="pretty-link" href="./docstrings/grid/eta.md">Explore →</a>
     </div>
 
     <div class="section-card">
@@ -45,7 +45,7 @@
       <p>
         Profiling, monitoring, debugging, and scalable execution analysis.
       </p>
-      <a class="pretty-internal-link" href="./docstrings/performance/collector.md">Explore →</a>
+      <a class="pretty-link" href="./docstrings/performance/collector.md">Explore →</a>
     </div>
 
     <div class="section-card">
@@ -53,7 +53,7 @@
       <p>
         APIs and helpful tools for testing NDSL against the reference Fortran.
       </p>
-      <a class="pretty-internal-link" href="./docstrings/testing/comparison.md">Explore →</a>
+      <a class="pretty-link" href="./docstrings/testing/comparison.md">Explore →</a>
     </div>
 
   </div>
