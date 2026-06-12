@@ -1,7 +1,7 @@
 import warnings
 
 import dace.data
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl.config import Backend, BackendFramework
 from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
@@ -74,7 +74,7 @@ def _reduce_cartesian_axis_size_to_1(
     return True
 
 
-class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
+class CollectTransientRangeAccess(tn.ScheduleNodeVisitor):
     """Unionize all transient arrays access into a single Range."""
 
     def __init__(self) -> None:
@@ -96,12 +96,12 @@ class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
 
     def _find_first_map_or_loop(
         self,
-        node: stree.TaskletNode,
+        node: tn.TaskletNode,
         axis: AxisIterator,
     ) -> dace.nodes.MapEntry | None:
         parent = node.parent
         while parent is not None:
-            if isinstance(parent, stree.MapScope):
+            if isinstance(parent, tn.MapScope):
                 for p in parent.node.params:
                     if p.startswith(axis.as_str()):
                         return parent.node
@@ -111,8 +111,8 @@ class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
 
     def _record_access(
         self,
-        node: stree.TaskletNode,
-        memlets: stree.MemletSet,
+        node: tn.TaskletNode,
+        memlets: tn.MemletSet,
         recording_set: dict[str, dace.subsets.Range | None],
     ) -> None:
         for memlet in memlets:
@@ -145,11 +145,11 @@ class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
                         AxisIterator._K.as_cartesian_index()
                     ].add(map_entry)
 
-    def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         self._record_access(node, node.input_memlets(), self.transients_range_writes)
         self._record_access(node, node.output_memlets(), self.transients_range_reads)
 
-    def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         self.containers = node.containers
         for name, data in self.containers.items():
             if data.transient and isinstance(data, dace.data.Array):
@@ -161,7 +161,7 @@ class CollectTransientRangeAccess(stree.ScheduleNodeVisitor):
             self.visit(child)
 
 
-class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
+class RebuildMemletsFromContainers(tn.ScheduleNodeVisitor):
     """Rebuild memlets from containers to ensure they are scope to the right size."""
 
     def __init__(self, refined_arrays: set[str]) -> None:
@@ -170,7 +170,7 @@ class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
     def __str__(self) -> str:
         return "RefineTransientAxis"
 
-    def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         for memlet in [*node.output_memlets(), *node.input_memlets()]:
             if memlet.data not in self._refined_arrays:
                 continue
@@ -187,13 +187,13 @@ class RebuildMemletsFromContainers(stree.ScheduleNodeVisitor):
                     if array.shape[index] == 1:
                         memlet.subset.ranges[index] = (0, 0, 1)
 
-    def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         self.containers = node.containers
         for child in node.children:
             self.visit(child)
 
 
-class CartesianRefineTransients(stree.ScheduleNodeTransformer):
+class CartesianRefineTransients(tn.ScheduleNodeTransformer):
     """Refine (reduce dimensionality) of transients based on their true use in
     the cartesian dimensions.
 
@@ -254,7 +254,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
     def __str__(self) -> str:
         return "CartesianRefineTransients"
 
-    def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         collect_map = CollectTransientRangeAccess()
         collect_map.visit(node)
 

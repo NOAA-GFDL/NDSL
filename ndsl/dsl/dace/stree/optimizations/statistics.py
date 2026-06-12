@@ -1,7 +1,7 @@
 import dataclasses
 
 import dace
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
@@ -10,20 +10,20 @@ from ndsl.dsl.dace.stree.optimizations.common import (
 )
 
 
-class CountCartesianLoops(stree.ScheduleNodeVisitor):
+class CountCartesianLoops(tn.ScheduleNodeVisitor):
     def __init__(self) -> None:
         super().__init__()
         self._maps = [0, 0, 0]
         self._fors = [0, 0, 0]
 
-    def visit_MapScope(self, node: stree.MapScope) -> None:
+    def visit_MapScope(self, node: tn.MapScope) -> None:
         for axis in AxisIterator:
             if is_axis_map(node, axis):
                 self._maps[axis.as_cartesian_index()] += 1
 
         self.visit(node.children)
 
-    def visit_ForScope(self, node: stree.ForScope) -> None:
+    def visit_ForScope(self, node: tn.ForScope) -> None:
         for axis in AxisIterator:
             if is_axis_for(node, axis):
                 self._fors[axis.as_cartesian_index()] += 1
@@ -31,12 +31,12 @@ class CountCartesianLoops(stree.ScheduleNodeVisitor):
         self.visit(node.children)
 
 
-class CountTransient(stree.ScheduleNodeVisitor):
+class CountTransient(tn.ScheduleNodeVisitor):
     def __init__(self) -> None:
         super().__init__()
         self._counts = [0, 0, 0, 0, 0]
 
-    def visit_ScheduleTreeRoot(self, node: stree.ScheduleTreeRoot) -> None:
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         for data in node.containers.values():
             non_atomic_dims_count = sum(1 for x in data.shape if x != 1)
             if isinstance(data, dace.data.Array) and data.transient:
@@ -72,7 +72,7 @@ class TreeOptimizationStatistics:
     def _record(
         self,
         record: Record,
-        tree_root: stree.ScheduleTreeRoot,
+        tree_root: tn.ScheduleTreeRoot,
     ) -> None:
         """Record the state of a tree"""
         c = CountCartesianLoops()
@@ -84,11 +84,11 @@ class TreeOptimizationStatistics:
         c.visit(tree_root)
         record.transients = c._counts
 
-    def original(self, tree_root: stree.ScheduleTreeRoot) -> None:
+    def original(self, tree_root: tn.ScheduleTreeRoot) -> None:
         """Record the original state of the tree, before optimization"""
         self._record(self._original_record, tree_root)
 
-    def optimized(self, tree_root: stree.ScheduleTreeRoot) -> None:
+    def optimized(self, tree_root: tn.ScheduleTreeRoot) -> None:
         """Record the state of the tree after optimization"""
         self._record(self._optimized_record, tree_root)
 
