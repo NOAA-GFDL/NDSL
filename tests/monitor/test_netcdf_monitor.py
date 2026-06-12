@@ -1,4 +1,3 @@
-import logging
 from datetime import timedelta
 from typing import List
 
@@ -17,9 +16,6 @@ from ndsl import (
 )
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, I_INTERFACE_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
-
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize("layout", [(1, 1), (1, 2), (4, 4)])

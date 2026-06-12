@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 import pytest
 
+from ndsl import ndsl_log
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
@@ -183,8 +184,6 @@ def test_sequential_savepoint(
     if hasattr(case.testobj, "override_input_netcdf_name"):
         import xarray as xr
 
-        from ndsl.logging import ndsl_log
-
         out_data = (
             xr.open_dataset(
                 os.path.join(
@@ -223,8 +222,6 @@ def test_sequential_savepoint(
     passing_names: list[str] = []
     if hasattr(case.testobj, "override_output_netcdf_name"):
         import xarray as xr
-
-        from ndsl.logging import ndsl_log
 
         out_data = (
             xr.open_dataset(

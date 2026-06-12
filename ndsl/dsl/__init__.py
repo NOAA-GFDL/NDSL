@@ -3,8 +3,8 @@ import os
 import sys
 from typing import Literal
 
+from ndsl import ndsl_log
 from ndsl.comm.mpi import MPI
-from ndsl.logging import ndsl_log
 
 
 gt4py_config_module = "gt4py.cartesian.config"

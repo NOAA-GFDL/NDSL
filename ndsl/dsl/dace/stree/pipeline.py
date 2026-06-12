@@ -2,7 +2,7 @@ from pathlib import Path
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl import Backend
+from ndsl import Backend, ndsl_log_on_rank_0
 from ndsl.dsl.dace.stree.optimizations import (
     CartesianMerge,
     CartesianRefineTransients,
@@ -10,7 +10,6 @@ from ndsl.dsl.dace.stree.optimizations import (
     KernelizeMaps,
 )
 from ndsl.dsl.dace.stree.optimizations.statistics import TreeOptimizationStatistics
-from ndsl.logging import ndsl_log_on_rank_0
 
 
 class StreePipeline:

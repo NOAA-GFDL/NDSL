@@ -1,12 +1,10 @@
-import logging
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 
 import ndsl.dsl.gt4py_utils as utils
-from ndsl.config import Backend
-from ndsl.dsl.stencil import StencilFactory
+from ndsl import Backend, StencilFactory, ndsl_log
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid
@@ -15,8 +13,6 @@ from ndsl.stencils.testing.savepoint import DataLoader
 
 if cupy is None:
     import numpy as cupy
-
-logger = logging.getLogger(__name__)
 
 
 def read_serialized_data(serializer, savepoint, variable):
@@ -430,7 +426,7 @@ class TranslateGrid:
                 # TODO: when grid initialization model exists, may want to use
                 # it to inform this
                 istart, jstart = pygrid.horizontal_starts_from_shape(value.shape)
-                logger.debug(
+                ndsl_log.debug(
                     "Storage for Grid variable {}, {}, {}, {}".format(
                         key, istart, jstart, value.shape
                     )

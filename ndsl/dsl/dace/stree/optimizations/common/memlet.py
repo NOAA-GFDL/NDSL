@@ -4,7 +4,7 @@ import dace.sdfg.analysis.schedule_tree.treenodes as stree
 from dace.memlet import Memlet
 from dace.symbolic import symbol
 
-from ndsl.logging import ndsl_log
+from ndsl import ndsl_log
 
 
 class AxisIterator(Enum):

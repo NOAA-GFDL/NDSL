@@ -24,7 +24,7 @@ from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
-from ndsl import Backend
+from ndsl import Backend, ndsl_log
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
@@ -47,7 +47,6 @@ from ndsl.dsl.dace.utils import (
     memory_static_analysis,
     report_memory_static_analysis,
 )
-from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, State
 
