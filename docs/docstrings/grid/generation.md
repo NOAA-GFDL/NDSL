@@ -1,3 +1,0 @@
-# generation
-
-::: grid.generation

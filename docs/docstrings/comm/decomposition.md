@@ -1,3 +1,0 @@
-# decomposition
-
-::: comm.decomposition

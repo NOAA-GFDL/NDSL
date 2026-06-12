@@ -1,3 +1,0 @@
-# comparison
-
-::: testing.comparison

@@ -1,3 +1,0 @@
-# eta
-
-::: grid.eta

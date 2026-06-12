@@ -57,6 +57,10 @@ Create special organization/structure classes
   margin-bottom: 0.9rem;
 }
 
+.wide-grid {
+  gap: 1.75rem;
+}
+
 
 /* -----------------------------------------------------------------------------
 Create a generic "block" of formatting. This block should be the primary
@@ -91,15 +95,15 @@ definition to create more complex structures */
   margin-bottom: 0;
 }
 
-/* Background color overrides - add alongside .section-card */
-.bg-red    { background: #f28b82; }
-.bg-blue   { background: #aecbfa; }
-.bg-green  { background: #ccff90; }
-.bg-yellow { background: #ffd966; }
-.bg-purple { background: #d7aefb; }
-.bg-orange { background: #fbbc04; }
-.bg-white  { background: #ffffff; }
-.bg-none   { background: transparent; }
+.tight-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.25rem;
+  margin-bottom: 0;
+  text-align: center;
+}
 
 /* -----------------------------------------------------------------------------
 Create a specialized "code-card" class
@@ -133,7 +137,7 @@ Create a specialized "code-card" class
 Little button to use for internal links
 ----------------------------------------------------------------------------- */
 
-.pretty-internal-link {
+.pretty-link {
   display: inline-block;
   padding: 8px 16px;
   background: var(--custom_blue);
@@ -147,7 +151,7 @@ Little button to use for internal links
   transition: 0.2s ease; /* not working, transitions are instant */
 }
 
-.pretty-internal-link:hover {
+.pretty-link:hover {
   text-decoration: none !important; /* removes hyperlink underlining */
   opacity: 0.75;
 }

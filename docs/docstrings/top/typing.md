@@ -1,3 +1,0 @@
-# typing
-
-::: typing

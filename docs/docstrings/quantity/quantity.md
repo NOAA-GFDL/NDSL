@@ -1,3 +1,0 @@
-# quantity
-
-::: quantity.quantity

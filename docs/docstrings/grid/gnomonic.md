@@ -1,3 +1,0 @@
-# gnomonic
-
-::: grid.gnomonic

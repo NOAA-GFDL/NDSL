@@ -1,3 +1,0 @@
-# corners
-
-::: stencils.corners

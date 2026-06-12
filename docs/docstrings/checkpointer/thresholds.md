@@ -1,3 +1,0 @@
-# thresholds
-
-::: checkpointer.thresholds
