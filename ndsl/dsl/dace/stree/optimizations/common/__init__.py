@@ -1,5 +1,5 @@
 from .memlet import AxisIterator, no_data_dependencies_on_cartesian_axis  # isort: skip
-from .loops import is_axis_for, is_axis_map
+from .loops import is_axis_for, is_axis_map, is_cartesian_axis
 from .topology import (
     detect_cycle,
     get_next_node,
@@ -14,6 +14,7 @@ __all__ = [
     "AxisIterator",
     "no_data_dependencies_on_cartesian_axis",
     "is_axis_map",
+    "is_cartesian_axis",
     "is_axis_for",
     "get_next_node",
     "last_node",

@@ -7,6 +7,7 @@ from ndsl.dsl.dace.stree.optimizations import (
     CartesianMerge,
     CartesianRefineTransients,
     CleanUpScheduleTree,
+    KernelizeMaps,
 )
 from ndsl.dsl.dace.stree.optimizations.statistics import TreeOptimizationStatistics
 from ndsl.logging import ndsl_log_on_rank_0
@@ -94,6 +95,7 @@ class GPUPipeline(StreePipeline):
                 # TODO: Is it safe? Deactivate for now
                 # InlineVertical2DWrite(),
                 CartesianMerge(backend),
+                KernelizeMaps(backend),
                 # 🐞 Transient refine can't be used
                 #    because of bugs transients showing in code generation
                 # CartesianRefineTransients(backend),

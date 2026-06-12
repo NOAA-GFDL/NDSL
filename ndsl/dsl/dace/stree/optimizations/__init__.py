@@ -1,6 +1,7 @@
 from .axis_merge import CartesianAxisMerge
 from .cartesian_merge import CartesianMerge
 from .clean_tree import CleanUpScheduleTree
+from .kernelize_maps import KernelizeMaps
 from .offgrid_conditionals import (
     ExtractOffgridConditionals,
     InlineOffgridConditionals,
@@ -13,10 +14,11 @@ from .remove_loops import InlineVertical2DWrite
 __all__ = [
     "CartesianAxisMerge",
     "CartesianMerge",
-    "CartesianRefineTransients",
     "CleanUpScheduleTree",
-    "InlineVertical2DWrite",
+    "KernelizeMaps",
     "ExtractOffgridConditionals",
     "InlineOffgridConditionals",
     "MergeConditionals",
+    "CartesianRefineTransients",
+    "InlineVertical2DWrite",
 ]
