@@ -39,6 +39,41 @@ Override some default template settings
   border-radius: 12px; /* rounded corners */
 }
 
+
+/* Tabbed content */
+.md-typeset .tabbed-labels {
+    justify-content: center;
+}
+
+/* outer tab formatting */
+.md-typeset .tabbed-set {
+    background-color: color-mix(in srgb, var(--custom_dark_grey) 20%, transparent);
+    border-radius: 8px;
+    max-width: 50%;
+    padding: 0rem;
+    margin: 0 auto;
+}
+.md-typeset .tabbed-set > .tabbed-labels > label {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* inner tab formatting */
+.md-typeset .tabbed-set .tabbed-set {
+    background-color: color-mix(in srgb, var(--custom_light_grey) 20%, transparent);
+    border-radius: 8px;
+    max-width: 100%;
+    padding: 0rem;
+    margin: 0 auto;
+}
+
+/* Inner tab labels - smaller */
+.md-typeset .tabbed-set .tabbed-set > .tabbed-labels > label {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+
 /* -----------------------------------------------------------------------------
 Create special organization/structure classes
 ----------------------------------------------------------------------------- */
@@ -157,22 +192,6 @@ Little button to use for internal links
 }
 
 /* -----------------------------------------------------------------------------
-   TABLES
-   ----------------------------------------------------------------------------- */
-
-/* .md-typeset table:not([class]) {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-} */
-
-/* .md-typeset table:not([class]) th {
-  background: #275482;
-  color: var(--custom_blue);
-} */
-
-
-/* -----------------------------------------------------------------------------
    SIDEBAR / NAVIGATION
    ----------------------------------------------------------------------------- */
 
@@ -221,14 +240,4 @@ HEADER
 }
 .md-header__ellipsis .md-header__topic ~ .md-header__topic {
   display: none !important;
-}
-
-/* -----------------------------------------------------------------------------
-NESTED TABS
------------------------------------------------------------------------------ */
-/* Increase font size for nested tabs */
-.md-typeset .tabbed-labels > label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.55rem 0.5rem;
 }

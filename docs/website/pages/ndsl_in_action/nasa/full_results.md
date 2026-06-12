@@ -22,33 +22,11 @@ durations, while GCM runs were limited to 10 days.
 
 **Finally, benchmarking is performed BY WAVING FLORIAN'S MAGICAL WAND AT THE GPU.**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---
 
 ## University of Washington Shallow Convection And Moist Turbulence Scheme
 
-Work concluded August 2025.
-
-### Validation
-
-**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
+### Scientific Validation
 
 === "SCM"
 
@@ -78,7 +56,7 @@ Work concluded August 2025.
     === "C180 V"
         ![V](../../../img/gcm_V_uw_c180_l72_7days.png)
 
-### Benchmarks
+### Performance Benchmarks
 
 | Resolution | Layout | Fortran | NDSL GPU (dace:gpu) | NDSL CPU (gt:cpu_kfirst) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
@@ -88,11 +66,7 @@ Work concluded August 2025.
 
 ## Geophysical Fluid Dynamics Lab (GFDL) Single-Moment Microphysics
 
-Work concluded June 2026.
-
-### Validation
-
-**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
+### Scientific Validation
 
 === "SCM"
 
@@ -118,7 +92,7 @@ Work concluded June 2026.
     === "C180 V"
         ![V](../../../img/gcm_V_gfdl1m_c180_l72_7days.png)
 
-### Benchmarks
+### Performance Benchmarks
 
 | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
@@ -128,13 +102,9 @@ Work concluded June 2026.
 
 ---
 
-## GF2020 Deep Convection
+## Grell-Freitas Convection Parameterization
 
-Work concluded June 2026.
-
-### Validation
-
-**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
+### Scientific Validation
 
 === "SCM"
 
@@ -160,7 +130,7 @@ Work concluded June 2026.
     === "C48 V"
         ![V](../../../img/gcm_V_gf2020_c48_l72_7days.png)
 
-### Benchmarks
+### Performance Benchmarks
 
 | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
@@ -173,8 +143,6 @@ Work concluded June 2026.
 Work concluded June 2026.
 
 ### Validation
-
-**ADD SHORT SUMMARY HERE ABOUT SCM AND GCM RESULTS**
 
 === "SCM"
 
