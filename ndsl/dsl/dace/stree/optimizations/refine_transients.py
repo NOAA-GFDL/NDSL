@@ -102,7 +102,8 @@ class CollectTransientRangeAccess(tn.ScheduleNodeVisitor):
         parent = node.parent
         while parent is not None:
             if isinstance(parent, tn.MapScope):
-                for p in parent.node.params:
+                for p in parent.node.map.params:
+                    assert isinstance(p, str)
                     if p.startswith(axis.as_str()):
                         return parent.node
 

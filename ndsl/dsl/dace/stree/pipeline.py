@@ -8,8 +8,8 @@ from ndsl.dsl.dace.stree.optimizations import (
     CartesianRefineTransients,
     CleanUpScheduleTree,
     KernelizeMaps,
+    TreeOptimizationStatistics,
 )
-from ndsl.dsl.dace.stree.optimizations.statistics import TreeOptimizationStatistics
 
 
 class StreePipeline:
@@ -40,6 +40,7 @@ class StreePipeline:
         tree_stats.original(stree)
 
         for i, p in enumerate(self.passes):
+            path: Path | None = None
             if verbose:
                 path = self.cache_directory / f"pass{i}_{p}.txt"
                 ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
@@ -47,6 +48,7 @@ class StreePipeline:
             p.visit(stree)
 
             if verbose:
+                assert path is not None
                 with open(path, "w+") as f:
                     f.write(stree.as_string())
 

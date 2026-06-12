@@ -5,11 +5,12 @@ from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
 
 def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
     """Returns true if node is a Map over the given axis."""
-    map_parameter = node.node.map.params
-    if len(map_parameter) != 1:
+    if len(node.node.map.params) != 1:
         return False
 
-    return axis.is_equal(map_parameter[0])
+    param = node.node.map.params[0]
+    assert isinstance(param, str)
+    return axis.is_equal(param)
 
 
 def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:

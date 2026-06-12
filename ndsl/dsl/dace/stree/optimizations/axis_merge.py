@@ -222,7 +222,8 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         )
 
         # - then, guard children to only run in their respective range
-        axis_as_str = the_map.node.params[0]
+        axis_as_str = the_map.node.map.params[0]
+        assert isinstance(axis_as_str, str)
         first_map = InsertOvercomputationGuard(
             axis_as_str, merged_range=merged_range, original_range=first_range
         ).visit(the_map)
@@ -231,7 +232,9 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             merged_range=merged_range,
             original_range=second_range,
         ).visit(next_node)
-        merged_children: list[tn.MapScope] = [
+        assert isinstance(first_map, tn.MapScope)
+        assert isinstance(second_map, tn.MapScope)
+        merged_children: list[tn.ScheduleTreeNode] = [
             *first_map.children,
             *second_map.children,
         ]
