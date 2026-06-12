@@ -7,9 +7,9 @@ import cftime
 import xarray as xr
 
 import ndsl.constants as constants
+from ndsl import ndsl_log
 from ndsl.comm import Comm
 from ndsl.comm.partitioner import Partitioner, subtile_slice
-from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
 from ndsl.optional_imports import cupy, zarr
 from ndsl.utils import list_by_dims

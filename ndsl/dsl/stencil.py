@@ -16,6 +16,7 @@ from gt4py.cartesian.definitions import FieldInfo
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
@@ -50,7 +51,6 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization import GridSizer
 from ndsl.internal.deferred_type import StencilDeferredType
-from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
 from ndsl.testing.comparison import LegacyMetric
 

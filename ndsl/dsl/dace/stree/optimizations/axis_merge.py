@@ -6,6 +6,7 @@ import dace
 from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
+from ndsl import ndsl_log
 from ndsl.dsl.dace.stree.optimizations.memlet_helpers import (
     AxisIterator,
     no_data_dependencies_on_cartesian_axis,
@@ -15,7 +16,6 @@ from ndsl.dsl.dace.stree.optimizations.tree_common_op import (
     list_index,
     swap_node_position_in_tree,
 )
-from ndsl.logging import ndsl_log
 
 
 # Buggy passes that should work
