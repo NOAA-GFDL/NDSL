@@ -88,7 +88,8 @@ def make_storage_data(
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        max_dim: ?
+        max_dim: Number of cartesian dimensions. Those will be index-aligned,
+            while additional "data" dimensions are considered "en block".
         read_only: ?
 
     Returns:
