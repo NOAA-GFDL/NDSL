@@ -186,11 +186,11 @@ def _build_sdfg(
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
 
-        if config.verbose_orchestration:
-            sdfg.save(
-                os.path.abspath(f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"),
-                compress=True,
-            )
+            if config.verbose_orchestration:
+                sdfg.save(
+                    os.path.abspath(f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"),
+                    compress=True,
+                )
 
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
