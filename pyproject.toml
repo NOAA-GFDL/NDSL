@@ -40,7 +40,7 @@ hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']
 pyfms = ["pyfms @ git+https://github.com/noaa-gfdl/pyfms.git"]
 serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
 test = [
-  "pytest<9.1.0", # starting with 9.1.0 we get issues with test detection
+  "pytest<9.1.0",  # starting with 9.1.0 we get issues with test detection
   "coverage"
 ]
 zarr = ["zarr<3"]
