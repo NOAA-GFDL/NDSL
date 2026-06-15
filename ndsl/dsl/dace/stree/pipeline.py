@@ -77,7 +77,7 @@ class CPUPipeline(StreePipeline):
                 CartesianRefineTransients(backend),
             ]
         super().__init__(
-            passes=passes,
+            passes=passes if passes is not None else [],
             cache_directory=cache_directory,
         )
 
@@ -101,10 +101,6 @@ class GPUPipeline(StreePipeline):
                 #    because of bugs transients showing in code generation
                 # CartesianRefineTransients(backend),
             ]
-        super().__init__(
-            passes=passes,
-            cache_directory=cache_directory,
-        )
         super().__init__(
             passes=passes if passes is not None else [],
             cache_directory=cache_directory,
