@@ -122,24 +122,10 @@ class GridDefinitions:
     bk = GridDefinition(dims=(K_INTERFACE_DIM,), units="m")
     ec1 = GridDefinition(dims=CELL_CENTER + (CARTESIAN_DIM,), units="m")
     ec2 = GridDefinition(dims=CELL_CENTER + (CARTESIAN_DIM,), units="m")
-    ew1 = GridDefinition(dims=CELL_CORNERS + (CARTESIAN_DIM,), units="m")
-    ew2 = GridDefinition(dims=CELL_CORNERS + (CARTESIAN_DIM,), units="m")
-    es1 = GridDefinition(
-        dims=(
-            I_DIM,
-            J_INTERFACE_DIM,
-            CARTESIAN_DIM,
-        ),
-        units="m",
-    )
-    es2 = GridDefinition(
-        dims=(
-            I_DIM,
-            J_INTERFACE_DIM,
-            CARTESIAN_DIM,
-        ),
-        units="m",
-    )
+    ew1 = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM, CARTESIAN_DIM), units="m")
+    ew2 = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM, CARTESIAN_DIM), units="m")
+    es1 = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM, CARTESIAN_DIM), units="m")
+    es2 = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM, CARTESIAN_DIM), units="m")
     cosa_u = GridDefinition(dims=(I_INTERFACE_DIM, J_DIM), units="")
     cosa_v = GridDefinition(dims=(I_DIM, J_INTERFACE_DIM), units="")
     cosa_s = GridDefinition(dims=(I_DIM, J_DIM), units="")
