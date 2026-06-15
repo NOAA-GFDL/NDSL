@@ -188,7 +188,9 @@ def _build_sdfg(
 
             if config.verbose_orchestration:
                 sdfg.save(
-                    os.path.abspath(f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"),
+                    os.path.abspath(
+                        f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"
+                    ),
                     compress=True,
                 )
 
