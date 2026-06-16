@@ -443,7 +443,6 @@ class FrozenStencil(SDFGConvertible):
         if ndsl_debugger:
             all_args = args_as_kwargs | kwargs
             ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
         if (
@@ -475,8 +474,6 @@ class FrozenStencil(SDFGConvertible):
         if ndsl_debugger:
             all_args = args_as_kwargs | kwargs
             ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.increment_call_count(self._func_qualname)
 
         # Ranks comparison tool
         if self.comm is not None:

@@ -12,7 +12,9 @@ stencils_or_class:
     - ClassName.__call__
 track_parameter_by_name:
     - name_of_variable
-save_all_stencils: False
+timestep_name: TopClassName
+save_from_timestep: 3
+save_all: False
 dir_name: ./my/local/path
 save_compute_domain_only: False
 ```

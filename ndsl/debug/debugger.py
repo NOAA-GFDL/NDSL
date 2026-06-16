@@ -18,14 +18,17 @@ class Debugger:
 
     # Configuration
     stencils_or_class: list[str] = dataclasses.field(default_factory=list)
+    timestep_name: str = ""
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     save_compute_domain_only: bool = False
     dir_name: str = "./"
-    save_all_stencils: bool = False
+    save_all: bool = False
+    save_from_timestep: int = -1
 
     # Runtime data
     rank: int = -1
     step: int = 0
+    ts: int = 0
     calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
     track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
 
@@ -35,7 +38,7 @@ class Debugger:
                 mem = data.field
                 shp = data.field.shape
             else:
-                mem = data.data
+                mem = data[:]
                 shp = data.shape
         elif hasattr(data, "shape"):
             mem = data
@@ -79,11 +82,25 @@ class Debugger:
 
         Note: Unknown types in the dictionary won't be saved.
         """
-        if savename not in self.stencils_or_class and not self.save_all_stencils:
+        self.track_data(data_as_dict, savename, is_in)
+
+        if savename == self.timestep_name and is_in:
+            self.ts += 1
+
+        if savename not in self.stencils_or_class and not self.save_all:
+            return
+
+        call_count = self.calls_count.setdefault(savename, 0)
+        if not is_in:
+            self.calls_count[savename] += 1
+
+        if self.save_from_timestep >= 0 and self.ts - 1 < self.save_from_timestep:
             return
 
         data_arrays = {}
         for name, data in data_as_dict.items():
+            if data is None:
+                continue
             if dataclasses.is_dataclass(data):
                 for field in dataclasses.fields(data):
                     data_arrays[f"{name}.{field.name}"] = self._to_xarray(
@@ -92,9 +109,6 @@ class Debugger:
             else:
                 data_arrays[name] = self._to_xarray(data, name)
 
-        call_count = (
-            self.calls_count[savename] if savename in self.calls_count.keys() else 0
-        )
         path = pathlib.Path(f"{self.dir_name}/debug/savepoints/R{self.rank}/")
         os.makedirs(path, exist_ok=True)
         path = pathlib.Path(
@@ -104,11 +118,4 @@ class Debugger:
             xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
             ndsl_log.error(f"[DebugInfo] Failure to save {savename}: {e}")
-        if not is_in:
-            self.step += 1
-
-    def increment_call_count(self, savename: str) -> None:
-        """Increment the call count for this savename"""
-        if savename not in self.calls_count.keys():
-            self.calls_count[savename] = 0
-        self.calls_count[savename] += 1
+        self.step += 1
