@@ -881,6 +881,8 @@ class GridIndexing:
                 return_origin.append(self.origin[1])
             elif dim in K_DIMS:
                 return_origin.append(self.origin[2])
+            else:
+                raise ValueError(f"Unknown dimension '{dim}'.")
         return return_origin
 
     def _domain_from_dims(self, dimensions: Iterable[str]) -> list[int]:
@@ -888,16 +890,18 @@ class GridIndexing:
         for dimension in dimensions:
             if dimension == I_DIM:
                 result.append(self.domain[0])
-            if dimension == I_INTERFACE_DIM:
+            elif dimension == I_INTERFACE_DIM:
                 result.append(self.domain[0] + 1)
-            if dimension == J_DIM:
+            elif dimension == J_DIM:
                 result.append(self.domain[1])
-            if dimension == J_INTERFACE_DIM:
+            elif dimension == J_INTERFACE_DIM:
                 result.append(self.domain[1] + 1)
-            if dimension == K_DIM:
+            elif dimension == K_DIM:
                 result.append(self.domain[2])
-            if dimension == K_INTERFACE_DIM:
+            elif dimension == K_INTERFACE_DIM:
                 result.append(self.domain[2] + 1)
+            else:
+                raise ValueError(f"Unknown dimension '{dimension}'.")
         return result
 
     def get_shape(

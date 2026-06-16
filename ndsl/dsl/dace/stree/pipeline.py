@@ -1,16 +1,22 @@
 from pathlib import Path
 
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl import ndsl_log_on_rank_0
-from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
+from ndsl import Backend, ndsl_log_on_rank_0
+from ndsl.dsl.dace.stree.optimizations import (
+    CartesianMerge,
+    CartesianRefineTransients,
+    CleanUpScheduleTree,
+    KernelizeMaps,
+    TreeOptimizationStatistics,
+)
 
 
 class StreePipeline:
     def __init__(
         self,
         *,
-        passes: list[stree.ScheduleNodeTransformer],
+        passes: list[tn.ScheduleNodeVisitor],
         cache_directory: Path | None = None,
     ) -> None:
         if cache_directory is None:
@@ -27,10 +33,14 @@ class StreePipeline:
 
     def run(
         self,
-        stree: stree.ScheduleTreeRoot,
+        stree: tn.ScheduleTreeRoot,
         verbose: bool = False,
-    ) -> stree.ScheduleTreeRoot:
+    ) -> tn.ScheduleTreeRoot:
+        tree_stats = TreeOptimizationStatistics()
+        tree_stats.original(stree)
+
         for i, p in enumerate(self.passes):
+            path: Path | None = None
             if verbose:
                 path = self.cache_directory / f"pass{i}_{p}.txt"
                 ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
@@ -38,8 +48,14 @@ class StreePipeline:
             p.visit(stree)
 
             if verbose:
+                assert path is not None
                 with open(path, "w+") as f:
                     f.write(stree.as_string())
+
+        tree_stats.optimized(stree)
+
+        if verbose:
+            ndsl_log_on_rank_0.info(tree_stats.report())
 
         return stree
 
@@ -47,14 +63,21 @@ class StreePipeline:
 class CPUPipeline(StreePipeline):
     def __init__(
         self,
+        backend: Backend,
         *,
-        passes: list[stree.ScheduleNodeTransformer] | None = None,
+        passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
+        if passes is None:
+            passes = [
+                CleanUpScheduleTree(),
+                # TODO: Is it safe? Deactivate for now
+                # InlineVertical2DWrite(),
+                CartesianMerge(backend),
+                CartesianRefineTransients(backend),
+            ]
         super().__init__(
-            passes=(
-                passes if passes is not None else [CartesianAxisMerge(AxisIterator._K)]
-            ),
+            passes=passes if passes is not None else [],
             cache_directory=cache_directory,
         )
 
@@ -62,9 +85,22 @@ class CPUPipeline(StreePipeline):
 class GPUPipeline(StreePipeline):
     def __init__(
         self,
-        passes: list[stree.ScheduleNodeTransformer] | None = None,
+        backend: Backend,
+        *,
+        passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
+        if passes is None:
+            passes = [
+                CleanUpScheduleTree(),
+                # TODO: Is it safe? Deactivate for now
+                # InlineVertical2DWrite(),
+                CartesianMerge(backend),
+                KernelizeMaps(backend),
+                # 🐞 Transient refine can't be used
+                #    because of bugs transients showing in code generation
+                # CartesianRefineTransients(backend),
+            ]
         super().__init__(
             passes=passes if passes is not None else [],
             cache_directory=cache_directory,

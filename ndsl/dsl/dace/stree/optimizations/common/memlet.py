@@ -2,6 +2,7 @@ from enum import Enum
 
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 from dace.memlet import Memlet
+from dace.symbolic import symbol
 
 from ndsl import ndsl_log
 
@@ -16,6 +17,21 @@ class AxisIterator(Enum):
 
     def as_cartesian_index(self) -> int:
         return self.value[1]
+
+    def is_equal(self, other: str) -> bool:
+        if self == AxisIterator._K:
+            return other.startswith(self.as_str())
+
+        return other == self.as_str()
+
+
+def normalize_cartesian_indexation(index: symbol, axis: AxisIterator) -> symbol:
+    """Return a normalize indexation symbol for cartesian indexation."""
+    rename_maps = {}
+    for symb in index.free_symbols:
+        if symb.name.startswith(axis.as_str()):
+            rename_maps[symb] = symbol(axis.as_str())
+    return index.subs(rename_maps)
 
 
 def no_data_dependencies_on_cartesian_axis(
@@ -33,20 +49,26 @@ def no_data_dependencies_on_cartesian_axis(
     for write in write_collector.out_memlets:
         # TODO: this can be optimized to allow non-overlapping intervals and such in the future
 
-        if write.subset.dims() <= axis.as_cartesian_index():
+        axis_index = axis.as_cartesian_index()
+
+        if write.subset.dims() <= axis_index:
             # Dimension does not exist
             continue
 
-        previous_axis_index = write.subset[axis.as_cartesian_index()][0]
+        previous_axis_index = normalize_cartesian_indexation(
+            write.subset[axis_index][0], axis
+        )
         for read in read_collector.in_memlets:
             if write.data == read.data:
-                if previous_axis_index != read.subset[axis.as_cartesian_index()][0]:
+                if previous_axis_index != normalize_cartesian_indexation(
+                    read.subset[axis_index][0], axis
+                ):
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found read after write conflict "
                         f"for {write.data} "
                         f"w/ different offset to {axis.name} ("
-                        f"write at {write.subset[axis.as_cartesian_index()][0]}, "
-                        f"read at {read.subset[axis.as_cartesian_index()][0]})"
+                        f"write at {write.subset[axis_index][0]}, "
+                        f"read at {read.subset[axis_index][0]})"
                     )
                     return False
     return True

@@ -6,26 +6,26 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
-from dace import SDFG, CompiledSDFG
+from dace import SDFG, CompiledSDFG, DeviceType
 from dace import compiletime as DaceCompiletime
 from dace import dtypes
 from dace import method as dace_method
 from dace import nodes
 from dace import program as dace_program
 from dace.dtypes import DeviceType as DaceDeviceType
+from dace.dtypes import ScheduleType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.frontend.python.common import SDFGConvertible
 from dace.frontend.python.parser import DaceProgram
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.transformation.auto.auto_optimize import make_transients_persistent
-from dace.transformation.dataflow import MapExpansion
+from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
-from ndsl import ndsl_log
+from ndsl import Backend, ndsl_log
 from ndsl.comm.mpi import MPI
-from ndsl.config import BackendLoopOrder
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
@@ -33,19 +33,15 @@ from ndsl.dsl.dace.dace_config import (
     DaCeOrchestration,
 )
 from ndsl.dsl.dace.dace_executable import DaceExecutable
+from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.dsl.dace.labeler import set_label
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
-from ndsl.dsl.dace.stree import CPUPipeline
-from ndsl.dsl.dace.stree.optimizations import (
-    AxisIterator,
-    CartesianAxisMerge,
-    CartesianRefineTransients,
-    CleanUpScheduleTree,
-)
+from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
@@ -59,6 +55,8 @@ _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = (
     os.environ.get("NDSL_STREE_OPT", "False") == "True"
 )
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
+
+_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -149,6 +147,24 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
     return stree.as_sdfg(skip={"ScalarToSymbolPromotion", "ControlFlowRaising"})
 
 
+def _optimization_pipeline(
+    device_type: DeviceType,
+    backend: Backend,
+    *,
+    passes: list[tn.ScheduleNodeVisitor] | None = None,
+    cache_directory: Path | None = None,
+) -> StreePipeline:
+    if device_type == device_type.CPU:
+        return CPUPipeline(backend, passes=passes, cache_directory=cache_directory)
+
+    if device_type == DeviceType.GPU:
+        return GPUPipeline(backend, passes=passes, cache_directory=cache_directory)
+
+    raise ValueError(
+        f"Unknown device type `{device_type}`, expected {DeviceType.CPU} or {DeviceType.GPU}."
+    )
+
+
 def _build_sdfg(
     dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
 ) -> None:
@@ -170,11 +186,13 @@ def _build_sdfg(
                             repl_dict[sym] = val
                     my_sdfg.replace_dict(repl_dict)
 
-        if config.verbose_orchestration:
-            sdfg.save(
-                os.path.abspath(f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"),
-                compress=True,
-            )
+            if config.verbose_orchestration:
+                sdfg.save(
+                    os.path.abspath(
+                        f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"
+                    ),
+                    compress=True,
+                )
 
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
@@ -188,7 +206,18 @@ def _build_sdfg(
             # Here be 🐉 - but tests exists in test_optimization.py
             with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
                 # Break all loops into uni-dimensional loops to simplify optimizations
-                sdfg.apply_transformations_repeated(MapExpansion, validate=True)
+                sdfg.apply_transformations_repeated(
+                    MapExpansion,
+                    options={
+                        "inner_schedule": (
+                            ScheduleType.GPU_Device
+                            if device_type is DeviceType.GPU
+                            else ScheduleType.Default
+                        )
+                    },
+                    validate=True,
+                    print_report=True,
+                )
                 stree = sdfg.as_schedule_tree()
                 if config.verbose_orchestration:
                     with open(
@@ -198,44 +227,13 @@ def _build_sdfg(
                         f.write(stree.as_string())
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
-                passes = []
-                if backend_name.loop_order == BackendLoopOrder.IJK:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianRefineTransients(backend_name),
-                        ]
-                    )
-                elif backend_name.loop_order == BackendLoopOrder.KJI:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianRefineTransients(backend_name),
-                        ]
-                    )
-                elif backend_name.loop_order == BackendLoopOrder.KIJ:
-                    passes.extend(
-                        [
-                            CleanUpScheduleTree(),
-                            CartesianAxisMerge(AxisIterator._K),
-                            CartesianAxisMerge(AxisIterator._I),
-                            CartesianAxisMerge(AxisIterator._J),
-                            CartesianRefineTransients(backend_name),
-                        ]
-                    )
-                else:
-                    raise NotImplementedError(
-                        f"Loop order {backend_name.loop_order} has no schedule tree pipeline"
-                    )
-                CPUPipeline(passes=passes, cache_directory=Path(sdfg.build_folder)).run(
-                    stree, verbose=config.verbose_schedule_tree_optimizations
+                pipeline = _optimization_pipeline(
+                    device_type,
+                    backend_name,
+                    cache_directory=Path(sdfg.build_folder),
+                    passes=_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES,
                 )
+                pipeline.run(stree, verbose=config.verbose_schedule_tree_optimizations)
                 if config.verbose_orchestration:
                     with open(
                         os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),
@@ -251,43 +249,57 @@ def _build_sdfg(
                         compress=True,
                     )
 
-        # Make the transients array persistents
+        # We want all maps properly collapse to make sure the codegen will see nD parallel
+        # axis as a single kernelizable map
+        with DaCeProgress(config, "Collapse maps"):
+            sdfg.apply_transformations_repeated(MapCollapse)
+
+        with DaCeProgress(config, "Make transient persistents"):
+            # Make the transients array persistents
+            if config.is_gpu_backend():
+                # TODO
+                # The following should happen on the stree level
+                _to_gpu(sdfg)
+                make_transients_persistent(sdfg=sdfg, device=device_type)
+
+                # Upload args to device
+                _upload_to_device(list(args) + list(kwargs.values()))
+            else:
+                # TODO
+                # The following should happen on the stree level
+                for _sd, _aname, arr in sdfg.arrays_recursive():
+                    if arr.shape == (1,):
+                        arr.storage = DaceStorageType.Register
+                make_transients_persistent(sdfg=sdfg, device=device_type)
+
         if config.is_gpu_backend():
-            # TODO
-            # The following should happen on the stree level
-            _to_gpu(sdfg)
-
-            sdfg.apply_gpu_transformations()
-
-            make_transients_persistent(sdfg=sdfg, device=device_type)
-
-            # Upload args to device
-            _upload_to_device(list(args) + list(kwargs.values()))
+            with DaCeProgress(config, "Apply GPU transformations"):
+                # Set block size on GPU maps
+                gpu_defaults = get_gpu_hardware_defaults()
+                for me, _state in sdfg.all_nodes_recursive():
+                    if (
+                        isinstance(me, nodes.MapEntry)
+                        and me.map.schedule == ScheduleType.GPU_Device
+                    ):
+                        if me.map.gpu_block_size is None:
+                            me.map.gpu_block_size = gpu_defaults.block_size
+                # Apply common GPU transforms (includes a simplify)
+                sdfg.apply_gpu_transformations()
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(
+                            f"{sdfg.build_folder}/05-apply_gpu_xforms.sdfgz"
+                        ),
+                        compress=True,
+                    )
         else:
-            # TODO
-            # The following should happen on the stree level
-            for _sd, _aname, arr in sdfg.arrays_recursive():
-                if arr.shape == (1,):
-                    arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=sdfg, device=device_type)
-
-        # Build non-constants & non-transients from the sdfg_kwargs
-        sdfg_kwargs = dace_program._create_sdfg_args(sdfg, args, kwargs)
-        for k in dace_program.constant_args:
-            if k in sdfg_kwargs:
-                del sdfg_kwargs[k]
-        sdfg_kwargs = {k: v for k, v in sdfg_kwargs.items() if v is not None}
-        for k, tup in dace_program.resolver.closure_arrays.items():
-            if k in sdfg_kwargs and tup[1].transient:
-                del sdfg_kwargs[k]
-
-        with DaCeProgress(config, "Simplify (2)"):
-            _simplify(sdfg)
-            if config.verbose_orchestration:
-                sdfg.save(
-                    os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
-                    compress=True,
-                )
+            with DaCeProgress(config, "Simplify (2)"):
+                _simplify(sdfg)
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
+                        compress=True,
+                    )
         # Move all memory that can be into a pool to lower memory pressure for GPU
         # We skip this memory optimization for CPU because we don't have a memory
         # pool available yet (DaCe v1)
@@ -316,7 +328,12 @@ def _build_sdfg(
 
         # Compile
         with DaCeProgress(config, "Codegen & compile"):
-            sdfg.compile()
+            compiled_sdfg = sdfg.compile()
+            config.loaded_dace_executables[dace_program] = DaceExecutable(
+                compiled_sdfg=compiled_sdfg,
+                arguments={},
+                arguments_hash=0,
+            )
 
         # Printing analysis of the compiled SDFG
         with DaCeProgress(config, "Build finished. Running memory static analysis"):
@@ -355,18 +372,21 @@ def _build_sdfg(
             )
         MPI.COMM_WORLD.Barrier()
 
-        with DaCeProgress(config, "Loading"):
-            sdfg_path = get_sdfg_path(dace_program.name, config, override_run_only=True)
-            if sdfg_path is None:
-                raise ValueError("Couldn't load SDFG post build")
-            compiledSDFG, _ = dace_program.load_precompiled_sdfg(
-                sdfg_path, *args, **kwargs
-            )
-            config.loaded_dace_executables[dace_program] = DaceExecutable(
-                compiled_sdfg=compiledSDFG,
-                arguments={},
-                arguments_hash=0,
-            )
+        if not is_compiling:
+            with DaCeProgress(config, "Loading"):
+                sdfg_path = get_sdfg_path(
+                    dace_program.name, config, override_run_only=True
+                )
+                if sdfg_path is None:
+                    raise ValueError("Couldn't load SDFG post build")
+                compiledSDFG, _ = dace_program.load_precompiled_sdfg(
+                    sdfg_path, *args, **kwargs
+                )
+                config.loaded_dace_executables[dace_program] = DaceExecutable(
+                    compiled_sdfg=compiledSDFG,
+                    arguments={},
+                    arguments_hash=0,
+                )
 
 
 def _call_sdfg(

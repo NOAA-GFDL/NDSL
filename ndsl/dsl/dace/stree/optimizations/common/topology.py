@@ -3,12 +3,30 @@ from typing import Collection
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 
+def reparent_scope_node(
+    original_parent: tn.ScheduleTreeScope,
+    new_parent: tn.ScheduleTreeScope,
+    *,
+    prepend: bool = True,
+) -> None:
+    """Re-parent children between two scope nodes"""
+
+    for child in original_parent.children:
+        child.parent = new_parent
+
+    if prepend:
+        new_parent.children = [*original_parent.children, *new_parent.children]
+    else:
+        new_parent.children = [*new_parent.children, *original_parent.children]
+
+
 def swap_node_position_in_tree(
     top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
 ) -> None:
     """Top node becomes child, child becomes top node."""
     # Ensue parent/children relationship is valid
     tn.validate_children_and_parents_align(top_node)
+    assert top_node.parent is not None
 
     # Take refs before swap
     top_children = top_node.parent.children
@@ -51,3 +69,15 @@ def list_index(
     """Check if node is in list with "is" operator."""
     # compare with "is" to get memory comparison. ".index()" uses value comparison
     return next(index for index, element in enumerate(collection) if element is node)
+
+
+def get_next_node(
+    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
+) -> tn.ScheduleTreeNode:
+    """Get next node in the children from given node"""
+    return nodes[list_index(nodes, node) + 1]
+
+
+def last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
+    """Test for last node of list"""
+    return list_index(nodes, node) >= len(nodes) - 1

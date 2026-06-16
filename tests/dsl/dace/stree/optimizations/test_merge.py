@@ -1,5 +1,3 @@
-from typing import TypeAlias
-
 import dace
 import pytest
 from dace import nodes
@@ -13,6 +11,7 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree.optimizations import Factories
 
 
 def stencil(in_field: FloatField, out_field: FloatField) -> None:
@@ -130,9 +129,6 @@ class OrchestratedCode:
             self.stencil(in_field, out_field)
 
 
-Factories: TypeAlias = tuple[StencilFactory, QuantityFactory]
-
-
 class TestStreeMergeMapsIJK:
     @pytest.fixture
     def factories(self) -> Factories:
@@ -160,7 +156,7 @@ class TestStreeMergeMapsIJK:
             if isinstance(me, nodes.MapEntry)
         ]
 
-        assert len(all_maps) == 3
+        assert len(all_maps) == 1  # all merged and collapsed
         assert (out_qty.field[:] == 2).all()
 
     def test_missing_merge_of_forscope_and_map(
@@ -179,7 +175,7 @@ class TestStreeMergeMapsIJK:
             for map_entry, _ in sdfg.all_nodes_recursive()
             if isinstance(map_entry, nodes.MapEntry)
         ]
-        assert len(all_maps) == 4  # 2 IJ + 2 Ks
+        assert len(all_maps) == 3  # 1 IJ + 2 Ks
         all_loops = [
             loop
             for loop, _ in sdfg.all_nodes_recursive()
@@ -203,7 +199,7 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # All maps merged
+        assert len(all_maps) == 1  # All maps merged and collapsed
 
     def test_block_merge_when_dependencies_are_found(
         self, code: OrchestratedCode, factories: Factories
@@ -222,7 +218,7 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 4  # 2 IJ + 2 Ks (un-merged)
+        assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
@@ -242,7 +238,7 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # All merged
+        assert len(all_maps) == 1  # All merged & collapsed
         for_loops = [
             node
             for node, _ in sdfg.all_nodes_recursive()
@@ -278,7 +274,7 @@ class TestStreeMergeMapsKJI:
             if isinstance(me, nodes.MapEntry)
         ]
 
-        assert len(all_maps) == 3
+        assert len(all_maps) == 1  # all maps merged and collapsed
         assert (out_qty.field[:] == 2).all()
 
     def test_missing_merge_of_forscope_and_map(
@@ -298,7 +294,7 @@ class TestStreeMergeMapsKJI:
             for map_entry, _ in sdfg.all_nodes_recursive()
             if isinstance(map_entry, nodes.MapEntry)
         ]
-        assert len(all_maps) == 8  # 2 KJI (all maps) + 1 for scope
+        assert len(all_maps) == 3  # 2 KJI (all maps) + 1 JI
         all_loops = [
             loop
             for loop, _ in sdfg.all_nodes_recursive()
@@ -323,7 +319,7 @@ class TestStreeMergeMapsKJI:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # All maps merged
+        assert len(all_maps) == 1  # All maps merged & collapsed
 
     def test_block_merge_when_dependencies_are_found(
         self, code: OrchestratedCode, factories: Factories
@@ -342,7 +338,7 @@ class TestStreeMergeMapsKJI:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 6  # 2 * KJI
+        assert len(all_maps) == 2  # 2 * KJI
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
@@ -362,7 +358,7 @@ class TestStreeMergeMapsKJI:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # All merged
+        assert len(all_maps) == 1  # All merged and collapsed
         for_loops = [
             node
             for node, _ in sdfg.all_nodes_recursive()
