@@ -20,7 +20,6 @@ Next, scientific validity is assesed by comparing the output of a full model run
 performed with three SCM experiments ("bomex", "armtwp-ice", and "armtwp-july97") and a GCM run initialized on 14 April 2000. SCM experiments ran for their entire
 durations, while GCM runs were limited to 10 days.
 
-**Finally, benchmarking is performed BY WAVING FLORIAN'S MAGICAL WAND AT THE GPU.**
 
 ---
 
@@ -57,12 +56,12 @@ durations, while GCM runs were limited to 10 days.
         ![V](../../../img/gcm_V_uw_c180_l72_7days.png)
 
 ### Performance Benchmarks
-
-| Resolution | Layout | Fortran | NDSL GPU (dace:gpu) | NDSL CPU (gt:cpu_kfirst) | Speedup (GPU) | Speedup (CPU) |
+Coming soon...
+<!-- | Resolution | Layout | Fortran | NDSL GPU (dace:gpu) | NDSL CPU (gt:cpu_kfirst) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
 
----
+--- -->
 
 ## Geophysical Fluid Dynamics Lab (GFDL) Single-Moment Microphysics
 
@@ -93,14 +92,14 @@ durations, while GCM runs were limited to 10 days.
         ![V](../../../img/gcm_V_gfdl1m_c180_l72_7days.png)
 
 ### Performance Benchmarks
-
-| Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
+Coming soon...
+<!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
 | C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
 | C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
 
----
+--- -->
 
 ## Grell-Freitas Convection Parameterization
 
@@ -131,12 +130,12 @@ durations, while GCM runs were limited to 10 days.
         ![V](../../../img/gcm_V_gf2020_c48_l72_7days.png)
 
 ### Performance Benchmarks
-
-| Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
+Coming soon...
+<!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
 | C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
-| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
+| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× | -->
 
 ## Moist Physics
 
@@ -163,9 +162,9 @@ Work concluded June 2026.
         ![Hovmoller](../../../img/scm_moist_armtwp_ice_hovmoller_gpu_72.png)
 
 ### Benchmarks
-
-| Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
+Coming soon...
+<!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
 | C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
-| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
+| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× | -->

@@ -35,7 +35,7 @@ New to NDSL? Walk through our beginner-friendly user manual to learn the core sy
 
 NDSL is currently deployed in a number of applications involving multiple national agencies and international partners.
 
-[CATCHY PHRASE →](./pages/user_manual/ndsl_introduction.md){ .pretty-link }
+[Explore →](./pages/ndsl_in_action/index.md){ .pretty-link }
 </div>
 
 <div class="section-card" markdown>

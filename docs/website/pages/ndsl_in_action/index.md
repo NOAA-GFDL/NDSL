@@ -19,6 +19,6 @@ NDSL is being used to accerate the Goddard Earth Observing System
 
 NDSL has been used to create an accelerate version of the Finite Volume Cubed dynamical core and run the standalone PACE model
 
-[NDSL at NOAA →](./noaa/index.md){ .pretty-link }
+[NDSL at NOAA →](https://www.gfdl.noaa.gov/wp-content/uploads/2025/01/2025ReviewQ1-2_PaceDSLModeling.pdf){ .pretty-link }
 </div>
 </div>

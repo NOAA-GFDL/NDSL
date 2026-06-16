@@ -230,7 +230,7 @@ HEADER
   color: var(--custom_blue);
   font-weight: 600;
   font-size: 1.9rem;
-  margin-left: 40px;
+  margin-left: 0px;
 }
 
 /* ensure the NDSL badge is always visible, even when scrolling */

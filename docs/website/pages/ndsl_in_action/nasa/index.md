@@ -17,10 +17,7 @@ the Fortran and NDSL.
 A selection of results can be seen below. More details on how numerical validation is performed and access to full results and associated data sets can be
 found [here](./full_results.md).
 
-SOME RESULTS HERE
 
 ##### Benchmarking
 
-@FLORIAN ADD SPECIFIC INSTRUCTIONS ABOUT YOUR BENCHARKING STUFF
-
-To ensure optimal performance, all benchmarking uses the best available optimization schemes.
+Coming soon...
