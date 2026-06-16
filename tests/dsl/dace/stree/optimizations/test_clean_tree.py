@@ -4,6 +4,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 from dace.subsets import Range
 
+from ndsl.dsl.dace.labeler import _Labeler
 from ndsl.dsl.dace.stree.optimizations import CleanUpScheduleTree
 
 
@@ -11,6 +12,30 @@ def test_if_scope() -> None:
     stree = tn.ScheduleTreeRoot(
         name="tester",
         children=[
+            tn.IfScope(
+                condition=CodeBlock("True"),
+                children=[tn.StateBoundaryNode()],
+            ),
+        ],
+    )
+
+    cleaner = CleanUpScheduleTree()
+    cleaner.visit(stree)
+
+    assert len(stree.children) == 1
+    assert isinstance(stree.children[0], tn.IfScope)
+    assert len(stree.children[0].children) == 0
+
+
+def test_if_scope_with_label() -> None:
+    stree = tn.ScheduleTreeRoot(
+        name="tester",
+        children=[
+            tn.LibraryCall(
+                node=_Labeler(unique_name="asdf_asdf"),
+                in_memlets={},
+                out_memlets={},
+            ),
             tn.IfScope(
                 condition=CodeBlock("True"),
                 children=[tn.StateBoundaryNode()],

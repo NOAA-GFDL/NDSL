@@ -56,7 +56,13 @@ _INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = (
 )
 """INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
 
+_INTERNAL__SCHEDULE_TREE_FORCE_SIMPLIFY: bool = (
+    os.environ.get("NDSL_STREE_FORCE_SIMPLIFY", "False") == "True"
+)
+"""INTERNAL: Developer flag to force calling sdfg.simplify() before going to schedule tree."""
+
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
+"""INTERNAL: Developer flag to override the optimization passes."""
 
 
 def dace_inhibitor(func: Callable) -> Callable:
@@ -194,13 +200,14 @@ def _build_sdfg(
                     compress=True,
                 )
 
-        with DaCeProgress(config, "Simplify (1)"):
-            _simplify(sdfg)
-            if config.verbose_orchestration:
-                sdfg.save(
-                    os.path.abspath(f"{sdfg.build_folder}/01-simplify_1.sdfgz"),
-                    compress=True,
-                )
+        if not _INTERNAL__SCHEDULE_TREE_OPTIMIZATION or _INTERNAL__SCHEDULE_TREE_FORCE_SIMPLIFY:
+            with DaCeProgress(config, "Simplify (1)"):
+                _simplify(sdfg)
+                if config.verbose_orchestration:
+                    sdfg.save(
+                        os.path.abspath(f"{sdfg.build_folder}/01-simplify_1.sdfgz"),
+                        compress=True,
+                    )
 
         if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
             # Here be 🐉 - but tests exists in test_optimization.py
@@ -252,7 +259,7 @@ def _build_sdfg(
         # We want all maps properly collapse to make sure the codegen will see nD parallel
         # axis as a single kernelizable map
         with DaCeProgress(config, "Collapse maps"):
-            sdfg.apply_transformations_repeated(MapCollapse)
+            sdfg.apply_transformations_repeated(MapCollapse, permissive=True)
 
         with DaCeProgress(config, "Make transient persistents"):
             # Make the transients array persistents
