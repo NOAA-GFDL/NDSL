@@ -2,7 +2,7 @@
 
 Four components of GEOS has been ported to NDSL:
 - Finite Volume Cubed (FV3) Dynamical Core
-- Geophysical Fluid Dynamics Lab (GFDL) Single-Moment Microphysics
+- Geophysical Fluid Dynamics Lab Single-Moment Microphysics
 - Grell-Freitas Convection Parameterization
 - University of Washington Shallow Convection And Moist Turbulence Scheme
 
@@ -21,7 +21,47 @@ performed with three SCM experiments ("bomex", "armtwp-ice", and "armtwp-july97"
 durations, while GCM runs were limited to 10 days.
 
 
+More information on the benchmarking process coming soon...
+
 ---
+
+## Geophysical Fluid Dynamics Lab Single-Moment Microphysics
+
+### Scientific Validation
+
+=== "SCM"
+
+    === "`armtwp_ice` 6 days, 72 lev"
+        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
+
+    === "`armtwp_ice` 6 days, 181 lev"
+        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
+        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
+
+=== "GCM"
+
+    === "C180 T"
+        ![Temp](../../../img/gcm_T_gfdl1m_c180_l72_7days.png)
+
+    === "C180 QV"
+        ![QV](../../../img/gcm_QV_gfdl1m_c180_l72_7days.png)
+
+    === "C180 U"
+        ![U](../../../img/gcm_U_gfdl1m_c180_l72_7days.png)
+
+    === "C180 V"
+        ![V](../../../img/gcm_V_gfdl1m_c180_l72_7days.png)
+
+### Performance Benchmarks
+Coming soon...
+<!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
+|---|---|---|---|---|---|---|
+| C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
+| C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
+| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
+
+--- -->
 
 ## University of Washington Shallow Convection And Moist Turbulence Scheme
 
@@ -60,44 +100,6 @@ Coming soon...
 <!-- | Resolution | Layout | Fortran | NDSL GPU (dace:gpu) | NDSL CPU (gt:cpu_kfirst) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
-
---- -->
-
-## Geophysical Fluid Dynamics Lab (GFDL) Single-Moment Microphysics
-
-### Scientific Validation
-
-=== "SCM"
-
-    === "`armtwp_ice` 6 days, 72 lev"
-        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
-        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
-
-    === "`armtwp_ice` 6 days, 181 lev"
-        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
-        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
-
-=== "GCM"
-
-    === "C180 T"
-        ![Temp](../../../img/gcm_T_gfdl1m_c180_l72_7days.png)
-
-    === "C180 QV"
-        ![QV](../../../img/gcm_QV_gfdl1m_c180_l72_7days.png)
-
-    === "C180 U"
-        ![U](../../../img/gcm_U_gfdl1m_c180_l72_7days.png)
-
-    === "C180 V"
-        ![V](../../../img/gcm_V_gfdl1m_c180_l72_7days.png)
-
-### Performance Benchmarks
-Coming soon...
-<!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
-|---|---|---|---|---|---|---|
-| C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
-| C360 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
-| C720 (~xx km) | ?×? | x.xx s | x.xx s | x.xx s | x.xx× | -x.xx× |
 
 --- -->
 
