@@ -1,0 +1,243 @@
+/* =============================================================================
+NDSL Documentation — extra.css
+Custom styles applied on top of the Zensical/Material base theme.
+============================================================================= */
+
+  :root{
+    --custom_blue: #185FA5;
+    --custom_light_grey: #6b7280;
+    --custom_dark_grey: #4b5563;
+    --custom_white: #f8fafc;
+  }
+
+/* -----------------------------------------------------------------------------
+Override some default template settings
+----------------------------------------------------------------------------- */
+
+/* Custom h1 */
+.md-typeset h1 {
+  font-size: 40px !important;
+  font-weight: 600 !important;
+  color: var(--custom_blue) !important;
+  margin: 0 0 0.45rem 0 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.1 !important;
+}
+
+/* Body Text */
+.md-typeset {
+  color: var(--custom_light_grey);
+}
+
+/* Links */
+.md-typeset a {
+  color: var(--custom_blue); /* make links theme blue instead of default blue */
+}
+
+/* Images */
+.md-typeset img {
+  border-radius: 12px; /* rounded corners */
+}
+
+
+/* Tabbed content */
+.md-typeset .tabbed-labels {
+    justify-content: center;
+}
+
+/* outer tab formatting */
+.md-typeset .tabbed-set {
+    background-color: color-mix(in srgb, var(--custom_dark_grey) 20%, transparent);
+    border-radius: 8px;
+    max-width: 50%;
+    padding: 0rem;
+    margin: 0 auto;
+}
+.md-typeset .tabbed-set > .tabbed-labels > label {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* inner tab formatting */
+.md-typeset .tabbed-set .tabbed-set {
+    background-color: color-mix(in srgb, var(--custom_light_grey) 20%, transparent);
+    border-radius: 8px;
+    max-width: 100%;
+    padding: 0rem;
+    margin: 0 auto;
+}
+
+/* Inner tab labels - smaller */
+.md-typeset .tabbed-set .tabbed-set > .tabbed-labels > label {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+
+/* -----------------------------------------------------------------------------
+Create special organization/structure classes
+----------------------------------------------------------------------------- */
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.wide-grid {
+  gap: 1.75rem;
+}
+
+
+/* -----------------------------------------------------------------------------
+Create a generic "block" of formatting. This block should be the primary
+building block for all "complex" entities - everything that requires more
+than basic markdown formatting
+
+This card can be used in conjunction with any shaping classes to create
+more complex arrangements
+
+Highly specialized applications may require a separate definition (see below)
+----------------------------------------------------------------------------- */
+
+.section-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: var(--md-code-bg-color);
+  margin-bottom: 0.9rem;
+}
+
+/* Modifiers - these can be added on to the section-card
+definition to create more complex structures */
+
+.centered-text {
+  text-align: center
+}
+
+/* Tightens the card snugly around its content */
+.compact {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0;
+}
+
+.tight-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.25rem;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* -----------------------------------------------------------------------------
+Create a specialized "code-card" class
+----------------------------------------------------------------------------- */
+
+/* remove dead space above panel names */
+.code-card .tabbed-set {
+  margin: 0;
+}
+
+.code-card .tabbed-labels > label {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+}
+
+.code-card .tabbed-content {
+  padding: 0.9rem;
+}
+
+.code-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-radius: 14px;
+  background: var(--md-code-bg-color);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+
+/* -----------------------------------------------------------------------------
+Little button to use for internal links
+----------------------------------------------------------------------------- */
+
+.pretty-link {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--custom_blue);
+  color: var(--custom_white) !important;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  text-decoration: none !important; /* removes hyperlink underlining */
+  border: none;
+  transition: 0.2s ease; /* not working, transitions are instant */
+}
+
+.pretty-link:hover {
+  text-decoration: none !important; /* removes hyperlink underlining */
+  opacity: 0.75;
+}
+
+/* -----------------------------------------------------------------------------
+   SIDEBAR / NAVIGATION
+   ----------------------------------------------------------------------------- */
+
+.md-nav__link:hover {
+  color: var(--custom_blue);
+}
+
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: var(--custom_blue);
+  font-weight: 600;
+}
+
+.md-nav__title {
+  color: var(--custom_blue);
+  font-size: x-large; /* NOTE this is not doing anything right now, need to solve */
+}
+
+/* Hide the desktop window navigation section on all pages. Mobile navigation drawer is untouched */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: none !important;
+  }
+}
+
+/* Hide the table of contents on all pages */
+.md-sidebar--secondary {
+  display: none !important;
+}
+
+/* -----------------------------------------------------------------------------
+HEADER
+----------------------------------------------------------------------------- */
+/* ensure the NDSL title looks correct  */
+.md-header__topic span.md-ellipsis {
+  color: var(--custom_blue);
+  font-weight: 600;
+  font-size: 1.9rem;
+  margin-left: 0px;
+}
+
+/* ensure the NDSL badge is always visible, even when scrolling */
+.md-header__ellipsis .md-header__topic {
+  opacity: 1 !important;
+  transform: none !important;
+}
+.md-header__ellipsis .md-header__topic ~ .md-header__topic {
+  display: none !important;
+}

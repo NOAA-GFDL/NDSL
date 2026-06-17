@@ -1,10 +1,14 @@
-# Release a new version
+<h1 style="color:#185FA5;">
+Release a new version
+</h1>
 
 This internal documentation guides you through the process of releasing a new version of NDSL. It is very simple:
 
 1. Click [create a release](https://github.com/NOAA-GFDL/NDSL/compare/main...develop?expand=1&template=release.md) and follow the steps in the release checklist.
 
-## Patch release
+<h2 style="color:#185FA5;">
+Patch release
+</h2>
 
 Every now and then, we'll need to patch the currently released version of NDSL. To do so, follow these steps:
 
