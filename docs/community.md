@@ -51,17 +51,14 @@ rusty.benson@noaa.gov
 </div>
 </div>
 
-### Contributors
+### Additional Team Members
 
 | Name | Role | Email |
 | --- | --- | --- |
-| Rusty Benson | NEED FORMAL TITLE | rusty.benson@noaa.gov |
-| Florian Deconinck | Project Lead (NASA) | florian.deconinck@nasa.gov |
-| Oliver Elbert |  NEED FORMAL TITLE | oliver.elbert@noaa.gov |
 | Senior Developer | Roman Cattaneo | roman.cattaneo@ssaihq.com |
 | Senior Developer | Tobias Wicky-Pfund | tobias.wicky-pfund@ssaihq.com |
 | Support Scientist | Katrina Fandrich | katrina.fandrich@nasa.gov |
+| Support Scientist | Janice Kim | janice.kim@noaa.gov
 | Support Scientist | Charles Kropiewnicki | charles.kropiewnicki@nasa.gov |
-| NEED ROLE | Frank Malatino | email
-| NEED ROLE | Janice Kim | email
+| Support Scientist | Frank Malatino | frank.malatino@noaa.gov
 </div>
