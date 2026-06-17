@@ -15,7 +15,7 @@ A modern domain-specific language for portable, high-performance atmospheric mod
 
 Install the latest version of NDSL with a few commands and start writing code.
 
-[NDSL v2026.03.00 →](./pages/install_ndsl.md){ .pretty-link }
+[NDSL v2026.03.00 →](./install_ndsl.md){ .pretty-link }
 </div>
 
 <div class="section-card" markdown>
@@ -24,7 +24,7 @@ Install the latest version of NDSL with a few commands and start writing code.
 
 New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.
 
-[User Manual →](./pages/user_manual/ndsl_introduction.md){ .pretty-link }
+[User Manual →](./user_manual/ndsl_introduction.md){ .pretty-link }
 </div>
 </div>
 
@@ -35,7 +35,7 @@ New to NDSL? Walk through our beginner-friendly user manual to learn the core sy
 
 NDSL is currently deployed in a number of applications involving multiple national agencies and international partners.
 
-[Explore →](./pages/ndsl_in_action/index.md){ .pretty-link }
+[Explore →](./ndsl_in_action/index.md){ .pretty-link }
 </div>
 
 <div class="section-card" markdown>
@@ -44,6 +44,6 @@ NDSL is currently deployed in a number of applications involving multiple nation
 
 Stay up to date on the latest NDSL news, and connect with developers, researchers, and contributors using NDSL in various atmospheric models.
 
-[Join The Community →](./pages/community.md){ .pretty-link }
+[Join The Community →](./community.md){ .pretty-link }
 </div>
 </div>
