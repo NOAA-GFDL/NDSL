@@ -187,6 +187,7 @@ def _build_sdfg(
                     my_sdfg.replace_dict(repl_dict)
 
             if config.verbose_orchestration:
+                ndsl_log.debug("saving 00-combined_from_stencils.sdfgz")
                 sdfg.save(
                     os.path.abspath(
                         f"{sdfg.build_folder}/00-combined_from_stencils.sdfgz"
@@ -197,6 +198,7 @@ def _build_sdfg(
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
             if config.verbose_orchestration:
+                ndsl_log.debug("saving 01-simplify.sdfgz")
                 sdfg.save(
                     os.path.abspath(f"{sdfg.build_folder}/01-simplify_1.sdfgz"),
                     compress=True,
@@ -220,6 +222,7 @@ def _build_sdfg(
                 )
                 stree = sdfg.as_schedule_tree()
                 if config.verbose_orchestration:
+                    ndsl_log.debug("saving 02-pre_opt.stree.txt")
                     with open(
                         os.path.abspath(f"{sdfg.build_folder}/02-pre_opt.stree.txt"),
                         "w+",
@@ -235,6 +238,7 @@ def _build_sdfg(
                 )
                 pipeline.run(stree, verbose=config.verbose_schedule_tree_optimizations)
                 if config.verbose_orchestration:
+                    ndsl_log.debug("saving 03-post_opt.stree.txt")
                     with open(
                         os.path.abspath(f"{sdfg.build_folder}/03-post_opt.stree.txt"),
                         "w+",
@@ -244,6 +248,7 @@ def _build_sdfg(
             with DaCeProgress(config, "Schedule Tree: go back to SDFG"):
                 sdfg = _tree_as_sdfg(stree)
                 if config.verbose_orchestration:
+                    ndsl_log.debug("saving 04-from_stree.sdfgz")
                     sdfg.save(
                         os.path.abspath(f"{sdfg.build_folder}/04-from_stree.sdfgz"),
                         compress=True,
@@ -252,7 +257,8 @@ def _build_sdfg(
         # We want all maps properly collapse to make sure the codegen will see nD parallel
         # axis as a single kernelizable map
         with DaCeProgress(config, "Collapse maps"):
-            sdfg.apply_transformations_repeated(MapCollapse)
+            # allow `MapCollapse` to collapse maps with different schedules
+            sdfg.apply_transformations_repeated(MapCollapse, permissive=True)
 
         with DaCeProgress(config, "Make transient persistents"):
             # Make the transients array persistents
@@ -286,6 +292,7 @@ def _build_sdfg(
                 # Apply common GPU transforms (includes a simplify)
                 sdfg.apply_gpu_transformations()
                 if config.verbose_orchestration:
+                    ndsl_log.debug("saving 05-apply_gpu_xforms.sdfgz")
                     sdfg.save(
                         os.path.abspath(
                             f"{sdfg.build_folder}/05-apply_gpu_xforms.sdfgz"
@@ -296,6 +303,7 @@ def _build_sdfg(
             with DaCeProgress(config, "Simplify (2)"):
                 _simplify(sdfg)
                 if config.verbose_orchestration:
+                    ndsl_log.debug("saving 05-simplify_2.sdfgz")
                     sdfg.save(
                         os.path.abspath(f"{sdfg.build_folder}/05-simplify_2.sdfgz"),
                         compress=True,

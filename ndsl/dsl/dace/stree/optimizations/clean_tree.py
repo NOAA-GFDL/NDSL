@@ -26,32 +26,28 @@ class CleanUpScheduleTree(tn.ScheduleNodeTransformer):
     def visit_WhileScope(self, node: tn.WhileScope) -> tn.WhileScope:
         self._remove_state_boundaries_from_children(node)
 
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
         return node
 
     def visit_ForScope(self, node: tn.ForScope) -> tn.ForScope:
         self._remove_state_boundaries_from_children(node)
 
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
         return node
 
     def visit_MapScope(self, node: tn.MapScope) -> tn.MapScope:
         self._remove_state_boundaries_from_children(node)
 
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
         return node
 
     def visit_IfScope(self, node: tn.IfScope) -> tn.IfScope:
         self._remove_state_boundaries_from_children(node)
 
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
         return node
 
@@ -60,8 +56,7 @@ class CleanUpScheduleTree(tn.ScheduleNodeTransformer):
 
         self._remove_state_boundaries_from_children(node)
 
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
         ndsl_log.debug(f"{self}: removed {self._removed_state_boundaries} nodes")
         return node
