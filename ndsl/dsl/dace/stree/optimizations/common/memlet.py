@@ -47,7 +47,6 @@ def no_data_dependencies_on_cartesian_axis(
     other_writes.visit(second)
     read_collector = MemletCollector(collect_writes=False)
     read_collector.visit(second)
-    write_index = {}
 
     for write in write_collector.out_memlets:
         # TODO: this can be optimized to allow non-overlapping intervals and such in the future
