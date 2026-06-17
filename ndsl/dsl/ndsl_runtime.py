@@ -47,11 +47,7 @@ class NDSLRuntime:
             return new_init
 
         def debug_decorator(child_call: Callable) -> Any:
-            def new_call(
-                self: NDSLRuntime,
-                *args: list[Any],
-                **kwargs: dict[str, Any],
-            ) -> Any:
+            def new_call(self, *args, **kwargs):  # type: ignore[no-untyped-def]
                 assert ndsl_debugger
                 params = inspect.signature(child_call).parameters
                 data_as_dict = {}
@@ -86,8 +82,8 @@ class NDSLRuntime:
 
         cls.__init__ = init_decorator(cls.__init__)  # type: ignore[method-assign]
         if ndsl_debugger and callable(cls):
-            cls._original__call__ = cls.__call__
-            cls.__call__ = debug_decorator(cls.__call__)
+            cls._original__call__ = cls.__call__  # type: ignore[attr-defined]
+            cls.__call__ = debug_decorator(cls.__call__)  # type: ignore[method-assign]
 
     def __post_init__(self: NDSLRuntime) -> None:
         if not hasattr(self, "_base_class_was_properly_super_init"):
@@ -116,7 +112,7 @@ class NDSLRuntime:
         if self._stencil_factory.backend.is_orchestrated() and callable(self):
             # Do we have to un-monkey patch the __call__
             if hasattr(type(self), "_original__call__"):
-                type(self).__call__ = type(self)._original__call__
+                type(self).__call__ = type(self)._original__call__  # type: ignore
             orchestrate(
                 obj=self,
                 config=self._stencil_factory.config.dace_config,
