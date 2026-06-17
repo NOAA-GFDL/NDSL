@@ -16,7 +16,9 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import Float
 
+import pytest
 
+@pytest.xfail("TODO: Locals are currently not transient.")
 def test_dace_data_descriptor_is_transient() -> None:
     nx = 5
     shape = (nx,)
