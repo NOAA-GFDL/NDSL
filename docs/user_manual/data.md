@@ -25,12 +25,12 @@ All objects with one or more dimensions are considered "fields". NDSL assumes a 
 I/J/K coordinate system, where I and J are horizontal dimensions and K is the vertical
 dimension, but allows these to be defined dynamically (more on this in the next section).
 
-NDSL fields are typed according to the following: 
+NDSL fields are typed according to the following:
 `[Type]Field[Axis][Precision]` - with `Type = [Int, Float, Bool]`; `Axis = [I, J, IJ, K]`;
 `Precision = [32, 64]` (optional), if not specified then default to global precision.
 
 Note that there is no `[Type]FieldIJK`; this is simply `[Type]Field`. These field types are only used within
-NDSL-specific code ("stencils", described in the next section) to provide the system with expected shapes 
+NDSL-specific code ("stencils", described in the next section) to provide the system with expected shapes
 of arrays, facilitating many of the behind-the-scenes optimization processes.
 
 Below is few examples of NDSL field types:
@@ -133,10 +133,10 @@ be set to any value smaller than the smallest X/Y dimension.
 
 There are two main methods for accessing data stored within a quantity:
 
-- `quantity.field[:]`: returns the compute domain (excludes halos) of the quantity as a NumPy-like 
+- `quantity.field[:]`: returns the compute domain (excludes halos) of the quantity as a NumPy-like
 array. Note this will include the interface dimension point for axis specified to be operating on the
-interface. Note that, since this is a NumPy-like 
-array, it can be accessed using normal Python accessing rules, and much of the functionality of 
+interface. Note that, since this is a NumPy-like
+array, it can be accessed using normal Python accessing rules, and much of the functionality of
 NumPy arrays is also available.
 
 - `quantity.data[:]`: returns all data contained within the quantity, including the interface dimension point

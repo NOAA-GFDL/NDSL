@@ -95,9 +95,9 @@ code in NDSL, it's time to talk about how a repository containing NDSL code shou
 structured.
 
 In this example, we've created a mock-up repository which contains NDSL code to convert
-temperature from Fahrenheit to Kelvin and then back to Fahrenheit. We've named our mock-up 
-repository `tutorial`, which contains four Python scripts: `driver.py`, `stencils.py`, 
-`constants.py`, and `temporaries.py`. 
+temperature from Fahrenheit to Kelvin and then back to Fahrenheit. We've named our mock-up
+repository `tutorial`, which contains four Python scripts: `driver.py`, `stencils.py`,
+`constants.py`, and `temporaries.py`.
 
 Each script has a unique purpose. For example, `driver.py` contains code to create and call the
 `class` that initializes the NDSL stencils.

@@ -156,5 +156,3 @@ plugins:
 watch:
   # reload when the glossary file is updated
   - docs/includes
-
-

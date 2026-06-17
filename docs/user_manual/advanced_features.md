@@ -177,7 +177,7 @@ three dimensional field plus a fourth "data dimension". This fourth dimension ca
 parallelized, and therefore cannot be iterated over like the primary three dimensions.
 
 The example below shows how to create a four dimensional field, where the fourth dimension
-has size 36. 
+has size 36.
 
 ```py
 
@@ -240,7 +240,7 @@ necessary (i.e. do not rely on this when relative offsetting is sufficient).
 The proper nomenclature is `field.at(K=level)` where level is a `Int` type number, variable, or
 expression which corresponds to a level present in the accessed field.
 
-Similarly, absolute K-Indexing can be used on a four-dimensional field as follows: 
+Similarly, absolute K-Indexing can be used on a four-dimensional field as follows:
 `field4D.at(K=level, ddim=[n])`, where `n` represents the index being accessed along the fourth
 dimension.
 

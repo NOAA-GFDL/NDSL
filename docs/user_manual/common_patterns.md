@@ -196,7 +196,7 @@ program average_below_level
             enddo
         enddo
     enddo
-    
+
     ! calculate average based on desired_level
     do i = 1, X_DIM
         do j = 1, Y_DIM
@@ -486,7 +486,7 @@ def stencil(data: FloatField, table: GlobalTable_local_type):
 ## Optional Inputs
 
 In Fortran - and in traditional Python - it is possible to have optional inputs to a function. NDSL does not
-support optional field inputs (a quantity with one or more dimensions) but it is possible to create 
+support optional field inputs (a quantity with one or more dimensions) but it is possible to create
 optional scalar inputs.
 
 For a field, the best way to create an "optional" input in NDSL is to create a situation where an input
@@ -594,7 +594,7 @@ program conditional_calculation
         enddo
     enddo
 
-    
+
     do i = 1, X_DIM
         do j = 1, Y_DIM
             do k = 1, Z_DIM
@@ -706,9 +706,9 @@ accumulating precipitation in a column). NDSL does not have the ability to nest 
 statements; however, such a calculation can be performed using a `while` loop and clever indexing within
 a single computation/iteration statement:
 
-Below is an example of a nested K loop from the lagrangian_contributions stencil. It is not 
-currently possible in NDSL to nest a `with computation(PARALLEL)` within a 
-`with computation(PARALLEL)`, however a `while`loop can be used to create a nested K loop 
+Below is an example of a nested K loop from the lagrangian_contributions stencil. It is not
+currently possible in NDSL to nest a `with computation(PARALLEL)` within a
+`with computation(PARALLEL)`, however a `while`loop can be used to create a nested K loop
 (lines x-x).
 
 Example "Fortran Code"

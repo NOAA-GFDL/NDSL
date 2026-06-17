@@ -10,7 +10,7 @@
 # Writing Code in NDSL
 
 NDSL finds power in its ability to accelerate and dynamically compile code. To do this,
-NDSL creates an interface to two GT4Py constructs which are used to denote and contain accelerable 
+NDSL creates an interface to two GT4Py constructs which are used to denote and contain accelerable
 code: "stencils" and "functions". Conceptually, the two are similar, but their uses are different.
 
 ## Stencils
@@ -148,7 +148,7 @@ just as any other field can be used, and are unavailable outside of the stencil.
 
 Within a stencil, points are referenced relative to each other. For example, the statement
 `field[0, 0, 1]` implies that you want an offset of positive one along the K axis (Z dimension
-in our example). This offset occurs at each point in the domain independently, so you will always 
+in our example). This offset occurs at each point in the domain independently, so you will always
 be reading one "above" your current position.
 
 Offsets can only occur at read; NDSL does not allow writing with an offset.

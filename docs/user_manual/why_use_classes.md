@@ -11,13 +11,13 @@
 
 ## What is a Python Class?
 
-A Python `class` is like a template or blueprint for creating objects — in this example, our class 
+A Python `class` is like a template or blueprint for creating objects — in this example, our class
 creates tools to check if the condensation is likely to occur based on temperature and dew point at
 a certain location.
 
 Think of it like this: <br>
 - A `function` does one task. <br>
-- A `class` bundles together data and functions (called methods) that relate to a single concept — 
+- A `class` bundles together data and functions (called methods) that relate to a single concept —
 like checking condensation.
 
 For example:
@@ -63,7 +63,7 @@ def check_condensation(temp, dew_point):
     return temp <= dew_point
 ```
 
-You’d need to manually pass temperature and dew point every single time, and it doesn't naturally 
+You’d need to manually pass temperature and dew point every single time, and it doesn't naturally
 group this data together. You also can't easily add more features like location, time, or logging.
 
 With a `class`:
@@ -71,7 +71,7 @@ With a `class`:
 station = CondensationChecker("Berlin", 12.0, 12.5)
 station.report()
 ```
-This is a much cleaner option — all related data is stored inside the object, and methods operate 
+This is a much cleaner option — all related data is stored inside the object, and methods operate
 on that data.
 
 ## Benefits of using a Class
@@ -84,13 +84,13 @@ In CondensationChecker: <br>
 The data: temperature, dew point, location <br>
 The behavior: check_condensation(), report() <br>
 
-These things belong together logically. Instead of keeping temperature and dew point as separate 
+These things belong together logically. Instead of keeping temperature and dew point as separate
 variables and writing separate functions, the class keeps them bundled as one logical unit.
 
 
 **Reusability**
 
-You can reuse the same class to create multiple objects representing different conditions — 
+You can reuse the same class to create multiple objects representing different conditions —
 without repeating code.
 
 Example:
@@ -104,13 +104,13 @@ station2.report()
 
 Each station is independent, and the logic to check condensation is shared and reusable.
 
-Without a class, you'd have to manage multiple sets of variables manually and pass them into 
+Without a class, you'd have to manage multiple sets of variables manually and pass them into
 functions every time — more error-prone and harder to manage.
 
 
 **Easy to Add New Features**
 
-When your code grows in complexity, classes make it easy to add new functionality without breaking 
+When your code grows in complexity, classes make it easy to add new functionality without breaking
 existing logic.
 
 For example, you can add a method to estimate relative humidity based on existing data:
@@ -124,7 +124,7 @@ This method now becomes part of the condensation checker — you don’t have to
 
 **Modularity**
 
-Classes act like building blocks for larger systems. You can isolate pieces of your program into 
+Classes act like building blocks for larger systems. You can isolate pieces of your program into
 logical units.
 
 
@@ -137,6 +137,5 @@ With a class: <br>
 - You can fix or update just one class without affecting others. <br>
 - You don’t have to trace global variables across multiple files. <br>
 
-If someone new joins your team, they can understand what CondensationChecker does just by reading 
+If someone new joins your team, they can understand what CondensationChecker does just by reading
 that one class.
-

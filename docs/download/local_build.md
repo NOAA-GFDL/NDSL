@@ -93,7 +93,7 @@ Config | Install |  Check  |   Package
 +export DSLSW_BASELIBS_VER=8.14.0
 
 -export DSLSW_BOOST_VER=1.76.0
--export DSLSW_BOOST_VER_STR=1_76_0 
+-export DSLSW_BOOST_VER_STR=1_76_0
 +export DSLSW_BOOST_VER=1.88.0
 +export DSLSW_BOOST_VER_STR=1_88_0
 
@@ -309,7 +309,7 @@ cmake .. -DBASEDIR=$BASEDIR/Linux \
          -DPython3_EXECUTABLE=`which python3`
 
 # *** To add Serialbox serialization to GEOS, add the following two flags to the above cmake command
-#     1) -DBUILD_SERIALBOX_SER=ON 
+#     1) -DBUILD_SERIALBOX_SER=ON
 #     2) -DSERIALBOX_ROOT=<Path to Serialbox Installation>
 
 # *** If MKL isn't found by cmake, add the following flag to the above cmake command: -DMKL_INCLUDE_DIR=<MKL Include Path>

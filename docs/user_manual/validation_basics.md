@@ -7,7 +7,7 @@
 }
 </style>
 
-# Validating our NDSL port of GEOS 
+# Validating our NDSL port of GEOS
 
 ## Fine-grain numerical validation: Translate test
 
@@ -117,7 +117,7 @@ def fill_q_zero_stencil(q:FloatField, mass: FloatField, fillq: FloatFieldIJ, tpw
         if q >= 0
             q = q * (1+neg_tpw/(tpw_negtpw))
         fillq = -neg_tpw
-        
+
 
 
 class FillQZero:
@@ -142,7 +142,7 @@ class FillQZero:
         mass: FloatField,
     )
         # This is not a stencil code, so we do it outside
-        self._tpw = np.sum(q, 3) 
+        self._tpw = np.sum(q, 3)
         # Call stencil code
         self._fill_q_zero(
             q=q,
