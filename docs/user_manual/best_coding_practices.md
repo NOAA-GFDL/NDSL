@@ -1,3 +1,12 @@
+<style>
+/* re-enable the left side navigation bar for this page */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: block !important;
+  }
+}
+</style>
+
 # Best Coding Practices
 
 In this section, we provide some general guidelines for writing and structuring code in NDSL.

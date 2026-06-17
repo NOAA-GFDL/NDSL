@@ -1,3 +1,12 @@
+<style>
+/* re-enable the left side navigation bar for this page */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: block !important;
+  }
+}
+</style>
+
 # Advanced Stencil Properties and Techniques
 
 NDSL has a number of features which are designed to streamline development.

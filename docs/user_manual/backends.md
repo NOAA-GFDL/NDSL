@@ -1,3 +1,12 @@
+<style>
+/* re-enable the left side navigation bar for this page */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: block !important;
+  }
+}
+</style>
+
 # Backends
 
 Throughout this user manual, we have been building our factories with some version of the following code:

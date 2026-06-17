@@ -1,3 +1,12 @@
+<style>
+/* re-enable the left side navigation bar for this page */
+@media screen and (min-width: 76.1875em) {
+  .md-sidebar--primary {
+    display: block !important;
+  }
+}
+</style>
+
 # Common Patterns
 
 Now that we have introduced the core features of NDSL and highlighted features which enable more
