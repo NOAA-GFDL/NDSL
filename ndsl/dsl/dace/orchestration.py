@@ -200,7 +200,10 @@ def _build_sdfg(
                     compress=True,
                 )
 
-        if not _INTERNAL__SCHEDULE_TREE_OPTIMIZATION or _INTERNAL__SCHEDULE_TREE_FORCE_SIMPLIFY:
+        if (
+            not _INTERNAL__SCHEDULE_TREE_OPTIMIZATION
+            or _INTERNAL__SCHEDULE_TREE_FORCE_SIMPLIFY
+        ):
             with DaCeProgress(config, "Simplify (1)"):
                 _simplify(sdfg)
                 if config.verbose_orchestration:
