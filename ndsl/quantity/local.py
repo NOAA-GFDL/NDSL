@@ -46,5 +46,6 @@ class Local(Quantity):
     def __descriptor__(self) -> Any:
         """Locals uses `Quantity.__descriptor__` and flag itself as transient."""
         data = dace.data.create_datadescriptor(self._data)
-        data.transient = True if not self._on_gpu else False
+        # TODO: commented because of "the Local issue"
+        # data.transient = True if not self._on_gpu else False
         return data
