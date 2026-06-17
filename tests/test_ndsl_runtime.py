@@ -51,7 +51,7 @@ class Code_NoCall(NDSLRuntime):
         pass
 
 
-@pytest.xfail("TODO: Locals are currently not transient.")
+@pytest.mark.xfail(reason="TODO: Locals are currently not transient.")
 def test_runtime_make_local() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile(
         nx=5, ny=5, nz=3, nhalo=0, backend=Backend.python()
