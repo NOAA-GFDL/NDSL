@@ -32,26 +32,26 @@ More information on the benchmarking process coming soon...
 === "SCM"
 
     === "`armtwp_ice` 6 days, 72 lev"
-        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
-        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
+        ![Timeseries](../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_72.png)
 
     === "`armtwp_ice` 6 days, 181 lev"
-        ![Timeseries](../../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
-        ![Hovmoller](../../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
+        ![Timeseries](../../img/scm_gfdl1m_armtwp_ice_timeseries_gpu_181.png)
+        ![Hovmoller](../../img/scm_gfdl1m_armtwp_ice_hovmoller_gpu_181.png)
 
 === "GCM"
 
     === "C180 T"
-        ![Temp](../../../img/gcm_T_gfdl1m_c180_l72_7days.png)
+        ![Temp](../../img/gcm_T_gfdl1m_c180_l72_7days.png)
 
     === "C180 QV"
-        ![QV](../../../img/gcm_QV_gfdl1m_c180_l72_7days.png)
+        ![QV](../../img/gcm_QV_gfdl1m_c180_l72_7days.png)
 
     === "C180 U"
-        ![U](../../../img/gcm_U_gfdl1m_c180_l72_7days.png)
+        ![U](../../img/gcm_U_gfdl1m_c180_l72_7days.png)
 
     === "C180 V"
-        ![V](../../../img/gcm_V_gfdl1m_c180_l72_7days.png)
+        ![V](../../img/gcm_V_gfdl1m_c180_l72_7days.png)
 
 ### Performance Benchmarks
 Coming soon...
@@ -70,30 +70,30 @@ Coming soon...
 === "SCM"
 
     === "`bomex` 6 hr, 72 lev"
-        ![Hovmoller](../../../img/scm_uw_bomex_hovmoller_gpu_72.png)
+        ![Hovmoller](../../img/scm_uw_bomex_hovmoller_gpu_72.png)
 
     === "`bomex` 6 hr, 181 lev"
-        ![Hovmoller](../../../img/scm_uw_bomex_hovmoller_gpu_181.png)
+        ![Hovmoller](../../img/scm_uw_bomex_hovmoller_gpu_181.png)
 
     === "`arm_97jun` 14 hr, 72 lev"
-        ![Hovmoller](../../../img/scm_uw_arm_97jun_hovmoller_gpu_72.png)
+        ![Hovmoller](../../img/scm_uw_arm_97jun_hovmoller_gpu_72.png)
 
     === "`arm_97jun` 14 hr, 181 lev"
-        ![Hovmoller](../../../img/scm_uw_arm_97jun_hovmoller_gpu_181.png)
+        ![Hovmoller](../../img/scm_uw_arm_97jun_hovmoller_gpu_181.png)
 
 === "GCM"
 
     === "C180 T"
-        ![Temp](../../../img/gcm_T_uw_c180_l72_7days.png)
+        ![Temp](../../img/gcm_T_uw_c180_l72_7days.png)
 
     === "C180 QV"
-        ![QV](../../../img/gcm_QV_uw_c180_l72_7days.png)
+        ![QV](../../img/gcm_QV_uw_c180_l72_7days.png)
 
     === "C180 U"
-        ![U](../../../img/gcm_U_uw_c180_l72_7days.png)
+        ![U](../../img/gcm_U_uw_c180_l72_7days.png)
 
     === "C180 V"
-        ![V](../../../img/gcm_V_uw_c180_l72_7days.png)
+        ![V](../../img/gcm_V_uw_c180_l72_7days.png)
 
 ### Performance Benchmarks
 Coming soon...
@@ -110,26 +110,26 @@ Coming soon...
 === "SCM"
 
     === "`armtwp_ice` 6 days, 72 lev"
-        ![Timeseries](../../../img/scm_gf_armtwp_ice_timeseries_gpu_72.png)
-        ![Hovmoller](../../../img/scm_gf_armtwp_ice_hovmoller_gpu_72.png)
+        ![Timeseries](../../img/scm_gf_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../img/scm_gf_armtwp_ice_hovmoller_gpu_72.png)
 
     === "`armtwp_ice` 6 days, 181 lev"
-        ![Timeseries](../../../img/scm_gf_armtwp_ice_timeseries_gpu_181.png)
-        ![Hovmoller](../../../img/scm_gf_armtwp_ice_hovmoller_gpu_181.png)
+        ![Timeseries](../../img/scm_gf_armtwp_ice_timeseries_gpu_181.png)
+        ![Hovmoller](../../img/scm_gf_armtwp_ice_hovmoller_gpu_181.png)
 
 === "GCM"
 
     === "C48 T"
-        ![Temp](../../../img/gcm_T_gf2020_c48_l72_7days.png)
+        ![Temp](../../img/gcm_T_gf2020_c48_l72_7days.png)
 
     === "C48 QV"
-        ![QV](../../../img/gcm_QV_gf2020_c48_l72_7days.png)
+        ![QV](../../img/gcm_QV_gf2020_c48_l72_7days.png)
 
     === "C48 U"
-        ![U](../../../img/gcm_U_gf2020_c48_l72_7days.png)
+        ![U](../../img/gcm_U_gf2020_c48_l72_7days.png)
 
     === "C48 V"
-        ![V](../../../img/gcm_V_gf2020_c48_l72_7days.png)
+        ![V](../../img/gcm_V_gf2020_c48_l72_7days.png)
 
 ### Performance Benchmarks
 Coming soon...
@@ -148,20 +148,20 @@ Work concluded June 2026.
 === "SCM"
 
     === "`bomex` 6 hr, 72 lev"
-        ![Hovmoller](../../../img/scm_moist_bomex_hovmoller_gpu_72.png)
+        ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_72.png)
 
     === "`bomex` 6 hr, 181 lev"
-        ![Hovmoller](../../../img/scm_moist_bomex_hovmoller_gpu_181.png)
+        ![Hovmoller](../../img/scm_moist_bomex_hovmoller_gpu_181.png)
 
     === "`arm_97jun` 14 hr, 72 lev"
-        ![Hovmoller](../../../img/scm_moist_arm_97jun_hovmoller_gpu_72.png)
+        ![Hovmoller](../../img/scm_moist_arm_97jun_hovmoller_gpu_72.png)
 
     === "`arm_97jun` 14 hr, 181 lev"
-        ![Hovmoller](../../../img/scm_moist_arm_97jun_hovmoller_gpu_181.png)
+        ![Hovmoller](../../img/scm_moist_arm_97jun_hovmoller_gpu_181.png)
 
     === "`armtwp_ice` 6 days, 72 lev"
-        ![Timeseries](../../../img/scm_moist_armtwp_ice_timeseries_gpu_72.png)
-        ![Hovmoller](../../../img/scm_moist_armtwp_ice_hovmoller_gpu_72.png)
+        ![Timeseries](../../img/scm_moist_armtwp_ice_timeseries_gpu_72.png)
+        ![Hovmoller](../../img/scm_moist_armtwp_ice_hovmoller_gpu_72.png)
 
 ### Benchmarks
 Coming soon...
