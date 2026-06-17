@@ -28,7 +28,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install zensical
-        run: pip install zensical
+        run: pip install zensical mkdocstrings[python]
 
       - name: Build docs
         run: zensical build
