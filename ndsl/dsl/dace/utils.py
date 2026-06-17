@@ -9,11 +9,11 @@ from dace.transformation.helpers import get_parent_map
 from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 import ndsl.xumpy as xp
+from ndsl import ndsl_log
 from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, FrozenStencil, StencilConfig
 from ndsl.dsl.typing import Float, FloatField
-from ndsl.logging import ndsl_log
 
 
 class DaCeProgress:
@@ -182,7 +182,7 @@ def memory_static_analysis_from_path(
 # ----------------------------------------------------------
 # Theoretical bandwidth from SDFG
 # ----------------------------------------------------------
-def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:
+def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:  # type: ignore[valid-type]
     with computation(PARALLEL), interval(...):
         q_in = q_out
 

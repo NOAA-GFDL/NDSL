@@ -16,6 +16,7 @@ from gt4py.cartesian.definitions import FieldInfo
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
@@ -50,9 +51,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization import GridSizer
 from ndsl.internal.deferred_type import StencilDeferredType
-from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
-from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
@@ -351,11 +350,7 @@ class FrozenStencil(SDFGConvertible):
 
         # Deal with placeholder/markup type by resolving their true types
         for name, type_ in func.__annotations__.items():
-            if isinstance(type_, MarkupFieldBundleType):
-                func.__annotations__[name] = FieldBundleType.T(
-                    type_.name, do_markup=False
-                )
-            elif isinstance(type_, StencilDeferredType):
+            if isinstance(type_, StencilDeferredType):
                 func.__annotations__[name] = type_.resolve().get(type_.name)
 
         # Keep compilation at __init__ if we are not orchestrated.

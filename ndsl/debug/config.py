@@ -26,9 +26,9 @@ import os
 
 import yaml
 
+from ndsl import ndsl_log
 from ndsl.comm.mpi import MPIComm
 from ndsl.debug.debugger import Debugger
-from ndsl.logging import ndsl_log
 
 
 def _set_debugger() -> Debugger | None:

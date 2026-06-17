@@ -3,8 +3,8 @@ import os
 import sys
 from typing import Literal
 
+from ndsl import ndsl_log
 from ndsl.comm.mpi import MPI
-from ndsl.logging import ndsl_log
 
 
 gt4py_config_module = "gt4py.cartesian.config"
@@ -59,3 +59,9 @@ if not any([name.startswith("dace") for name in gt_backend.REGISTRY.names]):
 
 
 ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")
+
+# We remove warnings from the compiler for higher level of logging
+NDSL_COMPILER_SILENCE = os.getenv("NDSL_COMPILER_SILENCE", "False").lower() == "true"
+if NDSL_COMPILER_SILENCE:
+    gt4py.cartesian.config.build_settings["extra_compile_args"]["cxx"].append("-w")
+    gt4py.cartesian.config.build_settings["extra_compile_args"]["cuda"].append("-w")

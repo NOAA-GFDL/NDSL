@@ -82,15 +82,15 @@ def test_all_reduce(backend: Backend, communicator: CubedSphereCommunicator) -> 
 
     global_sum_q = communicator.all_reduce(testQuantity_1D, ReductionOperator.SUM)
     assert global_sum_q.metadata == testQuantity_1D.metadata
-    assert (global_sum_q.data == (testQuantity_1D.data * communicator.size)).all()
+    assert (global_sum_q[:] == (testQuantity_1D[:] * communicator.size)).all()
 
     global_sum_q = communicator.all_reduce(testQuantity_2D, ReductionOperator.SUM)
     assert global_sum_q.metadata == testQuantity_2D.metadata
-    assert (global_sum_q.data == (testQuantity_2D.data * communicator.size)).all()
+    assert (global_sum_q[:] == (testQuantity_2D[:] * communicator.size)).all()
 
     global_sum_q = communicator.all_reduce(testQuantity_3D, ReductionOperator.SUM)
     assert global_sum_q.metadata == testQuantity_3D.metadata
-    assert (global_sum_q.data == (testQuantity_3D.data * communicator.size)).all()
+    assert (global_sum_q[:] == (testQuantity_3D[:] * communicator.size)).all()
 
     base_array = np.array([i for i in range(5)], dtype=Float)
     testQuantity_1D_out = Quantity(

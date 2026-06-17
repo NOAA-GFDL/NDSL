@@ -23,6 +23,8 @@ readme = "README.md"
 requires-python = ">=3.11,<3.14"
 
 [project.optional-dependencies]
+cuda12 = ['cupy-cuda12x>=12.0']
+cuda13 = ['cupy-cuda13x>=14.0']
 demos = ["ipython", "ipykernel"]
 dev = [
   "flake8-pyproject",
@@ -33,9 +35,14 @@ dev = [
 ]
 docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-exclude"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
+hmm-cuda12 = ['numpy_allocator', 'ndsl[cuda12]']
+hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']
 pyfms = ["pyfms @ git+https://github.com/noaa-gfdl/pyfms.git"]
 serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
-test = ["pytest", "coverage"]
+test = [
+  "pytest<9.1.0",  # starting with 9.1.0 we get issues with test detection
+  "coverage"
+]
 zarr = ["zarr<3"]
 
 [project.scripts]
@@ -124,6 +131,8 @@ module = [
 markers = [
   # tests running on a cpu (e.g. with cupy)
   "gpu",
+  # tests relying on the optional pyFMS dependency
+  "pyfms",
   # tests relying on at least two MPI processes
   "parallel",
   # tests relying on the optional zarr dependency

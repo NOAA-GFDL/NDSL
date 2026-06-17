@@ -1,6 +1,7 @@
 # isort:skip_file
-from . import dsl  # isort:skip
-from .logging import ndsl_log  # isort:skip
+from .logging import ndsl_log, ndsl_log_on_rank_0
+from .internal import hmm
+from . import dsl
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
@@ -25,7 +26,6 @@ from .quantity.data_dimensions_field import (
     DataDimensionsField,
     DataDimensionsMarkupType,
 )
-from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
 from .types import Allocator
 from .utils import MetaEnumStr
 
@@ -41,6 +41,7 @@ from .dsl.dace.orchestration import orchestrate, orchestrate_function
 
 
 __all__ = [
+    "hmm",
     "dsl",
     "Backend",
     "CubedSphereCommunicator",
@@ -75,6 +76,7 @@ __all__ = [
     "GridSizer",
     "SubtileGridSizer",
     "ndsl_log",
+    "ndsl_log_on_rank_0",
     "NetCDFMonitor",
     "NullPerformanceCollector",
     "PerformanceCollector",
@@ -84,8 +86,6 @@ __all__ = [
     "Report",
     "TimeReport",
     "Quantity",
-    "FieldBundle",
-    "FieldBundleType",
     "Allocator",
     "MetaEnumStr",
     "State",
