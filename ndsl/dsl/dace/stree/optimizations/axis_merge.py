@@ -34,10 +34,9 @@ def _both_same_single_axis_maps(
 def _can_merge_axis_maps(
     first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
-    if _both_same_single_axis_maps(first, second, axis):
-        if no_data_dependencies_on_cartesian_axis(first, second, axis):
-            return True
-    return False
+    return _both_same_single_axis_maps(
+        first, second, axis
+    ) and no_data_dependencies_on_cartesian_axis(first, second, axis)
 
 
 class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):

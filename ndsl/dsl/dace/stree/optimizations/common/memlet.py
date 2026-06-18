@@ -39,13 +39,15 @@ def no_data_dependencies_on_cartesian_axis(
     second: stree.MapScope,
     axis: AxisIterator,
 ) -> bool:
-    """Check for read after write. Allow when indexation on the axis
-    is not offset."""
+    """Check for read after write and write after write with different offsets."""
 
     write_collector = MemletCollector(collect_reads=False)
     write_collector.visit(first)
+    other_writes = MemletCollector(collect_reads=False)
+    other_writes.visit(second)
     read_collector = MemletCollector(collect_writes=False)
     read_collector.visit(second)
+
     for write in write_collector.out_memlets:
         # TODO: this can be optimized to allow non-overlapping intervals and such in the future
 
@@ -58,6 +60,23 @@ def no_data_dependencies_on_cartesian_axis(
         previous_axis_index = normalize_cartesian_indexation(
             write.subset[axis_index][0], axis
         )
+
+        # Write-after-write with an offset case
+        for other_write in other_writes.out_memlets:
+            if write.data == other_write.data:
+                if previous_axis_index != normalize_cartesian_indexation(
+                    other_write.subset[axis_index][0], axis
+                ):
+                    ndsl_log.debug(
+                        f"[{axis.name} Merge] Found write after write conflict "
+                        f"for {write.data} "
+                        f"w/ different offset to {axis.name} ("
+                        f"first write at {previous_axis_index}, "
+                        f"second write at {other_write.subset[axis_index][0]})"
+                    )
+                    return False
+
+        # Read-after-write with an offset case
         for read in read_collector.in_memlets:
             if write.data == read.data:
                 if previous_axis_index != normalize_cartesian_indexation(
@@ -71,45 +90,7 @@ def no_data_dependencies_on_cartesian_axis(
                         f"read at {read.subset[axis_index][0]})"
                     )
                     return False
-    return True
 
-
-def no_data_dependencies(
-    first: stree.MapScope,
-    second: stree.MapScope,
-    restrict_check_to_k: bool = False,
-) -> bool:
-    write_collector = MemletCollector(collect_reads=False)
-    write_collector.visit(first)
-    read_collector = MemletCollector(collect_writes=False)
-    read_collector.visit(second)
-    for write in write_collector.out_memlets:
-        # Make sure we don't have read after write conditions.
-        # TODO: this can be optimized to allow non-overlapping intervals and such in the future
-        if restrict_check_to_k:
-            if write.subset.dims() < 3:
-                # Case of 2D write - no K dependency
-                continue
-
-            previous_k_index = write.subset[2][0]
-            for read in read_collector.in_memlets:
-                if write.data == read.data:
-                    if previous_k_index != read.subset[2][0]:
-                        print(
-                            "[K Merge] Found read after write conflict "
-                            f"for {write.data} "
-                            "w/ different offset to K ("
-                            f"write at {write.subset[2][0]}, "
-                            f"read at {read.subset[2][0]})"
-                        )
-                        return False
-
-        else:
-            if write.data in [read.data for read in read_collector.in_memlets]:
-                print(
-                    f"[All dims merge] Found potential read after write conflict for {write.data}"
-                )
-                return False
     return True
 
 
