@@ -356,6 +356,9 @@ class DaceConfig:
                     value="c",
                 )
 
+            # Debug lineinfo is incorrect anyway for the stencils
+            dace.config.Config.set("compiler", "lineinfo", value="none")
+
         # Attempt to kill the dace.conf to avoid confusion
         dace_conf_to_kill = dace.config.Config.cfg_filename()
         if dace_conf_to_kill is not None:
