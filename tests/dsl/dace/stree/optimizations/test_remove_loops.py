@@ -15,7 +15,7 @@ from ndsl.dsl.dace.stree.pipeline import (
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.stencils import copy
-from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import StreePipeline, get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
 
 
@@ -118,9 +118,11 @@ class TestStree2DWriteInline:
     def factories(self, request: pytest.FixtureRequest) -> Factories:
 
         domain = (3, 3, 4)
-        return get_factories_single_tile(
+        stencil_factory, quantity_factory = get_factories_single_tile(
             domain[0], domain[1], domain[2], 0, backend=Backend(request.param)
         )
+        stencil_factory.config.dace_config.enable_schedule_tree()
+        return stencil_factory, quantity_factory
 
     def test_common_2D_write(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -136,7 +138,7 @@ class TestStree2DWriteInline:
         out_qty = quantity_factory.zeros([I_DIM, J_DIM], "")
         in_qty.field[:, :, 0] = Float(32.0)
 
-        with StreeOptimization(passes=pipeline):
+        with StreePipeline(passes=pipeline):
             code.write_at_0(in_qty, out_qty)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -169,7 +171,7 @@ class TestStree2DWriteInline:
         out_qty = quantity_factory.zeros([I_DIM, J_DIM], "")
         in_qty.field[:, :, -1] = Float(32.0)
 
-        with StreeOptimization(passes=pipeline):
+        with StreePipeline(passes=pipeline):
             code.write_at_top(in_qty, out_qty)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -201,7 +203,7 @@ class TestStree2DWriteInline:
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        with StreeOptimization(passes=pipeline):
+        with StreePipeline(passes=pipeline):
             code.do_not_inline(in_qty, out_qty)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -234,7 +236,7 @@ class TestStree2DWriteInline:
         field_2 = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
         field_IJ = quantity_factory.zeros([I_DIM, J_DIM], "")
 
-        with StreeOptimization(passes=pipeline):
+        with StreePipeline(passes=pipeline):
             code.combined_stencils(field, field_2, field_IJ)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -272,7 +274,7 @@ class TestStree2DWriteInline:
         field_IJ_2 = quantity_factory.zeros([I_DIM, J_DIM], "")
 
         field.field[:, :, 0] = Float(42.0)
-        with StreeOptimization(passes=pipeline):
+        with StreePipeline(passes=pipeline):
             code.multiple_statements(field, field_IJ, field_IJ_2)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)

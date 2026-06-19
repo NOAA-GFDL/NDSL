@@ -4,7 +4,6 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import FloatField
-from tests.dsl.dace.stree import StreeOptimization
 
 
 def double_map(in_field: FloatField, out_field: FloatField):
@@ -32,12 +31,12 @@ def test_stree_roundtrip_no_opt():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
+    stencil_factory.config.dace_config.enable_schedule_tree()
 
     code = TriviallyMergeableCode(stencil_factory)
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
     out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-    with StreeOptimization():
-        code(in_qty, out_qty)
+    code(in_qty, out_qty)
 
     assert (out_qty.field[:] == 4).all()

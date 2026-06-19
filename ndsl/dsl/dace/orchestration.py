@@ -51,11 +51,6 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, State
 
 
-_INTERNAL__SCHEDULE_TREE_OPTIMIZATION: bool = (
-    os.environ.get("NDSL_STREE_OPT", "False") == "True"
-)
-"""INTERNAL: Developer flag to turn the untested schedule tree roundtrip optimizer."""
-
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
 
 
@@ -204,7 +199,7 @@ def _build_sdfg(
                     compress=True,
                 )
 
-        if _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+        if config.schedule_tree_enabled():
             # Here be 🐉 - but tests exists in test_optimization.py
             with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
                 # Break all loops into uni-dimensional loops to simplify optimizations
@@ -599,7 +594,7 @@ class _LazyComputepathMethod:
                 **kwargs,
             )
             # Label the code (this is the topmost code)
-            if sdfg is not None and _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            if sdfg is not None and self.lazy_method.config.schedule_tree_enabled():
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=True)
             return _call_sdfg(
                 self.daceprog,
@@ -612,7 +607,7 @@ class _LazyComputepathMethod:
         def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             sdfg = _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
             # Label the code
-            if sdfg is not None and _INTERNAL__SCHEDULE_TREE_OPTIMIZATION:
+            if sdfg is not None and self.lazy_method.config.schedule_tree_enabled():
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=False)
             return sdfg
 

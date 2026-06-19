@@ -8,7 +8,7 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField
-from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
 
 
@@ -92,13 +92,15 @@ class TestKernelizeMaps:
     )
     def factories(self, request: pytest.FixtureRequest) -> Factories:
         domain = (3, 4, 5)
-        return get_factories_single_tile(
+        stencil_factory, quantity_factory = get_factories_single_tile(
             nx=domain[0],
             ny=domain[1],
             nz=domain[2],
             nhalo=0,
             backend=Backend(request.param),
         )
+        stencil_factory.config.dace_config.enable_schedule_tree()
+        return stencil_factory, quantity_factory
 
     def test_kernelize_k_gpu(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -107,8 +109,7 @@ class TestKernelizeMaps:
         in_field = quantity_factory.ones((I_DIM, J_DIM, K_DIM), "")
         out_field = quantity_factory.zeros((I_DIM, J_DIM, K_DIM), "")
 
-        with StreeOptimization():
-            code.kernelize_k(in_field, out_field)
+        code.kernelize_k(in_field, out_field)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 

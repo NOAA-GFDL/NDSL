@@ -5,7 +5,7 @@ from ndsl import Backend, NDSLRuntime, StencilFactory, orchestrate, stencils
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import FloatField
-from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
 
 
@@ -62,9 +62,11 @@ class TestStreeInlineOffgridConditionals:
     @pytest.fixture(params=["orch:dace:cpu:IJK", "orch:dace:cpu:KJI"])
     def factories(self, request: pytest.FixtureRequest) -> Factories:
         domain = (3, 3, 4)
-        return get_factories_single_tile(
+        stencil_factory, quantity_factory = get_factories_single_tile(
             domain[0], domain[1], domain[2], 0, backend=Backend(request.param)
         )
+        stencil_factory.config.dace_config.enable_schedule_tree()
+        return stencil_factory, quantity_factory
 
     def test_happy_case(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -73,8 +75,7 @@ class TestStreeInlineOffgridConditionals:
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        with StreeOptimization():
-            code.happy_case(in_quantity, out_quantity)
+        code.happy_case(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -92,8 +93,7 @@ class TestStreeInlineOffgridConditionals:
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        with StreeOptimization():
-            code.happy_case_2(in_quantity, out_quantity)
+        code.happy_case_2(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -111,8 +111,7 @@ class TestStreeInlineOffgridConditionals:
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        with StreeOptimization():
-            code.blocked_by_else(in_quantity, out_quantity)
+        code.blocked_by_else(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -130,8 +129,7 @@ class TestStreeInlineOffgridConditionals:
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        with StreeOptimization():
-            code.blocked_by_other_nodes(in_quantity, out_quantity)
+        code.blocked_by_other_nodes(in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 

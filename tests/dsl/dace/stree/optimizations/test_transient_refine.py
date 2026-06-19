@@ -4,7 +4,7 @@ from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
 from ndsl.dsl.typing import Float, FloatField
-from tests.dsl.dace.stree import StreeOptimization, get_SDFG_and_purge
+from tests.dsl.dace.stree import get_SDFG_and_purge
 
 
 DATADIM_SIZE = 8
@@ -95,6 +95,7 @@ def test_stree_roundtrip_transient_is_refined() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
+    stencil_factory.config.dace_config.enable_schedule_tree()
 
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
     out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
@@ -105,40 +106,39 @@ def test_stree_roundtrip_transient_is_refined() -> None:
 
     code = TransientRefineableCode(stencil_factory, quantity_factory)
 
-    with StreeOptimization():
-        # Refine to scalar
-        code.refine_to_scalar(in_qty, out_qty)
-        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        for array in precompiled_sdfg.sdfg.arrays.values():
-            if array.transient:
-                assert array.shape == (1, 1, 1)
+    # Refine to scalar
+    code.refine_to_scalar(in_qty, out_qty)
+    precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+    for array in precompiled_sdfg.sdfg.arrays.values():
+        if array.transient:
+            assert array.shape == (1, 1, 1)
 
-        # Refine cartesian axis to buffers
-        #   IJ merges - K is a buffer
-        code.refine_to_K_buffer(in_qty, out_qty)
-        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        for array in precompiled_sdfg.sdfg.arrays.values():
-            if array.transient:
-                assert array.shape == (
-                    1,
-                    1,
-                    domain[2] + 1,  # Quantity are domain size + 1
-                )
+    # Refine cartesian axis to buffers
+    #   IJ merges - K is a buffer
+    code.refine_to_K_buffer(in_qty, out_qty)
+    precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+    for array in precompiled_sdfg.sdfg.arrays.values():
+        if array.transient:
+            assert array.shape == (
+                1,
+                1,
+                domain[2] + 1,  # Quantity are domain size + 1
+            )
 
-        # I merges - JK buffer
-        code.refine_to_JK_buffer(in_qty, out_qty)
-        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        for array in precompiled_sdfg.sdfg.arrays.values():
-            if array.transient:
-                assert array.shape == (
-                    1,
-                    domain[1] + 1,  # Quantity are domain size + 1
-                    domain[2] + 1,
-                )
+    # I merges - JK buffer
+    code.refine_to_JK_buffer(in_qty, out_qty)
+    precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+    for array in precompiled_sdfg.sdfg.arrays.values():
+        if array.transient:
+            assert array.shape == (
+                1,
+                domain[1] + 1,  # Quantity are domain size + 1
+                domain[2] + 1,
+            )
 
-        # Refine to remaining data dimensions
-        code.do_not_refine_datadims(in_qty_ddim, out_qty_ddim)
-        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        for array in precompiled_sdfg.sdfg.arrays.values():
-            if array.transient:
-                assert array.shape == (1, 1, 1, DATADIM_SIZE) or len(array.shape) == 1
+    # Refine to remaining data dimensions
+    code.do_not_refine_datadims(in_qty_ddim, out_qty_ddim)
+    precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+    for array in precompiled_sdfg.sdfg.arrays.values():
+        if array.transient:
+            assert array.shape == (1, 1, 1, DATADIM_SIZE) or len(array.shape) == 1

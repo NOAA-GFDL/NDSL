@@ -21,14 +21,12 @@ def get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
     return sdfg
 
 
-class StreeOptimization:
+class StreePipeline:
     def __init__(self, *, passes: list[tn.ScheduleNodeVisitor] | None = None) -> None:
         self.passes = passes
 
     def __enter__(self) -> None:
         self.original_passes = orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES
-
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
         orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.passes
 
     def __exit__(
@@ -37,5 +35,4 @@ class StreeOptimization:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False
         orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.original_passes
