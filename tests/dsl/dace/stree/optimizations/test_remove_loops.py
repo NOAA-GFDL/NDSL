@@ -2,7 +2,7 @@ import pytest
 from dace import nodes
 from dace.sdfg.state import LoopRegion
 
-from ndsl import StencilFactory, orchestrate
+from ndsl import OptimizationConfig, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
@@ -44,6 +44,7 @@ def stencil_forward_at_K(in_field: FloatField, out_field: FloatField) -> None:
 
 class OrchestratedCode:
     def __init__(self, stencil_factory: StencilFactory) -> None:
+        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
         methods_to_orchestrate = [
             "write_at_0",
             "write_at_top",
@@ -56,6 +57,7 @@ class OrchestratedCode:
                 obj=self,
                 config=stencil_factory.config.dace_config,
                 method_to_orchestrate=method,
+                optimization_config=config,
             )
 
         self.stencil_simple_2D_write = stencil_factory.from_dims_halo(
@@ -118,11 +120,9 @@ class TestStree2DWriteInline:
     def factories(self, request: pytest.FixtureRequest) -> Factories:
 
         domain = (3, 3, 4)
-        stencil_factory, quantity_factory = get_factories_single_tile(
+        return get_factories_single_tile(
             domain[0], domain[1], domain[2], 0, backend=Backend(request.param)
         )
-        stencil_factory.config.dace_config.enable_schedule_tree()
-        return stencil_factory, quantity_factory
 
     def test_common_2D_write(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories

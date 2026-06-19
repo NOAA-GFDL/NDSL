@@ -1,7 +1,4 @@
-import os
 import unittest.mock
-
-import pytest
 
 from ndsl import CubedSpherePartitioner, DaceConfig, DaCeOrchestration, TilePartitioner
 from ndsl.comm.partitioner import Partitioner
@@ -158,36 +155,3 @@ def test_orchestrate_distributed_build() -> None:
         for i in range(layout[0] * layout[1] * 6):
             compiling += 1 if _does_compile(i, partition) else 0
         assert compiling == 9
-
-
-def test_schedule_tree_enable_disable() -> None:
-    config = DaceConfig(
-        communicator=None,
-        backend=Backend("orch:dace:cpu:KIJ"),
-        orchestration=DaCeOrchestration.BuildAndRun,
-    )
-
-    default = os.getenv("NDSL_STREE_OPT", "False") == "True"
-    assert config.schedule_tree_enabled() == default
-
-    if default:
-        config.disable_schedule_tree()
-        assert not config.schedule_tree_enabled()
-        config.enable_schedule_tree()
-        assert config.schedule_tree_enabled()
-    else:
-        config.enable_schedule_tree()
-        assert config.schedule_tree_enabled()
-        config.disable_schedule_tree()
-        assert not config.schedule_tree_enabled()
-
-
-def test_schedule_tree_warns_when_not_orchestrated():
-    config = DaceConfig(
-        communicator=None,
-        backend=Backend("st:dace:cpu:KIJ"),
-        orchestration=DaCeOrchestration.BuildAndRun,
-    )
-
-    with pytest.warns(UserWarning, match="non-orchestrated backend"):
-        config.enable_schedule_tree()

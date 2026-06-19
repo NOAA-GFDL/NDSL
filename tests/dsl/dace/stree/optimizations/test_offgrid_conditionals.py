@@ -1,7 +1,14 @@
 import pytest
 from dace import nodes
 
-from ndsl import Backend, NDSLRuntime, StencilFactory, orchestrate, stencils
+from ndsl import (
+    Backend,
+    NDSLRuntime,
+    OptimizationConfig,
+    StencilFactory,
+    orchestrate,
+    stencils,
+)
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.typing import FloatField
@@ -11,7 +18,8 @@ from tests.dsl.dace.stree.optimizations import Factories
 
 class OrchestratedCode(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory) -> None:
-        super().__init__(stencil_factory)
+        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
+        super().__init__(stencil_factory, config)
 
         methods_to_orchestrate = [
             "happy_case",
@@ -25,6 +33,7 @@ class OrchestratedCode(NDSLRuntime):
                 obj=self,
                 config=stencil_factory.config.dace_config,
                 method_to_orchestrate=method,
+                optimization_config=config,
             )
 
         self._copy_stencil = stencil_factory.from_dims_halo(
@@ -62,11 +71,9 @@ class TestStreeInlineOffgridConditionals:
     @pytest.fixture(params=["orch:dace:cpu:IJK", "orch:dace:cpu:KJI"])
     def factories(self, request: pytest.FixtureRequest) -> Factories:
         domain = (3, 3, 4)
-        stencil_factory, quantity_factory = get_factories_single_tile(
+        return get_factories_single_tile(
             domain[0], domain[1], domain[2], 0, backend=Backend(request.param)
         )
-        stencil_factory.config.dace_config.enable_schedule_tree()
-        return stencil_factory, quantity_factory
 
     def test_happy_case(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories

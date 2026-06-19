@@ -1,4 +1,11 @@
-from ndsl import NDSLRuntime, Quantity, QuantityFactory, StencilFactory, orchestrate
+from ndsl import (
+    NDSLRuntime,
+    OptimizationConfig,
+    Quantity,
+    QuantityFactory,
+    StencilFactory,
+    orchestrate,
+)
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
@@ -39,7 +46,8 @@ class TransientRefineableCode(NDSLRuntime):
     def __init__(
         self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     ) -> None:
-        super().__init__(stencil_factory)
+        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
+        super().__init__(stencil_factory, optimization_config=config)
         orchestratable_methods = [
             "refine_to_scalar",
             "refine_to_K_buffer",
@@ -51,6 +59,7 @@ class TransientRefineableCode(NDSLRuntime):
                 obj=self,
                 config=stencil_factory.config.dace_config,
                 method_to_orchestrate=method,
+                optimization_config=config,
             )
         self.stencil = stencil_factory.from_dims_halo(
             func=stencil,
@@ -95,7 +104,6 @@ def test_stree_roundtrip_transient_is_refined() -> None:
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
-    stencil_factory.config.dace_config.enable_schedule_tree()
 
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
     out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")

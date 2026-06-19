@@ -10,6 +10,7 @@ from .config.backend import Backend
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
 from .quantity import Quantity
+from .dsl.optimization_config import OptimizationConfig
 from .dsl.ndsl_runtime import NDSLRuntime
 from .dsl.stencil import FrozenStencil, GridIndexing, StencilFactory, TimingCollector
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
@@ -90,6 +91,7 @@ __all__ = [
     "MetaEnumStr",
     "State",
     "LocalState",
+    "OptimizationConfig",
     "NDSLRuntime",
     "Local",
     "DiagManagerMonitor",

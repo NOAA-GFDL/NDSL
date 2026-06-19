@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import enum
 import os
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
 
@@ -216,11 +215,6 @@ class DaceConfig:
             os.getenv("NDSL_VERBOSE_SCHEDULE_TREE_OPTIMIZATIONS", "False") == "True"
         )
 
-        # Schedule tree optimization
-        self._schedule_tree_optimization = (
-            os.getenv("NDSL_STREE_OPT", "False") == "True"
-        )
-
         # We hijack the optimization level of GT4Py because we don't
         # have the configuration at NDSL level, but we do use the GT4Py
         # level
@@ -410,30 +404,6 @@ class DaceConfig:
 
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")
-
-    def enable_schedule_tree(self) -> None:
-        """Enables optimizations based on the schedule tree."""
-        if not self.is_dace_orchestrated():
-            warnings.warn(
-                "Enabling schedule tree optimization on a non-orchestrated backend has no effect.",
-                UserWarning,
-                stacklevel=2,
-            )
-        self._schedule_tree_optimization = True
-
-    def disable_schedule_tree(self) -> None:
-        """Disables optimizations based on the schedule tree."""
-        if not self.is_dace_orchestrated():
-            warnings.warn(
-                "Disabling schedule tree optimization on a non-orchestrated backend has no effect.",
-                UserWarning,
-                stacklevel=2,
-            )
-        self._schedule_tree_optimization = False
-
-    def schedule_tree_enabled(self) -> bool:
-        """Returns true iff schedule tree optimizations are enabled."""
-        return self._schedule_tree_optimization
 
     def as_dict(self) -> dict[str, Any]:
         return {

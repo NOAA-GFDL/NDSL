@@ -24,7 +24,7 @@ from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
-from ndsl import Backend, ndsl_log
+from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
@@ -143,6 +143,7 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
 
 
 def _optimization_pipeline(
+    config: OptimizationConfig,
     device_type: DeviceType,
     backend: Backend,
     *,
@@ -150,10 +151,14 @@ def _optimization_pipeline(
     cache_directory: Path | None = None,
 ) -> StreePipeline:
     if device_type == device_type.CPU:
-        return CPUPipeline(backend, passes=passes, cache_directory=cache_directory)
+        return CPUPipeline(
+            config, backend, passes=passes, cache_directory=cache_directory
+        )
 
     if device_type == DeviceType.GPU:
-        return GPUPipeline(backend, passes=passes, cache_directory=cache_directory)
+        return GPUPipeline(
+            config, backend, passes=passes, cache_directory=cache_directory
+        )
 
     raise ValueError(
         f"Unknown device type `{device_type}`, expected {DeviceType.CPU} or {DeviceType.GPU}."
@@ -161,7 +166,12 @@ def _optimization_pipeline(
 
 
 def _build_sdfg(
-    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
+    dace_program: DaceProgram,
+    sdfg: SDFG,
+    config: DaceConfig,
+    optimization_config: OptimizationConfig,
+    args: Any,
+    kwargs: Any,
 ) -> None:
     """Build the .so out of the SDFG on the top tile ranks only."""
     is_compiling = True if DEACTIVATE_DISTRIBUTED_DACE_COMPILE else config.do_compile
@@ -199,7 +209,7 @@ def _build_sdfg(
                     compress=True,
                 )
 
-        if config.schedule_tree_enabled():
+        if optimization_config.stree.enabled:
             # Here be 🐉 - but tests exists in test_optimization.py
             with DaCeProgress(config, "Schedule Tree: generate from SDFG"):
                 # Break all loops into uni-dimensional loops to simplify optimizations
@@ -226,6 +236,7 @@ def _build_sdfg(
 
             with DaCeProgress(config, "Schedule Tree: optimization"):
                 pipeline = _optimization_pipeline(
+                    optimization_config,
                     device_type,
                     backend_name,
                     cache_directory=Path(sdfg.build_folder),
@@ -409,7 +420,12 @@ def _build_sdfg(
 
 
 def _call_sdfg(
-    dace_program: DaceProgram, sdfg: SDFG, config: DaceConfig, args: Any, kwargs: Any
+    dace_program: DaceProgram,
+    sdfg: SDFG,
+    config: DaceConfig,
+    optimization_config: OptimizationConfig,
+    args: Any,
+    kwargs: Any,
 ) -> list | None:
     """Dispatch to either SDFG execution and/or build."""
 
@@ -421,7 +437,7 @@ def _call_sdfg(
             and dace_program not in config.loaded_dace_executables  # already cached
         ):
             ndsl_log.info("Building DaCe orchestration")
-            _build_sdfg(dace_program, sdfg, config, args, kwargs)
+            _build_sdfg(dace_program, sdfg, config, optimization_config, args, kwargs)
 
         if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
             raise ValueError(f"Unexpected DaceOrchestration mode `{mode}`.")
@@ -528,9 +544,15 @@ class _LazyComputepathFunction(SDFGConvertible):
                    that will be compiled but not regenerated.
     """
 
-    def __init__(self, func: Callable, config: DaceConfig) -> None:
+    def __init__(
+        self,
+        func: Callable,
+        config: DaceConfig,
+        optimization_config: OptimizationConfig,
+    ) -> None:
         self.func = func
         self.config = config
+        self.optimization_config = optimization_config
         self.daceprog: DaceProgram = dace_program(self.func)
         self._sdfg = None
 
@@ -546,6 +568,7 @@ class _LazyComputepathFunction(SDFGConvertible):
             self.daceprog,
             sdfg,
             self.config,
+            self.optimization_config,
             args,
             kwargs,
         )
@@ -610,12 +633,13 @@ class _LazyComputepathMethod:
                 **kwargs,
             )
             # Label the code (this is the topmost code)
-            if sdfg is not None and self.lazy_method.config.schedule_tree_enabled():
+            if sdfg is not None and self.lazy_method.optimization_config.stree.enabled:
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=True)
             return _call_sdfg(
                 self.daceprog,
                 sdfg,
                 self.lazy_method.config,
+                self.lazy_method.optimization_config,
                 args,
                 kwargs,
             )
@@ -623,7 +647,7 @@ class _LazyComputepathMethod:
         def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             sdfg = _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
             # Label the code
-            if sdfg is not None and self.lazy_method.config.schedule_tree_enabled():
+            if sdfg is not None and self.lazy_method.optimization_config.stree.enabled:
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=False)
             return sdfg
 
@@ -638,9 +662,15 @@ class _LazyComputepathMethod:
                 constant_args, given_args, parent_closure
             )
 
-    def __init__(self, func: Callable, config: DaceConfig):
+    def __init__(
+        self,
+        func: Callable,
+        config: DaceConfig,
+        optimization_config: OptimizationConfig,
+    ) -> None:
         self.func = func
         self.config = config
+        self.optimization_config = optimization_config
 
     def __get__(self, obj: object, objtype: Any = None) -> SDFGEnabledCallable:
         """Return SDFGEnabledCallable wrapping original obj.method from cache.
@@ -659,6 +689,7 @@ def orchestrate(
     config: DaceConfig,
     method_to_orchestrate: str = "__call__",
     dace_compiletime_args: Sequence[str] | None = None,
+    optimization_config: OptimizationConfig | None = None,
 ) -> None:
     """
     Orchestrate a method of an object with DaCe.
@@ -689,6 +720,11 @@ def orchestrate(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
+    if optimization_config is None:
+        opt_config = OptimizationConfig()
+    else:
+        opt_config = optimization_config
+
     func: Callable = type.__getattribute__(type(obj), method_to_orchestrate)
 
     # Flag argument as dace.constant
@@ -711,7 +747,7 @@ def orchestrate(
 
     # Build DaCe orchestrated wrapper
     # This is a JIT object, e.g. DaCe compilation will happen on call
-    wrapped = _LazyComputepathMethod(func, config).__get__(obj)
+    wrapped = _LazyComputepathMethod(func, config, opt_config).__get__(obj)
 
     if method_to_orchestrate == "__call__":
         # Grab the function from the type of the child class
@@ -763,6 +799,7 @@ def orchestrate(
 def orchestrate_function(
     config: DaceConfig,
     dace_compiletime_args: Sequence[str] | None = None,
+    optimization_config: OptimizationConfig | None = None,
 ) -> Callable[..., Any] | _LazyComputepathFunction:
     """
     Decorator orchestrating a method of an object with DaCe.
@@ -777,11 +814,16 @@ def orchestrate_function(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
+    if optimization_config is None:
+        opt_config = OptimizationConfig()
+    else:
+        opt_config = optimization_config
+
     def _decorator(func: Callable[..., Any]):  # type: ignore[no-untyped-def]
         def _wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
             for argument in dace_compiletime_args:
                 func.__annotations__[argument] = DaceCompiletime
-            return _LazyComputepathFunction(func, config)
+            return _LazyComputepathFunction(func, config, opt_config)
 
         return _wrapper(func) if config.is_dace_orchestrated() else func
 

@@ -1,4 +1,4 @@
-from ndsl import StencilFactory, orchestrate
+from ndsl import OptimizationConfig, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
@@ -16,7 +16,12 @@ def double_map(in_field: FloatField, out_field: FloatField):
 
 class TriviallyMergeableCode:
     def __init__(self, stencil_factory: StencilFactory):
-        orchestrate(obj=self, config=stencil_factory.config.dace_config)
+        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            optimization_config=config,
+        )
         self.stencil = stencil_factory.from_dims_halo(
             func=double_map,
             compute_dims=[I_DIM, J_DIM, K_DIM],
@@ -31,7 +36,6 @@ def test_stree_roundtrip_no_opt():
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
     )
-    stencil_factory.config.dace_config.enable_schedule_tree()
 
     code = TriviallyMergeableCode(stencil_factory)
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")

@@ -4,7 +4,7 @@ from dace import nodes
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 
-from ndsl import QuantityFactory, StencilFactory, orchestrate
+from ndsl import OptimizationConfig, QuantityFactory, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
@@ -54,6 +54,7 @@ class OrchestratedCode:
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
     ) -> None:
+        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
         orchestratable_methods = [
             "trivial_merge",
             "missing_merge_of_forscope_and_map",
@@ -66,6 +67,7 @@ class OrchestratedCode:
                 obj=self,
                 config=stencil_factory.config.dace_config,
                 method_to_orchestrate=method,
+                optimization_config=config,
             )
 
         self.stencil = stencil_factory.from_dims_halo(
@@ -134,11 +136,9 @@ class TestStreeMergeMapsIJK:
     @pytest.fixture
     def factories(self) -> Factories:
         domain = (3, 3, 4)
-        stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        return get_factories_single_tile_orchestrated(
             domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
         )
-        stencil_factory.config.dace_config.enable_schedule_tree()
-        return stencil_factory, quantity_factory
 
     @pytest.fixture
     def code(self, factories: Factories) -> OrchestratedCode:
@@ -282,11 +282,9 @@ class TestStreeMergeMapsKJI:
     @pytest.fixture
     def factories(self) -> Factories:
         domain = (3, 3, 4)
-        stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        return get_factories_single_tile_orchestrated(
             domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:KJI")
         )
-        stencil_factory.config.dace_config.enable_schedule_tree()
-        return stencil_factory, quantity_factory
 
     @pytest.fixture
     def code(self, factories: Factories) -> OrchestratedCode:

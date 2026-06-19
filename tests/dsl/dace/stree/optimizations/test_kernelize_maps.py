@@ -2,7 +2,7 @@ import pytest
 from dace import nodes
 from dace.sdfg.state import LoopRegion
 
-from ndsl import Backend, NDSLRuntime, orchestrate
+from ndsl import Backend, NDSLRuntime, OptimizationConfig, orchestrate
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
@@ -46,7 +46,10 @@ def stencil_only_parallel_noop(
 
 class OrchestratedCode(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory) -> None:
-        super().__init__(stencil_factory)
+        optimization_config = OptimizationConfig(
+            OptimizationConfig.TreeConfig(enabled=True)
+        )
+        super().__init__(stencil_factory, optimization_config)
 
         methods_to_orchestrate = [
             "kernelize_k",
@@ -58,6 +61,7 @@ class OrchestratedCode(NDSLRuntime):
                 obj=self,
                 config=stencil_factory.config.dace_config,
                 method_to_orchestrate=method,
+                optimization_config=optimization_config,
             )
 
         self._stencil_kernelize_k = stencil_factory.from_dims_halo(
@@ -92,15 +96,13 @@ class TestKernelizeMaps:
     )
     def factories(self, request: pytest.FixtureRequest) -> Factories:
         domain = (3, 4, 5)
-        stencil_factory, quantity_factory = get_factories_single_tile(
+        return get_factories_single_tile(
             nx=domain[0],
             ny=domain[1],
             nz=domain[2],
             nhalo=0,
             backend=Backend(request.param),
         )
-        stencil_factory.config.dace_config.enable_schedule_tree()
-        return stencil_factory, quantity_factory
 
     def test_kernelize_k_gpu(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories

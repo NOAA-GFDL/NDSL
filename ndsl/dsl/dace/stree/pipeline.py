@@ -1,9 +1,8 @@
-import os
 from pathlib import Path
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl import Backend, ndsl_log_on_rank_0
+from ndsl import Backend, OptimizationConfig, ndsl_log_on_rank_0
 from ndsl.dsl.dace.stree.optimizations import (
     CartesianMerge,
     CartesianRefineTransients,
@@ -16,6 +15,7 @@ from ndsl.dsl.dace.stree.optimizations import (
 class StreePipeline:
     def __init__(
         self,
+        config: OptimizationConfig,
         *,
         passes: list[tn.ScheduleNodeVisitor],
         cache_directory: Path | None = None,
@@ -25,6 +25,7 @@ class StreePipeline:
 
         self.cache_directory = cache_directory
         self.passes = passes
+        self.config = config
 
     def __hash__(self) -> int:
         return hash(repr(self))
@@ -64,23 +65,24 @@ class StreePipeline:
 class CPUPipeline(StreePipeline):
     def __init__(
         self,
+        config: OptimizationConfig,
         backend: Backend,
         *,
         passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            overcompute = os.getenv("NDSL_STREE_OVERCOMPUTE_MERGE", "True") == "True"
             ppl_passes = [
                 CleanUpScheduleTree(),
                 # TODO: Is it safe? Deactivate for now
                 # InlineVertical2DWrite(),
-                CartesianMerge(backend, overcompute=overcompute),
+                CartesianMerge(backend, overcompute=config.stree.merger.overcompute),
                 CartesianRefineTransients(backend),
             ]
         else:
             ppl_passes = passes
         super().__init__(
+            config=config,
             passes=ppl_passes,
             cache_directory=cache_directory,
         )
@@ -89,18 +91,18 @@ class CPUPipeline(StreePipeline):
 class GPUPipeline(StreePipeline):
     def __init__(
         self,
+        config: OptimizationConfig,
         backend: Backend,
         *,
         passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            overcompute = os.getenv("NDSL_STREE_OVERCOMPUTE_MERGE", "True") == "True"
             ppl_passes = [
                 CleanUpScheduleTree(),
                 # TODO: Is it safe? Deactivate for now
                 # InlineVertical2DWrite(),
-                CartesianMerge(backend, overcompute=overcompute),
+                CartesianMerge(backend, overcompute=config.stree.merger.overcompute),
                 KernelizeMaps(backend),
                 # 🐞 Transient refine can't be used
                 #    because of bugs transients showing in code generation
@@ -109,6 +111,7 @@ class GPUPipeline(StreePipeline):
         else:
             ppl_passes = passes
         super().__init__(
+            config=config,
             passes=ppl_passes,
             cache_directory=cache_directory,
         )
