@@ -16,7 +16,7 @@ def double_map(in_field: FloatField, out_field: FloatField):
 
 class TriviallyMergeableCode:
     def __init__(self, stencil_factory: StencilFactory):
-        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
+        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,

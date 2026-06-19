@@ -44,7 +44,7 @@ def stencil_forward_at_K(in_field: FloatField, out_field: FloatField) -> None:
 
 class OrchestratedCode:
     def __init__(self, stencil_factory: StencilFactory) -> None:
-        config = OptimizationConfig(stree=OptimizationConfig.TreeConfig(enabled=True))
+        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
         methods_to_orchestrate = [
             "write_at_0",
             "write_at_top",

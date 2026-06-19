@@ -47,7 +47,7 @@ def stencil_only_parallel_noop(
 class OrchestratedCode(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory) -> None:
         optimization_config = OptimizationConfig(
-            OptimizationConfig.TreeConfig(enabled=True)
+            OptimizationConfig.Tree(enabled=True)
         )
         super().__init__(stencil_factory, optimization_config)
 
