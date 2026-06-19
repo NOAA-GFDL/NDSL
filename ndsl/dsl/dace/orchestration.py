@@ -21,6 +21,7 @@ from dace.frontend.python.parser import DaceProgram
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapCollapse, MapExpansion
+from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
 from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
@@ -292,6 +293,7 @@ def _build_sdfg(
                 # tasklets to exclude next
                 gpu_defaults = get_gpu_hardware_defaults()
                 exclude_taskslets_list = []
+
                 for me, _state in sdfg.all_nodes_recursive():
                     if (
                         isinstance(me, nodes.MapEntry)
@@ -302,6 +304,8 @@ def _build_sdfg(
 
                     if isinstance(me, nodes.Tasklet) and "callback_" in me.label:
                         exclude_taskslets_list.append(me.label)
+
+                sdfg.apply_transformations_repeated(AddThreadBlockMap)
 
                 if optimization_config.gpu.common_gpu_xforms:
                     with DaCeProgress(config, "Apply common GPU xforms"):
