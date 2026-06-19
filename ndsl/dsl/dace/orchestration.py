@@ -4,6 +4,7 @@ import numbers
 import os
 from collections.abc import Callable, Sequence
 from pathlib import Path
+from pprint import pformat
 from typing import Any
 
 from dace import SDFG, CompiledSDFG, DeviceType
@@ -179,6 +180,7 @@ def _build_sdfg(
     backend_name = config.get_backend()
 
     if is_compiling:
+        ndsl_log.debug(f"Compiling config:\n{pformat(optimization_config, indent=2)}")
         # Fully specialize all known symbols and then propagate these changes in the simplify
         # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
         # the schedule tree (optimization) roundtrip.
@@ -301,17 +303,22 @@ def _build_sdfg(
                     if isinstance(me, nodes.Tasklet) and "callback_" in me.label:
                         exclude_taskslets_list.append(me.label)
 
-                # Apply common GPU transforms (includes a simplify)
-                # while making sure tasklet remain on the host
-                from dace.transformation.interstate import GPUTransformSDFG
+                if optimization_config.gpu.common_gpu_xforms:
+                    with DaCeProgress(config, "Apply common GPU xforms"):
+                        # Apply common GPU transforms (includes a simplify)
+                        # while making sure tasklet remain on the host
+                        from dace.transformation.interstate import GPUTransformSDFG
 
-                sdfg.apply_transformations(
-                    GPUTransformSDFG,
-                    options={
-                        "exclude_tasklets": ",".join(exclude_taskslets_list),
-                        "host_data": ["__pystate"],
-                    },
-                )
+                        sdfg.apply_transformations(
+                            GPUTransformSDFG,
+                            options={
+                                "exclude_tasklets": ",".join(exclude_taskslets_list),
+                                "host_data": ["__pystate"],
+                            },
+                        )
+                else:
+                    with DaCeProgress(config, "GPU simplify"):
+                        _simplify(sdfg)
 
                 if config.verbose_orchestration:
                     ndsl_log.debug("saving 05-apply_gpu_xforms.sdfgz")
