@@ -11,11 +11,17 @@ from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
 
 
 class CartesianMerge(tn.ScheduleNodeTransformer):
-    """Merge Cartesian computation blocks"""
+    """Merge Cartesian computation blocks.
 
-    def __init__(self, backend: Backend) -> None:
+    Args:
+        backend: The loop order influences the merge order.
+        overcompute: Whether to merge at the cost of an if statement. Defaults to True.
+    """
+
+    def __init__(self, backend: Backend, *, overcompute: bool = True) -> None:
         super().__init__()
         self._backend = backend
+        self._overcompute = overcompute
 
     def __str__(self) -> str:
         return "CartesianMerge"
@@ -26,7 +32,7 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         MergeConditionals().visit(node)
 
         for axis in self._backend_order():
-            CartesianAxisMerge(axis).visit(node)
+            CartesianAxisMerge(axis, overcompute=self._overcompute).visit(node)
 
         ExtractOffgridConditionals().visit(node)
         MergeConditionals().visit(node)

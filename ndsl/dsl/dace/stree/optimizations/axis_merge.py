@@ -90,20 +90,23 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
     Can do:
         - merge a given axis with the next maps at the same recursion level
-        - does overcompute to allow for more merging at the cost of an if
+        - can overcompute to allow for more merging at the cost of an if
 
     It expects:
         - All Maps and ForLoop are on a single axis - but doesn't check for it.
 
     Args:
         axis: AxisIterator to be merged
+        overcompute: merge at the cost of an if statement.
     """
 
-    def __init__(self, axis: AxisIterator) -> None:
+    def __init__(self, axis: AxisIterator, *, overcompute: bool) -> None:
         self.axis = axis
+        self.overcompute = overcompute
 
     def __str__(self) -> str:
-        return f"CartesianAxisMerge_{self.axis.name}"
+        suffix = "_overcompute" if self.overcompute else ""
+        return f"CartesianAxisMerge_{self.axis.name}{suffix}"
 
     def _merge_node(
         self, node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode]
@@ -219,6 +222,12 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
                 )
             ]
         )
+
+        # only overcompute if configured - otherwise no merge
+        if not self.overcompute and (
+            first_range != merged_range or second_range != merged_range
+        ):
+            return 0
 
         # - then, guard children to only run in their respective range
         axis_as_str = the_map.node.map.params[0]

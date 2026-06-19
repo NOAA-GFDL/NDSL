@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
@@ -69,15 +70,18 @@ class CPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            passes = [
+            overcompute = os.getenv("NDSL_STREE_OVERCOMPUTE_MERGE", "True") == "True"
+            ppl_passes = [
                 CleanUpScheduleTree(),
                 # TODO: Is it safe? Deactivate for now
                 # InlineVertical2DWrite(),
-                CartesianMerge(backend),
+                CartesianMerge(backend, overcompute=overcompute),
                 CartesianRefineTransients(backend),
             ]
+        else:
+            ppl_passes = passes
         super().__init__(
-            passes=passes if passes is not None else [],
+            passes=ppl_passes,
             cache_directory=cache_directory,
         )
 
@@ -91,17 +95,20 @@ class GPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            passes = [
+            overcompute = os.getenv("NDSL_STREE_OVERCOMPUTE_MERGE", "True") == "True"
+            ppl_passes = [
                 CleanUpScheduleTree(),
                 # TODO: Is it safe? Deactivate for now
                 # InlineVertical2DWrite(),
-                CartesianMerge(backend),
+                CartesianMerge(backend, overcompute=overcompute),
                 KernelizeMaps(backend),
                 # 🐞 Transient refine can't be used
                 #    because of bugs transients showing in code generation
                 # CartesianRefineTransients(backend),
             ]
+        else:
+            ppl_passes = passes
         super().__init__(
-            passes=passes if passes is not None else [],
+            passes=ppl_passes,
             cache_directory=cache_directory,
         )
