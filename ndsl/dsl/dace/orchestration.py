@@ -275,8 +275,10 @@ def _build_sdfg(
 
         if config.is_gpu_backend():
             with DaCeProgress(config, "Apply GPU transformations"):
-                # Set block size on GPU maps
+                # Set block size on GPU maps and collect callback
+                # tasklets to exclude next
                 gpu_defaults = get_gpu_hardware_defaults()
+                exclude_taskslets_list = []
                 for me, _state in sdfg.all_nodes_recursive():
                     if (
                         isinstance(me, nodes.MapEntry)
@@ -284,8 +286,22 @@ def _build_sdfg(
                     ):
                         if me.map.gpu_block_size is None:
                             me.map.gpu_block_size = gpu_defaults.block_size
+
+                    if isinstance(me, nodes.Tasklet) and "callback_" in me.label:
+                        exclude_taskslets_list.append(me.label)
+
                 # Apply common GPU transforms (includes a simplify)
-                sdfg.apply_gpu_transformations()
+                # while making sure tasklet remain on the host
+                from dace.transformation.interstate import GPUTransformSDFG
+
+                sdfg.apply_transformations(
+                    GPUTransformSDFG,
+                    options={
+                        "exclude_tasklets": ",".join(exclude_taskslets_list),
+                        "host_data": ["__pystate"],
+                    },
+                )
+
                 if config.verbose_orchestration:
                     ndsl_log.debug("saving 05-apply_gpu_xforms.sdfgz")
                     sdfg.save(
