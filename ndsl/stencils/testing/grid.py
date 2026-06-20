@@ -60,6 +60,7 @@ class Grid:
         layout: tuple[int, int],
         rank: int,
         backend: Backend,
+        pad_non_interface_dimensions: bool = False,
     ) -> "Grid":
         shape_params = {
             "npx": npx,
@@ -81,7 +82,15 @@ class Grid:
             "js": N_HALO_DEFAULT,
             "je": ny + N_HALO_DEFAULT - 1,
         }
-        return cls(indices, shape_params, rank, layout, backend, local_indices=True)
+        return cls(
+            indices,
+            shape_params,
+            rank,
+            layout,
+            backend,
+            local_indices=True,
+            pad_non_interface_dimensions=pad_non_interface_dimensions,
+        )
 
     @classmethod
     def from_namelist(cls, namelist: Namelist, rank: int, backend: Backend) -> "Grid":
@@ -112,6 +121,7 @@ class Grid:
         backend: Backend,
         data_fields: dict | None = None,
         local_indices: bool = False,
+        pad_non_interface_dimensions: bool = False,
     ) -> None:
         if data_fields is None:
             data_fields = {}
@@ -162,6 +172,7 @@ class Grid:
         self._grid_data: GridData | None = None
         self._driver_grid_data: DriverGridData | None = None
         self._damping_coefficients: DampingCoefficients | None = None
+        self._pad_non_interface_dimensions = pad_non_interface_dimensions
 
     @property
     def sizer(self) -> GridSizer:
@@ -180,6 +191,7 @@ class Grid:
                 },
                 layout=self.layout,
                 backend=self.backend,
+                pad_non_interface_dimensions=self._pad_non_interface_dimensions,
             )
         return self._sizer
 

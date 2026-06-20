@@ -68,10 +68,7 @@ class TranslateFortranData2Py:
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
-        if self.stencil_factory.backend.is_fortran_aligned():
-            self.maxshape = self.grid.domain_shape_full()
-        else:
-            self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
+        self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
 
     def extra_data_load(self, data_loader: DataLoader):
         pass
@@ -322,7 +319,15 @@ class TranslateGrid:
             grid_data[field] = read_serialized_data(serializer, grid_savepoint, field)
         return cls(grid_data, rank, layout, backend=backend)
 
-    def __init__(self, inputs, rank, layout, *, backend: Backend):
+    def __init__(
+        self,
+        inputs,
+        rank,
+        layout,
+        *,
+        backend: Backend,
+        pad_non_interface_dimensions: bool = False,
+    ):
         self.backend = backend
         self.indices = {}
         self.shape_params = {}
@@ -338,6 +343,7 @@ class TranslateGrid:
                 del inputs[index]
 
         self.data = inputs
+        self._pad_non_interface_dimensions = pad_non_interface_dimensions
 
     def _make_composite_var_storage(self, varname, data3d, shape, count):
         for s in range(count):
@@ -444,7 +450,12 @@ class TranslateGrid:
 
     def python_grid(self):
         pygrid = Grid(
-            self.indices, self.shape_params, self.rank, self.layout, self.backend
+            self.indices,
+            self.shape_params,
+            self.rank,
+            self.layout,
+            self.backend,
+            pad_non_interface_dimensions=self._pad_non_interface_dimensions,
         )
         self.make_grid_storage(pygrid)
         pygrid.add_data(self.data)
