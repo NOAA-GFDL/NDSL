@@ -55,10 +55,7 @@ class StreePipeline:
                     f.write(stree.as_string())
 
         tree_stats.optimized(stree)
-
-        if verbose:
-            ndsl_log_on_rank_0.info(tree_stats.report())
-
+        ndsl_log_on_rank_0.info(tree_stats.report())
         return stree
 
 
