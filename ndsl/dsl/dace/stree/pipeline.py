@@ -98,16 +98,18 @@ class GPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            ppl_passes = [
-                CleanUpScheduleTree(),
-                # TODO: Is it safe? Deactivate for now
-                # InlineVertical2DWrite(),
-                CartesianMerge(backend, overcompute=config.stree.merger.overcompute),
-                KernelizeMaps(backend),
-                # 🐞 Transient refine can't be used
-                #    because of bugs transients showing in code generation
-                # CartesianRefineTransients(backend),
-            ]
+            ppl_passes = [CleanUpScheduleTree()]
+            # TODO: Is it safe? Deactivate for now
+            # ppl_passes.append(InlineVertical2DWrite())
+            if config.stree.merger.enabled:
+                ppl_passes.append(
+                    CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
+                )
+            if config.stree.kernalize:
+                ppl_passes.append(KernelizeMaps(backend))
+            # 🐞 Transient refine can't be used
+            #    because of bugs transients showing in code generation
+            # CartesianRefineTransients(backend),
         else:
             ppl_passes = passes
         super().__init__(

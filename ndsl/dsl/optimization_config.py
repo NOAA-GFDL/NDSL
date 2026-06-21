@@ -10,6 +10,8 @@ class OptimizationConfig:
 
         @dataclass
         class Merger:
+            enabled: bool = False
+            """Enable cartesian merging"""
             overcompute: bool = (
                 os.getenv("NDSL_STREE_OVERCOMPUTE_MERGE", "True").lower() == "true"
             )
@@ -17,6 +19,9 @@ class OptimizationConfig:
 
         enabled: bool = os.getenv("NDSL_STREE_OPT", "False").lower() == "true"
         """Enable Schedule Tree transformations"""
+        kernalize: bool = True
+        """Enable maximizing 3-axis kernalization by duplicating maps (GPU only)"""
+
         merger: Merger = field(default_factory=Merger)
 
     @dataclass
