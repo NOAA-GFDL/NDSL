@@ -101,18 +101,18 @@ mpirun -np 6 pytest -m "parallel and not gpu" tests/
 
 ### Documentation
 
-Documentation is available [online](https://noaa-gfdl.github.io/NDSL/). We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and serve it as a static site.
+Documentation is available [online](https://noaa-gfdl.github.io/NDSL/). We are using [Zensical](https://zensical.org/), which allows us to write the docs in Markdown files and serve it as a static site.
 
-To view the documentation locally, install NDSL with the `docs` or `dev` extras. Then  run the following:
+To view the documentation locally, install NDSL with the `docs` or `dev` extras. Then, run the following:
 
 ```bash
-mkdocs serve
+zensical serve
 ```
 
 Contributing to the documentation is straight forward:
 
 1. Add and/or change files in the [docs/](./docs/) folder as necessary.
-2. [Optional] If you have changes to the navigation, modify [mkdocs.yml](mkdocs.yml).
+2. [Optional] If you have changes to the navigation, modify [zensical.toml](./zensical.toml).
 3. [Optional] Start the development server and look how your changes are rendered.
 4. Submit a pull request with your changes.
 
