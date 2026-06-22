@@ -1,79 +1,61 @@
-# Getting Started
+# Getting started
 
-Install NDSL and start building portable atmospheric modeling
-workflows across CPUs and GPUs in just a few minutes.
+NDSL is a modern domain-specific language (DSL) for portable, high-performance atmospheric modeling. It let's you build portable atmospheric modeling workflows across CPUs, GPUs, and emerging computing architectures from a single codebase.
 
 ## Requirements
 
+NDSL is a python DSL. You can install NDSL as a python package and write you're code in python.
 
-Prep
+!!! note "Prerequisites"
 
-Before installing NDSL, make sure your environment includes:
+    Before installing NDSL, make sure you're environment includes:
 
-Python 3.11
+    - A python environment. We support python versions `3.11`, `3.12`, `3.13`.
+    - A compiler toolchain for C, C++. Optionally, a Fortran compiler if you're bridging to Fortran code.
+    - MPI (can be installed via python, see below)
 
-GNU compiler toolchain gcc / gfortran
+All other dependencies are installed with NDSL.
 
-We strongly recommend using either a virtual environment or Conda environment for installation.
-
-
-Step 1
-
-## Clone the Repository
+## Clone the repository
 
 NDSL uses Git submodules for dependencies including GT4Py and DaCe, so be sure to clone recursively.
 
-`git clone --recurse-submodules git@github.com:NOAA-GFDL/NDSL.git`
+```shell
+git clone --recurse-submodules git@github.com:NOAA-GFDL/NDSL.git
+cd NDSL/
+```
 
-`cd NDSL/`
+!!! note "Why clone the repository?"
 
+    NDSL is currently not available on PyPI, so installation requires cloning the source repository.
 
-Why clone the repository?
+## Create a virtual environment
 
-NDSL is currently not available on PyPI, so installation requires cloning the source repository.
+We strongly recommend using a virtual environment. Create and activate it like this:
 
-Step 2
-
-## Create a Virtual Environment
-
-Create and activate a clean Python environment.
-
-`python -m venv .venv`
-
-`source .venv/bin/activate`
-
-Optional
+```shell
+python -m venv .venv
+source .venv/bin/activate
+```
 
 ## Install MPI
 
-If your system does not already provide MPI, you can install OpenMPI using pip.
+If your system does not already provide MPI, you can install OpenMPI using `pip`.
 
-`pip install openmpi`
-
-Step 3
+```shell
+pip install openmpi
+```
 
 ## Install NDSL
 
 Install NDSL along with demo dependencies.
 
-`pip install .[demos]`
+```shell
+pip install .[demos]
+```
 
-Next Steps
+And that's it! If you are new to NDSL, we suggest you start be exploring the samples.
 
-## Run the Examples
+## Run the examples
 
-Launch the notebooks located in:
-
-`examples/NDSL`
-
-Start experimenting with NDSL 🚀
-
-## Supported Compilers
-
-GNU Compiler Required
-
-NDSL currently supports the GNU compiler toolchain only.
-
-Using `clang` may result in undefined OpenMP flag errors.
-
-For macOS users, `gcc-14` installed through Homebrew is known to work successfully.
+Launch the notebooks located under `examples/NDSL` to start experimenting with NDSL. 🚀
