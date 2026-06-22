@@ -102,7 +102,7 @@ class GPUPipeline(StreePipeline):
                 ppl_passes.append(
                     CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
                 )
-            if config.stree.kernalize:
+            if config.stree.kernelize:
                 ppl_passes.append(KernelizeMaps(backend))
             # 🐞 Transient refine can't be used
             #    because of bugs transients showing in code generation

@@ -18,9 +18,10 @@ class OptimizationConfig:
             """When merging allow map of different size to merge by inserting an if guard"""
 
         enabled: bool = os.getenv("NDSL_STREE_OPT", "False").lower() == "true"
-        """Enable Schedule Tree transformations"""
-        kernalize: bool = True
-        """Enable maximizing 3-axis kernalization by duplicating maps (GPU only)"""
+        """Enable Schedule Tree transformations."""
+
+        kernelize: bool = True
+        """Enable maximizing 3-axis kernelization by duplicating maps (GPU only)."""
 
         merger: Merger = field(default_factory=Merger)
 
