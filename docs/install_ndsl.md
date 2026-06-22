@@ -4,11 +4,11 @@ NDSL is a modern domain-specific language (DSL) for portable, high-performance a
 
 ## Requirements
 
-NDSL is a python DSL. You can install NDSL as a python package and write you're code in python.
+NDSL is a python DSL. You can install NDSL as a python package and write your code in python.
 
 !!! note "Prerequisites"
 
-    Before installing NDSL, make sure you're environment includes:
+    Before installing NDSL, make sure your environment includes:
 
     - A python environment. We support python versions `3.11`, `3.12`, `3.13`.
     - A compiler toolchain for C, C++. Optionally, a Fortran compiler if you're bridging to Fortran code.

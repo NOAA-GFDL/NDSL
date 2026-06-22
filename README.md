@@ -72,7 +72,7 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 - `ndsl[docs]`: extra dependencies to build the docs
 - `ndsl[dev]`: installs tools for development, docs, and tests.
 - `ndsl[serialbox]`: installs serialbox, which is used in porting workflows
-- `ndsl[pyfms]`: installs [pyFMS](https://github.com/NOAA-GFDL/pyfms) and allow interaction with its diagnostics manager.
+- `ndsl[pyfms]`: installs [pyFMS](https://github.com/NOAA-GFDL/pyfms) and allows interaction with its diagnostics manager.
 
 ### Running tests
 
