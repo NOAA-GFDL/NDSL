@@ -33,7 +33,7 @@ dev = [
   "ndsl[test]",
   "pre-commit"
 ]
-docs = ["mkdocs-material", "mkdocstrings[python]", "mkdocs-exclude"]
+docs = ["zensical", "mkdocstrings[python]"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 hmm-cuda12 = ['numpy_allocator', 'ndsl[cuda12]']
 hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']

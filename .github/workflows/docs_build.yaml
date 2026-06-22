@@ -27,8 +27,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install mkdocs
-        run: pip install mkdocs-material mkdocstrings[python] mkdocs-exclude
+      - name: Install zensical
+        run: pip install zensical mkdocstrings[python]
 
       - name: Build docs
-        run: mkdocs build
+        run: zensical build
