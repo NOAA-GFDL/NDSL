@@ -54,7 +54,12 @@ class OrchestratedCode:
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
     ) -> None:
-        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
+        config = OptimizationConfig(
+            stree=OptimizationConfig.Tree(
+                enabled=True,
+                merger=OptimizationConfig.Tree.Merger(enabled=True),
+            )
+        )
         orchestratable_methods = [
             "trivial_merge",
             "missing_merge_of_forscope_and_map",

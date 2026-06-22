@@ -18,7 +18,12 @@ from tests.dsl.dace.stree.optimizations import Factories
 
 class OrchestratedCode(NDSLRuntime):
     def __init__(self, stencil_factory: StencilFactory) -> None:
-        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
+        config = OptimizationConfig(
+            stree=OptimizationConfig.Tree(
+                enabled=True,
+                merger=OptimizationConfig.Tree.Merger(enabled=True),
+            )
+        )
         super().__init__(stencil_factory, config)
 
         methods_to_orchestrate = [

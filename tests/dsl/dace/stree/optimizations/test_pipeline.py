@@ -16,7 +16,11 @@ def double_map(in_field: FloatField, out_field: FloatField):
 
 class TriviallyMergeableCode:
     def __init__(self, stencil_factory: StencilFactory):
-        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
+        config = OptimizationConfig(
+            stree=OptimizationConfig.Tree(
+                enabled=True, merger=OptimizationConfig.Tree.Merger(enabled=True)
+            )
+        )
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,
@@ -31,7 +35,7 @@ class TriviallyMergeableCode:
         self.stencil(in_field, out_field)
 
 
-def test_stree_roundtrip_no_opt():
+def test_stree_roundtrip():
     domain = (3, 3, 4)
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
         domain[0], domain[1], domain[2], 0, backend=Backend.cpu()

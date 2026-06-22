@@ -6,12 +6,6 @@ from ndsl import OptimizationConfig, StencilFactory, orchestrate
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
-from ndsl.dsl.dace.stree.optimizations import InlineVertical2DWrite
-from ndsl.dsl.dace.stree.pipeline import (
-    CartesianMerge,
-    CartesianRefineTransients,
-    CleanUpScheduleTree,
-)
 from ndsl.dsl.gt4py import FORWARD, computation, interval
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.stencils import copy
@@ -44,7 +38,13 @@ def stencil_forward_at_K(in_field: FloatField, out_field: FloatField) -> None:
 
 class OrchestratedCode:
     def __init__(self, stencil_factory: StencilFactory) -> None:
-        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
+        config = OptimizationConfig(
+            stree=OptimizationConfig.Tree(
+                enabled=True,
+                inline_K_loops_size_one=True,
+                merger=OptimizationConfig.Tree.Merger(enabled=True),
+            )
+        )
         methods_to_orchestrate = [
             "write_at_0",
             "write_at_top",
@@ -127,18 +127,12 @@ class TestStree2DWriteInline:
     def test_common_2D_write(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
         code = OrchestratedCode(stencil_factory)
-        pipeline = [
-            CleanUpScheduleTree(),
-            InlineVertical2DWrite(),
-            CartesianMerge(stencil_factory.backend),
-            CartesianRefineTransients(stencil_factory.backend),
-        ]
 
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM], "")
         in_qty.field[:, :, 0] = Float(32.0)
 
-        with StreePipeline(passes=pipeline):
+        with StreePipeline():
             code.write_at_0(in_qty, out_qty)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -160,18 +154,12 @@ class TestStree2DWriteInline:
     def test_2D_write_K_top(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
         code = OrchestratedCode(stencil_factory)
-        pipeline = [
-            CleanUpScheduleTree(),
-            InlineVertical2DWrite(),
-            CartesianMerge(stencil_factory.backend),
-            CartesianRefineTransients(stencil_factory.backend),
-        ]
 
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM], "")
         in_qty.field[:, :, -1] = Float(32.0)
 
-        with StreePipeline(passes=pipeline):
+        with StreePipeline():
             code.write_at_top(in_qty, out_qty)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -193,17 +181,11 @@ class TestStree2DWriteInline:
     def test_do_not_inline(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
         code = OrchestratedCode(stencil_factory)
-        pipeline = [
-            CleanUpScheduleTree(),
-            InlineVertical2DWrite(),
-            CartesianMerge(stencil_factory.backend),
-            CartesianRefineTransients(stencil_factory.backend),
-        ]
 
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        with StreePipeline(passes=pipeline):
+        with StreePipeline():
             code.do_not_inline(in_qty, out_qty)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -225,18 +207,12 @@ class TestStree2DWriteInline:
     def test_combined_stencils(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
         code = OrchestratedCode(stencil_factory)
-        pipeline = [
-            CleanUpScheduleTree(),
-            InlineVertical2DWrite(),
-            CartesianMerge(stencil_factory.backend),
-            CartesianRefineTransients(stencil_factory.backend),
-        ]
 
         field = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         field_2 = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
         field_IJ = quantity_factory.zeros([I_DIM, J_DIM], "")
 
-        with StreePipeline(passes=pipeline):
+        with StreePipeline():
             code.combined_stencils(field, field_2, field_IJ)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
@@ -262,19 +238,13 @@ class TestStree2DWriteInline:
     def test_multiple_statements(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
         code = OrchestratedCode(stencil_factory)
-        pipeline = [
-            CleanUpScheduleTree(),
-            InlineVertical2DWrite(),
-            CartesianMerge(stencil_factory.backend),
-            CartesianRefineTransients(stencil_factory.backend),
-        ]
 
         field = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         field_IJ = quantity_factory.zeros([I_DIM, J_DIM], "")
         field_IJ_2 = quantity_factory.zeros([I_DIM, J_DIM], "")
 
         field.field[:, :, 0] = Float(42.0)
-        with StreePipeline(passes=pipeline):
+        with StreePipeline():
             code.multiple_statements(field, field_IJ, field_IJ_2)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)

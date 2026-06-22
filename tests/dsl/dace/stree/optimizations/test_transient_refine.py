@@ -46,7 +46,12 @@ class TransientRefineableCode(NDSLRuntime):
     def __init__(
         self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     ) -> None:
-        config = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=True))
+        config = OptimizationConfig(
+            stree=OptimizationConfig.Tree(
+                enabled=True,
+                merger=OptimizationConfig.Tree.Merger(enabled=True),
+            )
+        )
         super().__init__(stencil_factory, optimization_config=config)
         orchestratable_methods = [
             "refine_to_scalar",

@@ -7,6 +7,7 @@ from ndsl.dsl.dace.stree.optimizations import (
     CartesianMerge,
     CartesianRefineTransients,
     CleanUpScheduleTree,
+    InlineVertical2DWrite,
     KernelizeMaps,
     TreeOptimizationStatistics,
 )
@@ -69,13 +70,15 @@ class CPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            ppl_passes = [
-                CleanUpScheduleTree(),
-                # TODO: Is it safe? Deactivate for now
-                # InlineVertical2DWrite(),
-                CartesianMerge(backend, overcompute=config.stree.merger.overcompute),
-                CartesianRefineTransients(backend),
-            ]
+            ppl_passes = [CleanUpScheduleTree()]
+            if config.stree.inline_K_loops_size_one:
+                ppl_passes.append(InlineVertical2DWrite())
+            if config.stree.merger.enabled:
+                ppl_passes.append(
+                    CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
+                )
+            if config.stree.refine_transients:
+                ppl_passes.append(CartesianRefineTransients(backend))
         else:
             ppl_passes = passes
         super().__init__(
@@ -96,17 +99,22 @@ class GPUPipeline(StreePipeline):
     ) -> None:
         if passes is None:
             ppl_passes = [CleanUpScheduleTree()]
-            # TODO: Is it safe? Deactivate for now
-            # ppl_passes.append(InlineVertical2DWrite())
+            if config.stree.inline_K_loops_size_one:
+                ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
                 ppl_passes.append(
                     CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
                 )
             if config.stree.kernelize:
                 ppl_passes.append(KernelizeMaps(backend))
-            # 🐞 Transient refine can't be used
-            #    because of bugs transients showing in code generation
-            # CartesianRefineTransients(backend),
+            if config.stree.refine_transients:
+                # TODO
+                # 🐞 Transient refine can't be used
+                #    because of bugs transients showing in code generation
+                # ppl_passes.append(CartesianRefineTransients(backend))
+                raise ValueError(
+                    "Transient refinement is currently unavailable in the GPU pipeline."
+                )
         else:
             ppl_passes = passes
         super().__init__(
