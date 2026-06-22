@@ -203,6 +203,23 @@ def _build_sdfg(
                     compress=True,
                 )
 
+        if config.is_gpu_backend():
+            with DaCeProgress(config, "Configure maps to run on GPU"):
+                for this_sdfg in sdfg.all_sdfgs_recursive():
+                    for state in this_sdfg.states():
+                        for node in state.nodes():
+                            if (
+                                isinstance(node, nodes.EntryNode)
+                                and node.schedule != ScheduleType.Sequential
+                            ):
+                                node.schedule = ScheduleType.GPU_Device
+
+            ndsl_log.debug("saving 00-gpu-maps.sdfgz")
+            sdfg.save(
+                os.path.abspath(f"{sdfg.build_folder}/00-gpu-maps.sdfgz"),
+                compress=True,
+            )
+
         with DaCeProgress(config, "Simplify (1)"):
             _simplify(sdfg)
             if config.verbose_orchestration:
