@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools >= 80", "setuptools-scm>=8"]
+requires = ["setuptools >= 80", "setuptools-scm>=10"]
 
 [project]
 authors = [{name = "NOAA/NASA"}]
@@ -147,3 +147,4 @@ include = ["ndsl", "ndsl.*"]
 
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
+tag.strict = "true"  # only consider tags with at least one dot (e.g. v1.0, 2025.06.03)
