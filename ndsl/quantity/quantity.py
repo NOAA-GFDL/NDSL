@@ -6,7 +6,6 @@ from types import ModuleType
 from typing import Any, cast
 
 import dace
-import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from gt4py import storage as gt_storage
@@ -459,6 +458,8 @@ class Quantity:
         return transposed
 
     def plot_k_level(self, k_index: int = 0) -> None:
+        import matplotlib.pyplot as plt
+
         field = self._data
         plt.xlabel("I")
         plt.ylabel("J")
