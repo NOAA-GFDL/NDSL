@@ -1,0 +1,275 @@
+# ============================================================================
+# zensical.toml — NDSL Documentation Site Configuration
+#
+# Sections in this file:
+# 1. Site Identity       — name, URL, author, copyright
+# 2. Assets & Navigation — JS/CSS assets and nav structure
+# 3. Theme               — fonts, colors, layout features
+# 4. Markdown Extensions — rendering capabilities
+# 5. Plugins             — mkdocstrings (auto API docs)
+# ============================================================================
+
+[project]
+copyright = "&copy; 2026"
+docs_dir = "docs"
+extra_css = ["stylesheets/extra.css"]
+# Lucide icon library — required for the SVG icons used in nav labels.
+extra_javascript = [
+  "https://unpkg.com/lucide@latest",
+  "javasctipt/lucide-init.js",
+  "javascripts/extra.js"
+]
+nav = [
+  # ── Home ──────────────────────────────────────────────────────────────────
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md"},
+  # ── Install ─────────────────────────────────────────────────────────────
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v10'/><path d='M8 9l4 4 4-4'/><rect x='3' y='14' width='18' height='7' rx='2'/></svg> Install" = "install_ndsl.md"},
+  # ── User Manual ───────────────────────────────────────────────────────────
+  # Step-by-step guide for developers using NDSL.
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
+    {"Introduction to NDSL" = "user_manual/ndsl_introduction.md"},
+    {"1. Data Types and Storage" = "user_manual/data.md"},
+    {"2. Writing Code with NDSL" = "user_manual/writing_ndsl_code.md"},
+    {"3. Advanced Features" = "user_manual/advanced_features.md"},
+    {"4. Backends" = "user_manual/backends.md"},
+    {"5. Common Patterns" = "user_manual/common_patterns.md"},
+    {"6. Why Use Classes?" = "user_manual/why_use_classes.md"},
+    {"7. Best Coding Practices" = "user_manual/best_coding_practices.md"}
+  ]},
+  # ── NDSL In Action ────────────────────────────────────────────────────────
+  # Real-world results from running NDSL in GEOS model configurations.
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL In Action" = [
+    "ndsl_in_action/index.md",
+    {"NASA" = ["ndsl_in_action/nasa/index.md"]},
+    {"NOAA" = ["ndsl_in_action/noaa/index.md"]},
+    {"International" = ["ndsl_in_action/international/index.md"]}
+  ]},
+  # ── API Docs ──────────────────────────────────────────────────────────────
+  # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
+  # Organized to mirror the ndsl/ package structure.
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
+    "docstrings/index.md",
+    {"Top-level" = [
+      {"boilerplate" = "docstrings/top/boilerplate.md"},
+      {"buffer" = "docstrings/top/buffer.md"},
+      {"constants" = "docstrings/top/constants.md"},
+      {"io" = "docstrings/top/io.md"},
+      {"logging" = "docstrings/top/logging.md"},
+      {"optional_imports" = "docstrings/top/optional_imports.md"},
+      {"types" = "docstrings/top/types.md"},
+      {"typing" = "docstrings/top/typing.md"},
+      {"utils" = "docstrings/top/utils.md"}
+    ]},
+    {"checkpointer" = [
+      {"base" = "docstrings/checkpointer/base.md"},
+      {"null" = "docstrings/checkpointer/null.md"},
+      {"snapshots" = "docstrings/checkpointer/snapshots.md"},
+      {"thresholds" = "docstrings/checkpointer/thresholds.md"},
+      {"validation" = "docstrings/checkpointer/validation.md"}
+    ]},
+    {"comm" = [
+      {"_boundary_utils" = "docstrings/comm/_boundary_utils.md"},
+      {"boundary" = "docstrings/comm/boundary.md"},
+      {"caching_comm" = "docstrings/comm/caching_comm.md"},
+      {"comm_abc" = "docstrings/comm/comm_abc.md"},
+      {"communicator" = "docstrings/comm/communicator.md"},
+      {"decomposition" = "docstrings/comm/decomposition.md"},
+      {"local_comm" = "docstrings/comm/local_comm.md"},
+      {"mpi" = "docstrings/comm/mpi.md"},
+      {"partitioner" = "docstrings/comm/partitioner.md"}
+    ]},
+    {"debug" = [
+      {"config" = "docstrings/debug/config.md"},
+      {"debugger" = "docstrings/debug/debugger.md"},
+      {"tooling" = "docstrings/debug/tooling.md"}
+    ]},
+    {"dsl" = [
+      {"gt4py_utils" = "docstrings/dsl/gt4py_utils.md"},
+      {"stencil_config" = "docstrings/dsl/stencil_config.md"},
+      {"stencil" = "docstrings/dsl/stencil.md"},
+      {"typing" = "docstrings/dsl/typing.md"}
+    ]},
+    {"grid" = [
+      {"eta" = "docstrings/grid/eta.md"},
+      {"generation" = "docstrings/grid/generation.md"},
+      {"geometry" = "docstrings/grid/geometry.md"},
+      {"global_setup" = "docstrings/grid/global_setup.md"},
+      {"gnomonic" = "docstrings/grid/gnomonic.md"},
+      {"helper" = "docstrings/grid/helper.md"},
+      {"mirror" = "docstrings/grid/mirror.md"},
+      {"stretch_transformation" = "docstrings/grid/stretch_transformation.md"}
+    ]},
+    {"halo" = [
+      {"cuda_kernels" = "docstrings/halo/cuda_kernels.md"},
+      {"data_transformer" = "docstrings/halo/data_transformer.md"},
+      {"rotate" = "docstrings/halo/rotate.md"},
+      {"updater" = "docstrings/halo/updater.md"}
+    ]},
+    {"initialization" = [
+      {"allocator" = "docstrings/initialization/allocator.md"},
+      {"grid_sizer" = "docstrings/initialization/grid_sizer.md"},
+      {"subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md"}
+    ]},
+    {"monitor" = [
+      {"convert" = "docstrings/monitor/convert.md"},
+      {"netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md"},
+      {"protocol" = "docstrings/monitor/protocol.md"},
+      {"zarr_monitor" = "docstrings/monitor/zarr_monitor.md"}
+    ]},
+    {"performance" = [
+      {"collector" = "docstrings/performance/collector.md"},
+      {"config" = "docstrings/performance/config.md"},
+      {"profiler" = "docstrings/performance/profiler.md"},
+      {"report" = "docstrings/performance/report.md"},
+      {"timer" = "docstrings/performance/timer.md"},
+      {"tools" = "docstrings/performance/tools.md"}
+    ]},
+    {"quantity" = [
+      {"bounds" = "docstrings/quantity/bounds.md"},
+      {"field_bundle" = "docstrings/quantity/field_bundle.md"},
+      {"metadata" = "docstrings/quantity/metadata.md"},
+      {"quantity" = "docstrings/quantity/quantity.md"},
+      {"state" = "docstrings/quantity/state.md"}
+    ]},
+    {"restart" = [
+      {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"},
+      {"_properties" = "docstrings/restart/_properties.md"}
+    ]},
+    {"stencils" = [
+      {"basic_operations" = "docstrings/stencils/basic_operations.md"},
+      {"c2l_ord" = "docstrings/stencils/c2l_ord.md"},
+      {"corners" = "docstrings/stencils/corners.md"},
+      {"tridiag" = "docstrings/stencils/tridiag.md"}
+    ]},
+    {"testing" = [
+      {"comparison" = "docstrings/testing/comparison.md"},
+      {"perturbation" = "docstrings/testing/perturbation.md"}
+    ]},
+    {"viz" = [
+      {"cube_sphere" = "docstrings/viz/cube_sphere.md"}
+    ]}
+  ]},
+  # ── Dev Notes ─────────────────────────────────────────────────────────────
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes/index.md"},
+  # ── Community ─────────────────────────────────────────────────────────────
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md"}
+]
+repo_name = "NDSL"
+repo_url = "https://github.com/NOAA-GFDL/NDSL"
+site_author = "Software Modernization Team"
+site_name = "NDSL"
+site_url = "https://www.ndsl_documentation.com/"
+
+# ── Standard Python-Markdown ──────────────────────────────────────────────────
+[project.markdown_extensions.abbr]  # abbreviation tooltips
+
+[project.markdown_extensions.admonition]  # note/warning/tip callout boxes
+
+[project.markdown_extensions.attr_list]  # add HTML attributes to elements
+
+[project.markdown_extensions.def_list]  # definition lists
+
+[project.markdown_extensions.footnotes]  # [^1] style footnotes
+
+[project.markdown_extensions.md_in_html]  # Markdown inside raw HTML blocks
+
+# ── PyMdown extensions ────────────────────────────────────────────────────────
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true  # render LaTeX math via MathJax
+
+[project.markdown_extensions.pymdownx.betterem]  # smarter em/strong parsing
+
+[project.markdown_extensions.pymdownx.caret]  # superscript (^text^)
+
+[project.markdown_extensions.pymdownx.details]  # collapsible <details> blocks
+
+[project.markdown_extensions.pymdownx.emoji]
+emoji_generator = "zensical.extensions.emoji.to_svg"
+emoji_index = "zensical.extensions.emoji.twemoji"
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true  # add anchor links to line numbers
+line_spans = "__span"  # wrap each line in a <span> for styling
+pygments_lang_class = true  # add language class to code blocks
+
+[project.markdown_extensions.pymdownx.inlinehilite]  # inline `code` syntax highlighting
+
+[project.markdown_extensions.pymdownx.keys]  # keyboard key rendering (++ctrl+c++)
+
+[project.markdown_extensions.pymdownx.magiclink]  # auto-linkify URLs and GitHub refs
+
+[project.markdown_extensions.pymdownx.mark]  # ==highlighted text==
+
+[project.markdown_extensions.pymdownx.smartsymbols]  # (c) → © and similar
+
+[project.markdown_extensions.pymdownx.superfences]
+# Allows non-fenced code blocks and enables Mermaid diagram rendering.
+custom_fences = [
+  {name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format"}
+]
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true  # use the newer tab style
+combine_header_slug = true
+
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true  # render [ ] / [x] as styled checkboxes
+
+[project.markdown_extensions.pymdownx.tilde]  # subscript (~text~) and strikethrough
+
+[project.markdown_extensions.toc]
+permalink = false  # add anchor links to every heading
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]  # cross-ref stdlib docs
+paths = ["ndsl"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true  # include methods inherited from parent classes
+show_source = false  # hide raw source code in the rendered docs
+
+[project.theme]
+custom_dir = "./docs/overrides"  # folder for template overrides
+features = [
+  # Header
+  "announce.dismiss",  # let users dismiss the announcement bar
+  # Content / code blocks
+  "content.code.annotate",  # icon+tooltip annotations inside code blocks
+  "content.code.copy",  # copy-to-clipboard button on code blocks
+  "content.code.select",  # line-range selection button on code blocks
+  "content.footnote.tooltips",  # render footnotes as inline popovers
+  "content.tabs.link",  # sync all same-titled content tabs across pages
+  "content.tooltips",  # hover tooltips on links
+  # Navigation
+  # "navigation.footer",           # previous/next page links in the footer
+  "navigation.indexes",  # attach overview pages directly to sections
+  "navigation.instant",  # SPA-style navigation (no full page reload)
+  "navigation.instant.prefetch",  # prefetch pages on link hover
+  "navigation.path",  # breadcrumb trail above each page title
+  "navigation.sections",  # group top-level sections in the sidebar
+  "navigation.tabs",  # render top-level nav as tabs below the header
+  "navigation.top",  # back-to-top button
+  "navigation.tracking",  # update URL hash as you scroll through anchors
+  # "navigation.expand",          # expand all sidebar sections by default
+  "navigation.prune",  # strip invisible nav items from HTML (saves ~33%)
+  "navigation.tabs.sticky",  # keep tabs visible while scrolling
+  "navigation.instant.progress",  # loading progress bar for slow connections
+  # Search
+  "search.highlight"  # highlight search terms after clicking a result
+]
+language = "en"
+
+[project.theme.font]
+code = "JetBrains Mono"
+text = "Inter"
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"

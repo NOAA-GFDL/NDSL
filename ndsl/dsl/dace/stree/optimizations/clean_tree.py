@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl.logging import ndsl_log
+from ndsl import ndsl_log
 
 
 class CleanUpScheduleTree(tn.ScheduleNodeTransformer):

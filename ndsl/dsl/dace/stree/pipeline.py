@@ -2,8 +2,8 @@ from pathlib import Path
 
 import dace.sdfg.analysis.schedule_tree.treenodes as stree
 
+from ndsl import ndsl_log_on_rank_0
 from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
-from ndsl.logging import ndsl_log_on_rank_0
 
 
 class StreePipeline:

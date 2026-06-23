@@ -11,7 +11,7 @@ Historically, NDSL was developed to port the FV3 dynamical core on the cubed-sph
 
 ## Quickstart
 
-Currently, NDSL requires Python version `3.11` or `3.12`, a GNU compiler and MPI installed. All other dependencies installed during package installation. We recommend using virtual (or conda) environment.
+Currently, NDSL requires `python` (versions `3.11`,`3.12`, and `3.13` are supported), a C/C++ compiler and MPI installed. All other dependencies installed during package installation. We recommend using a virtual (or conda) environment.
 
 ```shell
 # We have submodules for GT4Py and DaCe. Don't forget to pull them
@@ -37,13 +37,13 @@ NDSL is under active development and may only work with specific setups. This is
 
 The run the CPU backends you will need:
 
-- Python: 3.11 or 3.12
+- Python: 3.11, 3.12, 3.13
 - CXX compiler:  GNU 11.2+
 - Libraries: MPI
 
 To run the GPU backends, you'll need:
 
-- Python: 3.11 or 3.12
+- Python: 3.11, 3.12, 3.13
 - CXX compiler:  GNU 11.2+
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+
@@ -61,8 +61,6 @@ source ./venv/bin/activate
 pip install openmpi
 ```
 
-A note on the compiler: NDSL currently only works with the GNU compiler. Using `clang` will result in errors related to undefined OpenMP flags. For MacOS users, we know that `gcc` version 14 from homebrew works.
-
 Porting workflows might depend on [serialbox](https://github.com/FlorianDeconinck/serialbox/), e.g. the script `ndsl-serialbox_to_netcdf` depends on it. Serialbox is an optional dependency. If you install the serialbox extra, you'll need the Boost library and development headers.
 
 ### Installation options
@@ -74,6 +72,7 @@ See [quickstart](#quickstart) above on how to pull and setup a virtual environme
 - `ndsl[docs]`: extra dependencies to build the docs
 - `ndsl[dev]`: installs tools for development, docs, and tests.
 - `ndsl[serialbox]`: installs serialbox, which is used in porting workflows
+- `ndsl[pyfms]`: installs [pyFMS](https://github.com/NOAA-GFDL/pyfms) and allows interaction with its diagnostics manager.
 
 ### Running tests
 
@@ -82,7 +81,7 @@ Tests are available via `pytest` (don't forget to install the `test` or `dev` ex
 To run serial tests on CPU (GPU tests also run if `cupy` is available)
 
 ```bash
-pytest -m "not parallel and not gpu and not zarr" tests/
+pytest -m "not parallel and not gpu and not zarr and not pyfms" tests/
 ```
 
 To run parallel tests on CPU (GPU tests also run if `cupy` is available)
@@ -101,18 +100,18 @@ mpirun -np 6 pytest -m "parallel and not gpu" tests/
 
 ### Documentation
 
-Documentation is available [online](https://noaa-gfdl.github.io/NDSL/). We are using [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), which allows us to write the docs in Markdown files and serve it as a static site.
+Documentation is available [online](https://noaa-gfdl.github.io/NDSL/). We are using [Zensical](https://zensical.org/), which allows us to write the docs in Markdown files and serve it as a static site.
 
-To view the documentation locally, install NDSL with the `docs` or `dev` extras. Then  run the following:
+To view the documentation locally, install NDSL with the `docs` or `dev` extras. Then, run the following:
 
 ```bash
-mkdocs serve
+zensical serve
 ```
 
 Contributing to the documentation is straight forward:
 
 1. Add and/or change files in the [docs/](./docs/) folder as necessary.
-2. [Optional] If you have changes to the navigation, modify [mkdocs.yml](mkdocs.yml).
+2. [Optional] If you have changes to the navigation, modify [zensical.toml](./zensical.toml).
 3. [Optional] Start the development server and look how your changes are rendered.
 4. Submit a pull request with your changes.
 
