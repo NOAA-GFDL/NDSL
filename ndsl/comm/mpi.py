@@ -8,14 +8,17 @@ swap mpi4py in the future.
 from typing import TypeVar, cast
 
 from mpi4py import MPI
+from mpi4py.util import dtlib
+
+import numpy.typing as npt
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
 
 T = TypeVar("T")
 
-UNDEFINED = MPI.UNDEFINED
-DOUBLE = MPI.DOUBLE
+def get_mpi_type(data: npt.NDArray):
+    return dtlib.from_numpy_dtype(data.dtype)
 
 
 class MPIComm(Comm):
