@@ -464,7 +464,6 @@ def _call_sdfg(
             mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
             and dace_program not in config.loaded_dace_executables  # already cached
         ):
-            ndsl_log.info("Building DaCe orchestration")
             _build_sdfg(dace_program, sdfg, config, optimization_config, args, kwargs)
 
         if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
@@ -510,6 +509,7 @@ def _call_sdfg(
 def _parse_sdfg(
     dace_program: DaceProgram,
     config: DaceConfig,
+    optimization: OptimizationConfig,
     *args: Any,
     **kwargs: Any,
 ) -> SDFG | CompiledSDFG | None:
@@ -523,6 +523,8 @@ def _parse_sdfg(
     # Check cache for already loaded SDFG
     if dace_program in config.loaded_dace_executables:
         return config.loaded_dace_executables[dace_program].compiled_sdfg
+
+    ndsl_log.info(f"Building DaCe orchestration for {dace_program.f.__qualname__}")
 
     # Build expected path
     sdfg_path = get_sdfg_path(dace_program.name, config)
@@ -545,6 +547,11 @@ def _parse_sdfg(
                 simplify=False,
                 validate=False,  # TODO: should we have a "debug flag" to turn this on?
             )
+
+        # Label the code (this is the topmost code)
+        if sdfg is not None and optimization.stree.enabled:
+            set_label(sdfg, dace_program.f.__qualname__, is_top_sdfg=True)
+
         return sdfg
 
     if os.path.isfile(sdfg_path):
@@ -589,6 +596,7 @@ class _LazyComputepathFunction(SDFGConvertible):
         sdfg = _parse_sdfg(
             self.daceprog,
             self.config,
+            self.optimization_config,
             *args,
             **kwargs,
         )
@@ -657,12 +665,10 @@ class _LazyComputepathMethod:
             sdfg = _parse_sdfg(
                 self.daceprog,
                 self.lazy_method.config,
+                self.lazy_method.optimization_config,
                 *args,
                 **kwargs,
             )
-            # Label the code (this is the topmost code)
-            if sdfg is not None and self.lazy_method.optimization_config.stree.enabled:
-                set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=True)
             return _call_sdfg(
                 self.daceprog,
                 sdfg,
