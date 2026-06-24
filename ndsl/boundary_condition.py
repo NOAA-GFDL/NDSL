@@ -6,7 +6,7 @@ import numpy as np
 
 from ndsl.quantity import Quantity
 from ndsl.comm.communicator import Communicator
-from ndsl.comm.mpi import DOUBLE
+from ndsl.comm.mpi import get_mpi_type
 
 T = TypeVar("T", bound=dataclasses._is_dataclass_instance)
 
@@ -108,7 +108,7 @@ class BoundaryCondition:
             self.var_list = [var for var in whole_var_list if self._location in var]
         self.var_list = self._sub_com.bcast(self.var_list)
     
-    def scatter_bcs(self, state: T):
+    def scatter_bcs(self, state: T, timestep: int):
         if self.color == 1:
             for var in dataclasses.fields(state):
                 if var in self.var_names:
@@ -125,14 +125,20 @@ class BoundaryCondition:
                         j_adj=jadj
                     )
                     recv_buf = np.empty(shape=shape_list[self._sub_com_rank])
-                    sendcounts = [np.prod(shape_list[n]) for n in range(self._sub_com_size)]
-                    displs = _get_displs(sendcounts)
                     if self._sub_com_rank == 0:
                         ds = xr.open_dataset(self.file)
-                        da = np.atleast_3d(np.ascontiguousarray(ds[self._location].data))
-                        temp = np.empty(shape=sum(sendcounts))
+                        da = np.ascontiguousarray(ds[self._location].data)
+                        if len(da.shape) != 4:
+                            da = da[:,np.newaxis,:,:]
+                        sendcounts = [np.prod(shape_list[n]) for n in range(self._sub_com_size)]
+                        displs = _get_displs(sendcounts)
+                        temp = np.empty(shape=sum(sendcounts), dtype=da.dtype)
+                        datatype = get_mpi_type(da)
                     else:
                         temp = None
+                        sendcounts = None
+                        displs = None
+                        datatype = None
                     match self.location:
                         case "top":
                             indices = _get_data_indices(
@@ -144,9 +150,9 @@ class BoundaryCondition:
                             if self._sub_com_rank == 0:
                                 m = 0
                                 for n in range(self._sub_com_size):
-                                    temp[m:m+sendcounts[n]] = da[:,:,indices[n][0]:indices[n][1]].flatten()
+                                    temp[m:m+sendcounts[n]] = da[timestep,:,:,indices[n][0]:indices[n][1]].flatten()
                                     m += sendcounts[n]
-                            self._sub_com.Scatterv([temp, sendcounts, displs], recv_buf, root=0)
+                            self._sub_com.Scatterv([temp, sendcounts, displs, datatype], recv_buf, root=0)
                         case "bottom":
                             indices = _get_data_indices(
                                 npoints=shape_list[1][2], 
@@ -157,9 +163,9 @@ class BoundaryCondition:
                             if self._sub_com_rank == 0:
                                 m = 0
                                 for n in range(self._sub_com_size):
-                                    temp[m:m+sendcounts[n]] = da[:,:,indices[n][0]:indices[n][1]].flatten()
+                                    temp[m:m+sendcounts[n]] = da[timestep,:,:,indices[n][0]:indices[n][1]].flatten()
                                     m += sendcounts[n]
-                            self._sub_com.Scatterv([temp, sendcounts, displs, DOUBLE], recv_buf, root=0)
+                            self._sub_com.Scatterv([temp, sendcounts, displs, datatype], recv_buf, root=0)
                         case "right":
                             indices = _get_data_indices(
                                 npoints=shape_list[0][1], 
@@ -170,9 +176,9 @@ class BoundaryCondition:
                             if self._sub_com_rank == 0:
                                 m = 0
                                 for n in range(self._sub_com_size):
-                                    temp[m:m+sendcounts[n]] = da[:,indices[n][0]:indices[n][1],:].flatten()
+                                    temp[m:m+sendcounts[n]] = da[timestep,:,indices[n][0]:indices[n][1],:].flatten()
                                     m += sendcounts[n]
-                            self._sub_com.Scatterv([temp, sendcounts, displs, DOUBLE], recv_buf, root=0)
+                            self._sub_com.Scatterv([temp, sendcounts, displs, datatype], recv_buf, root=0)
                         case "left":
                             indices = _get_data_indices(
                                 npoints=shape_list[0][1], 
@@ -183,14 +189,9 @@ class BoundaryCondition:
                             if self._sub_com_rank == 0:
                                 m = 0
                                 for n in range(self._sub_com_size):
-                                    temp[m:m+sendcounts[n]] = da[:,indices[n][0]:indices[n][1],:].flatten()
+                                    temp[m:m+sendcounts[n]] = da[timestep,:,indices[n][0]:indices[n][1],:].flatten()
                                     m += sendcounts[n]
-                            self._sub_com.Scatterv([temp, sendcounts, displs, DOUBLE], recv_buf, root=0)
-                        case _:
-                            raise RuntimeError(f"{self._location} is not a known location")
-                    
-
-                        
+                            self._sub_com.Scatterv([temp, sendcounts, displs, datatype], recv_buf, root=0)     
 
     def write_out_bcs(
         self,
