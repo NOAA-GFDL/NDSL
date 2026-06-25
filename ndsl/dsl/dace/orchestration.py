@@ -618,7 +618,9 @@ class _LazyComputepathFunction(SDFGConvertible):
         self.daceprog.global_vars = value
 
     def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-        return _parse_sdfg(self.daceprog, self.config, *args, **kwargs)
+        return _parse_sdfg(
+            self.daceprog, self.config, self.optimization_config, *args, **kwargs
+        )
 
     def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return self.daceprog.__sdfg_closure__(*args, **kwargs)
@@ -679,7 +681,13 @@ class _LazyComputepathMethod:
             )
 
         def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-            sdfg = _parse_sdfg(self.daceprog, self.lazy_method.config, *args, **kwargs)
+            sdfg = _parse_sdfg(
+                self.daceprog,
+                self.lazy_method.config,
+                self.lazy_method.optimization_config,
+                *args,
+                **kwargs,
+            )
             # Label the code
             if sdfg is not None and self.lazy_method.optimization_config.stree.enabled:
                 set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=False)
