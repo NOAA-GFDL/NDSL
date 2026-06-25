@@ -25,13 +25,34 @@ class AxisIterator(Enum):
         return other == self.as_str()
 
 
-def normalize_cartesian_indexation(index: symbol, axis: AxisIterator) -> symbol:
-    """Return a normalize indexation symbol for cartesian indexation."""
+def normalize_cartesian_indexation(
+    index: symbol, axis: AxisIterator, map_scope: tn.MapScope
+) -> symbol:
+    """Return a normalized indexation symbol for cartesian indexation."""
+    if len(map_scope.node.map.params) != 1:
+        raise ValueError(
+            f"Expected a map with only one parameter, got {map_scope.node.map.params}."
+        )
+
+    axis_name = axis.as_str()
+    if not map_scope.node.map.params[0].startswith(axis_name):
+        raise ValueError(
+            f"Mismatch of axis iterator {axis} and MapScope parameter {map_scope.node.map.params}."
+        )
+
+    # potentially rename
     rename_maps = {}
-    for symb in index.free_symbols:
-        if symb.name.startswith(axis.as_str()):
-            rename_maps[symb] = symbol(axis.as_str())
-    return index.subs(rename_maps)
+    for sym in index.free_symbols:
+        if sym.name != axis_name and sym.name.startswith(axis_name):
+            rename_maps[sym] = symbol(axis_name)
+    renamed = index.subs(rename_maps)
+
+    # handle potential map start
+    map_start = map_scope.node.map.range.min_element()[0]
+    if map_start != 0:
+        return renamed + map_start
+
+    return renamed
 
 
 def no_data_dependencies_on_cartesian_axis(
@@ -58,14 +79,14 @@ def no_data_dependencies_on_cartesian_axis(
             continue
 
         previous_axis_index = normalize_cartesian_indexation(
-            write.subset[axis_index][0], axis
+            write.subset[axis_index][0], axis, first
         )
 
         # Write-after-write with an offset case
         for other_write in other_writes.out_memlets:
             if write.data == other_write.data:
                 if previous_axis_index != normalize_cartesian_indexation(
-                    other_write.subset[axis_index][0], axis
+                    other_write.subset[axis_index][0], axis, second
                 ):
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found write after write conflict "
@@ -80,7 +101,7 @@ def no_data_dependencies_on_cartesian_axis(
         for read in read_collector.in_memlets:
             if write.data == read.data:
                 if previous_axis_index != normalize_cartesian_indexation(
-                    read.subset[axis_index][0], axis
+                    read.subset[axis_index][0], axis, second
                 ):
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found read after write conflict "
