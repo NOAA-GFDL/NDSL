@@ -152,6 +152,10 @@ class DiagManagerMonitor(Monitor):
                 domain_pos = py_mpp.mpp_domains.NORTH
             elif extend_domain_direction.lower() == "east":
                 domain_pos = py_mpp.mpp_domains.EAST
+            else:
+                raise RuntimeError(
+                    "extend_domain_direction must be either 'north' or 'east'."
+                )
         if not_xy:
             self.axes[name] = diag_manager.axis_init(
                 name=name,
