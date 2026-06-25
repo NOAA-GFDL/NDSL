@@ -85,30 +85,32 @@ def no_data_dependencies_on_cartesian_axis(
         # Write-after-write with an offset case
         for other_write in other_writes.out_memlets:
             if write.data == other_write.data:
-                if previous_axis_index != normalize_cartesian_indexation(
+                current_axis_index = normalize_cartesian_indexation(
                     other_write.subset[axis_index][0], axis, second
-                ):
+                )
+                if previous_axis_index != current_axis_index:
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found write after write conflict "
                         f"for {write.data} "
                         f"w/ different offset to {axis.name} ("
                         f"first write at {previous_axis_index}, "
-                        f"second write at {other_write.subset[axis_index][0]})"
+                        f"second write at {current_axis_index})"
                     )
                     return False
 
         # Read-after-write with an offset case
         for read in read_collector.in_memlets:
             if write.data == read.data:
-                if previous_axis_index != normalize_cartesian_indexation(
+                current_axis_index = normalize_cartesian_indexation(
                     read.subset[axis_index][0], axis, second
-                ):
+                )
+                if previous_axis_index != current_axis_index:
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found read after write conflict "
                         f"for {write.data} "
                         f"w/ different offset to {axis.name} ("
-                        f"write at {write.subset[axis_index][0]}, "
-                        f"read at {read.subset[axis_index][0]})"
+                        f"write at {previous_axis_index}, "
+                        f"read at {current_axis_index})"
                     )
                     return False
 
