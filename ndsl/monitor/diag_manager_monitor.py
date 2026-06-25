@@ -7,7 +7,7 @@ from ndsl.monitor.protocol import Monitor
 
 
 try:
-    from pyfms import diag_manager
+    from pyfms import diag_manager, py_mpp
 
     HAS_PYFMS = True
 except ImportError:
@@ -138,7 +138,7 @@ class DiagManagerMonitor(Monitor):
         units: str | None = None,
         domain_id: int | None = None,
         set_name: str | None = None,
-        domain_position: int | None = None,
+        extend_domain_direction: str | None = None,
     ) -> None:
         """
         Registers an axis with the FMS diag_manager via the pyFMS interface for fortran
@@ -146,6 +146,12 @@ class DiagManagerMonitor(Monitor):
         Time axis will be added as an unlimited dimension automatically,
         so does not need to be explicitly registered.
         """
+        domain_pos = None
+        if extend_domain_direction is not None:
+            if extend_domain_direction.lower() == "north":
+                domain_pos = py_mpp.mpp_domains.NORTH
+            elif extend_domain_direction.lower() == "east":
+                domain_pos = py_mpp.mpp_domains.EAST
         if not_xy:
             self.axes[name] = diag_manager.axis_init(
                 name=name,
@@ -165,5 +171,5 @@ class DiagManagerMonitor(Monitor):
                 domain_id=domain_id,
                 set_name=set_name,
                 units=units,
-                domain_position=domain_position,
+                domain_position=domain_pos,
             )
