@@ -75,7 +75,11 @@ class CPUPipeline(StreePipeline):
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
                 ppl_passes.append(
-                    CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
+                    CartesianMerge(
+                        backend,
+                        overcompute=config.stree.merger.overcompute,
+                        merge_order=config.stree.merger.order,
+                    )
                 )
             if config.stree.refine_transients:
                 ppl_passes.append(CartesianRefineTransients(backend))

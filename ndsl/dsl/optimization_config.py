@@ -18,6 +18,12 @@ class OptimizationConfig:
             )
             """When merging allow maps of different sizes to merge by inserting an `if` guard."""
 
+            order: str = "default"
+            """
+            Allows to manually override the merging order (e.g. `KJI` will merge `K`, then `J`, then `I`).
+            The default follows loop order of the backend given to `CartesianMerge`.
+            """
+
         enabled: bool = os.getenv("NDSL_STREE_OPT", "False").lower() == "true"
         """Enable Schedule Tree transformations."""
 
