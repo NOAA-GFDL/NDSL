@@ -1,7 +1,7 @@
 from enum import Enum
 
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
 from dace.memlet import Memlet
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.symbolic import symbol
 
 from ndsl import ndsl_log
@@ -35,8 +35,8 @@ def normalize_cartesian_indexation(index: symbol, axis: AxisIterator) -> symbol:
 
 
 def no_data_dependencies_on_cartesian_axis(
-    first: stree.MapScope,
-    second: stree.MapScope,
+    first: tn.MapScope,
+    second: tn.MapScope,
     axis: AxisIterator,
 ) -> bool:
     """Check for read after write and write after write with different offsets."""
@@ -94,7 +94,7 @@ def no_data_dependencies_on_cartesian_axis(
     return True
 
 
-class MemletCollector(stree.ScheduleNodeVisitor):
+class MemletCollector(tn.ScheduleNodeVisitor):
     """Gathers in_memlets and out_memlets of TaskNodes and LibraryCalls."""
 
     in_memlets: list[Memlet]
@@ -109,13 +109,13 @@ class MemletCollector(stree.ScheduleNodeVisitor):
         self.in_memlets = []
         self.out_memlets = []
 
-    def visit_TaskletNode(self, node: stree.TaskletNode) -> None:
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         if self._collect_reads:
             self.in_memlets.extend([memlet for memlet in node.in_memlets.values()])
         if self._collect_writes:
             self.out_memlets.extend([memlet for memlet in node.out_memlets.values()])
 
-    def visit_LibraryCall(self, node: stree.LibraryCall) -> None:
+    def visit_LibraryCall(self, node: tn.LibraryCall) -> None:
         if self._collect_reads:
             if isinstance(node.in_memlets, set):
                 self.in_memlets.extend(node.in_memlets)
@@ -133,7 +133,7 @@ class MemletCollector(stree.ScheduleNodeVisitor):
                 )
 
 
-def has_dynamic_memlets(first: stree.MapScope, second: stree.MapScope) -> bool:
+def has_dynamic_memlets(first: tn.MapScope, second: tn.MapScope) -> bool:
     first_collector = MemletCollector()
     second_collector = MemletCollector()
     first_collector.visit(first)
