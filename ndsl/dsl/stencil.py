@@ -7,8 +7,8 @@ import numbers
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
-import dace
 import numpy as np
+from dace.config import Config as DaceConfig
 from gt4py.cartesian import config as gt_config
 from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
@@ -321,7 +321,7 @@ class FrozenStencil(SDFGConvertible):
             BackendFramework.DACE
             == self.stencil_config.compilation_config.backend.framework
         ):
-            dace.Config.set(
+            DaceConfig.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
                     gt_root=gt_config.cache_settings["root_path"],
