@@ -138,6 +138,7 @@ class DiagManagerMonitor(Monitor):
         units: str | None = None,
         domain_id: int | None = None,
         set_name: str | None = None,
+        domain_position: int | None = None,
     ) -> None:
         """
         Registers an axis with the FMS diag_manager via the pyFMS interface for fortran
@@ -164,4 +165,5 @@ class DiagManagerMonitor(Monitor):
                 domain_id=domain_id,
                 set_name=set_name,
                 units=units,
+                domain_position=domain_position,
             )
