@@ -30,14 +30,7 @@ class NDSLRuntime:
         self._stencil_factory = stencil_factory
         # Use this flag to detect that the init wasn't done properly
         self._base_class_was_properly_super_init = True
-        if optimization_config is None:
-            # TODO
-            # - Decide where to put defaults.
-            # - For now, they are in the OptimizationConfig object itself.
-            # - We could have specialized defaults here for NDSLRuntime code.
-            self._optimization_config = OptimizationConfig()
-        else:
-            self._optimization_config = optimization_config
+        self._optimization_config = optimization_config
 
     def __init_subclass__(cls: type[NDSLRuntime], **kwargs: dict[str, Any]) -> None:
         # WARNING: no code outside the `init_decorator` this is cls

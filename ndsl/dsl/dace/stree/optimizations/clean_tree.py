@@ -23,6 +23,14 @@ class CleanUpScheduleTree(tn.ScheduleNodeTransformer):
             self._removed_state_boundaries += 1
             node.children.remove(boundary)
 
+    def visit_LibraryCall(self, node: tn.LibraryCall) -> tn.LibraryCall | None:
+        # Filter duplicate labeled regions
+        # TODO: this shouldn't be necessary and needs to be cleaned up.
+        if node.node.unique_name.endswith("_patched"):
+            return None
+
+        return node
+
     def visit_WhileScope(self, node: tn.WhileScope) -> tn.WhileScope:
         self._remove_state_boundaries_from_children(node)
 

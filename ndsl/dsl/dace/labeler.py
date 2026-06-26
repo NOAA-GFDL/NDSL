@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 from typing import Any
 
-import dace.properties
+import dace
 from dace import library, nodes
 from dace.transformation import transformation as xf
+
+from ndsl import OptimizationConfig
 
 
 @library.node
@@ -13,9 +13,28 @@ class _Labeler(nodes.LibraryNode):
     default_implementation = "pure"
     unique_name = dace.properties.Property(dtype=str, desc="Unique name")
 
-    def __init__(self, unique_name: str, **kwargs: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        unique_name: str,
+        local_optimization: OptimizationConfig | None,
+        **kwargs: dict[str, Any],
+    ) -> None:
         super().__init__(name="NDSLRuntime_Label", **kwargs)
+        # HACK to avoid state fusion of labeler states
+        # MPI WaitAll block state fusion, so we just pretend to be one 🐉.
+        # Keeping the labeler states non-fused is important to keep code flow consistent until we
+        # get to the schedule tree.
+        self.label = "_Waitall_"
+
         self._unique_name = unique_name
+        self._local_optimizations = local_optimization
+
+    def has_side_effects(self) -> bool:
+        # HACK
+        # LibraryNodes with side effects aren't touched by simplify. This
+        # keeps the library nodes alive until we get to the schedule tree
+        # where we can use the information.
+        return True
 
 
 @library.register_expansion(_Labeler, "pure")
@@ -32,7 +51,10 @@ class _ExpandLabeler(xf.ExpandTransformation):
 
 
 def set_label(
-    sdfg: dace.SDFG | dace.CompiledSDFG, qualname: str, is_top_sdfg: bool
+    sdfg: dace.SDFG | dace.CompiledSDFG,
+    qualname: str,
+    is_top_sdfg: bool,
+    local_optimizations: OptimizationConfig | None,
 ) -> None:
     """Surround the SDFG with two state/library node combo labelling
     the code for future reference in further optimization.
@@ -50,19 +72,29 @@ def set_label(
             # With the topmost SDFG we have to skip over the
             # "init" state
             if is_top_sdfg:
-                state = sdfg.add_state_after(
+                label_state = sdfg.add_state_after(
                     state,
                     label=f"__Label_Enter__{qualname}",
                 )
             else:
-                state = sdfg.add_state_before(
+                label_state = sdfg.add_state_before(
                     state,
                     label=f"__Label_Enter__{qualname}",
                 )
-            state.add_node(_Labeler(unique_name=f"Enter__{qualname}"))
+            label_state.add_node(
+                _Labeler(
+                    unique_name=f"Enter__{qualname}",
+                    local_optimization=local_optimizations,
+                )
+            )
         if sdfg.out_edges(state) == []:
-            state = sdfg.add_state_after(
+            label_state = sdfg.add_state_after(
                 state,
                 label=f"__Label_Exit__{qualname}",
             )
-            state.add_node(_Labeler(unique_name=f"Exit__{qualname}"))
+            label_state.add_node(
+                _Labeler(
+                    unique_name=f"Exit__{qualname}",
+                    local_optimization=local_optimizations,
+                )
+            )

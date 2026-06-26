@@ -2,6 +2,7 @@ from .axis_merge import CartesianAxisMerge
 from .cartesian_merge import CartesianMerge
 from .clean_tree import CleanUpScheduleTree
 from .kernelize_maps import KernelizeMaps
+from .local_optimizations import LocalOptimizations
 from .offgrid_conditionals import (
     ExtractOffgridConditionals,
     InlineOffgridConditionals,
@@ -17,6 +18,7 @@ __all__ = [
     "CartesianMerge",
     "CleanUpScheduleTree",
     "KernelizeMaps",
+    "LocalOptimizations",
     "ExtractOffgridConditionals",
     "InlineOffgridConditionals",
     "MergeConditionals",

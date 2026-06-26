@@ -9,6 +9,7 @@ from ndsl.dsl.dace.stree.optimizations import (
     CleanUpScheduleTree,
     InlineVertical2DWrite,
     KernelizeMaps,
+    LocalOptimizations,
     TreeOptimizationStatistics,
 )
 
@@ -70,7 +71,7 @@ class CPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            ppl_passes = [CleanUpScheduleTree()]
+            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations()]
             if config.stree.inline_K_loops_size_one:
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
@@ -102,7 +103,7 @@ class GPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            ppl_passes = [CleanUpScheduleTree()]
+            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations()]
             if config.stree.inline_K_loops_size_one:
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:

@@ -49,3 +49,5 @@ class OptimizationConfig:
 
     stree: Tree = field(default_factory=Tree)
     gpu: GPU = field(default_factory=GPU)
+
+    name: str = "unset"

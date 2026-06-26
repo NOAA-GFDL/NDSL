@@ -171,7 +171,7 @@ def _build_sdfg(
     dace_program: DaceProgram,
     sdfg: SDFG,
     config: DaceConfig,
-    optimization_config: OptimizationConfig,
+    optimization_config: OptimizationConfig | None,
     args: Any,
     kwargs: Any,
 ) -> None:
@@ -181,6 +181,10 @@ def _build_sdfg(
     backend_name = config.get_backend()
 
     if is_compiling:
+        if optimization_config is None:
+            ndsl_log.debug(f"Using default optimization config for {sdfg.label}.")
+            optimization_config = OptimizationConfig()
+
         ndsl_log.debug(f"Compiling config:\n{pformat(optimization_config, indent=2)}")
         # Fully specialize all known symbols and then propagate these changes in the simplify
         # pass that follows. This is not only a smart idea in general, but also simplifies (haha)
@@ -451,7 +455,7 @@ def _call_sdfg(
     dace_program: DaceProgram,
     sdfg: SDFG,
     config: DaceConfig,
-    optimization_config: OptimizationConfig,
+    optimization_config: OptimizationConfig | None,
     args: Any,
     kwargs: Any,
 ) -> list | None:
@@ -509,7 +513,7 @@ def _call_sdfg(
 def _parse_sdfg(
     dace_program: DaceProgram,
     config: DaceConfig,
-    optimization: OptimizationConfig,
+    optimization: OptimizationConfig | None,
     *args: Any,
     **kwargs: Any,
 ) -> SDFG | CompiledSDFG | None:
@@ -549,8 +553,13 @@ def _parse_sdfg(
             )
 
         # Label the code (this is the topmost code)
-        if sdfg is not None and optimization.stree.enabled:
-            set_label(sdfg, dace_program.f.__qualname__, is_top_sdfg=True)
+        if sdfg is not None and optimization is not None and optimization.stree.enabled:
+            set_label(
+                sdfg,
+                dace_program.f.__qualname__,
+                is_top_sdfg=True,
+                local_optimizations=optimization,
+            )
 
         return sdfg
 
@@ -583,7 +592,7 @@ class _LazyComputepathFunction(SDFGConvertible):
         self,
         func: Callable,
         config: DaceConfig,
-        optimization_config: OptimizationConfig,
+        optimization_config: OptimizationConfig | None,
     ) -> None:
         self.func = func
         self.config = config
@@ -689,8 +698,17 @@ class _LazyComputepathMethod:
                 **kwargs,
             )
             # Label the code
-            if sdfg is not None and self.lazy_method.optimization_config.stree.enabled:
-                set_label(sdfg, type(self.obj_to_bind).__qualname__, is_top_sdfg=False)
+            if (
+                sdfg is not None
+                and self.lazy_method.optimization_config is not None
+                and self.lazy_method.optimization_config.stree.enabled
+            ):
+                set_label(
+                    sdfg,
+                    type(self.obj_to_bind).__qualname__,
+                    is_top_sdfg=False,
+                    local_optimizations=self.lazy_method.optimization_config,
+                )
             return sdfg
 
         def __sdfg_closure__(self, reevaluate=None):  # type: ignore[no-untyped-def]
@@ -708,7 +726,7 @@ class _LazyComputepathMethod:
         self,
         func: Callable,
         config: DaceConfig,
-        optimization_config: OptimizationConfig,
+        optimization_config: OptimizationConfig | None,
     ) -> None:
         self.func = func
         self.config = config
@@ -762,11 +780,6 @@ def orchestrate(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    if optimization_config is None:
-        opt_config = OptimizationConfig()
-    else:
-        opt_config = optimization_config
-
     func: Callable = type.__getattribute__(type(obj), method_to_orchestrate)
 
     # Flag argument as dace.constant
@@ -789,7 +802,7 @@ def orchestrate(
 
     # Build DaCe orchestrated wrapper
     # This is a JIT object, e.g. DaCe compilation will happen on call
-    wrapped = _LazyComputepathMethod(func, config, opt_config).__get__(obj)
+    wrapped = _LazyComputepathMethod(func, config, optimization_config).__get__(obj)
 
     if method_to_orchestrate == "__call__":
         # Grab the function from the type of the child class
@@ -856,16 +869,11 @@ def orchestrate_function(
     if dace_compiletime_args is None:
         dace_compiletime_args = []
 
-    if optimization_config is None:
-        opt_config = OptimizationConfig()
-    else:
-        opt_config = optimization_config
-
     def _decorator(func: Callable[..., Any]):  # type: ignore[no-untyped-def]
         def _wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
             for argument in dace_compiletime_args:
                 func.__annotations__[argument] = DaceCompiletime
-            return _LazyComputepathFunction(func, config, opt_config)
+            return _LazyComputepathFunction(func, config, optimization_config)
 
         return _wrapper(func) if config.is_dace_orchestrated() else func
 
