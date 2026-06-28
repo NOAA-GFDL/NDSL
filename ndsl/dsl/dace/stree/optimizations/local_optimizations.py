@@ -142,7 +142,7 @@ class _LabelSections(tn.ScheduleNodeTransformer):
             for c in new_node.children:
                 c.parent = new_node
             # push new node into enclosing stack of children
-            children_stack.append(new_node)
+            children_stack[-1].append(new_node)
 
             # and - of course - the final book keeping
             self._labeled_sections += 1
