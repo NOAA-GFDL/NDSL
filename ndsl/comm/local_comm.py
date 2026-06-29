@@ -211,3 +211,6 @@ class LocalComm(Comm[T]):
             "Allreduce_inplace fundamentally cannot be written for LocalComm, "
             "as it requires synchronicity"
         )
+
+    def Scatterv(self, sendbuf, recvbuf, root=0, **kwargs: dict):  # type: ignore[no-untyped-def]
+        pass

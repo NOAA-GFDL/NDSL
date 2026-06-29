@@ -7,17 +7,17 @@ swap mpi4py in the future.
 
 from typing import TypeVar, cast
 
+import numpy.typing as npt
 from mpi4py import MPI
 from mpi4py.util import dtlib
-
-import numpy.typing as npt
 
 from ndsl.comm.comm_abc import Comm, ReductionOperator, Request
 
 
 T = TypeVar("T")
 
-def get_mpi_type(data: npt.NDArray):
+
+def get_mpi_type(data: npt.NDArray) -> MPI.Datatype:
     return dtlib.from_numpy_dtype(data.dtype)
 
 
@@ -97,3 +97,6 @@ class MPIComm(Comm):
 
     def Allreduce_inplace(self, recvobj: T, op: ReductionOperator) -> T:
         return self._comm.Allreduce(MPI.IN_PLACE, recvobj, self._op_mapping[op])
+
+    def Scatterv(self, sendbuf, recvbuf, root=0, **kwargs):  # type: ignore[no-untyped-def]
+        self._comm.Scatterv(sendbuf, recvbuf, root, **kwargs)
