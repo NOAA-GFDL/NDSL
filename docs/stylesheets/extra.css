@@ -241,3 +241,7 @@ HEADER
 .md-header__ellipsis .md-header__topic ~ .md-header__topic {
   display: none !important;
 }
+
+.md-tabs__link svg {
+  fill: var(--custom_white)
+}

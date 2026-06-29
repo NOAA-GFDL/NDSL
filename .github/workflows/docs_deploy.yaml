@@ -1,4 +1,4 @@
-name: "NDSL documentation"
+name: "NDSL docs deploy"
 
 # Documentation gets automatically deployed upon merge to develop
 on:

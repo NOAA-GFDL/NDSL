@@ -188,6 +188,7 @@ def f90nml_as_dict(
     target_groups: list[str] | None = None,
 ) -> dict:
     """Uses a f90nml.Namelist and returns a dict representation.
+
     If target_groups are specified, then the dict is created using only those
     groups. The return dicts can be flattened further to remove the group
     information or keep the group information.

@@ -13,12 +13,13 @@ from ndsl.performance.profiler import NullProfiler, Profiler
 class PerformanceConfig:
     """Performance stats collector.
 
-    collect_performance: overall flag turning collection on/pff
-    collect_cProfile: use cProfile for CPU Python profiling
-    collect_communication: collect halo exchange details
-    experiment_name: to be printed in the JSON summary
-    json_all_rank_threshold: number of nodes above the full performance
-        report for all nodes won't be written (rank 0 is always written)
+    Arguments:
+        collect_performance: overall flag turning collection on/pff
+        collect_cProfile: use cProfile for CPU Python profiling
+        collect_communication: collect halo exchange details
+        experiment_name: to be printed in the JSON summary
+        json_all_rank_threshold: number of nodes above the full performance
+            report for all nodes won't be written (rank 0 is always written)
     """
 
     collect_performance: bool = False

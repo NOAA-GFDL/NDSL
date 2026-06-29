@@ -95,10 +95,19 @@ def make_storage_data(
     Returns:
         Field[..., dtype]: New storage
 
-    Examples:
-        1) ptop = utils.make_storage_data(top_p, q4_1.shape)
-        2) ws3 = utils.make_storage_data(ws3[:, :, -1], shape, origin=(0, 0, 0))
-        3) data_dict[names[i]] = make_storage_data(
+    Example:
+        ```py
+        ptop = utils.make_storage_data(top_p, q4_1.shape)
+        ```
+
+    Example:
+        ```py
+        ws3 = utils.make_storage_data(ws3[:, :, -1], shape, origin=(0, 0, 0))
+        ```
+
+    Example:
+        ```py
+        data_dict[names[i]] = make_storage_data(
                data[:, :, :, i],
                shape,
                origin=origin,
@@ -106,6 +115,7 @@ def make_storage_data(
                dummy=dummy,
                axis=axis,
            )
+        ```
 
     """
     n_dims = len(data.shape)
@@ -308,12 +318,22 @@ def make_storage_from_shape(
     Returns:
         Field[..., dtype]: New storage
 
-    Examples:
-        1) utmp = utils.make_storage_from_shape(ua.shape)
-        2) qx = utils.make_storage_from_shape(
+    Example:
+        ```py
+        utmp = utils.make_storage_from_shape(ua.shape)
+        ```
+
+    Example:
+        ```py
+        qx = utils.make_storage_from_shape(
                qin.shape, origin=(grid().is_, grid().jsd, kstart)
            )
-        3) q_out = utils.make_storage_from_shape(q_in.shape, origin,)
+        ```
+
+    Example:
+        ```py
+        q_out = utils.make_storage_from_shape(q_in.shape, origin)
+        ```
     """
     if mask is None:
         n_dims = len(shape)

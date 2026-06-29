@@ -62,7 +62,7 @@ def get_sdfg_path(
     """Build an SDFG path from the qualified program name or it's direct path to .sdfg
 
     Args:
-        program_name: qualified name in the form module_qualname if module is not locals
+        daceprog_name: qualified name in the form module_qualname if module is not locals
         sdfg_file_path: absolute path to a .sdfg file
     """
     import os
