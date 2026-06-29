@@ -257,12 +257,12 @@ class CubedToLatLon:
     ) -> None:
         """
         Interpolate D-grid to A-grid winds at latitude-longitude coordinates.
+
         Args:
             u: x-wind on D-grid (in)
             v: y-wind on D-grid (in)
             ua: x-wind on A-grid (out)
             va: y-wind on A-grid (out)
-            comm: Cubed-sphere or Tile communicator
         """
         if self._do_ord4:
             if self.one_rank:

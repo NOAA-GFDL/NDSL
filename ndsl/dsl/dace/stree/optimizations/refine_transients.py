@@ -213,7 +213,7 @@ class CartesianRefineTransients(stree.ScheduleNodeTransformer):
         a given axis - irrigardless of it's access pattern (e.g. even if it could be
         refine because it's always written first.)
 
-    It should but cannot do/will bug if:
+    It should but cannot do or will produce bugs if:
         - With better dataflow analysis, we can reduce the dimensions to the correct lowest
         size needed on the axis (e.g. transient[K] and transient[K+1], requires a 2-element
         buffer), instead of the defensive _no refine_ strategy used now. We have _most_ of the

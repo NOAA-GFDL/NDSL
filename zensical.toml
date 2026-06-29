@@ -67,6 +67,9 @@ nav = [
       {"thresholds" = "docstrings/checkpointer/thresholds.md"},
       {"validation" = "docstrings/checkpointer/validation.md"}
     ]},
+    {"config" = [
+      {"backend" = "docstrings/config/backend.md"}
+    ]},
     {"comm" = [
       {"_boundary_utils" = "docstrings/comm/_boundary_utils.md"},
       {"boundary" = "docstrings/comm/boundary.md"},
@@ -84,7 +87,38 @@ nav = [
       {"tooling" = "docstrings/debug/tooling.md"}
     ]},
     {"dsl" = [
+      {"caches" = [
+        {"cache_location" = "docstrings/dsl/caches/cache_location.md"},
+        {"codepath" = "docstrings/dsl/caches/codepath.md"}
+      ]},
+      {"dace" = [
+        {"sdfg" = [
+          {"loop_transform" = "docstrings/dsl/dace/sdfg/loop_transform.md"}
+        ]},
+        {"stree" = [
+          {"optimizations" = [
+            {"axis_merge" = "docstrings/dsl/dace/stree/optimizations/axis_merge.md"},
+            {"clean_tree" = "docstrings/dsl/dace/stree/optimizations/clean_tree.md"},
+            {"memlet_helpers" = "docstrings/dsl/dace/stree/optimizations/memlet_helpers.md"},
+            {"refine_transients" = "docstrings/dsl/dace/stree/optimizations/refine_transients.md"},
+            {"specialize_maps" = "docstrings/dsl/dace/stree/optimizations/specialize_maps.md"},
+            {"tree_common_op" = "docstrings/dsl/dace/stree/optimizations/tree_common_op.md"}
+          ]},
+          {"pipeline" = "docstrings/dsl/dace/stree/pipeline.md"}
+        ]},
+        {"build" = "docstrings/dsl/dace/build.md"},
+        {"dace_config" = "docstrings/dsl/dace/dace_config.md"},
+        {"dace_executable" = "docstrings/dsl/dace/dace_executable.md"},
+        {"labeler" = "docstrings/dsl/dace/labeler.md"},
+        {"orchestration" = "docstrings/dsl/dace/orchestration.md"},
+        {"replacements" = "docstrings/dsl/dace/replacements.md"},
+        {"sdfg_debug_passes" = "docstrings/dsl/dace/sdfg_debug_passes.md"},
+        {"utils" = "docstrings/dsl/dace/utils.md"},
+        {"wrapped_halo_exchange" = "docstrings/dsl/dace/wrapped_halo_exchange.md"}
+      ]},
+      {"gt4py" = "docstrings/dsl/gt4py.md"},
       {"gt4py_utils" = "docstrings/dsl/gt4py_utils.md"},
+      {"ndsl_runtime" = "docstrings/dsl/ndsl_runtime.md"},
       {"stencil_config" = "docstrings/dsl/stencil_config.md"},
       {"stencil" = "docstrings/dsl/stencil.md"},
       {"typing" = "docstrings/dsl/typing.md"}
@@ -126,17 +160,17 @@ nav = [
     ]},
     {"quantity" = [
       {"bounds" = "docstrings/quantity/bounds.md"},
-      {"field_bundle" = "docstrings/quantity/field_bundle.md"},
+      {"local" = "docstrings/quantity/local.md"},
       {"metadata" = "docstrings/quantity/metadata.md"},
       {"quantity" = "docstrings/quantity/quantity.md"},
       {"state" = "docstrings/quantity/state.md"}
     ]},
     {"restart" = [
-      {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"},
-      {"_properties" = "docstrings/restart/_properties.md"}
+      {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"}
     ]},
     {"stencils" = [
       {"basic_operations" = "docstrings/stencils/basic_operations.md"},
+      {"column_operations" = "docstrings/stencils/column_operations.md"},
       {"c2l_ord" = "docstrings/stencils/c2l_ord.md"},
       {"corners" = "docstrings/stencils/corners.md"},
       {"tridiag" = "docstrings/stencils/tridiag.md"}

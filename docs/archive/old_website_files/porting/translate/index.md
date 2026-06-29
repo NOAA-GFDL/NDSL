@@ -39,7 +39,7 @@ The compute_func will be called automatically in the test. If your names in the 
 
 ![image2.png](../../images/translate/image2.png)
 
-If you need to rename it from the netcdf, you can use ["serialname"]:
+If you need to rename it from the netcdf, you can use `["serialname"]`:
 
 ![image3.png](../../images/translate/image3.png)
 

@@ -1,8 +1,8 @@
 # API Documentation
 
-Coming soon...
+Explore the core NDSL APIs for stencil computation, data structures, runtime orchestration, and scalable backend execution across CPUs and GPUs.
 
-<!-- <style>
+<style>
 /* re-enable the left side navigation bar for this page */
 @media screen and (min-width: 76.1875em) {
   .md-sidebar--primary {
@@ -11,19 +11,8 @@ Coming soon...
 }
 </style>
 
+<!--
 <div>
-  <div class="section-card">
-
-    <h1>API Documentation</h1>
-
-    <p>
-      Explore the core NDSL APIs for stencil computation,
-      data structures, runtime orchestration,
-      and scalable backend execution across CPUs and GPUs.
-    </p>
-
-  </div>
-
   <div class="two-col">
 
     <div class="section-card">
@@ -65,4 +54,5 @@ Coming soon...
 </div>
 
 </body>
-</html> -->
+</html>
+-->
