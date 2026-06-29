@@ -15,17 +15,17 @@ NDSL is designed to bridge the gap between atmospheric science and modern softwa
 
 This documentation serves as both an introduction for new users and a reference for active developers working within the NDSL framework.
 
-
 ### What You Will Learn
+
 The NDSL user guide introduces relevant concepts and provides knowledge needed to use NDSL. By the end of this guide, users will be introduced to the following:
 
-- [Data types and storage objects](./user_manual/data.md)
-- [Writing basic NDSL code](./user_manual/writing_ndsl_code.md)
-- [Advanced features and capabilities](./user_manual/advanced_features.md)
-- [Common patterns](./user_manual/common_patterns.md)
-- [Best coding practices](./user_manual/best_coding_practices.md)
-- [How and why classes are used with NDSL](./user_manual/why_use_classes.md)
-- [Underlying NDSL infrastructure](./user_manual/backends.md)
+- [Data types and storage objects](./data.md)
+- [Writing basic NDSL code](./writing_ndsl_code.md)
+- [Advanced features and capabilities](./advanced_features.md)
+- [Common patterns](./common_patterns.md)
+- [Best coding practices](./best_coding_practices.md)
+- [How and why classes are used with NDSL](./why_use_classes.md)
+- [Underlying NDSL infrastructure](./backends.md)
 
 ### Intended Audience
 
