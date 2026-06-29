@@ -325,7 +325,9 @@ def _build_sdfg(
                     if isinstance(me, nodes.Tasklet) and "callback_" in me.label:
                         exclude_taskslets_list.append(me.label)
 
-                sdfg.apply_transformations_repeated(AddThreadBlockMap, print_report=False)
+                sdfg.apply_transformations_repeated(
+                    AddThreadBlockMap, print_report=False
+                )
 
                 if optimization_config.gpu.common_gpu_xforms:
                     with DaCeProgress(config, "Apply common GPU xforms"):
