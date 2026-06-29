@@ -698,11 +698,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 1 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg1 is None:
             self._init_cell_trigonometry()
@@ -713,11 +715,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 2 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg2 is None:
             self._init_cell_trigonometry()
@@ -728,11 +732,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 3 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg3 is None:
             self._init_cell_trigonometry()
@@ -743,11 +749,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 4 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg4 is None:
             self._init_cell_trigonometry()
@@ -758,11 +766,14 @@ class MetricTerms:
         """
         Cosine of the angle at point 5 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
+
         The inner product of ec1 and ec2 for point 5
         """
         if self._cos_sg5 is None:
@@ -774,11 +785,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 6 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg6 is None:
             self._init_cell_trigonometry()
@@ -789,11 +802,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 7 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg7 is None:
             self._init_cell_trigonometry()
@@ -804,11 +819,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 8 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg8 is None:
             self._init_cell_trigonometry()
@@ -819,11 +836,13 @@ class MetricTerms:
         """
         Cosine of the angle at point 9 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._cos_sg9 is None:
             self._init_cell_trigonometry()
@@ -834,11 +853,13 @@ class MetricTerms:
         """
         Sine of the angle at point 1 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg1 is None:
             self._init_cell_trigonometry()
@@ -849,11 +870,13 @@ class MetricTerms:
         """
         Sine of the angle at point 2 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg2 is None:
             self._init_cell_trigonometry()
@@ -864,11 +887,13 @@ class MetricTerms:
         """
         Sine of the angle at point 3 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg3 is None:
             self._init_cell_trigonometry()
@@ -879,11 +904,13 @@ class MetricTerms:
         """
         Sine of the angle at point 4 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg4 is None:
             self._init_cell_trigonometry()
@@ -894,11 +921,13 @@ class MetricTerms:
         """
         Sine of the angle at point 5 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
 
         For the center point this is one minus the inner product of ec1 and ec2 squared
         """
@@ -911,11 +940,13 @@ class MetricTerms:
         """
         Sine of the angle at point 6 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg6 is None:
             self._init_cell_trigonometry()
@@ -926,11 +957,13 @@ class MetricTerms:
         """
         Sine of the angle at point 7 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg7 is None:
             self._init_cell_trigonometry()
@@ -941,11 +974,13 @@ class MetricTerms:
         """
         Sine of the angle at point 8 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+
         """
         if self._sin_sg8 is None:
             self._init_cell_trigonometry()
@@ -956,11 +991,13 @@ class MetricTerms:
         """
         Sine of the angle at point 9 of the 'supergrid' within each grid cell:
 
+        ```
         9---4---8
         |       |
         1   5   3
         |       |
         6---2---7
+        ```
         """
         if self._sin_sg9 is None:
             self._init_cell_trigonometry()
