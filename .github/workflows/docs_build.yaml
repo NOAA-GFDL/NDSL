@@ -1,4 +1,4 @@
-name: "Build docs"
+name: "NDSL docs build"
 
 # This workflow builds the docs to catch us when modules are moved/deleted
 # and the auto-generated docstrings can't build anymore. This does not catch
