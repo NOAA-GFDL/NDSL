@@ -1,6 +1,7 @@
 # GEOS Integration Results
 
 Four components of GEOS has been ported to NDSL:
+
 - Finite Volume Cubed (FV3) Dynamical Core
 - Geophysical Fluid Dynamics Lab Single-Moment Microphysics
 - Grell-Freitas Convection Parameterization
@@ -12,14 +13,13 @@ has errors of no more than six orders of magnitude less than the observed value 
 that numerical accuracy is maintained.
 
 Ported code is tested for numerical accuracy by running "translate tests" - a numerical comparison of the ported code and the original Fortran code on a single timestep
-in isolation from the rest of the model. Validation has been performed using Single Column Model (SCM) runs and General Cirtulation Model (GCM) runs. For SCM experiments,
+in isolation from the rest of the model. Validation has been performed using Single Column Model (SCM) runs and General Circulation Model (GCM) runs. For SCM experiments,
 the ported code is verified independently on each of the first 20 timesteps. For GCM runs (at C24 horizontal resolution), only the first ten timesteps are verified.
 A successful, or "passed" test signals that numerical accuracy has been maintained in the ported code.
 
-Next, scientific validity is assesed by comparing the output of a full model runs (SCM or GCM) using either the Fortran and NDSL component. This analysis has been
+Next, scientific validity is assessed by comparing the output of a full model runs (SCM or GCM) using either the Fortran and NDSL component. This analysis has been
 performed with three SCM experiments ("bomex", "armtwp-ice", and "armtwp-july97") and a GCM run initialized on 14 April 2000. SCM experiments ran for their entire
 durations, while GCM runs were limited to 10 days.
-
 
 More information on the benchmarking process coming soon...
 
@@ -54,7 +54,9 @@ More information on the benchmarking process coming soon...
         ![V](../../img/gcm_V_gfdl1m_c180_l72_7days.png)
 
 ### Performance Benchmarks
+
 Coming soon...
+
 <!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
@@ -96,7 +98,9 @@ Coming soon...
         ![V](../../img/gcm_V_uw_c180_l72_7days.png)
 
 ### Performance Benchmarks
+
 Coming soon...
+
 <!-- | Resolution | Layout | Fortran | NDSL GPU (dace:gpu) | NDSL CPU (gt:cpu_kfirst) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
@@ -132,7 +136,9 @@ Coming soon...
         ![V](../../img/gcm_V_gf2020_c48_l72_7days.png)
 
 ### Performance Benchmarks
+
 Coming soon...
+
 <!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |
@@ -164,7 +170,9 @@ Work concluded June 2026.
         ![Hovmoller](../../img/scm_moist_armtwp_ice_hovmoller_gpu_72.png)
 
 ### Benchmarks
+
 Coming soon...
+
 <!-- | Resolution | Layout | Fortran | NDSL GPU (st:dace:gpu) | NDSL CPU (st:dace:cpu:KJI) | Speedup (GPU) | Speedup (CPU) |
 |---|---|---|---|---|---|---|
 | C180 (~51 km) | 4×4 | 0.23 s | 0.04 s | 0.37 s | 6.29× | -1.62× |

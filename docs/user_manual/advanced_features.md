@@ -15,7 +15,7 @@ To help illustrate them, let's create a simple stencil where we convert temperat
 to Kelvin:
 
 
-    ``` py linenums="1"
+    ```py linenums="1"
     from ndsl.dsl.gt4py import PARALLEL, computation, interval
     from ndsl import StencilFactory
     from ndsl.boilerplate import get_factories_single_tile
@@ -88,7 +88,7 @@ where a constant is referenced numerous times throughout a stencil.
 
 To build the stencil with an external, we just need to add a single argument to the build command:
 
-``` py linenums="19"
+```py linenums="19"
         self.constructed_copy_stencil = stencil_factory.from_dims_halo(
             func=celsius_to_kelvin,
             compute_dims=[X_DIM, Y_DIM, Z_DIM],
@@ -100,7 +100,7 @@ To build the stencil with an external, we just need to add a single argument to 
 
 And then to load in the external within the stencil:
 
-``` py linenums="9"
+```py linenums="9"
 def celsius_to_kelvin(temperature_Celsius: FloatField, temperature_Kelvin: FloatField):
     # read in the external
     from __externals__ import C_TO_K
@@ -134,7 +134,7 @@ includes the entire domain. There is another method - `from_origin_domain`, whic
 flexibility (in fact, `from_dims_halo` calls this method with fixed arguments). Modifying our
 example above:
 
-``` py linenums="15"
+```py linenums="15"
 class Convert:
     def __init__(self, stencil_factory: StencilFactory, domain):
 
@@ -150,7 +150,7 @@ class Convert:
 
 and now we need to pass in an additional argument to the class:
 
-``` py linenums="43"
+```py linenums="43"
     convert = Convert(stencil_factory, domain)
 ```
 
