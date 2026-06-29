@@ -5,8 +5,8 @@ This part of the documentation includes notes about porting FORTRAN code to NDSL
 ## General Concepts
 
 Since we are not trying to do model developing but rather replicate an existing model, the main philosophy is to replicate model behavior as precisely as possible.
-Since weather and climate models can take diverging paths based on very small input differences, as described in [\[1\]][1], a bitwise reproducible code is impossible to achieve.
-There were attempts at solving this problem like shown in [\[2\]][2] or [\[3\]][3] but all of those require heavy modification to the original code.
+Since weather and climate models can take diverging paths based on very small input differences, as described in [1], a bitwise reproducible code is impossible to achieve.
+There were attempts at solving this problem like shown in [2] or [3] but all of those require heavy modification to the original code.
 In our case, the switch from the original FORTRAN environment to a C++ environment can already contribute to these small errors showing up and therefore a 1:1 validation on a large scale is impossible.
 This effect gets further enhanced by computation on GPUs.
 Lastly the mixing of precisions found in various models is often done slightly unmethodical and can further complicate the understand of what precision is required where.
