@@ -189,16 +189,20 @@ class Backend:
         return self._device == BackendTargetDevice.GPU
 
     def equivalent_cpu_backend(self) -> "Backend":
-        """Return the equivalent backend (same strategy, framework and loop order) but for CPU device""" 
+        """Return the equivalent backend (same strategy, framework and loop order) but for CPU device"""
         if self._device == BackendTargetDevice.CPU:
             return self
-        return Backend(f"{self._strategy}:{self._framework}:{BackendTargetDevice.CPU}:{self._loop_order}")
+        return Backend(
+            f"{self._strategy}:{self._framework}:{BackendTargetDevice.CPU}:{self._loop_order}"
+        )
 
     def equivalent_stencil_backend(self) -> "Backend":
         """Return the equivalent backend (same device, framework and loop order) but for Stencil strategy"""
         if self._strategy == BackendStrategy.STENCIL:
             return self
-        return Backend(f"{BackendStrategy.STENCIL}:{self._framework}:{self._device}:{self._loop_order}")
+        return Backend(
+            f"{BackendStrategy.STENCIL}:{self._framework}:{self._device}:{self._loop_order}"
+        )
 
     def is_fortran_aligned(self) -> bool:
         """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran
