@@ -189,19 +189,48 @@ class Backend:
         return self._device == BackendTargetDevice.GPU
 
     def equivalent_cpu_backend(self) -> "Backend":
-        """Return the equivalent backend (same strategy, framework and loop order) but for CPU device"""
+        """Return the equivalent backend (same strategy, framework and loop order) but for CPU device."""
         if self._device == BackendTargetDevice.CPU:
             return self
         return Backend(
-            f"{self._strategy}:{self._framework}:{BackendTargetDevice.CPU}:{self._loop_order}"
+            f"{self._strategy.value}:{self._framework.value}:{BackendTargetDevice.CPU.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_gpu_backend(self) -> "Backend":
+        """Return the equivalent backend (same strategy, framework and loop order) but for GPU device."""
+        if self._device == BackendTargetDevice.GPU:
+            return self
+        return Backend(
+            f"{self._strategy.value}:{self._framework.value}:{BackendTargetDevice.GPU.value}:{self._loop_order.value}"
         )
 
     def equivalent_stencil_backend(self) -> "Backend":
-        """Return the equivalent backend (same device, framework and loop order) but for Stencil strategy"""
+        """Return the equivalent backend (same device, framework and loop order) but for Stencil strategy."""
         if self._strategy == BackendStrategy.STENCIL:
             return self
         return Backend(
-            f"{BackendStrategy.STENCIL}:{self._framework}:{self._device}:{self._loop_order}"
+            f"{BackendStrategy.STENCIL.value}:{self._framework.value}:{self._device.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_orchestration_backend(self) -> "Backend":
+        """Return the equivalent backend (same device, framework and loop order) but with orchestration strategy."""
+        if self._strategy == BackendStrategy.ORCHESTRATION:
+            return self
+        return Backend(
+            f"{BackendStrategy.ORCHESTRATION.value}:{self._framework.value}:{self._device.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_backend_with_loop_order(
+        self, loop_order: BackendLoopOrder
+    ) -> "Backend":
+        """
+        Return the equivalent backend (same strategy, framework, and device) with a different loop order.
+        """
+        if self._loop_order == loop_order:
+            return self
+
+        return Backend(
+            f"{self._strategy.value}:{self._framework.value}:{self._device.value}:{loop_order.value}"
         )
 
     def is_fortran_aligned(self) -> bool:
