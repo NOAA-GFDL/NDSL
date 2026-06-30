@@ -10,5 +10,5 @@ assignees: ''
 A clear and concise description of what the problem is.
 
 **Describe what you have tried**
-A clear and concise description of what steps you have taken.  Include command
+A clear and concise description of what steps you have taken. Include command
 lines, and any messages from the command.

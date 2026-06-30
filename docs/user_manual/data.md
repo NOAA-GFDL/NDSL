@@ -51,7 +51,7 @@ therefore do not have access to the following functionality.
 
 Below is an example of how to initialize an NDSL quantity with three dimensions:
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 
@@ -76,7 +76,7 @@ the type of data stored in the quantity, and can be `Float`/`Int`/`Bool`.
 
 Finally, we can print the quantity we have just created to check our work. Based on the code above,
 
-``` py linenums="11"
+```py linenums="11"
 print(quantity_example)
 ```
 
