@@ -10,7 +10,7 @@ class OptimizationConfig:
 
         @dataclass
         class Merger:
-            enabled: bool = False
+            enabled: bool = True
             """Enable cartesian axis merging."""
 
             overcompute: bool = (

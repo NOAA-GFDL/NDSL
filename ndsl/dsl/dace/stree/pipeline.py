@@ -17,7 +17,6 @@ from ndsl.dsl.dace.stree.optimizations import (
 class StreePipeline:
     def __init__(
         self,
-        config: OptimizationConfig,
         *,
         passes: list[tn.ScheduleNodeVisitor],
         cache_directory: Path | None = None,
@@ -27,7 +26,6 @@ class StreePipeline:
 
         self.cache_directory = cache_directory
         self.passes = passes
-        self.config = config
 
     def __hash__(self) -> int:
         return hash(repr(self))
@@ -37,9 +35,9 @@ class StreePipeline:
 
     def run(
         self,
-        stree: tn.ScheduleTreeRoot,
+        stree: tn.ScheduleTreeScope,
         verbose: bool = False,
-    ) -> tn.ScheduleTreeRoot:
+    ) -> tn.ScheduleTreeScope:
         tree_stats = TreeOptimizationStatistics()
         tree_stats.original(stree)
 
@@ -71,7 +69,7 @@ class CPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations()]
+            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
             if config.stree.inline_K_loops_size_one:
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
@@ -83,11 +81,10 @@ class CPUPipeline(StreePipeline):
                     )
                 )
             if config.stree.refine_transients:
-                ppl_passes.append(CartesianRefineTransients(backend))
+                ppl_passes.append(CartesianRefineTransients())
         else:
             ppl_passes = passes
         super().__init__(
-            config=config,
             passes=ppl_passes,
             cache_directory=cache_directory,
         )
@@ -103,7 +100,7 @@ class GPUPipeline(StreePipeline):
         cache_directory: Path | None = None,
     ) -> None:
         if passes is None:
-            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations()]
+            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
             if config.stree.inline_K_loops_size_one:
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
@@ -123,7 +120,6 @@ class GPUPipeline(StreePipeline):
         else:
             ppl_passes = passes
         super().__init__(
-            config=config,
             passes=ppl_passes,
             cache_directory=cache_directory,
         )

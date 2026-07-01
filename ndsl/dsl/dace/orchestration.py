@@ -152,7 +152,7 @@ def _optimization_pipeline(
     passes: list[tn.ScheduleNodeVisitor] | None = None,
     cache_directory: Path | None = None,
 ) -> StreePipeline:
-    if device_type == device_type.CPU:
+    if device_type == DeviceType.CPU:
         return CPUPipeline(
             config, backend, passes=passes, cache_directory=cache_directory
         )

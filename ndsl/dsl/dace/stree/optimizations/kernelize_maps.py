@@ -3,7 +3,7 @@ from copy import deepcopy
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend
-from ndsl.config import BackendLoopOrder, BackendTargetDevice
+from ndsl.config import BackendLoopOrder
 from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
     is_axis_map,
@@ -55,11 +55,12 @@ class _KernelizeMap(tn.ScheduleNodeTransformer):
 
 
 class KernelizeMaps(tn.ScheduleNodeVisitor):
-    def __init__(self, backend: Backend) -> None:
+    def __init__(self, backend: Backend, *, apply_order: str = "default") -> None:
         super().__init__()
         self._backend = backend
+        self._apply_order = apply_order
 
-        if self._backend.device != BackendTargetDevice.GPU:
+        if not self._backend.is_gpu_backend():
             raise ValueError(
                 "The transformation `KernelizeMaps` is only intended to run on GPUs."
             )
@@ -72,6 +73,14 @@ class KernelizeMaps(tn.ScheduleNodeVisitor):
             _KernelizeMap(axis).visit(node)
 
     def _axis_order(self) -> list[AxisIterator]:
+        if self._apply_order == "default":
+            # By default, follow the backend's axis order.
+            return self._axis_order_backend()
+
+        # Allow custom order (e.g. for local optimizations).
+        return self._axis_order_custom()
+
+    def _axis_order_backend(self) -> list[AxisIterator]:
         if self._backend.loop_order == BackendLoopOrder.IJK:
             return [AxisIterator._J, AxisIterator._I]
         if self._backend.loop_order == BackendLoopOrder.KJI:
@@ -79,4 +88,14 @@ class KernelizeMaps(tn.ScheduleNodeVisitor):
 
         raise NotImplementedError(
             f"KernelizeMaps is not configured for loop order {self._backend.loop_order}."
+        )
+
+    def _axis_order_custom(self) -> list[AxisIterator]:
+        if self._apply_order == "JI":
+            return [AxisIterator._J, AxisIterator._I]
+        if self._apply_order == "JK":
+            return [AxisIterator._J, AxisIterator._K]
+
+        raise NotImplementedError(
+            f"KernelizeMaps is not configured for custom apply order {self._apply_order}."
         )
