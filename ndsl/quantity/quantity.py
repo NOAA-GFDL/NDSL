@@ -286,7 +286,7 @@ class Quantity:
     def data(self) -> np.ndarray | cupy.ndarray:
         """The underlying array of data"""
         warnings.warn(
-            "Quantity.data accessor is now deprecated. Use a slicing operation directly on"
+            "Quantity.data accessor is now deprecated. Use a slicing operation directly on "
             "the quantity, e.g. `my_quantity[:]` instead of `my_quantity.data[:]`",
             category=UserWarning,
             stacklevel=2,
