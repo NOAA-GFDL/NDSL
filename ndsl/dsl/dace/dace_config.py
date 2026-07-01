@@ -177,7 +177,7 @@ class DaceConfig:
             orchestration: orchestration mode from DaCeOrchestration
             time: trigger performance collection, available to user with
                 `performance_collector`
-            single_codepath: code is expected to be the same on every rank (case
+            single_code_path: code is expected to be the same on every rank (case
                 of column-physics) and therefore can be compiled once
         """
 

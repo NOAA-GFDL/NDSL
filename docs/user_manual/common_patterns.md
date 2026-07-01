@@ -25,7 +25,7 @@ the `Z_INTERFACE_DIM` instead of the `Z_DIM`, and then restrict your interval an
 stencil reads accordingly:
 
 Example "Fortran code":
-    ``` fortran linenums="1"
+    ```fortran linenums="1"
     program compute_height
         implicit none
 
@@ -42,7 +42,7 @@ Example "Fortran code":
         real, dimension(X_DIM, Y_DIM, Z_DIM) :: d_height
         real, dimension(X_DIM, Y_DIM, Z_DIM+1) :: height
 
-        ! initalize data
+        ! initialize data
         do i = 1, X_DIM
             do j = 1, Y_DIM
                 do k = 1, Z_DIM
@@ -68,7 +68,7 @@ Example "Fortran code":
 
 Example "NDSL Code"
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl.dsl.gt4py import (
     computation,
     interval,
@@ -151,7 +151,7 @@ one or more operations based on that level (e.g. identify LCL, compute convectiv
 
 Example "Fortran Code":
 
-``` fortran linenums="1"
+```fortran linenums="1"
 program average_below_level
     implicit none
 
@@ -169,7 +169,7 @@ program average_below_level
     integer, dimension(X_DIM, Y_DIM) :: desired_level
     real, dimension(X_DIM, Y_DIM) :: average_temperature
 
-    ! initalize data
+    ! initialize data
     p_crit = 500
     do k = 1, Z_DIM
         pressure(:, :, k) = 1000 - (k-1) * 100 ! pressure decreases by 100mb per level
@@ -215,7 +215,7 @@ end program average_below_level
 
 Example "NDSL Code"
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl.dsl.gt4py import (
     FORWARD,
     computation,
@@ -324,7 +324,7 @@ NDSL systems:
 
 Example "Fortran Code"
 
-``` fortran linenums="1"
+```fortran linenums="1"
 program make_table
 
     implicit none
@@ -352,7 +352,7 @@ end program make_table
 
 Example "NDSL Code"
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl.dsl.gt4py import (
     computation,
     interval,
@@ -416,7 +416,7 @@ class ConstructTable:
 
 
 if __name__ == "__main__":
-    # consider the following model domain and factories are presnet
+    # consider the following model domain and factories are present
     domain = (10, 10, 10)
     nhalo = 0
     stencil_factory, quantity_factory = get_factories_single_tile(
@@ -456,7 +456,7 @@ if __name__ == "__main__":
         compute_dims=[X_DIM, Y_DIM, Z_DIM],
     )
 
-    # # initalize array for calculation using table
+    # initialize array for calculation using table
     out_field = quantity_factory.zeros([X_DIM, Y_DIM, Z_DIM], "n/a")
 
     use_table(out_field, construct_table.table)
@@ -472,12 +472,14 @@ to the larger model grid specifications:
 Example "NDSL Code"
 
 This type is defined using the following pattern:
-``` py
+
+```py
 GlobalTable_local_type = GlobalTable[(<data type (Float/Int/Bool)>, int(table_size))]
 ```
 
 And accurately typed and referenced within the stencil:
-``` py
+
+```py
 def stencil(data: FloatField, table: GlobalTable_local_type):
     with computation(PARALLEL), interval(...):
         data = table.A[desired_index]
@@ -490,18 +492,18 @@ support optional field inputs (a quantity with one or more dimensions) but it is
 optional scalar inputs.
 
 For a field, the best way to create an "optional" input in NDSL is to create a situation where an input
-(which is always suppled) has the option of being used - a calculation tied to some boolean, perhaps.
+(which is always supplied) has the option of being used - a calculation tied to some boolean, perhaps.
 Furthermore, the field supplied need not be relevant. If the option will never be used, a dummy
 field can be passed to satisfy the API of the function and simply never touched (or touched, with the result
 discarded upon completion of the function).
 
 For scalar inputs, the notation is quite similar to that of traditional Python. Note that NDSL requires
-that all scalars - if not suppled - have a default value, and that default value must be of the declared type
+that all scalars - if not supplied - have a default value, and that default value must be of the declared type
 (see line 19 of the example below):
 
 Example "NDSL Code"
 
-``` py linenums="1"
+```py linenums="1"
 
 from ndsl.dsl.gt4py import (
     computation,
@@ -583,7 +585,7 @@ program conditional_calculation
     logical, dimension(X_DIM, Y_DIM) :: mask
 
     critical_value = 5
-    ! initalize data
+    ! initialize data
     do i = 1, X_DIM
         do j = 1, Y_DIM
             do k = 1, Z_DIM
@@ -622,7 +624,7 @@ end program conditional_calculation
 
 Example "NDSL Code"
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl.dsl.gt4py import PARALLEL, FORWARD, computation, interval, exp, function
 from ndsl import StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
@@ -729,7 +731,7 @@ program nested_k_loop
     ! allocate arrays
     integer, dimension(X_DIM, Y_DIM, Z_DIM) :: in_data, out_data
 
-    ! initalize data
+    ! initialize data
     do i = 1, X_DIM
         do j = 1, Y_DIM
             do k = 1, Z_DIM
@@ -760,7 +762,7 @@ end program nested_k_loop
 
 Example "NDSL Code"
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl.dsl.gt4py import (
     computation,
     interval,

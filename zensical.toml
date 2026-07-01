@@ -40,9 +40,7 @@ nav = [
   # Real-world results from running NDSL in GEOS model configurations.
   {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL In Action" = [
     "ndsl_in_action/index.md",
-    {"NASA" = ["ndsl_in_action/nasa/index.md"]},
-    {"NOAA" = ["ndsl_in_action/noaa/index.md"]},
-    {"International" = ["ndsl_in_action/international/index.md"]}
+    {"NASA" = ["ndsl_in_action/nasa/index.md"]}
   ]},
   # ── API Docs ──────────────────────────────────────────────────────────────
   # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
@@ -67,6 +65,9 @@ nav = [
       {"thresholds" = "docstrings/checkpointer/thresholds.md"},
       {"validation" = "docstrings/checkpointer/validation.md"}
     ]},
+    {"config" = [
+      {"backend" = "docstrings/config/backend.md"}
+    ]},
     {"comm" = [
       {"_boundary_utils" = "docstrings/comm/_boundary_utils.md"},
       {"boundary" = "docstrings/comm/boundary.md"},
@@ -84,7 +85,38 @@ nav = [
       {"tooling" = "docstrings/debug/tooling.md"}
     ]},
     {"dsl" = [
+      {"caches" = [
+        {"cache_location" = "docstrings/dsl/caches/cache_location.md"},
+        {"codepath" = "docstrings/dsl/caches/codepath.md"}
+      ]},
+      {"dace" = [
+        {"sdfg" = [
+          {"loop_transform" = "docstrings/dsl/dace/sdfg/loop_transform.md"}
+        ]},
+        {"stree" = [
+          {"optimizations" = [
+            {"axis_merge" = "docstrings/dsl/dace/stree/optimizations/axis_merge.md"},
+            {"clean_tree" = "docstrings/dsl/dace/stree/optimizations/clean_tree.md"},
+            {"memlet_helpers" = "docstrings/dsl/dace/stree/optimizations/memlet_helpers.md"},
+            {"refine_transients" = "docstrings/dsl/dace/stree/optimizations/refine_transients.md"},
+            {"specialize_maps" = "docstrings/dsl/dace/stree/optimizations/specialize_maps.md"},
+            {"tree_common_op" = "docstrings/dsl/dace/stree/optimizations/tree_common_op.md"}
+          ]},
+          {"pipeline" = "docstrings/dsl/dace/stree/pipeline.md"}
+        ]},
+        {"build" = "docstrings/dsl/dace/build.md"},
+        {"dace_config" = "docstrings/dsl/dace/dace_config.md"},
+        {"dace_executable" = "docstrings/dsl/dace/dace_executable.md"},
+        {"labeler" = "docstrings/dsl/dace/labeler.md"},
+        {"orchestration" = "docstrings/dsl/dace/orchestration.md"},
+        {"replacements" = "docstrings/dsl/dace/replacements.md"},
+        {"sdfg_debug_passes" = "docstrings/dsl/dace/sdfg_debug_passes.md"},
+        {"utils" = "docstrings/dsl/dace/utils.md"},
+        {"wrapped_halo_exchange" = "docstrings/dsl/dace/wrapped_halo_exchange.md"}
+      ]},
+      {"gt4py" = "docstrings/dsl/gt4py.md"},
       {"gt4py_utils" = "docstrings/dsl/gt4py_utils.md"},
+      {"ndsl_runtime" = "docstrings/dsl/ndsl_runtime.md"},
       {"stencil_config" = "docstrings/dsl/stencil_config.md"},
       {"stencil" = "docstrings/dsl/stencil.md"},
       {"typing" = "docstrings/dsl/typing.md"}
@@ -126,17 +158,17 @@ nav = [
     ]},
     {"quantity" = [
       {"bounds" = "docstrings/quantity/bounds.md"},
-      {"field_bundle" = "docstrings/quantity/field_bundle.md"},
+      {"local" = "docstrings/quantity/local.md"},
       {"metadata" = "docstrings/quantity/metadata.md"},
       {"quantity" = "docstrings/quantity/quantity.md"},
       {"state" = "docstrings/quantity/state.md"}
     ]},
     {"restart" = [
-      {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"},
-      {"_properties" = "docstrings/restart/_properties.md"}
+      {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"}
     ]},
     {"stencils" = [
       {"basic_operations" = "docstrings/stencils/basic_operations.md"},
+      {"column_operations" = "docstrings/stencils/column_operations.md"},
       {"c2l_ord" = "docstrings/stencils/c2l_ord.md"},
       {"corners" = "docstrings/stencils/corners.md"},
       {"tridiag" = "docstrings/stencils/tridiag.md"}
@@ -149,8 +181,8 @@ nav = [
       {"cube_sphere" = "docstrings/viz/cube_sphere.md"}
     ]}
   ]},
-  # ── Dev Notes ─────────────────────────────────────────────────────────────
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg> Dev Notes" = "dev_notes/index.md"},
+  # ── Roadmap ─────────────────────────────────────────────────────────────
+  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M2.077 18.449A2 2 0 0 0 4 21h16a2 2 0 0 0 1.924-2.55l-4-14A2 2 0 0 0 16 3H8a2 2 0 0 0-1.924 1.45z'/><path d='M12 17v4'/><path d='M12 5V3'/><path d='M12 9v3'/></svg> Roadmap" = "roadmap.md"},
   # ── Community ─────────────────────────────────────────────────────────────
   {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md"}
 ]

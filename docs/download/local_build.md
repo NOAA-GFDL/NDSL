@@ -3,7 +3,7 @@
 ## Requirements
 
 * `tcsh` for GEOS workflow
-* A `gcc/g++/gfortran` compiler (gcc-12 is our current workhorse in Linux.  macOS has been tested using gcc-14 via Homebrew)
+* A `gcc/g++/gfortran` compiler (gcc-12 is our current workhorse in Linux. macOS has been tested using gcc-14 via Homebrew)
     * As of macOS Sequoia 15.5, `clang/clang++` can also be used in place of `gcc/g++`.
 * If using macOS, [Homebrew](https://brew.sh/) is needed to install certain packages
 

@@ -2,7 +2,8 @@ import enum
 
 
 class FV3CodePath(enum.Enum):
-    """Enum listing all possible code paths on a cube sphere.
+    """
+    Enum listing all possible code paths on a cube sphere.
 
     For any layout the cube sphere has up to 9 different code paths depending on
     the positioning of the rank on the tile and which of the edge/corner cases
@@ -15,15 +16,25 @@ class FV3CodePath(enum.Enum):
     """
 
     All = "FV3_A"
+    "All boundary computations, e.g. 1x1 layout."
     BottomLeft = "FV3_BL"
+    "Bottom left corner."
     Left = "FV3_L"
+    "Left edge."
     TopLeft = "FV3_TL"
+    "Top left corner."
     Top = "FV3_T"
+    "Top edge."
     TopRight = "FV3_TR"
+    "Top right corner."
     Right = "FV3_R"
+    "Right edge."
     BottomRight = "FV3_BR"
+    "Bottom right corner."
     Bottom = "FV3_B"
+    "Bottom edge."
     Center = "FV3_C"
+    "Center tile with boundaries, e.g. in a 3x3 layout."
 
     def __str__(self) -> str:
         return self.value

@@ -3,7 +3,6 @@
 The NDSL community is a collaborative space for scientists, developers, and researchers working on next-generation Earth system modeling. Whether you're getting
 started, contributing code, or running experiments, we’re here to support you.
 
-
 <div class="two-col" markdown>
 <div class="section-card" markdown>
 ## Get Involved
@@ -28,6 +27,7 @@ Join the NDSL community for discussions, questions, collaboration opportunities,
 For collaboration opportunities, technical support, or project inquiries, please reach out to the NDSL team.
 
 ### Primary Contacts
+
 <div class="three-col wide-grid" markdown>
 <div class="section-card tight-card" markdown>
 ## Florian Deconinck
@@ -60,5 +60,6 @@ rusty.benson@noaa.gov
 | Support Scientist | Katrina Fandrich | katrina.fandrich@nasa.gov |
 | Support Scientist | Janice Kim | janice.kim@noaa.gov
 | Support Scientist | Charles Kropiewnicki | charles.kropiewnicki@nasa.gov |
-| Support Scientist | Frank Malatino | frank.malatino@noaa.gov
+| Support Scientist | Frank Malatino | frank.malatino@noaa.gov |
+
 </div>

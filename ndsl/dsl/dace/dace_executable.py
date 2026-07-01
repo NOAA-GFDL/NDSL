@@ -27,9 +27,9 @@ class DaceExecutable:
         """Hash direct memory of NDSL expected types.
 
         Handling the following types:
-        - quantity | Numpy.ndarray | cupy.ndarray: we hash the C pointer through the array interface,
-        - state: called into a bespoke function,
-        - everything else is passed as-is to `hash` which _can_ fail.
+            - quantity | Numpy.ndarray | cupy.ndarray: we hash the C pointer through the array interface,
+            - state: called into a bespoke function,
+            - everything else is passed as-is to `hash` which _can_ fail.
         """
         if self._skip_hash:
             self.arguments = None  # Flush arguments to force recompute
