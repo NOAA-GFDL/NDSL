@@ -1,4 +1,5 @@
 from enum import Enum
+from numbers import Number
 
 from dace.memlet import Memlet
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
@@ -25,8 +26,14 @@ class AxisIterator(Enum):
         return other == self.as_str()
 
 
-def normalize_cartesian_indexation(index: symbol, axis: AxisIterator) -> symbol:
+def normalize_cartesian_indexation(
+    index: Number | symbol, axis: AxisIterator
+) -> symbol:
     """Return a normalize indexation symbol for cartesian indexation."""
+    if isinstance(index, Number):
+        # Special case for refined cartesian indices, i.e. when `index` is 0.
+        return index
+
     rename_maps = {}
     for symb in index.free_symbols:
         if symb.name.startswith(axis.as_str()):
