@@ -5,7 +5,8 @@ from ndsl.dsl.caches.codepath import FV3CodePath
 def identify_code_path(
     rank: int,
     partitioner: Partitioner,
-    single_code_path: bool,
+    *,
+    single_code_path: bool = False,
 ) -> FV3CodePath:
     """
     Determine which code path your rank will hit.

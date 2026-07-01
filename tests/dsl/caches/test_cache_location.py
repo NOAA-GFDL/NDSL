@@ -28,10 +28,7 @@ def test_single_code_path() -> None:
 def test_1x1_layout() -> None:
     partitioner = TilePartitioner((1, 1))
     for rank in range(0, 6):
-        assert (
-            identify_code_path(rank, partitioner, single_code_path=False)
-            == FV3CodePath.All
-        )
+        assert identify_code_path(rank, partitioner) == FV3CodePath.All
 
 
 def test_2x2_layout() -> None:
@@ -39,25 +36,13 @@ def test_2x2_layout() -> None:
     for rank in range(0, 24):
         match rank % 4:
             case 0:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.BottomLeft
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.BottomLeft
             case 1:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.BottomRight
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.BottomRight
             case 2:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.TopLeft
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.TopLeft
             case 3:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.TopRight
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.TopRight
 
 
 def test_3x3_layout() -> None:
@@ -65,47 +50,20 @@ def test_3x3_layout() -> None:
     for rank in range(0, 54):
         match rank % 9:
             case 0:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.BottomLeft
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.BottomLeft
             case 1:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.Bottom
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.Bottom
             case 2:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.BottomRight
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.BottomRight
             case 3:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.Left
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.Left
             case 4:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.Center
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.Center
             case 5:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.Right
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.Right
             case 6:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.TopLeft
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.TopLeft
             case 7:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.Top
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.Top
             case 8:
-                assert (
-                    identify_code_path(rank, partitioner, single_code_path=False)
-                    == FV3CodePath.TopRight
-                )
+                assert identify_code_path(rank, partitioner) == FV3CodePath.TopRight
