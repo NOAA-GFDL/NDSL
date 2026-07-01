@@ -51,7 +51,9 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         MergeConditionals().visit(node)
 
         for axis in axis_merge_order:
-            CartesianAxisMerge(axis, overcompute=self._overcompute).visit(node)
+            CartesianAxisMerge(
+                axis, overcompute=self._overcompute
+            ).visit_ScheduleTreeRoot(node)
 
         ExtractOffgridConditionals().visit(node)
         MergeConditionals().visit(node)

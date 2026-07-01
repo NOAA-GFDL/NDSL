@@ -4,7 +4,6 @@ import dace.data
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.config import Backend, BackendFramework
 from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
 
 
@@ -28,7 +27,6 @@ def _reduce_cartesian_axis_size_to_1(
     transient_map_reads: dace.subsets.Range | None,
     transient_map_writes: dace.subsets.Range | None,
     transient_data: dace.data.Data,
-    layout_map: tuple[int, ...],
 ) -> bool:
     """Reduce dimension size of transient to 1 if all access (reads and writes)
     are atomic"""
@@ -55,21 +53,12 @@ def _reduce_cartesian_axis_size_to_1(
     # therefore this dimension can be removed. BUT we are not truly
     # removing it, we are reducing it to 1 to not have to deal
     # with different slicing.
-    transient_data.shape = _change_index_of_tuple(
+    new_shape = _change_index_of_tuple(
         transient_data.shape,
         axis.as_cartesian_index(),
         value=1,
     )
-
-    if len(transient_data.shape) == 3:
-        layout = [*layout_map]
-    else:
-        data_dim_count = len(transient_data.shape) - 3
-        layout = [dim + data_dim_count for dim in layout_map] + [
-            i - 1 for i in range(data_dim_count, 0, -1)
-        ]
-
-    transient_data.set_strides_from_layout(*layout)
+    transient_data.set_shape(new_shape)
     transient_data.lifetime = dace.dtypes.AllocationLifetime.State
     return True
 
@@ -90,9 +79,6 @@ class CollectTransientRangeAccess(tn.ScheduleNodeVisitor):
         ] = {}
         self.transients_range_writes: dict[str, dace.subsets.Range | None] = {}
         self.transients_range_reads: dict[str, dace.subsets.Range | None] = {}
-
-    def __str__(self) -> str:
-        return "CartesianCollectMaps"
 
     def _find_first_map_or_loop(
         self,
@@ -147,8 +133,8 @@ class CollectTransientRangeAccess(tn.ScheduleNodeVisitor):
                     ].add(map_entry)
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
-        self._record_access(node, node.input_memlets(), self.transients_range_writes)
-        self._record_access(node, node.output_memlets(), self.transients_range_reads)
+        self._record_access(node, node.input_memlets(), self.transients_range_reads)
+        self._record_access(node, node.output_memlets(), self.transients_range_writes)
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         self.containers = node.containers
@@ -158,23 +144,20 @@ class CollectTransientRangeAccess(tn.ScheduleNodeVisitor):
                 self.transients_range_writes[name] = None
                 self.transients_range_reads[name] = None
 
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
 
 class RebuildMemletsFromContainers(tn.ScheduleNodeVisitor):
-    """Rebuild memlets from containers to ensure they are scope to the right size."""
+    """Rebuild memlets from containers to ensure they are scoped to the right size."""
 
     def __init__(self, refined_arrays: set[str]) -> None:
         self._refined_arrays = refined_arrays
-
-    def __str__(self) -> str:
-        return "RefineTransientAxis"
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         for memlet in [*node.output_memlets(), *node.input_memlets()]:
             if memlet.data not in self._refined_arrays:
                 continue
+
             array = self.containers[memlet.data]
             if array.transient:
                 if not isinstance(memlet.subset, dace.subsets.Range):
@@ -190,8 +173,7 @@ class RebuildMemletsFromContainers(tn.ScheduleNodeVisitor):
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         self.containers = node.containers
-        for child in node.children:
-            self.visit(child)
+        self.generic_visit(node)
 
 
 class CartesianRefineTransients(tn.ScheduleNodeTransformer):
@@ -237,20 +219,13 @@ class CartesianRefineTransients(tn.ScheduleNodeTransformer):
         memory (e.g. halo) for the `RebuildMemletsFromContainers`!
     """
 
-    def __init__(self, backend: Backend) -> None:
+    def __init__(self) -> None:
         warnings.warn(
             "CartesianRefineTransients is a WIP. It's usage is *severely* limited "
             "and will most likely lead to bad numerics. Check the docs, check utest.",
             UserWarning,
             stacklevel=2,
         )
-
-        if not backend.is_orchestrated() or backend.framework != BackendFramework.DACE:
-            raise NotImplementedError(
-                f"[Schedule Tree Opt] CartesianRefineTransient not implemented for backend {backend}"
-            )
-        self.layout_map = backend.as_layout_map()
-        self.refined_array: set[str] = set()
 
     def __str__(self) -> str:
         return "CartesianRefineTransients"
@@ -260,10 +235,11 @@ class CartesianRefineTransients(tn.ScheduleNodeTransformer):
         collect_map.visit(node)
 
         # Remove Axis
-        refined_transient = 0
+        refined_arrays: set[str] = set()
         for name, data in node.containers.items():
             if not (data.transient and isinstance(data, dace.data.Array)):
                 continue
+
             refined = False
             for axis in AxisIterator:
                 # We do not refine multi-map transients
@@ -276,18 +252,18 @@ class CartesianRefineTransients(tn.ScheduleNodeTransformer):
                     > 1
                 ):
                     continue
+
                 # Refine axis down to 1
                 refined |= _reduce_cartesian_axis_size_to_1(
                     axis,
                     collect_map.transients_range_reads[name],
                     collect_map.transients_range_writes[name],
                     data,
-                    self.layout_map,
                 )
 
-            refined_transient += 1 if refined else 0
-            self.refined_array.add(name)
+            if refined:
+                refined_arrays.add(name)
 
-        RebuildMemletsFromContainers(self.refined_array).visit(node)
+        RebuildMemletsFromContainers(refined_arrays).visit(node)
 
-        ndsl_log.debug(f"🚀 {refined_transient} Transient refined")
+        ndsl_log.debug(f"🚀 {len(refined_arrays)} Transient refined")

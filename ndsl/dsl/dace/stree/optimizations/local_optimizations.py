@@ -2,12 +2,103 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.dsl.dace.stree.optimizations.cartesian_merge import CartesianMerge
-from ndsl.dsl.dace.stree.optimizations.common import list_index
 from ndsl.dsl.dace.stree.optimizations.kernelize_maps import KernelizeMaps
-from ndsl.dsl.dace.stree.optimizations.refine_transients import (
-    CartesianRefineTransients,
-)
 from ndsl.dsl.dace.stree.optimizations.remove_loops import InlineVertical2DWrite
+
+
+class ScheduleTreeScopeTransformer(tn.ScheduleNodeTransformer):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def _breadth_first_callback(self, node: tn.ScheduleTreeScope) -> None:
+        pass
+
+    def _depth_first_callback(self, node: tn.ScheduleTreeScope) -> None:
+        pass
+
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> tn.ScheduleTreeRoot:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_GBlock(self, node: tn.GBlock) -> tn.GBlock:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_LoopScope(self, node: tn.LoopScope) -> tn.LoopScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_ForScope(self, node: tn.ForScope) -> tn.ForScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_WhileScope(self, node: tn.WhileScope) -> tn.WhileScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_DoWhileScope(self, node: tn.DoWhileScope) -> tn.DoWhileScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_IfScope(self, node: tn.IfScope) -> tn.IfScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_StateIfScope(self, node: tn.StateIfScope) -> tn.StateIfScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_ElifScope(self, node: tn.ElifScope) -> tn.ElifScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_ElseScope(self, node: tn.ElseScope) -> tn.ElseScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_MapScope(self, node: tn.MapScope) -> tn.MapScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
+
+    def visit_ConsumeScope(self, node: tn.ConsumeScope) -> tn.ConsumeScope:
+        self._breadth_first_callback(node)
+        self.generic_visit(node)
+        self._depth_first_callback(node)
+
+        return node
 
 
 class _LabeledSection(tn.ScheduleTreeScope):
@@ -28,7 +119,7 @@ class _LabeledSection(tn.ScheduleTreeScope):
         return result + super().as_string(indent)
 
 
-class _LabelSections(tn.ScheduleNodeTransformer):
+class _LabelSections(ScheduleTreeScopeTransformer):
     """
     Transform entry/exit labeler nodes into a `LabeledSection` (see above)
     for easier later handling in case of local optimizations. Handles nested
@@ -54,7 +145,7 @@ class _LabelSections(tn.ScheduleNodeTransformer):
     ```none
     # program before
 
-    labeled_section "my_stecil":
+    labeled_section "my_stencil":
       map i in [...]
         map j in [...]
           map k in [...]
@@ -64,20 +155,13 @@ class _LabelSections(tn.ScheduleNodeTransformer):
     ```
     """
 
-    _entry_nodes: list[tn.LibraryCall]
-    """
-    Stack of entry nodes for labeled sections. Nodes get pushed on entering the
-    labeled section and are removed again upon reaching the matching exit node.
-    """
-
     def __init__(self) -> None:
         super().__init__()
-        self._entry_nodes = []
 
     def __str__(self) -> str:
         return "_LabelSections"
 
-    def _label_marked_sections(self, scope: tn.ScheduleTreeScope) -> None:
+    def _depth_first_callback(self, scope: tn.ScheduleTreeScope) -> None:
         """
         This is the function that actually does all the work by going over the children of a given schedule tree
         scope and re-grouping them into labeled sections based on `NDSLRuntime_Label` entry/exit nodes.
@@ -113,7 +197,7 @@ class _LabelSections(tn.ScheduleNodeTransformer):
             # Expect to find an exit node now (matching the entry node that current on top of the stack).
             if not child.node.unique_name.startswith("Exit__"):
                 raise RuntimeError(
-                    f"Unexpected `NDSLRuntim_Label` '{child.node.unique_name}'."
+                    f"Unexpected `NDSLRuntime_Label` '{child.node.unique_name}'."
                 )
 
             # For exit nodes, find the matching entry node and the new children.
@@ -160,79 +244,13 @@ class _LabelSections(tn.ScheduleNodeTransformer):
 
         # recurse down first to label sections "leaf first"
         self.generic_visit(node)
-        self._label_marked_sections(node)
+        self._depth_first_callback(node)
 
         ndsl_log.debug(f"{self}: labeled {self._labeled_sections} sections.")
         return node
 
-    def visit_GBlock(self, node: tn.GBlock) -> tn.GBlock:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
 
-        return node
-
-    def visit_LoopScope(self, node: tn.LoopScope) -> tn.LoopScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_ForScope(self, node: tn.ForScope) -> tn.ForScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_WhileScope(self, node: tn.WhileScope) -> tn.WhileScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_DoWhileScope(self, node: tn.DoWhileScope) -> tn.DoWhileScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_IfScope(self, node: tn.IfScope) -> tn.IfScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_StateIfScope(self, node: tn.StateIfScope) -> tn.StateIfScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_ElifScope(self, node: tn.ElifScope) -> tn.ElifScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_ElseScope(self, node: tn.ElseScope) -> tn.ElseScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_MapScope(self, node: tn.MapScope) -> tn.MapScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-    def visit_ConsumeScope(self, node: tn.ConsumeScope) -> tn.ConsumeScope:
-        self.generic_visit(node)
-        self._label_marked_sections(node)
-
-        return node
-
-
-class _ApplyLocalOptimizations(tn.ScheduleNodeVisitor):
+class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
     """
     Applies local optimization in `LabeledSection`s in a "leaf first" approach.
 
@@ -247,86 +265,121 @@ class _ApplyLocalOptimizations(tn.ScheduleNodeVisitor):
     def __str__(self) -> str:
         return "_LabelSections"
 
-    def visit_LabeledSection(self, node: _LabeledSection) -> None:
-        # Go down into children first such that we can apply local optimization "leaf first".
+    def visit__LabeledSection(self, node: _LabeledSection) -> _LabeledSection:
+        # Recurse into labeled sections to support nested labeled sections.
+        self._breadth_first_callback(node)
         self.generic_visit(node)
+        self._depth_first_callback(node)
 
-        # TODO
-        # The code below is basically an `StreePipeline`. I've duplicated that
-        # pipeline because we need some clever engineering to not get into a
-        # hell of dependency circles (where the local optimizations are pipeline pass
-        # and in itself depend on the pipeline).
+        return node
 
-        config = node.optimizations
-        assert config.stree.enabled
+    def _depth_first_callback(self, scope: tn.ScheduleTreeScope) -> None:
+        new_children: list[tn.ScheduleTreeNode] = []
 
-        # HACK
-        # Below, we are calling `visit_ScheduleTreeRoot` with a `LabeledSection`. This works
-        # because python uses duck-typing.
-        # TODO
-        # Clean up pipeline passes and the pipeline itself such that they can work
-        # on any subtree (i.e. any `ScheduleTreeScope`).
+        for child in scope.children:
+            # Any child that isn't a _LabeledSection gets directly added to the list of new children.
+            if not isinstance(child, _LabeledSection):
+                new_children.append(child)
+                continue
 
-        if self._backend.is_gpu_backend():
-            if config.stree.inline_K_loops_size_one:
-                gpu_inliner = InlineVertical2DWrite()
-                gpu_inliner.visit_ScheduleTreeRoot(node)
+            # For labeled sections, apply the local optimizations to the sections' children, then
+            # append the possibly transformed children to the list of new children (without the
+            # labeled section).
 
-            if config.stree.merger.enabled:
-                gpu_merger = CartesianMerge(
-                    self._backend,
-                    overcompute=config.stree.merger.overcompute,
-                    merge_order=config.stree.merger.order,
-                )
-                gpu_merger.visit_ScheduleTreeRoot(node)
+            # TODO
+            # The code below is basically an `StreePipeline`. I've duplicated that
+            # pipeline because we need some clever engineering to not get into a
+            # hell of dependency circles (where the local optimizations are pipeline pass
+            # and in itself depend on the pipeline).
 
-            if config.stree.kernelize:
-                if config.stree.merger.order not in ("IJK", "KJI"):
-                    ndsl_log.warning(
-                        "Can't locally kernelize maps. Unknown apply oder. Skipping this pass."
-                    )
-                else:
-                    # Follow the merge-order for kernelization
-                    gpu_kernelizer = KernelizeMaps(
+            config = child.optimizations
+            assert config.stree.enabled
+
+            # HACK
+            # Below, we are calling `visit_ScheduleTreeRoot` with a `LabeledSection`. This works
+            # because python uses duck-typing.
+            # TODO
+            # Clean up pipeline passes and the pipeline itself such that they can work
+            # on any subtree (i.e. any `ScheduleTreeScope`).
+
+            if self._backend.is_gpu_backend():
+                if config.stree.inline_K_loops_size_one:
+                    gpu_inliner = InlineVertical2DWrite()
+                    gpu_inliner.visit_ScheduleTreeRoot(child)
+
+                if config.stree.merger.enabled:
+                    gpu_merger = CartesianMerge(
                         self._backend,
-                        apply_order=(
-                            "JI" if config.stree.merger.order == "IJK" else "JK"
-                        ),
+                        overcompute=config.stree.merger.overcompute,
+                        merge_order=config.stree.merger.order,
                     )
-                    gpu_kernelizer.visit_ScheduleTreeRoot(node)
+                    gpu_merger.visit_ScheduleTreeRoot(child)
 
-            if config.stree.refine_transients:
-                # TODO
-                # 🐞 Transient refine can't be used because of bugs transients showing
-                #    in code generation.
-                # gpu_refiner = CartesianRefineTransients(self._backend)
-                # gpu_refiner.visit_ScheduleTreeRoot(node)
-                raise ValueError(
-                    "Transient refinement is currently unavailable in the GPU pipeline."
-                )
-        else:
-            if config.stree.inline_K_loops_size_one:
-                cpu_inliner = InlineVertical2DWrite()
-                cpu_inliner.visit_ScheduleTreeRoot(node)
+                if config.stree.kernelize:
+                    if config.stree.merger.order not in ("IJK", "KJI"):
+                        ndsl_log.warning(
+                            "Can't locally kernelize maps. Unknown apply oder. Skipping this pass."
+                        )
+                    else:
+                        # Follow the merge-order for kernelization
+                        gpu_kernelizer = KernelizeMaps(
+                            self._backend,
+                            apply_order=(
+                                "JI" if config.stree.merger.order == "IJK" else "JK"
+                            ),
+                        )
+                        gpu_kernelizer.visit_ScheduleTreeRoot(child)
 
-            if config.stree.merger.enabled:
-                cpu_merger = CartesianMerge(
-                    self._backend,
-                    overcompute=config.stree.merger.overcompute,
-                    merge_order=config.stree.merger.order,
-                )
-                cpu_merger.visit_ScheduleTreeRoot(node)
+                if config.stree.refine_transients:
+                    # We can't know if transients are local to the scope that we are working in.
+                    # In they are not, transient refinement can generate wrong results and refine
+                    # too eagerly. Global transient refinement will also work in this section.
+                    ndsl_log.warning(
+                        "[Local-Opt]: Transient refinement can't e applied on a local scale "
+                        "because it needs the global information on where/how transient data "
+                        "is used. Please enable transient refinement on your global optimization "
+                        "config and disable it here. No transients will be refined on the local "
+                        "scale even if this option is turned on."
+                    )
+            else:
+                if config.stree.inline_K_loops_size_one:
+                    cpu_inliner = InlineVertical2DWrite()
+                    cpu_inliner.visit_ScheduleTreeRoot(child)
 
-            if config.stree.refine_transients:
-                cpu_refiner = CartesianRefineTransients(self._backend)
-                cpu_refiner.visit_ScheduleTreeRoot(node)
+                if config.stree.merger.enabled:
+                    cpu_merger = CartesianMerge(
+                        self._backend,
+                        overcompute=config.stree.merger.overcompute,
+                        merge_order=config.stree.merger.order,
+                    )
+                    cpu_merger.visit_ScheduleTreeRoot(child)
 
-        # Replace this `LabeledSection` with just the (now transformed) children.
-        for child in node.children:
-            # be sure to re-parent the children of this node to the new parent
-            child.parent = node.parent
-        node_index = list_index(node.parent.children, node)
-        node.parent.children[node_index : node_index + 1] = node.children
+                if config.stree.refine_transients:
+                    # We can't know if transients are local to the scope that we are working in.
+                    # In they are not, transient refinement can generate wrong results and refine
+                    # too eagerly. Global transient refinement will also work in this section.
+                    ndsl_log.warning(
+                        "[Local-Opt]: Transient refinement can't e applied on a local scale "
+                        "because it needs the global information on where/how transient data "
+                        "is used. Please enable transient refinement on your global optimization "
+                        "config and disable it here. No transients will be refined on the local "
+                        "scale even if this option is turned on."
+                    )
+
+            # Replace this `LabeledSection` with just the (now transformed) children.
+            for c in child.children:
+                # be sure to re-parent the children of this node to the new parent
+                c.parent = child.parent
+                new_children.append(c)
+
+        scope.children = new_children
+
+        # sanity checks
+        for child in scope.children:
+            assert child.parent == scope  # expect correct parent
+            assert not isinstance(
+                child, _LabeledSection
+            )  # no labeled sections should be left at this point
 
 
 class LocalOptimizations(tn.ScheduleNodeVisitor):
@@ -343,6 +396,3 @@ class LocalOptimizations(tn.ScheduleNodeVisitor):
 
         # .. then, apply local optimizations on children of `LabeledSection`s.
         _ApplyLocalOptimizations(self._backend).visit(node)
-
-        # debug only
-        assert node
