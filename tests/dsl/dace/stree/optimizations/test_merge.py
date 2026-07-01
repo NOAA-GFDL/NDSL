@@ -8,10 +8,9 @@ from ndsl import OptimizationConfig, QuantityFactory, StencilFactory, orchestrat
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
-from ndsl.dsl.dace.stree.pipeline import CartesianMerge, CleanUpScheduleTree
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import FloatField
-from tests.dsl.dace.stree import StreePipeline, get_SDFG_and_purge
+from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
 
 
@@ -74,6 +73,19 @@ class OrchestratedCode:
                 method_to_orchestrate=method,
                 optimization_config=config,
             )
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            method_to_orchestrate="no_overcompute_merge",
+            optimization_config=OptimizationConfig(
+                stree=OptimizationConfig.Tree(
+                    enabled=True,
+                    merger=OptimizationConfig.Tree.Merger(
+                        enabled=True, overcompute=False
+                    ),
+                )
+            ),
+        )
 
         self.stencil = stencil_factory.from_dims_halo(
             func=stencil,
@@ -120,6 +132,14 @@ class OrchestratedCode:
         self.stencil_with_buffer_read_offset_in_K(in_field, out_field, self._buffer)
 
     def overcompute_merge(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil(in_field, out_field)
+        self.stencil_with_different_intervals(in_field, out_field)
+
+    def no_overcompute_merge(
         self,
         in_field: FloatField,
         out_field: FloatField,
@@ -213,13 +233,7 @@ class TestStreeMergeMapsIJK:
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
-        no_overcompute = [
-            CleanUpScheduleTree(),
-            CartesianMerge(stencil_factory.backend, overcompute=False),
-        ]
-
-        with StreePipeline(passes=no_overcompute):
-            code.overcompute_merge(in_qty, out_qty)
+        code.no_overcompute_merge(in_qty, out_qty)
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
 
