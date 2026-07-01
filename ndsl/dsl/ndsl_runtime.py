@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import warnings
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Sequence
 
 from ndsl.debug import ndsl_debugger
 from ndsl.dsl.dace.orchestration import orchestrate
@@ -151,7 +151,7 @@ class NDSLRuntime:
     def make_local(
         self,
         quantity_factory: QuantityFactory,
-        dims: list[str],
+        dims: Sequence[str],
         dtype: type = Float,
         units: str = "unspecified",
         *,

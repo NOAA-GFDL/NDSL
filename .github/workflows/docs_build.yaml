@@ -1,4 +1,4 @@
-name: "Build docs"
+name: "NDSL docs build"
 
 # This workflow builds the docs to catch us when modules are moved/deleted
 # and the auto-generated docstrings can't build anymore. This does not catch
@@ -20,15 +20,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
-      - name: Install mkdocs
-        run: pip install mkdocs-material mkdocstrings[python] mkdocs-exclude
+      - name: Install zensical
+        run: pip install zensical mkdocstrings[python]
 
       - name: Build docs
-        run: mkdocs build
+        run: zensical build

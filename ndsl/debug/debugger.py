@@ -7,7 +7,7 @@ from typing import Any
 import pandas as pd
 import xarray as xr
 
-from ndsl.logging import ndsl_log
+from ndsl import ndsl_log
 from ndsl.quantity import Quantity
 
 
