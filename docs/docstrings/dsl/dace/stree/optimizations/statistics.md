@@ -1,6 +1,6 @@
-# clean_tree
+# statistics
 
-::: dsl.dace.stree.optimizations.clean_tree
+::: dsl.dace.stree.optimizations.statistics
 
 <style>
 /* re-enable the left side navigation bar for this page */

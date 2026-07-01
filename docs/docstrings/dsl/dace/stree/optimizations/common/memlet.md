@@ -1,6 +1,6 @@
-# clean_tree
+# memlet
 
-::: dsl.dace.stree.optimizations.clean_tree
+::: dsl.dace.stree.optimizations.common.memlet
 
 <style>
 /* re-enable the left side navigation bar for this page */

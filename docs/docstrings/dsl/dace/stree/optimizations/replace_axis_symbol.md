@@ -1,6 +1,6 @@
-# clean_tree
+# replace_axis_symbol
 
-::: dsl.dace.stree.optimizations.clean_tree
+::: dsl.dace.stree.optimizations.replace_axis_symbol
 
 <style>
 /* re-enable the left side navigation bar for this page */
