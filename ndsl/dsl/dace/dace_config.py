@@ -374,7 +374,7 @@ class DaceConfig:
             self.code_path = identify_code_path(
                 self.my_rank,
                 communicator.partitioner,
-                self._single_code_path,
+                single_code_path=self._single_code_path,
             )
             self.layout = communicator.partitioner.layout
             self.do_compile = (
