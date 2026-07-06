@@ -11,7 +11,7 @@
 
 Throughout this user manual, we have been building our factories with some version of the following code:
 
-``` py linenums="1"
+```py linenums="1"
 domain = (5, 5, 3)
 nhalo = 0
 backend = "numpy"
@@ -27,7 +27,7 @@ stencil_factory, quantity_factory = get_factories_single_tile(
 but we have thus far glossed over what "backend" means. It is now time to address that term.
 
 "Backend" refers to the underlying infrastructure that NDSL uses to construct and execute stencils.
-Each backend approaches acceleration in a slightly different way, and by extention has different
+Each backend approaches acceleration in a slightly different way, and by extension has different
 benefits and drawbacks. NDSL has a total of four backends:
 
 - `dace:cpu`: stencils are compiled in C and has multiple optimization passes tailored to CPU execution.

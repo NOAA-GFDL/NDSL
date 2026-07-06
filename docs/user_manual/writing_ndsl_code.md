@@ -37,7 +37,7 @@ an example of a stencil that copies the values of one field into another field.
 
 First, we import several packages:
 
-``` py linenums="1"
+```py linenums="1"
 from ndsl import StencilFactory
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
@@ -48,7 +48,7 @@ from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 
 Next, we define our stencil template:
 
-``` py linenums="7"
+```py linenums="7"
 def copy_stencil(in_field: FloatField, out_field: FloatField):
     with computation(PARALLEL):
         with interval(...):
@@ -67,7 +67,7 @@ does not match the declared type.
 Looking into the stencil code, we can see the two most important keywords in NDSL.
 
 The statement `with computation(argument)` sets the iteration policy of the nested code. In this case,
-we have declared `with computation(PARALLEL), signaling that *all three* dimensions can be executed in
+we have declared `with computation(PARALLEL)`, signaling that *all three* dimensions can be executed in
 parallel. The statement `with interval(argument)` sets the domain of the nested code. Once again, in this case,
 we have declared `with interval(...)`, signaling that the computation should apply to all vertical levels
 in the compute domain.
@@ -77,7 +77,7 @@ intervals.
 
 Now we set up our class:
 
-``` py linenums="11"
+```py linenums="11"
 class CopyData:
     def __init__(self, stencil_factory: StencilFactory):
 
@@ -101,7 +101,7 @@ scenes, `from_dims_halo` computes these and calls `from_origin_domain` automatic
 
 Finally we can run the program:
 
-``` py linenums="21"
+```py linenums="21"
 if __name__ == "__main__":
 
     domain = (5, 5, 3)
@@ -134,7 +134,7 @@ quantities. In this small-scale example, we use the boilerplate function `get_fa
 supplying it the domain size, halo size, and backend. This function has limited capabilities, but is
 sufficient for most small scale cases - testing code, debugging specific issues, etc. For larger projects
 (such as a full Earth system model), it may be necessary to move away from the boilerplate code to get
-more control over how these factoris are generated - but for now, just focus on using
+more control over how these factories are generated - but for now, just focus on using
 `get_factories_single_tile`, as that will serve you well while you are learning the systems.
 
 ### Temporary Fields
@@ -157,7 +157,7 @@ same statement (e.g. `field = field[0, 0, 1]` is illegal).
 
 With this knowledge, we can now create a stencil that copies data from the level above:
 
-``` py linenums="1"
+```py linenums="1"
 def copy_with_offset(in_field: FloatField, out_field: FloatField):
     with computation(PARALLEL):
         with interval(0, -1):
@@ -195,7 +195,7 @@ opposite (begins at 9, ends at 0).
 `FORWARD` and `BACKWARD` are useful for more complex situations where data is being read with an
 offset and written in the same stencil:
 
-``` py linenums="1"
+```py linenums="1"
 def offset_read_with_write(in_field: FloatField, out_field: FloatField):
     with computation(FORWARD):
         with interval(0, -1):
@@ -234,11 +234,12 @@ each point within the domain.
 
 Functions in NDSL - much like traditional Python functions - serve as a way to store commonly used code so
 that it can be referenced easily from multiple places. NDSL functions (hereafter referred to as "functions")
-can only be used from within stencils, and often act as extentions of the stencil, performing repetitive or
-particualrly detailed operations. Critically, however, functions have a additional set of rules which make
-them different in both appearence and operation stencils which house them.
+can only be used from within stencils, and often act as extensions of the stencil, performing repetitive or
+particularly detailed operations. Critically, however, functions have a additional set of rules which make
+them different in both appearance and operation stencils which house them.
 
 Functions:
+
 - cannot be called outside of a stencil
 - cannot contain the keywords `computation` or `interval` (they rely on the host stencil for this info)
 - are "point operations" - the are executed independently at each point in the compute domain (see below)
@@ -251,12 +252,12 @@ two important ideas which come along with this concept: functions perform operat
 compute domain independently, in isolation from all other points; and (despite this) functions may take
 scalar or fields as inputs. Functions take an entire field as an import (despite only operating on a
 single point in any particular instance) to allow for offset reads of these inputs. It may be necessary
-read an offset from a field within a stencil, and it would be overly combersome to require a series of scalar
+read an offset from a field within a stencil, and it would be overly cumbersome to require a series of scalar
 inputs for each of these offsets.
 
 Beyond their use for potentially reading offsets from the inputs, the concept of a field is effectively
 banned within a stencil. All calculations are performed using scalars. There are no arrays, lists, fields,
-etc. Furthermore, reading a offset (such as `field[0, 0, 1]`) will alwyas produce a scalar, which fits
+etc. Furthermore, reading a offset (such as `field[0, 0, 1]`) will always produce a scalar, which fits
 this paradigm as the rest of the field is effectively discarded.
 
 As a consequence of these rules, functions always return a scalar value. The *stencil* then takes this value
@@ -264,7 +265,7 @@ and writes it to the correct place in the field.
 
 Below is an example of a NDSL function, called from within a stencil:
 
-``` py linenums="1"
+```py linenums="1"
 @gtscript.function
 def add_five(in_field: FloatField):
     out_value = in_field + 5
@@ -277,16 +278,16 @@ def copy_stencil(in_field: FloatField, out_field: FloatField):
             out_field = add_five(in_field)
 ```
 
-It is worth reiterating that, while functions can only have a single return statment, they can return multiple
+It is worth reiterating that, while functions can only have a single return statement, they can return multiple
 value. Such a case would take the following pattern:
-``` py
+
+```py
     field_1, field_2 = my_function(input_1, input_2, input_3)
 ```
 
 Note that functions with multiple returns
 cannot be integrated into larger expressions - they must be written on their own line, and each output must
-be recieved (or discarded with `_`).
-
+be received (or discarded with `_`).
 
 ### Builtin Functions
 
@@ -339,9 +340,7 @@ the following logic applies:
 - It is not possible to call one stencil from within another, as that would create a situation where
 there are two layers of parallelization. If you want to reuse code across multiple stencils, it
 should be put into a function.
-
 - For similar reasons, it is not possible to call a stencil from within a function.
-
 - It is possible to call one function from within another function, and there is no limit on maximum depth.
 
 ## Summary

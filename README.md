@@ -38,13 +38,13 @@ NDSL is under active development and may only work with specific setups. This is
 The run the CPU backends you will need:
 
 - Python: 3.11, 3.12, 3.13
-- CXX compiler:  GNU 11.2+
+- CXX compiler: GNU 11.2+
 - Libraries: MPI
 
 To run the GPU backends, you'll need:
 
 - Python: 3.11, 3.12, 3.13
-- CXX compiler:  GNU 11.2+
+- CXX compiler: GNU 11.2+
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+
 - Python package:
@@ -94,7 +94,7 @@ mpirun -np 6 pytest -m "parallel and not gpu" tests/
 
 ### Code/contribution guidelines
 
-1. Code quality is enforced by `pre-commit` (which is part of the "dev" extra). Run `pre-commit install`  to install the pre-commit hooks locally or make sure to run `pre-commit run -a`  before submitting a pull request.
+1. Code quality is enforced by `pre-commit` (which is part of the "dev" extra). Run `pre-commit install` to install the pre-commit hooks locally or make sure to run `pre-commit run -a` before submitting a pull request.
 2. While we don't strictly enforce type hints, we add them on new code.
 3. Pull requests have to merged as "squash merge" to keep the `git` history clean.
 

@@ -26,5 +26,5 @@ Describe the system environment, include:
 - If this bug came from a model run, which model
 
 **Additional context**
-Add any other context about the problem.  If applicable, include where any files
+Add any other context about the problem. If applicable, include where any files
 that help describe, or reproduce the problem exist.
