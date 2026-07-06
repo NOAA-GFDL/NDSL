@@ -176,7 +176,7 @@ class BoundaryCondition:
                     )
                     if self._sub_com_rank == 0:
                         da = np.ascontiguousarray(self.dataset[var_name].data)
-                        if len(da.shape) != 4:
+                        if len(da.shape) == 3:
                             da = da[:, np.newaxis, :, :]
                         sendcounts = [
                             np.prod(shape_list[n]) for n in range(self._sub_com_size)
@@ -353,5 +353,91 @@ class BoundaryCondition:
     def write_out_bcs(
         self,
         bc_file_name: Path,
+        state: T,
     ) -> None:
-        pass
+        if self._color == 1:
+            for field_obj in dataclasses.fields(state):
+                var_name = field_obj.name
+                if var_name in self.var_list:
+                    var = getattr(state, var_name)
+                    var_shape = var.shape
+                    n_halo = var.metadata.n_halo
+                    iadj = 1 if var.dims[0] == "i" else 0
+                    jadj = 1 if var.dims[1] == "j" else 0
+                    kadj = 1 if (len(var.dims) == 3 and var.dims[2] == "k") else 0
+                    shape_list = _shape_list_gen(
+                        var_shape=var_shape,
+                        pelist_size=self._sub_com_size,
+                        locale=self._location,
+                        nhalo=n_halo,
+                        i_adj=iadj,
+                        j_adj=jadj,
+                    )
+                    send_buf = np.empty(
+                        shape=shape_list[self._sub_com_rank], dtype=var.dtype
+                    )
+                    match self._location:
+                        case "north":
+                            js = 0
+                            je = shape_list[self._sub_com_rank][2]
+                            if self._sub_com_rank == 0:
+                                js = n_halo
+                                je = shape_list[self._sub_com_rank][2] + n_halo
+                            if len(var_shape) == 2:
+                                send_buf[:] = var[:n_halo, js:je]
+                            if len(var_shape) == 3:
+                                send_buf[:] = var[:n_halo, js:je, : var_shape[2] - kadj]
+                        case "south":
+                            js = 0
+                            je = shape_list[self._sub_com_rank][2]
+                            if self._sub_com_rank == 0:
+                                js = n_halo
+                                je = shape_list[self._sub_com_rank][2] + n_halo
+                            if len(var_shape) == 2:
+                                send_buf[:] = var[
+                                    var_shape[0] - n_halo - iadj : var_shape[0] - iadj,
+                                    js:je,
+                                ]
+                            if len(var_shape) == 3:
+                                send_buf[:] = var[
+                                    var_shape[0] - n_halo - iadj : var_shape[0] - iadj,
+                                    js:je,
+                                    : var_shape[2] - kadj,
+                                ]
+                        case "east":
+                            if len(var_shape) == 2:
+                                send_buf[:] = var[
+                                    : var_shape[0] - iadj,
+                                    var_shape[1] - n_halo - jadj : var_shape[1] - jadj,
+                                ]
+                            if len(var_shape) == 3:
+                                send_buf[:] = var[
+                                    : var_shape[0] - iadj,
+                                    var_shape[1] - n_halo - jadj : var_shape[1] - jadj,
+                                    : var_shape[2] - kadj,
+                                ]
+                        case "west":
+                            if len(var_shape) == 2:
+                                send_buf[:] = var[
+                                    : var_shape[0] - iadj,
+                                    :n_halo,
+                                ]
+                            if len(var_shape) == 3:
+                                send_buf[:] = var[
+                                    : var_shape[0] - iadj,
+                                    :n_halo,
+                                    : var_shape[2] - kadj,
+                                ]
+                    if self._sub_com_rank == 0:
+                        sendcounts = [
+                            np.prod(shape_list[n]) for n in range(self._sub_com_size)
+                        ]
+                        displs = _get_displs(sendcounts)
+                        temp = np.empty(shape=sum(sendcounts), dtype=var.dtype)
+                        datatype = get_mpi_type(var[:])
+                    else:
+                        sendcounts = None
+                        displs = None
+                        temp = None
+                        datatype = None
+                    self._sub_com.Gatherv(send_buf, [temp, sendcounts, displs, datatype], root=0)
