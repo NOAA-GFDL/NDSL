@@ -1,11 +1,11 @@
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
 from ndsl.dsl.typing import (
     Bool,
+    BoolFieldIJ,
     Float,
     FloatField,
     FloatFieldIJ,
     IntFieldIJ,
-    BoolFieldIJ,
 )
 
 
