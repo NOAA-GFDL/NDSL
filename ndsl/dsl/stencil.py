@@ -7,8 +7,8 @@ import numbers
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
-import dace
 import numpy as np
+from dace.config import Config as DaceConfig
 from gt4py.cartesian import config as gt_config
 from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
@@ -16,6 +16,7 @@ from gt4py.cartesian.definitions import FieldInfo
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
@@ -50,9 +51,7 @@ from ndsl.dsl.typing import (
 )
 from ndsl.initialization import GridSizer
 from ndsl.internal.deferred_type import StencilDeferredType
-from ndsl.logging import ndsl_log
 from ndsl.quantity import Quantity
-from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
@@ -322,7 +321,7 @@ class FrozenStencil(SDFGConvertible):
             BackendFramework.DACE
             == self.stencil_config.compilation_config.backend.framework
         ):
-            dace.Config.set(
+            DaceConfig.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
                     gt_root=gt_config.cache_settings["root_path"],
@@ -351,11 +350,7 @@ class FrozenStencil(SDFGConvertible):
 
         # Deal with placeholder/markup type by resolving their true types
         for name, type_ in func.__annotations__.items():
-            if isinstance(type_, MarkupFieldBundleType):
-                func.__annotations__[name] = FieldBundleType.T(
-                    type_.name, do_markup=False
-                )
-            elif isinstance(type_, StencilDeferredType):
+            if isinstance(type_, StencilDeferredType):
                 func.__annotations__[name] = type_.resolve().get(type_.name)
 
         # Keep compilation at __init__ if we are not orchestrated.
@@ -886,6 +881,8 @@ class GridIndexing:
                 return_origin.append(self.origin[1])
             elif dim in K_DIMS:
                 return_origin.append(self.origin[2])
+            else:
+                raise ValueError(f"Unknown dimension '{dim}'.")
         return return_origin
 
     def _domain_from_dims(self, dimensions: Iterable[str]) -> list[int]:
@@ -893,16 +890,18 @@ class GridIndexing:
         for dimension in dimensions:
             if dimension == I_DIM:
                 result.append(self.domain[0])
-            if dimension == I_INTERFACE_DIM:
+            elif dimension == I_INTERFACE_DIM:
                 result.append(self.domain[0] + 1)
-            if dimension == J_DIM:
+            elif dimension == J_DIM:
                 result.append(self.domain[1])
-            if dimension == J_INTERFACE_DIM:
+            elif dimension == J_INTERFACE_DIM:
                 result.append(self.domain[1] + 1)
-            if dimension == K_DIM:
+            elif dimension == K_DIM:
                 result.append(self.domain[2])
-            if dimension == K_INTERFACE_DIM:
+            elif dimension == K_INTERFACE_DIM:
                 result.append(self.domain[2] + 1)
+            else:
+                raise ValueError(f"Unknown dimension '{dimension}'.")
         return result
 
     def get_shape(

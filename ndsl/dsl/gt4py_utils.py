@@ -6,11 +6,10 @@ import numpy as np
 import numpy.typing as npt
 from gt4py import storage as gt_storage
 
-from ndsl import xumpy
+from ndsl import ndsl_log, xumpy
 from ndsl.config.backend import Backend
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import Float
-from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
@@ -82,21 +81,33 @@ def make_storage_data(
         shape: Shape of the new storage. Number of indices should be equal
             to number of unmasked axes
         origin: Default origin for gt4py stencil calls
+        backend: current backend in use
         dtype: Data type
         mask: Tuple indicating the axes used when initializing the storage.
             True indicates a masked axis, False is a used axis.
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        backend: current backend in use
+        max_dim: Number of cartesian dimensions. Those will be index-aligned,
+            while additional "data" dimensions are considered "en block".
+        read_only: ?
 
     Returns:
         Field[..., dtype]: New storage
 
-    Examples:
-        1) ptop = utils.make_storage_data(top_p, q4_1.shape)
-        2) ws3 = utils.make_storage_data(ws3[:, :, -1], shape, origin=(0, 0, 0))
-        3) data_dict[names[i]] = make_storage_data(
+    Example:
+        ```py
+        ptop = utils.make_storage_data(top_p, q4_1.shape)
+        ```
+
+    Example:
+        ```py
+        ws3 = utils.make_storage_data(ws3[:, :, -1], shape, origin=(0, 0, 0))
+        ```
+
+    Example:
+        ```py
+        data_dict[names[i]] = make_storage_data(
                data[:, :, :, i],
                shape,
                origin=origin,
@@ -104,6 +115,7 @@ def make_storage_data(
                dummy=dummy,
                axis=axis,
            )
+        ```
 
     """
     n_dims = len(data.shape)
@@ -149,6 +161,14 @@ def make_storage_data(
             dtype=dtype,
             backend=backend,
         )
+    elif n_dims == 3:
+        data = _make_storage_data_3d(
+            data,
+            shape,
+            start,
+            dtype=dtype,
+            backend=backend,
+        )
     elif n_dims >= 4:
         data = _make_storage_data_Nd(
             data,
@@ -157,25 +177,16 @@ def make_storage_data(
             dtype=dtype,
             backend=backend,
         )
-    elif n_dims >= 4:
-        data = _make_storage_data_Nd(data, shape, start, backend=backend)
     else:
-        data = _make_storage_data_3d(
-            data,
-            shape,
-            start,
-            dtype=dtype,
-            backend=backend,
-        )
+        raise ValueError(f"Expected `n_dims >= 1`, got {n_dims} instead.")
 
-    storage = gt_storage.from_array(
+    return gt_storage.from_array(
         data,
         dtype,
         backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, data.shape),
     )
-    return storage
 
 
 def _make_storage_data_1d(
@@ -307,12 +318,22 @@ def make_storage_from_shape(
     Returns:
         Field[..., dtype]: New storage
 
-    Examples:
-        1) utmp = utils.make_storage_from_shape(ua.shape)
-        2) qx = utils.make_storage_from_shape(
+    Example:
+        ```py
+        utmp = utils.make_storage_from_shape(ua.shape)
+        ```
+
+    Example:
+        ```py
+        qx = utils.make_storage_from_shape(
                qin.shape, origin=(grid().is_, grid().jsd, kstart)
            )
-        3) q_out = utils.make_storage_from_shape(q_in.shape, origin,)
+        ```
+
+    Example:
+        ```py
+        q_out = utils.make_storage_from_shape(q_in.shape, origin)
+        ```
     """
     if mask is None:
         n_dims = len(shape)
