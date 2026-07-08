@@ -264,7 +264,7 @@ def test_dm_monitor() -> None:
     np.testing.assert_array_equal(var2_ds.shape, (ntimesteps, nz, ny, nx))
     assert "var3" in ds.variables
     var3_ds = ds.variables["var3"]
-    np.testing.assert_array_equal(var3_ds.shape, (ntimesteps, nz, ny+1, nx+1))
+    np.testing.assert_array_equal(var3_ds.shape, (ntimesteps, nz, ny + 1, nx + 1))
     assert var1_ds.dimensions == ("time", "y", "x")
     assert var2_ds.dimensions == ("time", "z", "y", "x")
     assert var3_ds.dimensions == ("time", "z", "y_interface", "x_interface")
