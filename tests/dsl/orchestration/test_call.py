@@ -99,7 +99,7 @@ def test_memory_reallocation_quantity_type() -> None:
     _qty_custom = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
 
     qty_custom = MyQuantity(
-        data=_qty_custom.data,
+        data=_qty_custom._data,
         dims=_qty_custom.dims,
         units=_qty_custom.units,
         backend=_qty_custom.backend,

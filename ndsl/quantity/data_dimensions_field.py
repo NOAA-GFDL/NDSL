@@ -26,7 +26,7 @@ SparseNameMapping = dict[str, DataDimensionIndex]
 
 
 class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
-    """Extension to the gt4py.cartesian.Field to account for sparsly
+    """Extension to the gt4py.cartesian.Field to account for sparsely
     named indexed data dimensions.
     """
 
@@ -91,7 +91,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
     ) -> _DataDimensionsFieldDescriptor:
         """Register a type by name by giving the size of its data dimensions and
         optionally a sparse mapping of name/index.
@@ -148,7 +148,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             sdfg: SDFG,
             state: SDFGState,
             data_dim_index: int,
-        ) -> Int:
+        ) -> Int:  # type: ignore[valid-type]
             size = cls._type_registrar[name].size(data_dim_index)
             return Int(size)
 
@@ -174,7 +174,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
-        dtype: npt.DTypeLike = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
     ) -> "DataDimensionsMarkupType":
         """Declare a data dimension field and register it's size
 
@@ -182,7 +182,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             quantity_factory: Factory carrying the proper data dimensions axis described
                 in `data_dimensions_names`.
             data_dimensions_names: list of name of data dimension axis.
-            name_mapping: for each dimensions, a sparse dictionnary giving a name/index
+            name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
         """

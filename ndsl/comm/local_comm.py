@@ -3,8 +3,8 @@ from __future__ import annotations
 import copy
 from typing import Any, TypeVar
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm, ReductionOperator
-from ndsl.logging import ndsl_log
 from ndsl.utils import ensure_contiguous, safe_assign_array
 
 

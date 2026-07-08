@@ -148,6 +148,8 @@ def used_timer(request, timer) -> Timer:
             time.sleep(0.01)
         return timer
 
+    raise NotImplementedError(f"Missing implementation for timer '{request.param}'.")
+
 
 def test_timer_reset(used_timer: Timer) -> None:
     used_timer.reset()

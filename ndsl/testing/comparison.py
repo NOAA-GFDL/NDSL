@@ -339,7 +339,7 @@ class MultiModalFloatMetric(BaseMetric):
             return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
     def report(self, file_path: str | None = None) -> list[str]:
-        failed_indices = np.logical_not(self.success).nonzero()
+        failed_indices = np.atleast_1d(np.logical_not(self.success)).nonzero()
         # List all errors to terminal and file
         bad_indices_count = len(failed_indices[0])
         if self.changing_column_map is not None:
@@ -369,7 +369,7 @@ class MultiModalFloatMetric(BaseMetric):
             failures_of_changing_gridpoint_pct = round(
                 100.0 * (bad_indices_count / self.number_changing_values), 2
             )
-            report_local_failures = f"Failures: (changing columns, chainging points, all points) | {bad_column_count}/{total_column_count} - {bad_column_pct}%, {bad_indices_count}/{self.number_changing_values} - {failures_of_changing_gridpoint_pct}%, {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
+            report_local_failures = f"Failures: (changing columns, changing points, all points) | {bad_column_count}/{total_column_count} - {bad_column_pct}%, {bad_indices_count}/{self.number_changing_values} - {failures_of_changing_gridpoint_pct}%, {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         else:
             report_local_failures = f"all grid points: {bad_indices_count}/{full_count} - {failures_of_all_grid_points_pct}%\n"
         report = [

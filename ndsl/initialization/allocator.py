@@ -4,13 +4,14 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from gt4py import storage as gt_storage
 
 from ndsl.config import Backend
-from ndsl.constants import SPATIAL_DIMS
 from ndsl.dsl.typing import Float
 from ndsl.initialization import GridSizer
 from ndsl.quantity import Quantity, QuantityHaloSpec
+from ndsl.quantity.quantity import normalize_dimensions
 
 
 class QuantityFactory:
@@ -62,7 +63,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -77,7 +78,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -92,7 +93,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -108,7 +109,7 @@ class QuantityFactory:
         dims: Sequence[str],
         units: str,
         value: Any,  # no type hint because it would be a TypeVar = type[dtype] and mypy says no
-        dtype: type = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         *,
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
@@ -178,22 +179,13 @@ class QuantityFactory:
         allocator: Callable,
         dims: Sequence[str],
         units: str,
-        dtype: type | np.dtype = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         allow_mismatch_float_precision: bool = False,
     ) -> Quantity:
         origin = self.sizer.get_origin(dims)
         extent = self.sizer.get_extent(dims)
         shape = self.sizer.get_shape(dims)
-        dimensions = [
-            (
-                axis
-                if any(dim in axis_dims for axis_dims in SPATIAL_DIMS)
-                else str(shape[index])
-            )
-            for index, (dim, axis) in enumerate(
-                zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
-            )
-        ]
+        dimensions = normalize_dimensions(dims, shape)
 
         data = allocator(
             shape,
@@ -218,7 +210,7 @@ class QuantityFactory:
         self,
         dims: Sequence[str],
         n_halo: int | None = None,
-        dtype: type = Float,
+        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
     ) -> QuantityHaloSpec:
         """Build memory specifications for the halo update.
 

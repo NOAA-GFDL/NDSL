@@ -40,18 +40,19 @@ class State:
 
     This baseclass implements common initialization functions and serialization.
 
-    Typical usage example:
+    Example:
+        Typical usage looks something like this:
 
-    ```python
-        class MyState(State):
-            pass
+        ```python
+            class MyState(State):
+                pass
 
-        my_state = MyState.zeros(quantity_factory)
+            my_state = MyState.zeros(quantity_factory)
 
-        # ...
+            # ...
 
-        my_state.to_netcdf()
-    ```
+            my_state.to_netcdf()
+        ```
     """
 
     @classmethod
