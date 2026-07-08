@@ -167,23 +167,23 @@ def test_dm_monitor() -> None:
 
     monitor.register_axis(
         name="x_interface",
-        axis_data=np.arange(nx+1, dtype=np.float64),
+        axis_data=np.arange(nx + 1, dtype=np.float64),
         cart_name="x",
         long_name="x_interface",
         units="m",
         not_xy=False,
         domain_id=domain_id,
-        extend_domain_direction = "east",
+        extend_domain_direction="east",
     )
     monitor.register_axis(
         name="y_interface",
-        axis_data=np.arange(ny+1, dtype=np.float64),
+        axis_data=np.arange(ny + 1, dtype=np.float64),
         cart_name="y",
         long_name="y_interface",
         units="m",
         not_xy=False,
         domain_id=domain_id,
-        extend_domain_direction = "north",
+        extend_domain_direction="north",
     )
 
     # fields will be registered in the component they are defined in (either pyFV3 or pySHiELD)
@@ -235,9 +235,17 @@ def test_dm_monitor() -> None:
             dims=("i", "j", "k"), units="m", value=t * 2, dtype=np.float64
         )
         field_q3 = quantity_factory.full(
-            dims=("i_interface", "j_interface", "k"), units="m", value=t * 2, dtype=np.float64
+            dims=("i_interface", "j_interface", "k"),
+            units="m",
+            value=t * 2,
+            dtype=np.float64,
         )
-        state = {"time": current_time, "var1": field_q1, "var2": field_q2, "var3": field_q3}
+        state = {
+            "time": current_time,
+            "var1": field_q1,
+            "var2": field_q2,
+            "var3": field_q3,
+        }
         monitor.store(state)
 
     # cleanup writes and closes the file
