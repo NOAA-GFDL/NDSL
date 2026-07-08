@@ -128,6 +128,54 @@ def set_value(field: FloatField, value: Float) -> None:
         field = value
 
 
+def set_value_2d(field: FloatFieldIJ, value: Float) -> None:
+    """
+    Sets every element of a field to a single value - 2D variant.
+
+    Args:
+        field: output field
+        value: value of Float type
+    """
+    with computation(FORWARD), interval(...):
+        field = value
+
+
+def set_bool_value_2D(field: BoolFieldIJ, value: Bool) -> None:
+    """
+    Sets every element of buffer to either True or False.
+
+    Args:
+        field: output field
+        value: value of Bool type
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = value
+
+
+def adjustmentfactor_stencil(adjustment: FloatFieldIJ, field: FloatField) -> None:
+    """
+    Multiplies a field by an adjustment factor, modifying the original field.
+
+    Args:
+        adjustment: adjustment factor
+        field: field to be modified
+    """
+    with computation(PARALLEL), interval(...):
+        field = field * adjustment
+
+
+def adjust_divide_stencil(adjustment: FloatField, field: FloatField) -> None:
+    """
+    Divides a field by an adjustment factor, modifying the original field.
+
+    Args:
+        adjustment: adjustment factor
+        field: field to be modified
+    """
+    with computation(PARALLEL), interval(...):
+        field = field / adjustment
+
+
 def select_k(
     in_field: FloatField,
     out_field: FloatFieldIJ,
