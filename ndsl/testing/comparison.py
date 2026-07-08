@@ -339,7 +339,7 @@ class MultiModalFloatMetric(BaseMetric):
             return f"❌ Numerical failures: {failed_indices}/{all_indices} failed - metric: {metric_thresholds}"
 
     def report(self, file_path: str | None = None) -> list[str]:
-        failed_indices = np.logical_not(self.success).nonzero()
+        failed_indices = np.atleast_1d(np.logical_not(self.success)).nonzero()
         # List all errors to terminal and file
         bad_indices_count = len(failed_indices[0])
         if self.changing_column_map is not None:
