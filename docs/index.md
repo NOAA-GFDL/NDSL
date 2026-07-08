@@ -1,13 +1,49 @@
-# NDSL Documentation
+<div markdown>
 
-NDSL is a middleware for climate and weather modelling developed jointly by NOAA and NASA. It allows atmospheric scientists to focus on what matters in model development and essentially decouples performance engineering from model development.
+<div style="margin-bottom: 1.2rem;" markdown>
 
-## Portable performance
+# NASA-NOAA Domain Specific Language { .page-title }
 
-NDSL brings together [GT4Py](https://github.com/GridTools/gt4py/) and [DaCe](https://github.com/spcl/dace/), two libraries developed for high-performance and portability. On top of those pillars, NDSL deploys a series of optimized APIs for common operations, e.g. halo exchange or domain decomposition, and tools to port existing models.
+A modern domain-specific language for portable, high-performance atmospheric modeling across CPUs, GPUs, and emerging computing architectures.
 
-## Batteries-included for FV-based models
+</div>
 
-Historically, NDSL was developed to port the FV3 dynamical core on the cubed-sphere. Therefore, the middleware ships with ready-to-execute specialization for models based on cubed-sphere grids and FV-based models in particular.
+<div class="two-col" markdown>
+<div class="section-card" markdown>
 
-Next: get [up and running](./quickstart.md).
+## Install NDSL
+
+Install the latest version of NDSL with a few commands and start writing code.
+
+[NDSL v2026.03.00 →](./install_ndsl.md){ .pretty-link }
+</div>
+
+<div class="section-card" markdown>
+
+## Getting Started
+
+New to NDSL? Walk through our beginner-friendly user manual to learn the core syntax and patterns.
+
+[User Manual →](./user_manual/ndsl_introduction.md){ .pretty-link }
+</div>
+</div>
+
+<div class="two-col" markdown>
+<div class="section-card" markdown>
+
+## Current Applications
+
+NDSL is currently deployed in a number of applications involving multiple national agencies and international partners.
+
+[Explore →](./ndsl_in_action/index.md){ .pretty-link }
+</div>
+
+<div class="section-card" markdown>
+
+## Community
+
+Stay up to date on the latest NDSL news, and connect with developers, researchers, and contributors using NDSL in various atmospheric models.
+
+[Join The Community →](./community.md){ .pretty-link }
+</div>
+</div>

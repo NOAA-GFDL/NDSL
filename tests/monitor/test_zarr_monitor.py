@@ -1,0 +1,521 @@
+import copy
+import tempfile
+from datetime import datetime, timedelta
+
+import cftime
+import pytest
+import xarray as xr
+
+from ndsl import CubedSpherePartitioner, LocalComm, MPIComm, Quantity, TilePartitioner
+from ndsl.config import Backend
+from ndsl.constants import (
+    I_DIM,
+    I_DIMS,
+    I_INTERFACE_DIM,
+    J_DIM,
+    J_DIMS,
+    J_INTERFACE_DIM,
+    K_DIM,
+    K_SOIL_DIM,
+)
+from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
+from ndsl.optional_imports import zarr
+
+
+# pace's K_DIMS doesn't check the soil dimension
+ALL_K_DIMS = ("k", "k_interface", "k_soil")
+
+
+@pytest.fixture(params=["one_step", "three_steps"])
+def n_times(request):
+    if request.param == "one_step":
+        return 1
+    if request.param == "three_steps":
+        return 3
+
+
+@pytest.fixture(
+    params=[
+        cftime.DatetimeJulian,
+        cftime.Datetime360Day,
+        cftime.DatetimeNoLeap,
+        datetime,
+    ]
+)
+def start_time(request):
+    date_type = request.param
+    return date_type(2010, 1, 1)
+
+
+@pytest.fixture
+def time_step():
+    return timedelta(hours=1)
+
+
+@pytest.fixture
+def ny():
+    return 4
+
+
+@pytest.fixture
+def nx():
+    return 4
+
+
+@pytest.fixture
+def nz():
+    return 5
+
+
+@pytest.fixture
+def layout():
+    return (1, 1)
+
+
+@pytest.fixture
+def tile_partitioner(layout):
+    return TilePartitioner(layout)
+
+
+@pytest.fixture
+def cube_partitioner(tile_partitioner):
+    return CubedSpherePartitioner(tile_partitioner)
+
+
+@pytest.fixture(params=["empty", "one_var_2d", "one_var_3d", "two_vars"])
+def base_state(request, nz, ny, nx, numpy) -> dict:
+    if request.param == "empty":
+        return {}
+
+    if request.param == "one_var_2d":
+        return {
+            "var1": Quantity(
+                numpy.ones([ny, nx]),
+                dims=(J_DIM, I_DIM),
+                units="m",
+                backend=Backend.python(),
+            )
+        }
+
+    if request.param == "one_var_3d":
+        return {
+            "var1": Quantity(
+                numpy.ones([nz, ny, nx]),
+                dims=(K_DIM, J_DIM, I_DIM),
+                units="m",
+                backend=Backend.python(),
+            )
+        }
+
+    if request.param == "two_vars":
+        return {
+            "var1": Quantity(
+                numpy.ones([ny, nx]),
+                dims=(J_DIM, I_DIM),
+                units="m",
+                backend=Backend.python(),
+            ),
+            "var2": Quantity(
+                numpy.ones([nz, ny, nx]),
+                dims=(K_DIM, J_DIM, I_DIM),
+                units="degK",
+                backend=Backend.python(),
+            ),
+        }
+
+    raise NotImplementedError()
+
+
+@pytest.fixture
+def state_list(base_state, n_times, start_time, time_step, numpy):
+    state_list = []
+    for i in range(n_times):
+        new_state = copy.deepcopy(base_state)
+        for name in set(new_state.keys()).difference(["time"]):
+            new_state[name].view[:] = numpy.random.randn(*new_state[name].extent)
+        state_list.append(new_state)
+        new_state["time"] = start_time + i * time_step
+    return state_list
+
+
+@pytest.mark.zarr
+def test_monitor_file_store(state_list, cube_partitioner, numpy, start_time):
+    with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
+        monitor = ZarrMonitor(tempdir, cube_partitioner, mpi_comm=MPIComm())
+        for state in state_list:
+            monitor.store(state)
+        validate_store(state_list, tempdir, numpy, start_time)
+        validate_xarray_can_open(tempdir)
+
+
+@pytest.mark.zarr
+def validate_xarray_can_open(dirname):
+    # just checking there are no crashes, validate_group checks data
+    xr.open_zarr(dirname, consolidated=False)
+
+
+@pytest.mark.zarr
+def validate_store(states, filename, numpy, start_time):
+    nt = len(states)
+    calendar = get_calendar(start_time)
+
+    def assert_no_missing_names(store, state):
+        missing_names = set(states[0].keys()).difference(store.array_keys())
+        assert len(missing_names) == 0, missing_names
+
+    def validate_array_shape(name, array):
+        if name == "time":
+            assert array.shape == (nt,)
+        else:
+            assert array.shape == (nt, 6) + states[0][name].extent
+
+    def validate_array_dimensions_and_attributes(name, array):
+        if name == "time":
+            target_attrs = {
+                "_ARRAY_DIMENSIONS": ["time"],
+                "units": "seconds since 2010-01-01 00:00:00",
+                "calendar": calendar,
+            }
+        else:
+            target_attrs = states[0][name].attrs
+            target_attrs["_ARRAY_DIMENSIONS"] = ["time", "tile"] + list(
+                states[0][name].dims
+            )
+        assert dict(array.attrs) == target_attrs
+
+    def validate_array_values(name, array):
+        if name == "time":
+            for i, s in enumerate(states):
+                value = cftime.num2date(
+                    array[i],
+                    units="seconds since 2010-01-01 00:00:00",
+                    calendar=calendar,
+                )
+                assert value == s["time"]
+        else:
+            for i, s in enumerate(states):
+                numpy.testing.assert_array_equal(array[i, 0, :], s[name].view[:])
+
+    store = zarr.open_group(filename, mode="r")
+    assert_no_missing_names(
+        store, states[0]
+    )  # states in test all have same names defined
+    for name, array in store.arrays():
+        validate_array_shape(name, array)
+        validate_array_dimensions_and_attributes(name, array)
+        validate_array_values(name, array)
+
+
+@pytest.mark.parametrize("layout", [(1, 1), (1, 2), (2, 2), (4, 4)])
+@pytest.mark.parametrize("nt", [1, 3])
+@pytest.mark.parametrize(
+    "shape, ny_rank_add, nx_rank_add, dims",
+    [
+        ((5, 4, 4), 0, 0, (K_DIM, J_DIM, I_DIM)),
+        ((5, 4, 4), 1, 1, (K_DIM, J_INTERFACE_DIM, I_INTERFACE_DIM)),
+        ((5, 4, 4), 0, 1, (K_DIM, J_DIM, I_INTERFACE_DIM)),
+    ],
+)
+@pytest.mark.zarr
+def test_monitor_file_store_multi_rank_state(
+    layout, nt, tmpdir_factory, shape, ny_rank_add, nx_rank_add, dims, numpy
+):
+    units = "m"
+    tmpdir = tmpdir_factory.mktemp("data.zarr")
+    nz, ny, nx = shape
+    ny_rank = int(ny / layout[0] + ny_rank_add)
+    nx_rank = int(nx / layout[1] + nx_rank_add)
+    grid = TilePartitioner(layout)
+    time = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
+    timestep = timedelta(hours=1)
+    total_ranks = 6 * layout[0] * layout[1]
+    partitioner = CubedSpherePartitioner(grid)
+    store = zarr.storage.DirectoryStore(tmpdir)
+    shared_buffer = {}
+    monitor_list = []
+    for rank in range(total_ranks):
+        monitor_list.append(
+            ZarrMonitor(
+                store,
+                partitioner,
+                mode="w",
+                mpi_comm=LocalComm(
+                    rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
+                ),
+            )
+        )
+    for i_t in range(nt):
+        for rank in range(total_ranks):
+            state = {
+                "time": time + i_t * timestep,
+                "var1": Quantity(
+                    numpy.ones([nz, ny_rank, nx_rank]),
+                    dims=dims,
+                    units=units,
+                    backend=Backend.python(),
+                ),
+            }
+            monitor_list[rank].store(state)
+    group = zarr.hierarchy.open_group(store=store, mode="r")
+    assert "var1" in group
+    assert group["var1"].shape == (nt, 6, nz, ny + ny_rank_add, nx + nx_rank_add)
+    numpy.testing.assert_array_equal(group["var1"], 1.0)
+
+
+@pytest.mark.parametrize(
+    "layout, tile_array_shape, array_dims, target",
+    [
+        pytest.param(
+            (1, 1),
+            (7, 6, 6),
+            [K_DIM, J_DIM, I_DIM],
+            (7, 6, 6),
+            id="single_chunk_tile_3d",
+        ),
+        pytest.param(
+            (1, 1),
+            (6, 6),
+            [J_DIM, I_DIM],
+            (6, 6),
+            id="single_chunk_tile_2d",
+        ),
+        pytest.param((1, 1), (6,), [J_DIM], (6,), id="single_chunk_tile_1d"),
+        pytest.param(
+            (1, 1),
+            (7, 6, 6),
+            [
+                K_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
+            ],
+            (7, 5, 5),
+            id="single_chunk_tile_3d_interfaces",
+        ),
+        pytest.param(
+            (2, 2),
+            (7, 6, 6),
+            [K_DIM, J_DIM, I_DIM],
+            (7, 3, 3),
+            id="2_by_2_tile_3d",
+        ),
+        pytest.param(
+            (2, 2),
+            (6, 16, 6),
+            [J_DIM, K_DIM, I_DIM],
+            (3, 16, 3),
+            id="2_by_2_tile_3d_odd_dim_order",
+        ),
+        pytest.param(
+            (2, 2),
+            (7, 7, 7),
+            [
+                K_DIM,
+                J_INTERFACE_DIM,
+                I_INTERFACE_DIM,
+            ],
+            (7, 3, 3),
+            id="2_by_2_tile_3d_interfaces",
+        ),
+    ],
+)
+@pytest.mark.zarr
+def test_array_chunks(layout, tile_array_shape, array_dims, target):
+    result = array_chunks(layout, tile_array_shape, array_dims)
+    assert result == target
+
+
+def _assert_no_nulls(dataset: xr.Dataset):
+    number_of_null = dataset["var"].isnull().sum().item()
+    total_size = dataset["var"].size
+
+    assert (
+        number_of_null == 0
+    ), f"Number of nulls {number_of_null}. Size of data {total_size}"
+
+
+@pytest.mark.parametrize("mask_and_scale", [True, False])
+@pytest.mark.zarr
+def test_open_zarr_without_nans(cube_partitioner, numpy, mask_and_scale):
+    store = {}
+    buffer = {}
+
+    # initialize store
+    monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
+    zero_quantity = Quantity(
+        numpy.zeros([10, 10]),
+        dims=(J_DIM, I_DIM),
+        units="m",
+        backend=Backend.python(),
+    )
+    monitor.store({"var": zero_quantity})
+
+    # open w/o dask using chunks=None
+    dataset = xr.open_zarr(
+        store, chunks=None, mask_and_scale=mask_and_scale, consolidated=False
+    )
+    _assert_no_nulls(dataset.sel(tile=0))
+
+
+@pytest.mark.zarr
+def test_values_preserved(cube_partitioner, numpy):
+    dims = (J_DIM, I_DIM)
+    units = "m"
+
+    store = {}
+    buffer = {}
+
+    # initialize store
+    monitor = ZarrMonitor(store, cube_partitioner, mpi_comm=LocalComm(0, 1, buffer))
+    quantity = Quantity(
+        numpy.random.uniform(size=(10, 10)),
+        dims=dims,
+        units=units,
+        backend=Backend.python(),
+    )
+    monitor.store({"var": quantity})
+
+    # open w/o dask using chunks=None
+    dataset = xr.open_zarr(store, chunks=None, consolidated=False)
+    numpy.testing.assert_array_almost_equal(
+        dataset["var"][0, 0, :, :].values, quantity[:]
+    )
+    assert dataset["var"].shape[:2] == (1, 6)
+    assert dataset["var"].attrs["units"] == units
+    assert dataset["var"].dims[2:] == dims
+
+
+@pytest.fixture
+def state_list_with_inconsistent_calendars(base_state, numpy):
+    state_list = []
+    state_times = [cftime.DatetimeNoLeap(2000, 1, 1), cftime.Datetime360Day(2000, 1, 2)]
+    for i in range(2):
+        new_state = copy.deepcopy(base_state)
+        for name in set(new_state.keys()).difference(["time"]):
+            new_state[name].view[:] = numpy.random.randn(*new_state[name].extent)
+        state_list.append(new_state)
+        new_state["time"] = state_times[i]
+    return state_list
+
+
+@pytest.mark.zarr
+def test_monitor_file_store_inconsistent_calendars(
+    state_list_with_inconsistent_calendars, cube_partitioner, numpy
+):
+    with tempfile.TemporaryDirectory(suffix=".zarr") as tempdir:
+        monitor = ZarrMonitor(tempdir, cube_partitioner, mpi_comm=MPIComm())
+        initial_state, final_state = state_list_with_inconsistent_calendars
+        monitor.store(initial_state)
+        with pytest.raises(ValueError, match="Calendar type"):
+            monitor.store(final_state)
+
+
+@pytest.fixture(
+    params=[
+        [I_DIM, J_DIM],
+        [I_DIM, J_DIM, K_DIM],
+        [I_INTERFACE_DIM, J_DIM, K_DIM],
+        [I_DIM, J_INTERFACE_DIM, K_DIM],
+        [I_DIM, J_DIM, K_SOIL_DIM],
+    ],
+)
+def diag(request, numpy):
+    dims = request.param
+    return Quantity(
+        numpy.ones([size + 2 for size in range(len(dims))]),
+        dims=dims,
+        units="m",
+        backend=Backend.python(),
+    )
+
+
+def _transpose(quantity, dims_2d, dims_3d):
+    if len(quantity.dims) == 2:
+        return quantity.transpose(dims_2d)
+
+    if len(quantity.dims) == 3:
+        return quantity.transpose(dims_3d)
+
+
+@pytest.fixture(scope="function")
+def zarr_store(tmpdir_factory):
+    tmpdir = tmpdir_factory.mktemp("diags.zarr")
+    return zarr.storage.DirectoryStore(tmpdir)
+
+
+@pytest.fixture(scope="function")
+def zarr_monitor_single_rank(zarr_store, cube_partitioner):
+    return ZarrMonitor(zarr_store, cube_partitioner, mpi_comm=MPIComm())
+
+
+@pytest.mark.zarr
+def test_transposed_diags_write_across_ranks(diag, cube_partitioner, zarr_store):
+    layout = (1, 1)
+    total_ranks = 6 * layout[0] * layout[1]
+    shared_buffer = {}
+    for rank in range(total_ranks):
+        monitor = ZarrMonitor(
+            zarr_store,
+            cube_partitioner,
+            mpi_comm=LocalComm(
+                rank=rank, total_ranks=total_ranks, buffer_dict=shared_buffer
+            ),
+        )
+        if rank % 2 == 0:
+            diag_to_store = _transpose(
+                diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[ALL_K_DIMS, J_DIMS, I_DIMS]
+            )
+        else:
+            diag_to_store = _transpose(
+                diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, ALL_K_DIMS]
+            )
+        # verify that we can store transposed diags across ranks
+        monitor.store({"a": diag_to_store})
+
+
+@pytest.mark.zarr
+def test_transposed_diags_write_across_timesteps(diag, zarr_monitor_single_rank):
+    # verify that we can store transposed diags across time
+    time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
+    diag_1 = _transpose(
+        diag, dims_2d=[J_DIMS, I_DIMS], dims_3d=[ALL_K_DIMS, J_DIMS, I_DIMS]
+    )
+    zarr_monitor_single_rank.store({"time": time_1, "a": diag_1})
+    time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
+    diag_2 = _transpose(
+        diag, dims_2d=[I_DIMS, J_DIMS], dims_3d=[I_DIMS, J_DIMS, ALL_K_DIMS]
+    )
+    zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
+
+
+@pytest.mark.zarr
+def test_diags_fail_different_dim_set(diag, numpy, zarr_monitor_single_rank):
+    time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
+    time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
+    zarr_monitor_single_rank.store({"time": time_1, "a": diag})
+    new_dims = list(diag.dims)
+    new_dims[-1] = "some_other_dim"
+    diag_2 = Quantity(
+        numpy.ones([size + 2 for size in range(len(diag.dims))]),
+        dims=new_dims,
+        units="m",
+        backend=Backend.python(),
+    )
+    with pytest.raises(ValueError) as excinfo:
+        zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
+    assert "Attempting to append a quantity" in str(excinfo.value)
+
+
+@pytest.mark.zarr
+def test_diags_only_consistent_units_attrs_required(diag, zarr_monitor_single_rank):
+    time_1 = cftime.DatetimeJulian(2010, 6, 20, 6, 0, 0)
+    time_2 = cftime.DatetimeJulian(2010, 6, 20, 6, 15, 0)
+    time_3 = cftime.DatetimeJulian(2010, 6, 20, 6, 30, 0)
+    zarr_monitor_single_rank.store({"time": time_1, "a": diag})
+    diag_2 = copy.deepcopy(diag)
+    diag_2._attrs.update({"some_non_units_attrs": 9.0})
+    zarr_monitor_single_rank.store({"time": time_2, "a": diag_2})
+    diag_3 = Quantity(
+        data=diag.view[:], dims=diag.dims, units="not_m", backend=Backend.python()
+    )
+    with pytest.raises(ValueError):
+        zarr_monitor_single_rank.store({"time": time_3, "a": diag_3})

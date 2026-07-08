@@ -5,10 +5,10 @@ from warnings import warn
 import numpy as np
 import xarray as xr
 
+from ndsl import ndsl_log
 from ndsl.comm.communicator import Communicator
 from ndsl.dsl import NDSL_GLOBAL_PRECISION
 from ndsl.dsl.typing import Float
-from ndsl.logging import ndsl_log
 from ndsl.monitor.convert import to_numpy
 from ndsl.quantity import Quantity
 
@@ -111,7 +111,7 @@ class NetCDFMonitor:
         path: str,
         communicator: Communicator,
         time_chunk_size: int = 1,
-        precision=Float,
+        precision=Float,  # type: ignore[has-type]
     ) -> None:
         """Create a NetCDFMonitor.
 

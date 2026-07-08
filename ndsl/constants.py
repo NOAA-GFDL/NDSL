@@ -4,8 +4,8 @@ from typing import Literal
 
 import numpy as np
 
+from ndsl import ndsl_log
 from ndsl.dsl.typing import Float
-from ndsl.logging import ndsl_log
 
 
 # The FV3GFS model ships with two sets of constants, one used in the UFS physics

@@ -23,6 +23,7 @@ from dace.transformation.helpers import get_parent_map
 from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
+from ndsl import ndsl_log
 from ndsl.comm.mpi import MPI
 from ndsl.config import BackendLoopOrder
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
@@ -50,7 +51,6 @@ from ndsl.dsl.dace.utils import (
     memory_static_analysis,
     report_memory_static_analysis,
 )
-from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, State
 
@@ -656,11 +656,19 @@ def orchestrate(
     for argument in dace_compiletime_args:
         func.__annotations__[argument] = DaceCompiletime
 
+    # Swap State and subclass into compile time
     for arg_name, annotation in func.__annotations__.items():
-        if annotation in [Quantity, State] or (
+        if annotation in [State] or (
             isinstance(annotation, type) and issubclass(annotation, State)
         ):
             func.__annotations__[arg_name] = DaceCompiletime
+
+    # Remove type hint of Quantity to allow for __descriptor__ to be read in JIT
+    for arg_name, annotation in func.__annotations__.items():
+        if annotation in [Quantity] or (
+            isinstance(annotation, type) and issubclass(annotation, Quantity)
+        ):
+            func.__annotations__[arg_name] = None
 
     # Build DaCe orchestrated wrapper
     # This is a JIT object, e.g. DaCe compilation will happen on call

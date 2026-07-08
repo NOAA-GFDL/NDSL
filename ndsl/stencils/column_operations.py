@@ -14,7 +14,7 @@ def column_max(field, start_index, end_index):
         start_index: "bottom" index of slice, must be less than end_index
         end_index: "top" index of slice, must be greater than start_index
 
-        Returns: [max value, index of max value]
+    Returns: (max value, index of max value)
     """
     max_index = start_index
     max_value = field.at(K=max_index)
@@ -40,7 +40,7 @@ def column_max_ddim(field, ddim, start_index, end_index):
         start_index: "bottom" index of slice, must be less than end_index
         end_index: "top" index of slice, must be greater than start_index
 
-        Returns: [max value, index of max value]
+    Returns: (max value, index of max value)
     """
     max_index = start_index
     max_value = field.at(K=max_index, ddim=[ddim])
@@ -66,7 +66,7 @@ def column_min(field, start_index, end_index):
         start_index: "bottom" index of slice, must be less than end_index
         end_index: "top" index of slice, must be greater than start_index
 
-        Returns: [min value, index of min value]
+    Returns: (min value, index of min value)
     """
     min_index = start_index
     min_value = field.at(K=min_index)
@@ -92,7 +92,7 @@ def column_min_ddim(field, ddim, start_index, end_index):
         start_index: "bottom" index of slice, must be less than end_index
         end_index: "top" index of slice, must be greater than start_index
 
-        Returns: [min value, index of min value]
+    Returns: (min value, index of min value)
     """
     min_index = start_index
     min_value = field.at(K=min_index, ddim=[ddim])

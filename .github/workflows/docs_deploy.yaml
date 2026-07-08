@@ -1,4 +1,4 @@
-name: "NDSL documentation"
+name: "NDSL docs deploy"
 
 # Documentation gets automatically deployed upon merge to develop
 on:
@@ -8,28 +8,28 @@ on:
 
 # Security: Restrict permissions of this workflow to whats needed.
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Configure Git Credentials
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@users.noreply.github.com
-
-      - name: Setup python
-        uses: actions/setup-python@v6
+      - uses: actions/configure-pages@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
-
-      - name: Install dependencies
-        run: pip install mkdocs-material mkdocstrings[python] mkdocs-exclude
-
-      - name: Deploy docs to GitHub Pages
-        run: mkdocs gh-deploy --force
+      - run: pip install zensical mkdocstrings[python]
+      - run: zensical build --clean
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - uses: actions/deploy-pages@v5
+        id: deployment
