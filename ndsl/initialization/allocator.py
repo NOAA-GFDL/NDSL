@@ -37,6 +37,11 @@ class QuantityFactory:
         Args:
             data_dimension_descriptions: Dict of name/length pairs
         """
+        for name, size in data_dimension_descriptions.items():
+            if not isinstance(size, int):
+                raise TypeError(
+                    f"Wrong size type for data dimension '{name}'. Expected plain 'int', got {type(size)}."
+                )
         self.sizer.data_dimensions.update(data_dimension_descriptions)
 
     def add_data_dimensions(

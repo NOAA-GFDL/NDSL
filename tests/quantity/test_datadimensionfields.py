@@ -1,4 +1,5 @@
 import re
+from typing import TypeAlias
 
 import pytest
 from dace.frontend.python.common import DaceSyntaxError
@@ -17,14 +18,12 @@ from ndsl.boilerplate import (
 )
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
-from ndsl.dsl.typing import FloatField
+from ndsl.dsl.typing import Float, FloatField, Int
 from ndsl.quantity.data_dimensions_field import DataDimensionsField
 
 
 Tracers = DataDimensionsField.declare()
 TracersAndPlumes = DataDimensionsField.declare()
-
-_DOMAIN = (2, 2, 5)
 
 
 def _the_stencil_5D(in_field: TracersAndPlumes, out_field: FloatField, add: FloatField):
@@ -65,10 +64,8 @@ def setup_data_dimensions(quantity_factory: QuantityFactory):
 
 class Code(NDSLRuntime):
     def __init__(
-        self,
-        stencil_factory: StencilFactory,
-        quantity_factory: QuantityFactory,
-    ):
+        self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
+    ) -> None:
         super().__init__(stencil_factory)
         orchestrate(
             obj=self,
@@ -93,7 +90,7 @@ class Code(NDSLRuntime):
 
     def __call__(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
-    ):
+    ) -> None:
         # Literal access, multi-axis access and external indexation
         self._the_stencil_4D(in_tracers, out_field, self._my_local)
         self._the_stencil_5D(in_tracers_and_plumes, out_field, self._my_local)
@@ -115,7 +112,7 @@ class Code(NDSLRuntime):
 
     def bad_call(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
-    ):
+    ) -> None:
 
         another_index = Tracers.index("H")  # BAD in orchestration
         self._the_stencil_3D(
@@ -123,9 +120,17 @@ class Code(NDSLRuntime):
         )
 
 
-def test_data_dimensions_registration_errors():
+Domain: TypeAlias = tuple[int, int, int]
+
+
+@pytest.fixture
+def domain() -> tuple[int, int, int]:
+    return (2, 2, 5)
+
+
+def test_data_dimensions_registration_errors(domain: Domain) -> None:
     _, quantity_factory = get_factories_single_tile(
-        _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("st:python:cpu:IJK")
+        domain[0], domain[1], domain[2], 0, backend=Backend("st:python:cpu:IJK")
     )
     with pytest.raises(
         KeyError,
@@ -146,43 +151,43 @@ def test_data_dimensions_registration_errors():
         Tracers.index("H")
 
 
-def test_data_dimensions_fields_with_stencil_backend():
-    stcil_fctry, qty_factry = get_factories_single_tile(
-        _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("st:python:cpu:IJK")
+def test_data_dimensions_fields_with_stencil_backend(domain: Domain) -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        domain[0], domain[1], domain[2], 0, backend=Backend("st:python:cpu:IJK")
     )
 
-    setup_data_dimensions(qty_factry)
+    setup_data_dimensions(quantity_factory)
 
-    tracers_quantity = qty_factry.ones(
+    tracers_quantity = quantity_factory.ones(
         dims=[I_DIM, J_DIM, K_DIM, "tracers"], units="inputs"
     )
-    tracers_and_plume_quantity = qty_factry.full(
+    tracers_and_plume_quantity = quantity_factory.full(
         dims=[I_DIM, J_DIM, K_DIM, "tracers", "plumes"], units="inputs", value=2
     )
 
-    out_arr = qty_factry.zeros([I_DIM, J_DIM, K_DIM], units="outputs")
+    out_arr = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="outputs")
 
-    code = Code(stcil_fctry, qty_factry)
+    code = Code(stencil_factory, quantity_factory)
     code(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
-def test_data_dimensions_fields_with_orchestrated_backend():
-    stcil_fctry, qty_factry = get_factories_single_tile_orchestrated(
-        _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("orch:dace:cpu:IJK")
+def test_data_dimensions_fields_with_orchestrated_backend(domain: Domain) -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
     )
 
-    setup_data_dimensions(qty_factry)
+    setup_data_dimensions(quantity_factory)
 
-    tracers_quantity = qty_factry.ones(
+    tracers_quantity = quantity_factory.ones(
         dims=[I_DIM, J_DIM, K_DIM, "tracers"], units="inputs"
     )
-    tracers_and_plume_quantity = qty_factry.full(
+    tracers_and_plume_quantity = quantity_factory.full(
         dims=[I_DIM, J_DIM, K_DIM, "tracers", "plumes"], units="inputs", value=2
     )
 
-    out_arr = qty_factry.zeros([I_DIM, J_DIM, K_DIM], units="outputs")
+    out_arr = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="outputs")
 
-    code = Code(stcil_fctry, qty_factry)
+    code = Code(stencil_factory, quantity_factory)
     code(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
     with pytest.raises(
@@ -194,13 +199,49 @@ def test_data_dimensions_fields_with_orchestrated_backend():
         code.bad_call(tracers_quantity, tracers_and_plume_quantity, out_arr)
 
 
-def test_data_dimensions_fields_functions():
-    stcil_fctry, qty_factry = get_factories_single_tile(
-        _DOMAIN[0], _DOMAIN[1], _DOMAIN[2], 0, backend=Backend("orch:dace:cpu:IJK")
+def test_data_dimensions_fields_functions(domain: Domain) -> None:
+    _, quantity_factory = get_factories_single_tile(
+        domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
     )
 
-    setup_data_dimensions(qty_factry)
+    setup_data_dimensions(quantity_factory)
 
     assert Tracers.index("H") == 7
     assert TracersAndPlumes.size(0) == Tracers.size(0)
     assert TracersAndPlumes.size(1) == 3
+
+
+@pytest.mark.xfail(
+    raises=RuntimeError,
+    reason="Data dimension field declaration has to be on one line (for now), see [missing issue].",
+)
+def test_data_dim_multi_line_declare(domain: Domain) -> None:
+    _, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend("st:dace:cpu:IJK"),
+    )
+    quantity_factory.update_data_dimensions({"data_dimension": 3})
+
+    # The following currently fails because DataDimensionField declaration
+    # only works if declared on one line, i.e.
+    #   FloatField_with_data_dimension = DataDimensionField.declare()
+    # (with a separate declaration) would just work.
+    FloatField_with_data_dimension = DataDimensionsField.declare_and_register(
+        quantity_factory, ["data_dimension"], dtype=Float
+    )
+
+
+def test_data_dim_ndsl_type(domain: Domain) -> None:
+    _, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend("st:dace:cpu:IJK"),
+    )
+
+    with pytest.raises(TypeError, match="Wrong size type for data dimension"):
+        quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
