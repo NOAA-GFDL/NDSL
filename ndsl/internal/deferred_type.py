@@ -16,7 +16,16 @@ def get_lhs_name(frame: FrameType | None) -> str:
     code_context = inspect.getframeinfo(previous_frame).code_context
     if code_context is None:
         raise RuntimeError("LHS retrieval failed: code context cannot be read")
-    module = ast.parse(code_context[0])
+    try:
+        module = ast.parse(code_context[0].strip())
+    except SyntaxError as error:
+        if "was never closed" in error.msg:
+            raise RuntimeError(
+                "Data dimension field definition failed. Make sure to define on one line."
+            )
+        raise RuntimeError(
+            f"LHS retrieval failed: Syntax error during code parsing: {error.msg}"
+        )
     if len(module.body) == 0 or not isinstance(
         module.body[0], ast.Assign | ast.AugAssign | ast.AnnAssign
     ):
@@ -24,7 +33,7 @@ def get_lhs_name(frame: FrameType | None) -> str:
     if isinstance(module.body[0], ast.Assign):
         if len(module.body[0].targets) != 1:
             raise RuntimeError(
-                "Data dimension field declare: please assing only variable to the function"
+                "Data dimension field declare: please assign only variable to the function"
             )
         target_node = module.body[0].targets[0]
     else:

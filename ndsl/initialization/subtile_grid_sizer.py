@@ -20,6 +20,12 @@ class SubtileGridSizer(GridSizer):
         *,
         pad_non_interface_dimensions: bool = False,
     ) -> None:
+        for name, size in data_dimensions.items():
+            if not isinstance(size, int):
+                raise TypeError(
+                    f"Wrong size type for data dimension '{name}'. Expected plain 'int', got {type(size)}."
+                )
+
         super().__init__(nx, ny, nz, n_halo, data_dimensions)
 
         fortran_style_memory = backend.is_fortran_aligned()
