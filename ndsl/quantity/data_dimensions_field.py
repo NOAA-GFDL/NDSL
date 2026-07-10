@@ -176,7 +176,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
     ) -> "DataDimensionsMarkupType":
-        """Declare a data dimension field and register it's size
+        """Declare a data dimension field and register it's size.
 
         Args:
             quantity_factory: Factory carrying the proper data dimensions axis described
