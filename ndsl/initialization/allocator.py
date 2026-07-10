@@ -55,11 +55,15 @@ class QuantityFactory:
         Args:
             data_dimension_descriptions: Dict of name/length pairs
         """
-        for name in data_dimension_descriptions.keys():
-            if name in self.sizer.data_dimensions.keys():
+        for name, size in data_dimension_descriptions.items():
+            if name in self.sizer.data_dimensions:
                 raise ValueError(
                     f"[NDSL] Data dimension {name} already exists! "
                     "Use `update_data_dimensions` if you meant to update the length."
+                )
+            if not isinstance(size, int):
+                raise TypeError(
+                    f"Wrong size type for data dimension '{name}'. Expected plain 'int', got {type(size)}."
                 )
 
         self.sizer.data_dimensions.update(data_dimension_descriptions)

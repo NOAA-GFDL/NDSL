@@ -228,7 +228,7 @@ def test_data_dim_multi_line_declare(domain: Domain) -> None:
     # The following currently fails because DataDimensionField declaration
     # only works if declared on one line, i.e.
     #   FloatField_with_data_dimension = DataDimensionField.declare()
-    # (with a separate declaration) would just work.
+    # (with a separate registration) would just work.
     FloatField_with_data_dimension = DataDimensionsField.declare_and_register(
         quantity_factory, ["data_dimension"], dtype=Float
     )
@@ -243,5 +243,8 @@ def test_data_dim_ndsl_type(domain: Domain) -> None:
         backend=Backend("st:dace:cpu:IJK"),
     )
 
-    with pytest.raises(TypeError, match="Wrong size type for data dimension"):
+    with pytest.raises(TypeError, match="Wrong size type for data dimension."):
+        # This _should_ be possible, i.e. we _should_ allow any `numbers.Integral`
+        # type here. To support this, we'll need changes GT4Py as well as in DaCe.
+        # For now, we are thus making sure that NDSL users get a clear error message.
         quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
