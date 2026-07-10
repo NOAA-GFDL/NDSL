@@ -124,7 +124,7 @@ Domain: TypeAlias = tuple[int, int, int]
 
 
 @pytest.fixture
-def domain() -> tuple[int, int, int]:
+def domain() -> Domain:
     return (2, 2, 5)
 
 
