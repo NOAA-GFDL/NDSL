@@ -6,6 +6,7 @@ from dace.frontend.python.common import DaceSyntaxError
 
 from ndsl import (
     Backend,
+    DataDimensionsField,
     NDSLRuntime,
     Quantity,
     QuantityFactory,
@@ -19,7 +20,6 @@ from ndsl.boilerplate import (
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
 from ndsl.dsl.typing import Float, FloatField, Int
-from ndsl.quantity.data_dimensions_field import DataDimensionsField
 
 
 Tracers = DataDimensionsField.declare()
