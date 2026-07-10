@@ -213,7 +213,7 @@ def test_data_dimensions_fields_functions(domain: Domain) -> None:
 
 @pytest.mark.xfail(
     raises=RuntimeError,
-    reason="Data dimension field declaration has to be on one line (for now), see [missing issue].",
+    reason="Data dimension field declaration has to be on one line (for now), see https://github.com/NOAA-GFDL/NDSL/issues/502.",
 )
 def test_data_dim_multi_line_declare(domain: Domain) -> None:
     _, quantity_factory = get_factories_single_tile(
