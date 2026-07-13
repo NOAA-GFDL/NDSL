@@ -267,6 +267,39 @@ def test_data_dim_multi_line_declare(domain: Domain) -> None:
     )
 
 
+def test_register_deprecations(domain: Domain) -> None:
+    _, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend("st:dace:cpu:IJK"),
+    )
+    quantity_factory.update_data_dimensions({"asdf": 3})
+
+    # case: declare() and register() separately
+    Field1 = DataDimensionsField.declare()
+    Field2 = DataDimensionsField.declare()
+    Field3 = DataDimensionsField.declare()
+
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        DataDimensionsField.register(Field1, quantity_factory, ["asdf"], {})
+    assert len(warnings) == 1
+
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        DataDimensionsField.register(Field2, quantity_factory, ["asdf"], {}, Float)
+    assert len(warnings) == 2
+
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        DataDimensionsField.register(Field3, quantity_factory, ["asdf"], {}, Float, [])
+    assert len(warnings) == 3
+
+    # case declare_and_register()
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        F = DataDimensionsField.declare_and_register(quantity_factory, ["asdf"], {})
+    assert len(warnings) == 1
+
+
 def test_data_dim_ndsl_type(domain: Domain) -> None:
     _, quantity_factory = get_factories_single_tile(
         nx=domain[0],
