@@ -1,6 +1,6 @@
-import collections
 import inspect
 from dataclasses import dataclass
+from typing import Sequence
 
 import numpy.typing as npt
 from dace import SDFG, SDFGState
@@ -33,8 +33,8 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
     def __init__(
         self,
         dtype: npt.DTypeLike,
-        axes: gtscript.Axis | collections.abc.Collection,
-        data_dims: tuple[int] | collections.abc.Collection = tuple(),
+        axes: Sequence[gtscript.Axis],
+        data_dims: Sequence[int] = tuple(),
     ) -> None:
         super().__init__(dtype, axes, data_dims)
         self._mapping: SparseNameMapping = {}
@@ -61,7 +61,7 @@ class _DataDimensionFieldMaker(_FieldDescriptorMaker):
     """Factory for DataDimensionsField"""
 
     def __getitem__(
-        self, field_spec: gtscript.Axis | collections.abc.Collection
+        self, field_spec: Sequence[gtscript.Axis]
     ) -> _DataDimensionsFieldDescriptor:
         field_descriptor = super().__getitem__(field_spec)
         return _DataDimensionsFieldDescriptor(
@@ -89,10 +89,11 @@ class DataDimensionsField(StencilTypeRegistrar):
         cls,
         pre_registration_type: "DataDimensionsMarkupType",
         quantity_factory: QuantityFactory,
-        axes: gtscript.Axis,
         data_dimensions_names: list[str],
+        *,
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
+        axes: Sequence[gtscript.Axis] = gtscript.IJK,
     ) -> _DataDimensionsFieldDescriptor:
         """Register a type by name by giving the size of its data dimensions and
         optionally a sparse mapping of name/index.
@@ -174,8 +175,10 @@ class DataDimensionsField(StencilTypeRegistrar):
         cls,
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
+        *,
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
+        axes: Sequence[gtscript.Axis] = gtscript.IJK,
     ) -> "DataDimensionsMarkupType":
         """Declare a data dimension field and register it's size.
 
@@ -194,8 +197,9 @@ class DataDimensionsField(StencilTypeRegistrar):
             markup_type,
             quantity_factory,
             data_dimensions_names,
-            name_mapping,
-            dtype,
+            axes=axes,
+            name_mapping=name_mapping,
+            dtype=dtype,
         )
         return markup_type
 

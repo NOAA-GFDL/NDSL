@@ -1,6 +1,7 @@
 import re
 from typing import TypeAlias
 
+import numpy as np
 import pytest
 from dace.frontend.python.common import DaceSyntaxError
 
@@ -24,6 +25,7 @@ from ndsl.dsl.typing import Float, FloatField, Int
 
 Tracers = DataDimensionsField.declare()
 TracersAndPlumes = DataDimensionsField.declare()
+GlobalTable = DataDimensionsField.declare()
 
 
 def _the_stencil_5D(in_field: TracersAndPlumes, out_field: FloatField, add: FloatField):
@@ -43,11 +45,22 @@ def _the_stencil_3D(in_field: FloatField, out_field: FloatField, add: FloatField
         out_field = in_field + add
 
 
+def _the_stencil_table(in_field: FloatField, table: GlobalTable, out_field: Tracers):
+    from __externals__ import tracer_count
+
+    with computation(PARALLEL), interval(...):
+        tracer_id = 0
+        while tracer_id < tracer_count:
+            out_field[0, 0, 0][tracer_id] = in_field * tracer_id + table.A[5]
+            tracer_id += 1
+
+
 SETUP_DDIMS_ONCE = False
 
 
 def setup_data_dimensions(quantity_factory: QuantityFactory):
     quantity_factory.add_data_dimensions({"tracers": 8, "plumes": 3})
+    quantity_factory.add_data_dimensions({"table_size": 42})
 
     # Make sure this is called once
     global SETUP_DDIMS_ONCE
@@ -56,9 +69,14 @@ def setup_data_dimensions(quantity_factory: QuantityFactory):
     SETUP_DDIMS_ONCE = True
 
     mappings = {"A": 0, "C": 2, "D": 3, "G": 6, "H": 7}
-    DataDimensionsField.register(Tracers, quantity_factory, ["tracers"], mappings)
     DataDimensionsField.register(
-        TracersAndPlumes, quantity_factory, ["tracers", "plumes"], mappings
+        Tracers, quantity_factory, ["tracers"], name_mapping=mappings
+    )
+    DataDimensionsField.register(
+        TracersAndPlumes, quantity_factory, ["tracers", "plumes"], name_mapping=mappings
+    )
+    DataDimensionsField.register(
+        GlobalTable, quantity_factory, ["table_size"], axes=[], dtype=np.int64
     )
 
 
@@ -67,11 +85,16 @@ class Code(NDSLRuntime):
         self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
     ) -> None:
         super().__init__(stencil_factory)
-        orchestrate(
-            obj=self,
-            config=stencil_factory.config.dace_config,
-            method_to_orchestrate="bad_call",
-        )
+        methods_to_orchestrate = [
+            "bad_call",
+            "stencil_with_table",
+        ]
+        for method_to_orchestrate in methods_to_orchestrate:
+            orchestrate(
+                obj=self,
+                config=stencil_factory.config.dace_config,
+                method_to_orchestrate=method_to_orchestrate,
+            )
         self._the_stencil_4D = stencil_factory.from_dims_halo(
             func=_the_stencil_4D,
             compute_dims=[I_DIM, J_DIM, K_DIM],
@@ -84,6 +107,11 @@ class Code(NDSLRuntime):
         self._the_stencil_5D = stencil_factory.from_dims_halo(
             func=_the_stencil_5D,
             compute_dims=[I_DIM, J_DIM, K_DIM],
+        )
+        self._the_stencil_table = stencil_factory.from_dims_halo(
+            func=_the_stencil_table,
+            compute_dims=[I_DIM, J_DIM, K_DIM],
+            externals={"tracer_count": 8},
         )
         self._my_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
         self._my_local.field[:] = 2.0
@@ -119,6 +147,11 @@ class Code(NDSLRuntime):
             in_tracers[:, :, :, another_index], out_field, self._my_local
         )
 
+    def stencil_with_table(
+        self, in_field: FloatField, table: GlobalTable, out_field: Tracers
+    ) -> None:
+        self._the_stencil_table(in_field, table, out_field)
+
 
 Domain: TypeAlias = tuple[int, int, int]
 
@@ -139,7 +172,7 @@ def test_data_dimensions_registration_errors(domain: Domain) -> None:
         ),
     ):
         DataDimensionsField.register(
-            TracersAndPlumes, quantity_factory, ["tracers"], {}
+            TracersAndPlumes, quantity_factory, ["tracers"], name_mapping={}
         )
 
     with pytest.raises(
@@ -248,3 +281,27 @@ def test_data_dim_ndsl_type(domain: Domain) -> None:
         # type here. To support this, we'll need changes GT4Py as well as in DaCe.
         # For now, we are thus making sure that NDSL users get a clear error message.
         quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
+
+
+def test_data_dimension_table(domain: Domain) -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend("st:python:cpu:IJK"),
+    )
+
+    setup_data_dimensions(quantity_factory)
+
+    in_field = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+    table = quantity_factory.from_array(np.arange(0, 42), ["table_size"], units="n/a")
+    tracer_field = quantity_factory.zeros(
+        dims=[I_DIM, J_DIM, K_DIM, "tracers"], units="n/a"
+    )
+
+    code = Code(stencil_factory, quantity_factory)
+    code.stencil_with_table(in_field, table, tracer_field)
+
+    for tracer_id in range(0, 8):
+        assert tracer_field[0, 0, 0][tracer_id] == tracer_id + 5
