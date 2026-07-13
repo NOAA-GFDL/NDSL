@@ -114,11 +114,12 @@ class Code(NDSLRuntime):
             externals={"tracer_count": 8},
         )
         self._my_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
-        self._my_local.field[:] = 2.0
 
     def __call__(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
     ) -> None:
+        self._my_local[:] = 2.0
+
         # Literal access, multi-axis access and external indexation
         self._the_stencil_4D(in_tracers, out_field, self._my_local)
         self._the_stencil_5D(in_tracers_and_plumes, out_field, self._my_local)
@@ -141,7 +142,6 @@ class Code(NDSLRuntime):
     def bad_call(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
     ) -> None:
-
         another_index = Tracers.index("H")  # BAD in orchestration
         self._the_stencil_3D(
             in_tracers[:, :, :, another_index], out_field, self._my_local
