@@ -108,6 +108,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
+            axes: Cartesian axes, defaults to `IJK` i.e. all of them.
         """
         name = pre_registration_type.name
         if name in cls._type_registrar.keys():
@@ -189,6 +190,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
+            axes: Cartesian axes, defaults to `IJK` i.e. all of them.
         """
 
         name = get_lhs_name(inspect.currentframe())
