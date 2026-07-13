@@ -90,7 +90,6 @@ class DataDimensionsField(StencilTypeRegistrar):
         pre_registration_type: "DataDimensionsMarkupType",
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
-        *,
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         axes: Sequence[gtscript.Axis] = gtscript.IJK,
@@ -175,7 +174,6 @@ class DataDimensionsField(StencilTypeRegistrar):
         cls,
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
-        *,
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
         axes: Sequence[gtscript.Axis] = gtscript.IJK,
