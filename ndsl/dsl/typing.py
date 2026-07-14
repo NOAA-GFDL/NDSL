@@ -1,5 +1,5 @@
 import warnings
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -65,8 +65,12 @@ def global_set_precision():  # type: ignore[no-untyped-def]
     )
 
 
-# Default float and int types
-Float, Int = global_set_precision()
+# Default float and int types.
+if TYPE_CHECKING:
+    Float: TypeAlias = np.float64
+    Int: TypeAlias = np.int64
+else:
+    Float, Int = global_set_precision()
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]
