@@ -91,7 +91,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
-        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
+        dtype: npt.DTypeLike = Float,
     ) -> _DataDimensionsFieldDescriptor:
         """Register a type by name by giving the size of its data dimensions and
         optionally a sparse mapping of name/index.
@@ -148,7 +148,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             sdfg: SDFG,
             state: SDFGState,
             data_dim_index: int,
-        ) -> Int:  # type: ignore[valid-type]
+        ) -> Int:
             size = cls._type_registrar[name].size(data_dim_index)
             return Int(size)
 
@@ -174,7 +174,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
-        dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
+        dtype: npt.DTypeLike = Float,
     ) -> "DataDimensionsMarkupType":
         """Declare a data dimension field and register it's size.
 
