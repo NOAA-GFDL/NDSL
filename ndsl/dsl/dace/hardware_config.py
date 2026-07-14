@@ -50,7 +50,7 @@ def _get_vendor() -> GPUVendor:
 
 @dataclasses.dataclass
 class GPUHardwareDefaults:
-    """Compute defaults for common GPUs"""
+    """Compute defaults for common GPUs."""
 
     vendor: GPUVendor
     block_size: list[int] = dataclasses.field(default_factory=list)
