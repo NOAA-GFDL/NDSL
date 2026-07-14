@@ -67,11 +67,8 @@ def get_gpu_hardware_defaults() -> GPUHardwareDefaults:
         ndsl_log.warning("No cupy - defaulting for GPU hardware")
         _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
             vendor="Unknown",
-            block_size=[
-                8,
-                1,
-                1,
-            ],  # Smaller common denominator of massively parallel hardware
+            # Smallest common denominator of massively parallel hardware
+            block_size=[8, 1, 1],
         )
         return _GPU_HARDWARE_DEFAULTS
 
