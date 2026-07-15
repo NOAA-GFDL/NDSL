@@ -114,11 +114,12 @@ class Code(NDSLRuntime):
             externals={"tracer_count": 8},
         )
         self._my_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
-        self._my_local.field[:] = 2.0
 
     def __call__(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
     ) -> None:
+        self._my_local[:] = 2.0
+
         # Literal access, multi-axis access and external indexation
         self._the_stencil_4D(in_tracers, out_field, self._my_local)
         self._the_stencil_5D(in_tracers_and_plumes, out_field, self._my_local)
@@ -141,7 +142,6 @@ class Code(NDSLRuntime):
     def bad_call(
         self, in_tracers: Quantity, in_tracers_and_plumes, out_field: Quantity
     ) -> None:
-
         another_index = Tracers.index("H")  # BAD in orchestration
         self._the_stencil_3D(
             in_tracers[:, :, :, another_index], out_field, self._my_local
@@ -265,6 +265,39 @@ def test_data_dim_multi_line_declare(domain: Domain) -> None:
     FloatField_with_data_dimension = DataDimensionsField.declare_and_register(
         quantity_factory, ["data_dimension"], dtype=Float
     )
+
+
+def test_register_deprecations(domain: Domain) -> None:
+    _, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend("st:dace:cpu:IJK"),
+    )
+    quantity_factory.update_data_dimensions({"asdf": 3})
+
+    # case: declare() and register() separately
+    Field1 = DataDimensionsField.declare()
+    Field2 = DataDimensionsField.declare()
+    Field3 = DataDimensionsField.declare()
+
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        DataDimensionsField.register(Field1, quantity_factory, ["asdf"], {})
+    assert len(warnings) == 1
+
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        DataDimensionsField.register(Field2, quantity_factory, ["asdf"], {}, Float)
+    assert len(warnings) == 2
+
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        DataDimensionsField.register(Field3, quantity_factory, ["asdf"], {}, Float, [])
+    assert len(warnings) == 3
+
+    # case declare_and_register()
+    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
+        F = DataDimensionsField.declare_and_register(quantity_factory, ["asdf"], {})
+    assert len(warnings) == 1
 
 
 def test_data_dim_ndsl_type(domain: Domain) -> None:
