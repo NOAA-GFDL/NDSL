@@ -19,7 +19,7 @@ from ndsl.boilerplate import (
     get_factories_single_tile_orchestrated,
 )
 from ndsl.constants import I_DIM, J_DIM, K_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.gt4py import PARALLEL, computation, function, interval
 from ndsl.dsl.typing import Float, FloatField, Int
 
 
@@ -52,6 +52,37 @@ def _the_stencil_table(in_field: FloatField, table: GlobalTable, out_field: Trac
         tracer_id = 0
         while tracer_id < tracer_count:
             out_field[0, 0, 0][tracer_id] = in_field * tracer_id + table.A[5]
+            tracer_id += 1
+
+
+@function
+def _compute_function(in_field: FloatField, tracer_id: int, table: GlobalTable):  # type: ignore
+    return in_field * tracer_id + table.A[5]
+
+
+def _the_stencil_function_with_table(
+    in_field: FloatField, table: GlobalTable, out_field: Tracers
+) -> None:
+    with computation(PARALLEL), interval(...):
+        tracer_id = 0
+        while tracer_id < 8:
+            out_field[0, 0, 0][tracer_id] = _compute_function(
+                in_field, tracer_id, table
+            )
+            tracer_id += 1
+
+
+def _the_stencil_function_with_table_and_externals(
+    in_field: FloatField, table: GlobalTable, out_field: Tracers
+) -> None:
+    from __externals__ import tracer_count
+
+    with computation(PARALLEL), interval(...):
+        tracer_id = 0
+        while tracer_id < tracer_count:
+            out_field[0, 0, 0][tracer_id] = _compute_function(
+                in_field, tracer_id, table
+            )
             tracer_id += 1
 
 
@@ -88,6 +119,8 @@ class Code(NDSLRuntime):
         methods_to_orchestrate = [
             "bad_call",
             "stencil_with_table",
+            "function_with_table",
+            "function_with_table_and_externals",
         ]
         for method_to_orchestrate in methods_to_orchestrate:
             orchestrate(
@@ -112,6 +145,17 @@ class Code(NDSLRuntime):
             func=_the_stencil_table,
             compute_dims=[I_DIM, J_DIM, K_DIM],
             externals={"tracer_count": 8},
+        )
+        self._the_stencil_function_with_table = stencil_factory.from_dims_halo(
+            func=_the_stencil_function_with_table,
+            compute_dims=[I_DIM, J_DIM, K_DIM],
+        )
+        self._the_stencil_function_with_table_and_externals = (
+            stencil_factory.from_dims_halo(
+                func=_the_stencil_function_with_table_and_externals,
+                compute_dims=[I_DIM, J_DIM, K_DIM],
+                externals={"tracer_count": 8},
+            )
         )
         self._my_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
 
@@ -148,9 +192,19 @@ class Code(NDSLRuntime):
         )
 
     def stencil_with_table(
-        self, in_field: FloatField, table: GlobalTable, out_field: Tracers
+        self, in_field: FloatField, table: GlobalTable, out_field: Tracers  # type: ignore
     ) -> None:
         self._the_stencil_table(in_field, table, out_field)
+
+    def function_with_table(
+        self, in_field: FloatField, table: GlobalTable, out_field: Tracers  # type: ignore
+    ) -> None:
+        self._the_stencil_function_with_table(in_field, table, out_field)
+
+    def function_with_table_and_externals(
+        self, in_field: FloatField, table: GlobalTable, out_field: Tracers  # type: ignore
+    ) -> None:
+        self._the_stencil_function_with_table_and_externals(in_field, table, out_field)
 
 
 Domain: TypeAlias = tuple[int, int, int]
@@ -335,6 +389,62 @@ def test_data_dimension_table(domain: Domain) -> None:
 
     code = Code(stencil_factory, quantity_factory)
     code.stencil_with_table(in_field, table, tracer_field)
+
+    for tracer_id in range(0, 8):
+        assert tracer_field[0, 0, 0][tracer_id] == tracer_id + 5
+
+
+@pytest.mark.parametrize(
+    "backend_name", ["st:python:cpu:IJK", "st:dace:cpu:IJK", "orch:dace:cpu:IJK"]
+)
+def test_data_dimension_table_in_function(domain: Domain, backend_name: str) -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend(backend_name),
+    )
+
+    setup_data_dimensions(quantity_factory)
+
+    in_field = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+    table = quantity_factory.from_array(np.arange(0, 42), ["table_size"], units="n/a")
+    tracer_field = quantity_factory.zeros(
+        dims=[I_DIM, J_DIM, K_DIM, "tracers"], units="n/a"
+    )
+
+    code = Code(stencil_factory, quantity_factory)
+    code.function_with_table(in_field, table, tracer_field)
+
+    for tracer_id in range(0, 8):
+        assert tracer_field[0, 0, 0][tracer_id] == tracer_id + 5
+
+
+@pytest.mark.parametrize(
+    "backend_name", ["st:python:cpu:IJK", "st:dace:cpu:IJK", "orch:dace:cpu:IJK"]
+)
+def test_data_dimension_table_in_function_with_externals(
+    domain: Domain, backend_name: str
+) -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        nx=domain[0],
+        ny=domain[1],
+        nz=domain[2],
+        nhalo=0,
+        backend=Backend(backend_name),
+    )
+
+    setup_data_dimensions(quantity_factory)
+
+    in_field = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+    table = quantity_factory.from_array(np.arange(0, 42), ["table_size"], units="n/a")
+    tracer_field = quantity_factory.zeros(
+        dims=[I_DIM, J_DIM, K_DIM, "tracers"], units="n/a"
+    )
+
+    code = Code(stencil_factory, quantity_factory)
+    code.function_with_table_and_externals(in_field, table, tracer_field)
 
     for tracer_id in range(0, 8):
         assert tracer_field[0, 0, 0][tracer_id] == tracer_id + 5
