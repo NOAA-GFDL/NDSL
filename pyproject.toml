@@ -129,7 +129,7 @@ module = [
 
 [tool.pytest]
 markers = [
-  # tests running on a cpu (e.g. with cupy)
+  # tests running on a GPU (e.g. with cupy)
   "gpu",
   # tests relying on the optional pyFMS dependency
   "pyfms",

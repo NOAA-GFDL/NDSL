@@ -107,6 +107,7 @@ nav = [
         {"build" = "docstrings/dsl/dace/build.md"},
         {"dace_config" = "docstrings/dsl/dace/dace_config.md"},
         {"dace_executable" = "docstrings/dsl/dace/dace_executable.md"},
+        {"hardware_config" = "docstrings/dsl/dace/hardware_config.md"},
         {"labeler" = "docstrings/dsl/dace/labeler.md"},
         {"orchestration" = "docstrings/dsl/dace/orchestration.md"},
         {"replacements" = "docstrings/dsl/dace/replacements.md"},
