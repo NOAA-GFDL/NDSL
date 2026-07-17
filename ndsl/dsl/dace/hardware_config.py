@@ -50,7 +50,7 @@ def _get_vendor() -> GPUVendor:
 
 @dataclasses.dataclass
 class GPUHardwareDefaults:
-    """Compute defaults for common GPUs"""
+    """Compute defaults for common GPUs."""
 
     vendor: GPUVendor
     block_size: list[int] = dataclasses.field(default_factory=list)
@@ -67,59 +67,55 @@ def get_gpu_hardware_defaults() -> GPUHardwareDefaults:
         ndsl_log.warning("No cupy - defaulting for GPU hardware")
         _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
             vendor="Unknown",
-            block_size=[
-                8,
-                1,
-                1,
-            ],  # Smaller common denominator of massively parallel hardware
+            # Smallest common denominator of massively parallel hardware
+            block_size=[8, 1, 1],
         )
         return _GPU_HARDWARE_DEFAULTS
 
     # Who goes there
     vendor = _get_vendor()
-    if vendor == "Nvidia":
-        compute_capability = int(cp.cuda.Device(0).compute_capability)
-        # Default block size based on compute capability
-        if compute_capability > 80:
-            # Covers:
-            #  - Blackwell (100+)
-            #  - Hopper (90-100)
-            #  - Ampere (80-90)
-            block_sizes = [128, 1, 1]
-        elif compute_capability > 60:
-            # Covers:
-            #  - Volta (70-80)
-            #  - Pascal (60-70)
-            block_sizes = [64, 8, 1]
-        else:
-            # For older hardware - we default to the safe warp-size since
-            # the dawn of GPGPU on Nvidia hardware
-            block_sizes = [32, 1, 1]
+    match vendor:
+        case "Nvidia":
+            compute_capability = int(cp.cuda.Device(0).compute_capability)
+            # Default block size based on compute capability
+            if compute_capability > 80:
+                # Covers:
+                #  - Blackwell (100+)
+                #  - Hopper (90-100)
+                #  - Ampere (80-90)
+                block_sizes = [128, 1, 1]
+            elif compute_capability > 60:
+                # Covers:
+                #  - Volta (70-80)
+                #  - Pascal (60-70)
+                block_sizes = [64, 8, 1]
+            else:
+                # For older hardware - we default to the safe warp-size since
+                # the dawn of GPGPU on Nvidia hardware
+                block_sizes = [32, 1, 1]
 
-        _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
-            vendor=vendor,
-            block_size=block_sizes,
-            compute_capability=compute_capability,
-        )
-    elif vendor == "AMD":
-        _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
-            vendor=vendor,
-            block_size=[64, 1, 1],  # Default RDNA architecture is Wave64
-        )
-    elif vendor == "Intel":
-        _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
-            vendor=vendor,
-            block_size=[32, 1, 1],  # Intel can run 8, 16 or 32 - but SIMD betters in 32
-        )
-    else:
-        _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
-            vendor=vendor,
-            block_size=[
-                8,
-                1,
-                1,
-            ],  # Smaller common denominator of massively parallel hardware
-        )
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                block_size=block_sizes,
+                compute_capability=compute_capability,
+            )
+        case "AMD":
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                block_size=[64, 1, 1],  # Default RDNA architecture is Wave64
+            )
+        case "Intel":
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                # Intel can run 8, 16 or 32 - but SIMD betters in 32
+                block_size=[32, 1, 1],
+            )
+        case _:
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                # Smallest common denominator of massively parallel hardware
+                block_size=[8, 1, 1],
+            )
 
     ndsl_log.info(f"GPU vendor detected: {_GPU_HARDWARE_DEFAULTS.vendor}")
 
