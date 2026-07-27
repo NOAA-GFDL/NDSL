@@ -1,7 +1,6 @@
 import ast
 from typing import Any
 
-import dace
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
@@ -63,9 +62,7 @@ class InlineVertical2DWrite(tn.ScheduleNodeVisitor):
         if abs(bound_value - init_value) != 1:
             return
 
-        ReplaceAxisSymbol(
-            {dace.symbol(the_for.loop.loop_variable): str(init_value)}
-        ).visit(the_for)
+        ReplaceAxisSymbol({the_for.loop.loop_variable: str(init_value)}).visit(the_for)
 
         # Insert children of the ForScope to parent
         insert_at = list_index(the_for.parent.children, the_for)

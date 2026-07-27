@@ -2,11 +2,16 @@ import itertools
 import re
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
-from dace.symbolic import symbol
 
 
 class ReplaceAxisSymbol(tn.ScheduleNodeVisitor):
-    def __init__(self, axis_replacements: dict[str | symbol, str | symbol]) -> None:
+    """Replace the axis symbol with a new one.
+
+    Dev Note: symbol is a `str` because replace operation in memlets do not
+    handle using it's own internal dace.symbol
+    """
+
+    def __init__(self, axis_replacements: dict[str, str]) -> None:
         self._axis_replacements = axis_replacements
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
