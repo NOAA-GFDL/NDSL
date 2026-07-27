@@ -29,7 +29,7 @@ class _Labeler(nodes.LibraryNode):
         self._unique_name = unique_name
         self._local_optimizations = local_optimization
 
-    def has_side_effects(self) -> bool:
+    def has_side_effects(self, sdfg: dace.SDFG) -> bool:
         # HACK
         # LibraryNodes with side effects aren't touched by simplify. This
         # keeps the library nodes alive until we get to the schedule tree
