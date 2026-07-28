@@ -5,7 +5,7 @@ import warnings
 from collections.abc import Callable
 from typing import Any, Sequence
 
-from ndsl.debug import ndsl_debugger
+from ndsl.debug import get_debugger
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float
@@ -52,7 +52,8 @@ class NDSLRuntime:
                 *args: list[Any],
                 **kwargs: dict[str, Any],
             ) -> Any:
-                assert ndsl_debugger
+                debugger = get_debugger()
+                assert debugger
                 params = inspect.signature(child_call).parameters
                 data_as_dict: dict[str, Any] = {}
                 # Positional
@@ -73,19 +74,20 @@ class NDSLRuntime:
                     if name in params:
                         data_as_dict[name] = value
 
-                ndsl_debugger.save_as_dataset(
+                debugger.save_as_dataset(
                     data_as_dict, type(self).__qualname__, is_in=True
                 )
                 result = child_call(self, *args, **kwargs)
-                ndsl_debugger.save_as_dataset(
+                debugger.save_as_dataset(
                     data_as_dict, type(self).__qualname__, is_in=False
                 )
                 return result
 
             return new_call
 
+        debugger = get_debugger()
         cls.__init__ = init_decorator(cls.__init__)  # type: ignore[method-assign]
-        if ndsl_debugger and callable(cls):
+        if debugger and callable(cls):
             cls._original__call__ = cls.__call__  # type: ignore[attr-defined]
             cls.__call__ = debug_decorator(cls.__call__)  # type: ignore[method-assign]
 

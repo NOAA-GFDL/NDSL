@@ -12,25 +12,50 @@ from ndsl.quantity import Quantity
 
 
 @dataclasses.dataclass
+class DebuggerStartFrom:
+    """The StartFrom configuration aims at delaying the debugger recording until a certain NDSLRuntime
+    is called N times. After that, recording is allowed."""
+
+    # Configuration
+    ndslruntime_name: str = ""
+    start_from_call: int = -1
+
+    # Runtime data
+    call_count: int = -1
+
+    def record(self, savename: str) -> None:
+        if self.start_from_call < 1:
+            return
+
+        if savename == self.ndslruntime_name:
+            self.call_count += 1
+
+    def can_run(self) -> bool:
+        return self.start_from_call < 0 or self.call_count >= self.start_from_call
+
+
+@dataclasses.dataclass
 class Debugger:
     """Debugger relying on `ndsl.debug.config` for setup capable
     of doing automatic data save on external configuration."""
 
     # Configuration
     stencils_or_class: list[str] = dataclasses.field(default_factory=list)
-    timestep_name: str = ""
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     save_compute_domain_only: bool = False
     dir_name: str = "./"
     save_all: bool = False
-    save_from_timestep: int = -1
+    save_from: DebuggerStartFrom = dataclasses.field(default_factory=DebuggerStartFrom)
 
     # Runtime data
     rank: int = -1
     step: int = 0
-    ts: int = 0
     calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
     track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if isinstance(self.save_from, dict):
+            self.save_from = DebuggerStartFrom(**self.save_from)
 
     def _to_xarray(self, data: Any, name: str | None) -> xr.DataArray:
         if isinstance(data, Quantity):
@@ -84,8 +109,8 @@ class Debugger:
         """
         self.track_data(data_as_dict, savename, is_in)
 
-        if savename == self.timestep_name and is_in:
-            self.ts += 1
+        if is_in:
+            self.save_from.record(savename)
 
         if savename not in self.stencils_or_class and not self.save_all:
             return
@@ -94,7 +119,7 @@ class Debugger:
         if not is_in:
             self.calls_count[savename] += 1
 
-        if self.save_from_timestep >= 0 and self.ts - 1 < self.save_from_timestep:
+        if not self.save_from.can_run():
             return
 
         data_arrays = {}
