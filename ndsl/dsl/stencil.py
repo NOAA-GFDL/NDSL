@@ -50,7 +50,7 @@ from ndsl.dsl.typing import (
     cast_to_index3d,
 )
 from ndsl.initialization import GridSizer
-from ndsl.internal.deferred_type import StencilDeferredType
+from ndsl.internal.deferred_type import resolve_deferred_types
 from ndsl.quantity import Quantity
 from ndsl.testing.comparison import LegacyMetric
 
@@ -349,9 +349,7 @@ class FrozenStencil(SDFGConvertible):
         }
 
         # Deal with placeholder/markup type by resolving their true types
-        for name, type_ in func.__annotations__.items():
-            if isinstance(type_, StencilDeferredType):
-                func.__annotations__[name] = type_.resolve().get(type_.name)
+        resolve_deferred_types(func)
 
         # Keep compilation at __init__ if we are not orchestrated.
         # If we orchestrate, move the compilation at call time to make sure

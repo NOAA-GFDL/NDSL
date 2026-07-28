@@ -2,7 +2,7 @@ import abc
 import ast
 import inspect
 from types import FrameType
-from typing import Any, Type
+from typing import Any, Callable, Type
 
 
 def get_lhs_name(frame: FrameType | None) -> str:
@@ -74,3 +74,10 @@ class StencilDeferredType:
     @classmethod
     @abc.abstractmethod
     def resolve(cls) -> Type[StencilTypeRegistrar]: ...
+
+
+def resolve_deferred_types(func: Callable) -> None:
+    """Resolve any deferred type annotation in the given function to the true type."""
+    for name, type_ in func.__annotations__.items():
+        if isinstance(type_, StencilDeferredType):
+            func.__annotations__[name] = type_.resolve().get(type_.name)
