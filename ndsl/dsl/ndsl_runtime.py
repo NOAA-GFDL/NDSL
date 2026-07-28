@@ -5,6 +5,7 @@ import warnings
 from collections.abc import Callable
 from typing import Any, Sequence
 
+from ndsl.debug import get_debugger
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float
@@ -27,11 +28,11 @@ class NDSLRuntime:
         self._base_class_was_properly_super_init = True
 
     def __init_subclass__(cls: type[NDSLRuntime], **kwargs: dict[str, Any]) -> None:
-        # WARNING: no code outside the `init_decorator` this is cls
-        # function, it will be called ONLY ONCE for monkey-patching the
-        # Class - not the instance !
+        # WARNING: no code outside the decorators monkey patching!
+        # This is class function, it will be called ONLY ONCE for the Class
+        # - not the instance!
 
-        def init_decorator(previous_init: Callable) -> Callable:
+        def init_decorator(child_init: Callable) -> Any:
             def new_init(
                 self: NDSLRuntime,
                 *args: list[Any],
@@ -40,14 +41,57 @@ class NDSLRuntime:
                 global _TOP_LEVEL
                 if _TOP_LEVEL is None:
                     _TOP_LEVEL = self
-                previous_init(self, *args, **kwargs)
+                child_init(self, *args, **kwargs)
                 self.__post_init__()
 
             return new_init
 
-        cls.__init__ = init_decorator(cls.__init__)  # type: ignore[method-assign]
+        def debug_decorator(child_call: Callable) -> Any:
+            def new_call(
+                self: NDSLRuntime,
+                *args: list[Any],
+                **kwargs: dict[str, Any],
+            ) -> Any:
+                debugger = get_debugger()
+                assert debugger
+                params = inspect.signature(child_call).parameters
+                data_as_dict: dict[str, Any] = {}
+                # Positional
+                positional_count = 0
+                for name, param in params.items():
+                    if param.kind in (
+                        inspect.Parameter.POSITIONAL_ONLY,
+                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    ):
+                        if positional_count == 0:  # self
+                            positional_count += 1
+                            continue
+                        if positional_count < len(args) + 1:
+                            data_as_dict[name] = args[positional_count - 1]
+                            positional_count += 1
+                # Keyword arguments
+                for name, value in kwargs.items():
+                    if name in params:
+                        data_as_dict[name] = value
 
-    def __post_init__(self) -> None:
+                debugger.save_as_dataset(
+                    data_as_dict, type(self).__qualname__, is_in=True
+                )
+                result = child_call(self, *args, **kwargs)
+                debugger.save_as_dataset(
+                    data_as_dict, type(self).__qualname__, is_in=False
+                )
+                return result
+
+            return new_call
+
+        debugger = get_debugger()
+        cls.__init__ = init_decorator(cls.__init__)  # type: ignore[method-assign]
+        if debugger and callable(cls):
+            cls._original__call__ = cls.__call__  # type: ignore[attr-defined]
+            cls.__call__ = debug_decorator(cls.__call__)  # type: ignore[method-assign]
+
+    def __post_init__(self: NDSLRuntime) -> None:
         if not hasattr(self, "_base_class_was_properly_super_init"):
             raise RuntimeError(
                 f"Class {type(self).__name__} inherit from NDSLRuntime but didn't call super().__init__."
@@ -71,7 +115,10 @@ class NDSLRuntime:
             check_for_quantity(self)
 
         # Orchestrate __call__ by default
-        if callable(self):
+        if self._stencil_factory.backend.is_orchestrated() and callable(self):
+            # Do we have to un-monkey patch the __call__
+            if hasattr(type(self), "_original__call__"):
+                type(self).__call__ = type(self)._original__call__  # type: ignore[method-assign,attr-defined]
             orchestrate(
                 obj=self,
                 config=self._stencil_factory.config.dace_config,

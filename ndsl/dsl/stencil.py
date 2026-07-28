@@ -33,7 +33,7 @@ from ndsl.constants import (
     K_DIMS,
     K_INTERFACE_DIM,
 )
-from ndsl.debug import ndsl_debugger
+from ndsl.debug import get_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import (
@@ -438,10 +438,10 @@ class FrozenStencil(SDFGConvertible):
                 )
 
         # Debugger actions if turned on
-        if ndsl_debugger:
+        debugger = get_debugger()
+        if debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+            debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
         if (
@@ -470,11 +470,9 @@ class FrozenStencil(SDFGConvertible):
             )
 
         # Debugger actions if turned on
-        if ndsl_debugger:
+        if debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.increment_call_count(self._func_qualname)
+            debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
 
         # Ranks comparison tool
         if self.comm is not None:
