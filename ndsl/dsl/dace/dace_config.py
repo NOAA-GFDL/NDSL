@@ -16,6 +16,7 @@ from ndsl.config import Backend
 from ndsl.dsl import NDSL_COMPILER_SILENCE, NDSL_GLOBAL_PRECISION
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
+from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
 
@@ -272,14 +273,21 @@ class DaceConfig:
                 value=f"-std=c++14 {warnings_policy} -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_config.gpu_compile_flags}",
             )
 
-            cuda_sm = cp.cuda.Device(0).compute_capability if cp else 60
-            dace.config.Config.set("compiler", "cuda", "cuda_arch", value=f"{cuda_sm}")
-            # Block size/thread count is defaulted to an average value for recent
-            # hardware (Pascal and upward). The problem of setting an optimized
-            # block/thread is both hardware and problem dependant. Fine tuners
-            # available in DaCe should be relied on for further tuning of this value.
+            # Target compilation for hardware micro-code capacities
+            gpu_defaults = get_gpu_hardware_defaults()
             dace.config.Config.set(
-                "compiler", "cuda", "default_block_size", value="64,8,1"
+                "compiler",
+                "cuda",
+                "cuda_arch",
+                value=f"{gpu_defaults.compute_capability}",
+            )
+
+            # Default block size for kernels launch
+            dace.config.Config.set(
+                "compiler",
+                "cuda",
+                "default_block_size",
+                value=str(gpu_defaults.block_size)[1:-1],
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(

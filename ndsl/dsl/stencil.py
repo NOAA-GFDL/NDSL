@@ -33,7 +33,7 @@ from ndsl.constants import (
     K_DIMS,
     K_INTERFACE_DIM,
 )
-from ndsl.debug import ndsl_debugger
+from ndsl.debug import get_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import (
@@ -50,7 +50,7 @@ from ndsl.dsl.typing import (
     cast_to_index3d,
 )
 from ndsl.initialization import GridSizer
-from ndsl.internal.deferred_type import StencilDeferredType
+from ndsl.internal.deferred_type import resolve_deferred_types
 from ndsl.quantity import Quantity
 from ndsl.testing.comparison import LegacyMetric
 
@@ -349,9 +349,7 @@ class FrozenStencil(SDFGConvertible):
         }
 
         # Deal with placeholder/markup type by resolving their true types
-        for name, type_ in func.__annotations__.items():
-            if isinstance(type_, StencilDeferredType):
-                func.__annotations__[name] = type_.resolve().get(type_.name)
+        resolve_deferred_types(func)
 
         # Keep compilation at __init__ if we are not orchestrated.
         # If we orchestrate, move the compilation at call time to make sure
@@ -440,10 +438,10 @@ class FrozenStencil(SDFGConvertible):
                 )
 
         # Debugger actions if turned on
-        if ndsl_debugger:
+        debugger = get_debugger()
+        if debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+            debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
         if (
@@ -472,11 +470,9 @@ class FrozenStencil(SDFGConvertible):
             )
 
         # Debugger actions if turned on
-        if ndsl_debugger:
+        if debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.increment_call_count(self._func_qualname)
+            debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
 
         # Ranks comparison tool
         if self.comm is not None:

@@ -1,6 +1,6 @@
-# tooling
+# hardware_config
 
-::: debug.tooling
+::: dsl.dace.hardware_config
 
 <style>
 /* re-enable the left side navigation bar for this page */
