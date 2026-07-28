@@ -130,7 +130,8 @@ def _simplify(
         # We disable ScalarToSymbolPromotion because it might push symbols onto edges
         # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
         # calls or (complicated) field accesses.
-        skip={"ScalarToSymbolPromotion"},
+        # We disable LiftTrivialIf because it takes forever on larger graphs
+        skip={"ScalarToSymbolPromotion", "LiftTrivialIf"},
     )
 
 

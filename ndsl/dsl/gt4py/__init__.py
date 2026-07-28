@@ -34,7 +34,6 @@ from gt4py.cartesian.gtscript import (
     float32,
     float64,
     floor,
-    function,
     gamma,
     horizontal,
     int32,
@@ -43,6 +42,7 @@ from gt4py.cartesian.gtscript import (
     isfinite,
     isinf,
     isnan,
+    lazy_function,
     log,
     log10,
     max,
@@ -61,6 +61,10 @@ from gt4py.cartesian.gtscript import (
     types,
 )
 
+from ndsl.internal.deferred_type import resolve_deferred_types
+
+
+function = lazy_function(before_annotation=resolve_deferred_types)
 
 __all__ = [
     "__INLINED",
