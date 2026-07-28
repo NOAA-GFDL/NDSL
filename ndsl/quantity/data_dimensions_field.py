@@ -1,6 +1,7 @@
-import collections
 import inspect
+import warnings
 from dataclasses import dataclass
+from typing import Sequence
 
 import numpy.typing as npt
 from dace import SDFG, SDFGState
@@ -33,8 +34,8 @@ class _DataDimensionsFieldDescriptor(gtscript._FieldDescriptor):
     def __init__(
         self,
         dtype: npt.DTypeLike,
-        axes: gtscript.Axis | collections.abc.Collection,
-        data_dims: tuple[int] | collections.abc.Collection = tuple(),
+        axes: Sequence[gtscript.Axis],
+        data_dims: Sequence[int] = tuple(),
     ) -> None:
         super().__init__(dtype, axes, data_dims)
         self._mapping: SparseNameMapping = {}
@@ -61,7 +62,7 @@ class _DataDimensionFieldMaker(_FieldDescriptorMaker):
     """Factory for DataDimensionsField"""
 
     def __getitem__(
-        self, field_spec: gtscript.Axis | collections.abc.Collection
+        self, field_spec: Sequence[gtscript.Axis]
     ) -> _DataDimensionsFieldDescriptor:
         field_descriptor = super().__getitem__(field_spec)
         return _DataDimensionsFieldDescriptor(
@@ -72,6 +73,27 @@ class _DataDimensionFieldMaker(_FieldDescriptorMaker):
 
 
 _DataDimensionDescriptor = _DataDimensionFieldMaker()
+
+
+def _check_to_be_kwargs(func):  # type: ignore
+    """Temporary function to enforce `name_mapping`, `dtype`, and `axes` as kwargs in the next release."""
+
+    def inner(*args, **kwargs):  # type: ignore
+        to_be_kwargs = ["name_mapping", "dtype", "axes"]
+        min_lengths = (
+            (3, 4, 5) if func.__name__ == "declare_and_register" else (4, 5, 6)
+        )
+        for to_be_kwarg, min_length in zip(to_be_kwargs, min_lengths):
+            if len(args) > min_length and to_be_kwarg not in kwargs:
+                warnings.warn(
+                    f"`{to_be_kwarg}` is not passed as keyword argument; use `{func.__name__}(..., {to_be_kwarg}=...). This will be enforced in the next version.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
+        return func(*args, **kwargs)
+
+    return inner
 
 
 class DataDimensionsField(StencilTypeRegistrar):
@@ -85,6 +107,7 @@ class DataDimensionsField(StencilTypeRegistrar):
     _type_registrar: dict[str, _DataDimensionsFieldDescriptor] = {}
 
     @classmethod
+    @_check_to_be_kwargs
     def register(
         cls,
         pre_registration_type: "DataDimensionsMarkupType",
@@ -92,6 +115,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
+        axes: Sequence[gtscript.Axis] = gtscript.IJK,
     ) -> _DataDimensionsFieldDescriptor:
         """Register a type by name by giving the size of its data dimensions and
         optionally a sparse mapping of name/index.
@@ -106,6 +130,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
+            axes: Cartesian axes, defaults to `IJK` i.e. all of them.
         """
         name = pre_registration_type.name
         if name in cls._type_registrar.keys():
@@ -121,7 +146,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             data_dims_size.append(quantity_factory.sizer.data_dimensions[ddim_name])
 
         cls._type_registrar[name] = _DataDimensionDescriptor[
-            gtscript.IJK, (dtype, tuple(data_dims_size))
+            axes, (dtype, tuple(data_dims_size))
         ]
         if name_mapping is not None:
             cls._type_registrar[name].mapping = name_mapping
@@ -169,14 +194,16 @@ class DataDimensionsField(StencilTypeRegistrar):
         return DataDimensionsMarkupType(name)
 
     @classmethod
+    @_check_to_be_kwargs
     def declare_and_register(
         cls,
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,  # type: ignore[has-type]
+        axes: Sequence[gtscript.Axis] = gtscript.IJK,
     ) -> "DataDimensionsMarkupType":
-        """Declare a data dimension field and register it's size
+        """Declare a data dimension field and register it's size.
 
         Args:
             quantity_factory: Factory carrying the proper data dimensions axis described
@@ -185,16 +212,20 @@ class DataDimensionsField(StencilTypeRegistrar):
             name_mapping: for each dimensions, a sparse dictionary giving a name/index
                 to retrieve 3D fields by name.
             dtype: Inner data type, defaults to Float.
+            axes: Cartesian axes, defaults to `IJK` i.e. all of them.
         """
-
-        name = get_lhs_name(inspect.currentframe())
+        # We have to go an additional frame back because now there's a (temporary)
+        # decorator to check the arguments. Remove `.f_back` from the next line when
+        # the decorator `@_check_to_be_kwargs` is removed and the breaking change is made.
+        name = get_lhs_name(inspect.currentframe().f_back)  # type: ignore
         markup_type = DataDimensionsMarkupType(name)
         cls.register(
             markup_type,
             quantity_factory,
             data_dimensions_names,
-            name_mapping,
-            dtype,
+            axes=axes,
+            name_mapping=name_mapping,
+            dtype=dtype,
         )
         return markup_type
 
