@@ -95,7 +95,7 @@ def build_script(class_name: str, backend: str, exec_main: bool) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate a boilerplate Python script for NDSL runtime usage."
+        description="Generate the canonical NDSL model code."
     )
     parser.add_argument(
         "--name",
