@@ -40,8 +40,8 @@ if NDSL_GLOBAL_PRECISION not in [32, 64]:
     raise NotImplementedError(
         f"{NDSL_GLOBAL_PRECISION} bit precision not implemented or tested."
     )
-Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32
-Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32
+Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32 #type: ignore
+Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32 #type: ignore
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]
