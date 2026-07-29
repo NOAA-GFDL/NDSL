@@ -1,6 +1,6 @@
-# clean_tree
+# remove_loops
 
-::: dsl.dace.stree.optimizations.clean_tree
+::: dsl.dace.stree.optimizations.remove_loops
 
 <style>
 /* re-enable the left side navigation bar for this page */

@@ -9,6 +9,7 @@ def swap_node_position_in_tree(
     """Top node becomes child, child becomes top node."""
     # Ensue parent/children relationship is valid
     tn.validate_children_and_parents_align(top_node)
+    assert top_node.parent is not None
 
     # Take refs before swap
     top_children = top_node.parent.children
@@ -51,3 +52,15 @@ def list_index(
     """Check if node is in list with "is" operator."""
     # compare with "is" to get memory comparison. ".index()" uses value comparison
     return next(index for index, element in enumerate(collection) if element is node)
+
+
+def get_next_node(
+    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
+) -> tn.ScheduleTreeNode:
+    """Get next node in the children from given node"""
+    return nodes[list_index(nodes, node) + 1]
+
+
+def is_last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
+    """Check if the node is the last node of the list."""
+    return list_index(nodes, node) >= len(nodes) - 1

@@ -1,7 +1,7 @@
-from .sdfg_stree_tools import StreeOptimization, get_SDFG_and_purge
+from .sdfg_stree_tools import StreePipeline, get_SDFG_and_purge
 
 
 __all__ = [
-    "StreeOptimization",
+    "StreePipeline",
     "get_SDFG_and_purge",
 ]

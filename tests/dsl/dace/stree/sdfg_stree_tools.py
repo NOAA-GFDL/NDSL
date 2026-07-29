@@ -1,6 +1,7 @@
 from types import TracebackType
 
 import dace
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 import ndsl.dsl.dace.orchestration as orch
 from ndsl import StencilFactory
@@ -20,9 +21,13 @@ def get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
     return sdfg
 
 
-class StreeOptimization:
+class StreePipeline:
+    def __init__(self, *, passes: list[tn.ScheduleNodeVisitor] | None = None) -> None:
+        self.passes = passes
+
     def __enter__(self) -> None:
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = True
+        self.original_passes = orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES
+        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.passes
 
     def __exit__(
         self,
@@ -30,4 +35,4 @@ class StreeOptimization:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION = False
+        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.original_passes

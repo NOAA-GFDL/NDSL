@@ -1,6 +1,6 @@
-# tree_common_op
+# kernelize_maps
 
-::: dsl.dace.stree.optimizations.tree_common_op
+::: dsl.dace.stree.optimizations.kernelize_maps
 
 <style>
 /* re-enable the left side navigation bar for this page */

@@ -1,6 +1,6 @@
-# memlet_helpers
+# local_optimizations
 
-::: dsl.dace.stree.optimizations.memlet_helpers
+::: dsl.dace.stree.optimizations.local_optimizations
 
 <style>
 /* re-enable the left side navigation bar for this page */

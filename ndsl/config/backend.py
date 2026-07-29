@@ -52,6 +52,8 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
     "orch:dace:cpu:KJI": "dace:cpu_KJI",
     "st:dace:gpu:KJI": "dace:gpu",
     "orch:dace:gpu:KJI": "dace:gpu",
+    "st:dace:gpu:IJK": "dace:gpu_IJK",
+    "orch:dace:gpu:IJK": "dace:gpu_IJK",
 }
 """Internal: match the NDSL backend names with the GT4Py names"""
 
