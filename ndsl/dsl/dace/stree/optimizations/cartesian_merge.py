@@ -4,8 +4,8 @@ from ndsl.config import Backend, BackendLoopOrder
 from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
 from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
 from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
-    ExtractOffgridConditionals,
-    InlineOffgridConditionals,
+    ExtractOffGridConditionals,
+    InlineOffGridConditionals,
     MergeConditionals,
 )
 
@@ -47,7 +47,7 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         axis_merge_order = self._axis_merge_order()
         for axis in axis_merge_order:
-            InlineOffgridConditionals(axis).visit(node)
+            InlineOffGridConditionals(axis).visit(node)
         MergeConditionals().visit(node)
 
         for axis in axis_merge_order:
@@ -55,18 +55,18 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
                 axis, overcompute=self._overcompute
             ).visit_ScheduleTreeRoot(node)
 
-        ExtractOffgridConditionals().visit(node)
+        ExtractOffGridConditionals().visit(node)
         MergeConditionals().visit(node)
 
-    def _axis_merge_order(self) -> tuple[AxisIterator, AxisIterator, AxisIterator]:
+    def _axis_merge_order(self) -> tuple[AxisIterator, ...]:
         if self._merge_order == "default":
-            return self._axis_merge_order_default()
+            return self._axis_from_backend()
 
-        return self._axis_merge_order_custom()
+        return self._axis_from_merge_order()
 
-    def _axis_merge_order_default(
+    def _axis_from_backend(
         self,
-    ) -> tuple[AxisIterator, AxisIterator, AxisIterator]:
+    ) -> tuple[AxisIterator, ...]:
         if self._backend.loop_order == BackendLoopOrder.IJK:
             return (AxisIterator._I, AxisIterator._J, AxisIterator._K)
 
@@ -85,23 +85,8 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         assert self._backend.loop_order == BackendLoopOrder.KJI
         return (AxisIterator._K, AxisIterator._J, AxisIterator._I)
 
-    def _axis_merge_order_custom(
+    def _axis_from_merge_order(
         self,
-    ) -> tuple[AxisIterator, AxisIterator, AxisIterator]:
-        if self._merge_order == "IJK":
-            return (AxisIterator._I, AxisIterator._J, AxisIterator._K)
-
-        if self._merge_order == "IKJ":
-            return (AxisIterator._I, AxisIterator._K, AxisIterator._J)
-
-        if self._merge_order == "JIK":
-            return (AxisIterator._J, AxisIterator._I, AxisIterator._K)
-
-        if self._merge_order == "JKI":
-            return (AxisIterator._J, AxisIterator._K, AxisIterator._I)
-
-        if self._merge_order == "KIJ":
-            return (AxisIterator._K, AxisIterator._I, AxisIterator._J)
-
-        assert self._merge_order == "KJI"
-        return (AxisIterator._K, AxisIterator._J, AxisIterator._I)
+    ) -> tuple[AxisIterator, ...]:
+        assert len(self._merge_order) == 3
+        return tuple(AxisIterator[f"_{axis}"] for axis in self._merge_order)

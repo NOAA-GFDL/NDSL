@@ -4,8 +4,8 @@ from .clean_tree import CleanUpScheduleTree
 from .kernelize_maps import KernelizeMaps
 from .local_optimizations import LocalOptimizations
 from .offgrid_conditionals import (
-    ExtractOffgridConditionals,
-    InlineOffgridConditionals,
+    ExtractOffGridConditionals,
+    InlineOffGridConditionals,
     MergeConditionals,
 )
 from .refine_transients import CartesianRefineTransients
@@ -19,8 +19,8 @@ __all__ = [
     "CleanUpScheduleTree",
     "KernelizeMaps",
     "LocalOptimizations",
-    "ExtractOffgridConditionals",
-    "InlineOffgridConditionals",
+    "ExtractOffGridConditionals",
+    "InlineOffGridConditionals",
     "MergeConditionals",
     "CartesianRefineTransients",
     "InlineVertical2DWrite",

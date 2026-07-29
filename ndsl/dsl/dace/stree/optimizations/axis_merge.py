@@ -11,7 +11,7 @@ from ndsl.dsl.dace.stree.optimizations.common import (
     get_next_node,
     is_axis_for,
     is_axis_map,
-    last_node,
+    is_last_node,
     list_index,
     no_data_dependencies_on_cartesian_axis,
     swap_node_position_in_tree,
@@ -193,7 +193,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # End of nodes OR
         # Not the right axis
         # --> recurse
-        if last_node(nodes, the_map) or not is_axis_map(the_map, self.axis):
+        if is_last_node(nodes, the_map) or not is_axis_map(the_map, self.axis):
             merged = 0
             for child in the_map.children:
                 merged += self._merge_node(child, the_map.children)
