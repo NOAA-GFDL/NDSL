@@ -5,14 +5,14 @@ from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
     get_next_node,
     is_axis_map,
-    last_node,
+    is_last_node,
     list_index,
 )
 
 
-class InlineOffgridConditionals(tn.ScheduleNodeVisitor):
+class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
     """
-    Push offgrid conditional inside their cartesian block, duplicating the
+    Push off-grid conditional inside their cartesian block, duplicating the
     conditional if needed.
 
     Turning:
@@ -41,13 +41,13 @@ class InlineOffgridConditionals(tn.ScheduleNodeVisitor):
         self._axis = axis
 
     def __str__(self) -> str:
-        return f"InlineOffgridConditionals_{self._axis}"
+        return f"InlineOffGridConditionals_{self._axis}"
 
     def visit_IfScope(self, node: tn.IfScope) -> None:
         assert node.parent is not None  # just to keep pyright happy
 
         # For now, skip in case there's an `elif` or `else` following.
-        if not last_node(node.parent.children, node):
+        if not is_last_node(node.parent.children, node):
             next_node = get_next_node(node.parent.children, node)
             if isinstance(next_node, (tn.ElifScope, tn.ElseScope)):
                 ndsl_log.debug(
@@ -87,15 +87,15 @@ class InlineOffgridConditionals(tn.ScheduleNodeVisitor):
         node.parent.children.remove(node)
 
 
-class ExtractOffgridConditionals(tn.ScheduleNodeTransformer):
+class ExtractOffGridConditionals(tn.ScheduleNodeTransformer):
     """
-    Push offgrid conditional outside of their cartesian block.
+    Push off-grid conditional outside of their cartesian block.
 
-    This is the inverse transform of InlineOffgridConditionals.
+    This is the inverse transform of InlineOffGridConditionals.
     """
 
     def __str__(self) -> str:
-        return "ExtractOffgridConditionals"
+        return "ExtractOffGridConditionals"
 
 
 class MergeConditionals(tn.ScheduleNodeTransformer):
@@ -120,8 +120,8 @@ class MergeConditionals(tn.ScheduleNodeTransformer):
                 ...
     ```
 
-    Outside of user code, combination of ExtractOffgridConditionals,
-    InlineOffgridConditionals and CartesianMapMerge can lead to this
+    Outside of user code, combination of ExtractOffGridConditionals,
+    InlineOffGridConditionals and CartesianMapMerge can lead to this
     pattern.
     """
 

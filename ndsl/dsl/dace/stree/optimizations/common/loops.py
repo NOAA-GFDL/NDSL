@@ -13,6 +13,11 @@ def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
     return axis.is_equal(param)
 
 
+def is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
+    """Returns true if node is a For over the given axis."""
+    return axis.is_equal(node.loop.loop_variable)
+
+
 def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
     """Returns true if the given node is a map over any cartesian axis."""
     for axis in AxisIterator:
@@ -22,8 +27,3 @@ def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
             return True
 
     return False
-
-
-def is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
-    """Returns true if node is a For over the given axis."""
-    return axis.is_equal(node.loop.loop_variable)

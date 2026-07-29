@@ -3,23 +3,6 @@ from typing import Collection
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 
-def reparent_scope_node(
-    original_parent: tn.ScheduleTreeScope,
-    new_parent: tn.ScheduleTreeScope,
-    *,
-    prepend: bool = True,
-) -> None:
-    """Re-parent children between two scope nodes"""
-
-    for child in original_parent.children:
-        child.parent = new_parent
-
-    if prepend:
-        new_parent.children = [*original_parent.children, *new_parent.children]
-    else:
-        new_parent.children = [*new_parent.children, *original_parent.children]
-
-
 def swap_node_position_in_tree(
     top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
 ) -> None:
@@ -78,6 +61,6 @@ def get_next_node(
     return nodes[list_index(nodes, node) + 1]
 
 
-def last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
-    """Test for last node of list"""
+def is_last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
+    """Check if the node is the last node of the list."""
     return list_index(nodes, node) >= len(nodes) - 1

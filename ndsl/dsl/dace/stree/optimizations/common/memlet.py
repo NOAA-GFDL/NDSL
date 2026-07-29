@@ -55,10 +55,10 @@ def no_data_dependencies_on_cartesian_axis(
     read_collector = MemletCollector(collect_writes=False)
     read_collector.visit(second)
 
+    axis_index = axis.as_cartesian_index()
+
     for write in write_collector.out_memlets:
         # TODO: this can be optimized to allow non-overlapping intervals and such in the future
-
-        axis_index = axis.as_cartesian_index()
 
         if write.subset.dims() <= axis_index:
             # Dimension does not exist
@@ -77,7 +77,7 @@ def no_data_dependencies_on_cartesian_axis(
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found write after write conflict "
                         f"for {write.data} "
-                        f"w/ different offset to {axis.name} ("
+                        f"with different offset to {axis.name} ("
                         f"first write at {previous_axis_index}, "
                         f"second write at {other_write.subset[axis_index][0]})"
                     )
@@ -92,7 +92,7 @@ def no_data_dependencies_on_cartesian_axis(
                     ndsl_log.debug(
                         f"[{axis.name} Merge] Found read after write conflict "
                         f"for {write.data} "
-                        f"w/ different offset to {axis.name} ("
+                        f"with different offset to {axis.name} ("
                         f"write at {write.subset[axis_index][0]}, "
                         f"read at {read.subset[axis_index][0]})"
                     )
