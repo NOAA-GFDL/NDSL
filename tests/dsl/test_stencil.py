@@ -21,6 +21,7 @@ from ndsl.constants import (
     K_INTERFACE_DIM,
 )
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
+from ndsl.dsl.stencil import _DEPRECATED_STENCILS, deprecated_stencil
 from ndsl.dsl.typing import (
     BoolFieldIJ,
     FloatField,
@@ -204,3 +205,38 @@ def test_validation_call_count(iterations: tuple[int]):
             stencil(quantity, quantity)
 
     assert counting_mock.call_count == 1
+
+
+def test_deprecated_stencil() -> None:
+
+    @deprecated_stencil
+    def stencil_to_deprecate(q_in: FloatField, q_out: FloatField) -> None:  # type: ignore
+        with computation(PARALLEL), interval(...):
+            q_out = q_in
+
+    assert stencil_to_deprecate in _DEPRECATED_STENCILS
+
+    domain = (2, 2, 5)
+    quantity = Quantity(
+        np.zeros(domain),
+        [I_DIM, J_DIM, K_DIM],
+        "n/a",
+        extent=domain,
+        backend=Backend.python(),
+    )
+    stencil_config = StencilConfig(
+        compilation_config=CompilationConfig(Backend.python(), rebuild=True)
+    )
+    with pytest.warns(
+        UserWarning, match="is deprecated and will be removed in a future version"
+    ):
+        stencil = FrozenStencil(
+            stencil_to_deprecate,
+            origin=(0, 0, 0),
+            domain=domain,
+            stencil_config=stencil_config,
+        )
+
+    stencil(quantity, quantity)
+
+    _DEPRECATED_STENCILS.clear()

@@ -11,7 +11,13 @@ from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
 from .quantity import Quantity
 from .dsl.ndsl_runtime import NDSLRuntime
-from .dsl.stencil import FrozenStencil, GridIndexing, StencilFactory, TimingCollector
+from .dsl.stencil import (
+    FrozenStencil,
+    GridIndexing,
+    StencilFactory,
+    TimingCollector,
+    deprecated_stencil,
+)
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
@@ -95,4 +101,5 @@ __all__ = [
     "DiagManagerMonitor",
     "DataDimensionsField",
     "DataDimensionsMarkupType",
+    "deprecated_stencil",
 ]
