@@ -47,6 +47,7 @@ zarr = ["zarr<3"]
 
 [project.scripts]
 best_guess_diff = "ndsl.stencils.testing.best_guess_diff:entry_point"
+ndsl-gencode = "ndsl.boilerplate.generate_code:main"
 ndsl-serialbox_to_netcdf = "ndsl.stencils.testing.serialbox_to_netcdf:entry_point"
 
 [project.urls]
