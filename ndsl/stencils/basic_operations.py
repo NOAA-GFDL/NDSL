@@ -1,6 +1,7 @@
 import typing
 
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
+from ndsl.dsl.stencil import deprecated_stencil
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -256,54 +257,6 @@ def set_value(field: FloatField, value: Float) -> None:
         field = value
 
 
-def set_value_2D(field: FloatFieldIJ, value: Float) -> None:
-    """
-    Sets every element of a field to a single value - 2D variant.
-
-    Args:
-        field: output field
-        value: value of Float type
-    """
-    with computation(FORWARD), interval(...):
-        field = value
-
-
-def set_IJ_mask_value(field: BoolFieldIJ, value: Bool) -> None:
-    """
-    Sets every element of buffer to either True or False.
-
-    Args:
-        field: output field
-        value: value of Bool type
-    """
-    with computation(FORWARD), interval(0, 1):
-        field = value
-
-
-def adjustmentfactor_stencil(adjustment: FloatFieldIJ, field: FloatField) -> None:
-    """
-    Multiplies a field by an adjustment factor, modifying the original field.
-
-    Args:
-        adjustment: adjustment factor
-        field: field to be modified
-    """
-    with computation(PARALLEL), interval(...):
-        field = field * adjustment
-
-
-def adjust_divide_stencil(adjustment: FloatField, field: FloatField) -> None:
-    """
-    Divides a field by an adjustment factor, modifying the original field.
-
-    Args:
-        adjustment: adjustment factor
-        field: field to be modified
-    """
-    with computation(PARALLEL), interval(...):
-        field = field / adjustment
-
-
 def select_k(
     in_field: FloatField,
     out_field: FloatFieldIJ,
@@ -326,6 +279,51 @@ def select_k(
             out_field = in_field
 
 
+#############################
+# Deprecated stencils       #
+#############################
+
+
+@deprecated_stencil
+def set_value_2D(field: FloatFieldIJ, value: Float) -> None:
+    """
+    Sets every element of a field to a single value - 2D variant.
+
+    Args:
+        field: output field
+        value: value of Float type
+    """
+    with computation(FORWARD), interval(...):
+        field = value
+
+
+@deprecated_stencil
+@typing.no_type_check
+@function
+def sign(a, b):
+    """
+    Defines a_sign_b as the absolute value of a, and checks if b is positive or
+    negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
+
+    Args:
+        a: A number
+        b: A number
+    """
+    a_sign_b = abs(a)
+    return a_sign_b if b > 0 else -a_sign_b
+
+
+@deprecated_stencil
+@typing.no_type_check
+@function
+def dim(a, b):
+    """
+    Calculates a - b, camped to 0, i.e. max(a - b, 0).
+    """
+    return max(a - b, 0)
+
+
+@deprecated_stencil
 def average_in(
     q_out: FloatField,
     adjustment: FloatField,
@@ -342,25 +340,40 @@ def average_in(
         q_out = (q_out + adjustment) * 0.5
 
 
-@typing.no_type_check
-@function
-def sign(a, b):
+@deprecated_stencil
+def set_IJ_mask_value(field: BoolFieldIJ, value: Bool) -> None:
     """
-    Defines a_sign_b as the absolute value of a, and checks if b is positive or
-    negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
+    Sets every element of buffer to either True or False.
 
     Args:
-        a: A number
-        b: A number
+        field: output field
+        value: value of Bool type
     """
-    a_sign_b = abs(a)
-    return a_sign_b if b > 0 else -a_sign_b
+    with computation(FORWARD), interval(0, 1):
+        field = value
 
 
-@typing.no_type_check
-@function
-def dim(a, b):
+@deprecated_stencil
+def adjustmentfactor_stencil(adjustment: FloatFieldIJ, field: FloatField) -> None:
     """
-    Calculates a - b, camped to 0, i.e. max(a - b, 0).
+    Multiplies a field by an adjustment factor, modifying the original field.
+
+    Args:
+        adjustment: adjustment factor
+        field: field to be modified
     """
-    return max(a - b, 0)
+    with computation(PARALLEL), interval(...):
+        field = field * adjustment
+
+
+@deprecated_stencil
+def adjust_divide_stencil(adjustment: FloatField, field: FloatField) -> None:
+    """
+    Divides a field by an adjustment factor, modifying the original field.
+
+    Args:
+        adjustment: adjustment factor
+        field: field to be modified
+    """
+    with computation(PARALLEL), interval(...):
+        field = field / adjustment
