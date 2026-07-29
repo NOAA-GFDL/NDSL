@@ -251,7 +251,7 @@ class DaceConfig:
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-march={march_cpu} -std=c++17 -fPIC {warnings_policy} -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
+                value=f"-march={march_cpu} -std=c++20 -fPIC {warnings_policy} -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
