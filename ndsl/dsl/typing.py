@@ -34,14 +34,18 @@ def get_precision() -> int:
     return NDSL_GLOBAL_PRECISION
 
 
-
 # Default float and int types
+# Dev note: the `TypeAlias` of Float/Int depending on a switch has been giving
+#           us linting headaches. We revert to the previous version here that
+#           try to type hint directly. It will break. Good luck.
+#
+#           Past Florian.
 if NDSL_GLOBAL_PRECISION not in [32, 64]:
     raise NotImplementedError(
         f"{NDSL_GLOBAL_PRECISION} bit precision not implemented or tested."
     )
-Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32 #type: ignore
-Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32 #type: ignore
+Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32  # type: ignore
+Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32  # type: ignore
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]
