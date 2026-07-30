@@ -190,7 +190,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             dtype: Inner data type, defaults to Float.
             axes: Cartesian axes, defaults to `IJK` i.e. all of them.
         """
-        name = get_lhs_name(inspect.currentframe())  # type: ignore
+        name = get_lhs_name(inspect.currentframe())
         markup_type = DataDimensionsMarkupType(name)
         cls.register(
             markup_type,
