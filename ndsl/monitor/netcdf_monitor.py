@@ -111,7 +111,7 @@ class NetCDFMonitor:
         path: str,
         communicator: Communicator,
         time_chunk_size: int = 1,
-        precision=Float,  # type: ignore[has-type]
+        precision=Float,
     ) -> None:
         """Create a NetCDFMonitor.
 

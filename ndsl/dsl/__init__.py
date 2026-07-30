@@ -31,7 +31,7 @@ def _get_literal_precision(default: Literal["32", "64"] = "64") -> Literal["32",
     return default
 
 
-NDSL_GLOBAL_PRECISION = int(_get_literal_precision())
+NDSL_GLOBAL_PRECISION: int = int(_get_literal_precision())
 os.environ["GT4PY_LITERAL_INT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 os.environ["GT4PY_LITERAL_FLOAT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 
