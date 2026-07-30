@@ -1,16 +1,5 @@
-import typing
-
-from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
-from ndsl.dsl.stencil import deprecated_stencil
-from ndsl.dsl.typing import (
-    Bool,
-    BoolFieldIJ,
-    Float,
-    FloatField,
-    FloatFieldIJ,
-    IntField,
-    IntFieldIJ,
-)
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
 
 
 def copy(input: FloatField, output: FloatField) -> None:
