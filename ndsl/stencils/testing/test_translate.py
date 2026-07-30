@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 import pytest
 
+from ndsl import ndsl_log
 from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
@@ -38,7 +39,7 @@ def process_override(threshold_overrides, testobj, test_name, backend: Backend):
         for spec in override:
             if "platform" not in spec:
                 spec["platform"] = platform()
-            if "backend" not in spec:
+            if "backend" not in spec or spec["backend"] == "all":
                 spec["backend"] = backend
         matches = [
             spec
@@ -183,8 +184,6 @@ def test_sequential_savepoint(
     if hasattr(case.testobj, "override_input_netcdf_name"):
         import xarray as xr
 
-        from ndsl.logging import ndsl_log
-
         out_data = (
             xr.open_dataset(
                 os.path.join(
@@ -223,8 +222,6 @@ def test_sequential_savepoint(
     passing_names: list[str] = []
     if hasattr(case.testobj, "override_output_netcdf_name"):
         import xarray as xr
-
-        from ndsl.logging import ndsl_log
 
         out_data = (
             xr.open_dataset(
@@ -288,7 +285,7 @@ def test_sequential_savepoint(
 
     # Reporting & data save
     if not case.no_report:
-        _report_results(case.savepoint_name, case.grid.rank, results)
+        _report_results(case.savepoint_name, case.grid.rank, ndsl_backend, results)
     if len(failing_names) > 0 and not case.no_report:
         get_thresholds(case.testobj, input_data=original_input_data)
         os.makedirs(OUTDIR, exist_ok=True)
@@ -430,7 +427,7 @@ def test_parallel_savepoint(
             passing_names.append(failing_names.pop())
 
     # Reporting & data save
-    _report_results(case.savepoint_name, case.grid.rank, results)
+    _report_results(case.savepoint_name, case.grid.rank, ndsl_backend, results)
     if len(failing_names) > 0:
         os.makedirs(OUTDIR, exist_ok=True)
         nct_filename = os.path.join(
@@ -462,15 +459,21 @@ def test_parallel_savepoint(
 def _report_results(
     savepoint_name: str,
     rank: int,
+    backend: Backend,
     results: dict[str, BaseMetric],
 ) -> None:
     detail_dir = f"{OUTDIR}/details"
     os.makedirs(detail_dir, exist_ok=True)
 
     # Summary
+    header = f"{savepoint_name} w/ {backend.as_humanly_readable()}"
+    lines = []
+    for varname, metric in results.items():
+        lines.append(f"{varname}: {metric.one_line_report()}")
+    lines.sort()
+    lines.insert(0, header)
     with open(f"{OUTDIR}/summary-{savepoint_name}-{rank}.log", "w") as f:
-        for varname, metric in results.items():
-            f.write(f"{varname}: {metric.one_line_report()}\n")
+        f.write("\n".join(lines))
 
     # Detailed log
     for varname, metric in results.items():

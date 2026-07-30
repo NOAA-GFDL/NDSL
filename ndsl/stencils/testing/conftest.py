@@ -105,6 +105,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Do not generate logging report or NetCDF in .translate-errors",
     )
+    parser.addoption(
+        "--pad_non_interface_dimensions",
+        action="store_true",
+        default=False,
+        help="Pad the non interface dimensions in all backends. Default to False.",
+    )
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -255,6 +261,9 @@ def _sequential_savepoint_cases(
     topology_mode = metafunc.config.getoption("topology")
     sort_report = metafunc.config.getoption("sort_report")
     no_report = metafunc.config.getoption("no_report")
+    pad_non_interface_dimensions = metafunc.config.getoption(
+        "pad_non_interface_dimensions"
+    )
 
     return _savepoint_cases(
         savepoint_names,
@@ -268,6 +277,7 @@ def _sequential_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
+        pad_non_interface_dimensions=pad_non_interface_dimensions,
     )
 
 
@@ -283,6 +293,7 @@ def _savepoint_cases(
     topology_mode: str,
     sort_report: str,
     no_report: bool,
+    pad_non_interface_dimensions: bool,
 ) -> list[SavepointCase]:
     grid_params = grid_params_from_f90nml(namelist)
     return_list = []
@@ -305,6 +316,7 @@ def _savepoint_cases(
                 rank=rank,
                 layout=grid_params["layout"],
                 backend=backend,
+                pad_non_interface_dimensions=pad_non_interface_dimensions,
             ).python_grid()
             if grid_mode == "compute":
                 _compute_grid_data(
@@ -377,6 +389,9 @@ def _parallel_savepoint_cases(
     savepoint_names = _parallel_savepoint_names(metafunc, data_path)
     grid_mode = metafunc.config.getoption("grid")
     savepoint_to_replay = _get_savepoint_restriction(metafunc)
+    pad_non_interface_dimensions = metafunc.config.getoption(
+        "pad_non_interface_dimensions"
+    )
 
     return _savepoint_cases(
         savepoint_names,
@@ -390,6 +405,7 @@ def _parallel_savepoint_cases(
         topology_mode,
         sort_report=sort_report,
         no_report=no_report,
+        pad_non_interface_dimensions=pad_non_interface_dimensions,
     )
 
 

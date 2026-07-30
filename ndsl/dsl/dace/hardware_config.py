@@ -1,0 +1,122 @@
+import dataclasses
+import sys
+from pathlib import Path
+from typing import Literal
+
+from ndsl import ndsl_log
+from ndsl.optional_imports import cupy as cp
+
+
+GPUVendor = Literal["Nvidia"] | Literal["AMD"] | Literal["Intel"] | Literal["Unknown"]
+
+# Taken straight out of https://pcisig.com/membership/member-companies
+_VENDOR_PCI_SIGNATURES: dict[int, GPUVendor] = {
+    0x10DE: "Nvidia",
+    0x1002: "AMD",
+    0x8086: "Intel",
+    0x0: "Unknown",
+}
+
+# Cached copy of the hardware default
+_GPU_HARDWARE_DEFAULTS = None
+
+
+def _get_vendor() -> GPUVendor:
+    """Retrieve vendor using the current device PCI id to query the PCI vendor
+    from the kernel logs.
+
+    ⚠️ Only works on Linux - kicks back to "Unknown" in other cases.
+    """
+    if not sys.platform.startswith("linux"):
+        ndsl_log.info("GPU hardware detection only possible on Linux system.")
+        return "Unknown"
+
+    pci_device_id = cp.cuda.runtime.deviceGetPCIBusId(0)
+    dev_path = Path("/sys", "bus", "pci", "devices", f"{pci_device_id}")
+    if not dev_path.exists():
+        ndsl_log.info(f"GPU detection: PCI device not found at {dev_path}.")
+        return "Unknown"
+
+    with open(dev_path / "vendor", "r") as f:
+        vendor_str = f.read().strip().replace("0x", "")
+        vendor_id = int(vendor_str, 16)
+
+    if vendor_id not in _VENDOR_PCI_SIGNATURES:
+        ndsl_log.error(f"Unknown GPU vendor with PCI-SIG ID of {vendor_id:#X}.")
+        return "Unknown"
+
+    return _VENDOR_PCI_SIGNATURES[vendor_id]
+
+
+@dataclasses.dataclass
+class GPUHardwareDefaults:
+    """Compute defaults for common GPUs."""
+
+    vendor: GPUVendor
+    block_size: list[int] = dataclasses.field(default_factory=list)
+    compute_capability: int = -1  # Nvidia specific
+
+
+def get_gpu_hardware_defaults() -> GPUHardwareDefaults:
+    """Retrieve default values for GPU computation configuration."""
+    global _GPU_HARDWARE_DEFAULTS
+    if _GPU_HARDWARE_DEFAULTS is not None:
+        return _GPU_HARDWARE_DEFAULTS  # type: ignore[unreachable]
+
+    if cp is None or not cp.cuda.is_available():
+        ndsl_log.warning("No cupy - defaulting for GPU hardware")
+        _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+            vendor="Unknown",
+            # Smallest common denominator of massively parallel hardware
+            block_size=[8, 1, 1],
+        )
+        return _GPU_HARDWARE_DEFAULTS
+
+    # Who goes there
+    vendor = _get_vendor()
+    match vendor:
+        case "Nvidia":
+            compute_capability = int(cp.cuda.Device(0).compute_capability)
+            # Default block size based on compute capability
+            if compute_capability > 80:
+                # Covers:
+                #  - Blackwell (100+)
+                #  - Hopper (90-100)
+                #  - Ampere (80-90)
+                block_sizes = [128, 1, 1]
+            elif compute_capability > 60:
+                # Covers:
+                #  - Volta (70-80)
+                #  - Pascal (60-70)
+                block_sizes = [64, 8, 1]
+            else:
+                # For older hardware - we default to the safe warp-size since
+                # the dawn of GPGPU on Nvidia hardware
+                block_sizes = [32, 1, 1]
+
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                block_size=block_sizes,
+                compute_capability=compute_capability,
+            )
+        case "AMD":
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                block_size=[64, 1, 1],  # Default RDNA architecture is Wave64
+            )
+        case "Intel":
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                # Intel can run 8, 16 or 32 - but SIMD betters in 32
+                block_size=[32, 1, 1],
+            )
+        case _:
+            _GPU_HARDWARE_DEFAULTS = GPUHardwareDefaults(
+                vendor=vendor,
+                # Smallest common denominator of massively parallel hardware
+                block_size=[8, 1, 1],
+            )
+
+    ndsl_log.info(f"GPU vendor detected: {_GPU_HARDWARE_DEFAULTS.vendor}")
+
+    return _GPU_HARDWARE_DEFAULTS

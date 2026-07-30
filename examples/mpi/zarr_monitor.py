@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 import cftime
 import numpy as np
@@ -10,16 +11,16 @@ from ndsl import (
     QuantityFactory,
     SubtileGridSizer,
     TilePartitioner,
-    ZarrMonitor,
 )
 from ndsl.config import backend_python
 from ndsl.constants import I_DIM, J_DIM, K_DIM
+from ndsl.monitor import ZarrMonitor
 
 
 OUTPUT_PATH = "output/zarr_monitor.zarr"
 
 
-def get_example_state(time):
+def get_example_state(time: cftime.DatetimeJulian) -> dict[str, Any]:
     sizer = SubtileGridSizer(
         nx=48, ny=48, nz=70, n_halo=3, data_dimensions={}, backend=backend_python
     )

@@ -1,3 +1,4 @@
+import warnings
 from typing import TypeAlias
 
 import numpy as np
@@ -25,35 +26,26 @@ DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.f
 
 
 def get_precision() -> int:
+    warnings.warn(
+        "`get_precision()` is deprecated in favor of `NDSL_GLOBAL_PRECISION`. This function will be removed in the next version.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return NDSL_GLOBAL_PRECISION
 
 
-# We redefine the type as a way to distinguish
-# the model definition of a float to other usage of the
-# common numpy type in the rest of the code.
-NDSL_32BIT_FLOAT_TYPE: TypeAlias = np.float32
-NDSL_64BIT_FLOAT_TYPE: TypeAlias = np.float64
-NDSL_32BIT_INT_TYPE: TypeAlias = np.int32
-NDSL_64BIT_INT_TYPE: TypeAlias = np.int64
-
-
-def global_set_precision() -> tuple[TypeAlias, TypeAlias]:
-    """Set the global precision for all references of
-    Float and Int in the codebase. Defaults to 64 bit."""
-    global Float, Int  # noqa: F824 global ... is unused
-    precision_in_bit = get_precision()
-    if precision_in_bit == 64:
-        return NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE
-    elif precision_in_bit == 32:
-        return NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE
-    else:
-        raise NotImplementedError(
-            f"{precision_in_bit} bit precision not implemented or tested"
-        )
-
-
 # Default float and int types
-Float, Int = global_set_precision()
+# Dev note: the `TypeAlias` of Float/Int depending on a switch has been giving
+#           us linting headaches. We revert to the previous version here that
+#           try to type hint directly. It will break. Good luck.
+#
+#           Past Florian.
+if NDSL_GLOBAL_PRECISION not in [32, 64]:
+    raise NotImplementedError(
+        f"{NDSL_GLOBAL_PRECISION} bit precision not implemented or tested."
+    )
+Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32  # type: ignore
+Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32  # type: ignore
 Bool = np.bool_
 
 FloatField = Field[gtscript.IJK, Float]

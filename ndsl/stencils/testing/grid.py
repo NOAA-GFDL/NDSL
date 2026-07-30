@@ -8,7 +8,6 @@ from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import TilePartitioner
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, N_HALO_DEFAULT
-from ndsl.dsl import gt4py_utils as utils
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.grid.generation import GridDefinitions
 from ndsl.grid.helper import (
@@ -61,6 +60,7 @@ class Grid:
         layout: tuple[int, int],
         rank: int,
         backend: Backend,
+        pad_non_interface_dimensions: bool = False,
     ) -> "Grid":
         shape_params = {
             "npx": npx,
@@ -82,7 +82,15 @@ class Grid:
             "js": N_HALO_DEFAULT,
             "je": ny + N_HALO_DEFAULT - 1,
         }
-        return cls(indices, shape_params, rank, layout, backend, local_indices=True)
+        return cls(
+            indices,
+            shape_params,
+            rank,
+            layout,
+            backend,
+            local_indices=True,
+            pad_non_interface_dimensions=pad_non_interface_dimensions,
+        )
 
     @classmethod
     def from_namelist(cls, namelist: Namelist, rank: int, backend: Backend) -> "Grid":
@@ -113,6 +121,7 @@ class Grid:
         backend: Backend,
         data_fields: dict | None = None,
         local_indices: bool = False,
+        pad_non_interface_dimensions: bool = False,
     ) -> None:
         if data_fields is None:
             data_fields = {}
@@ -163,6 +172,7 @@ class Grid:
         self._grid_data: GridData | None = None
         self._driver_grid_data: DriverGridData | None = None
         self._damping_coefficients: DampingCoefficients | None = None
+        self._pad_non_interface_dimensions = pad_non_interface_dimensions
 
     @property
     def sizer(self) -> GridSizer:
@@ -178,10 +188,10 @@ class Grid:
                     MetricTerms.LON_OR_LAT_DIM: 2,
                     MetricTerms.TILE_DIM: 6,
                     MetricTerms.CARTESIAN_DIM: 3,
-                    TRACER_DIM: len(utils.tracer_variables),
                 },
                 layout=self.layout,
                 backend=self.backend,
+                pad_non_interface_dimensions=self._pad_non_interface_dimensions,
             )
         return self._sizer
 
@@ -519,11 +529,11 @@ class Grid:
                 allow_mismatch_float_precision=True,
             )
             if len(quantity.shape) == 3:
-                quantity.data[:] = data[:, :, : quantity.shape[2]]
+                quantity[:] = data[:, :, : quantity.shape[2]]
             elif len(quantity.shape) == 2:
-                quantity.data[:] = data[:, : quantity.shape[1]]
+                quantity[:] = data[:, : quantity.shape[1]]
             elif len(quantity.shape) == 1:
-                quantity.data[:] = data[: quantity.shape[0]]
+                quantity[:] = data[: quantity.shape[0]]
             else:
                 raise NotImplementedError(
                     "The data filtering is not implemented for a quantity of this shape"

@@ -196,11 +196,13 @@ def lon_lat_corner_to_cell_center(lon, lat, np):
 
 
 def lon_lat_to_xyz(lon, lat, np):
-    """map (lon, lat) to (x, y, z)
+    """This function maps (lon, lat) coordinates to (x, y, z) coordinates.
+
     Args:
         lon: 2d array of longitudes
         lat: 2d array of latitudes
         np: numpy-like module for arrays
+
     Returns:
         xyz: 3d array whose last dimension is length 3 and indicates x/y/z value
     """
@@ -216,10 +218,12 @@ def lon_lat_to_xyz(lon, lat, np):
 
 
 def xyz_to_lon_lat(xyz, np):
-    """map (x, y, z) to (lon, lat)
-    Returns:
+    """This function maps (x, y, z) coordinates to (lon, lat) coordinates.
+
+    Args:
         xyz: 3d array whose last dimension is length 3 and indicates x/y/z value
         np: numpy-like module for arrays
+
     Returns:
         lon: 2d array of longitudes
         lat: 2d array of latitudes
@@ -421,12 +425,14 @@ def set_c_grid_tile_border_area(
     """
     Using latitude and longitude without halo points, fix C-grid area at tile edges and
     corners.
+
     Naively, the c-grid area is calculated as the area between the rectangle at the
     four corners of the grid cell. At tile edges however, this is not accurate,
     because the area makes a butterfly-like shape as it crosses the tile boundary.
     Instead we calculate the area on one side of that shape, and multiply it by two.
     At corners, the corner is composed of three rectangles from each tile bordering
     the corner. We calculate the area from one tile and multiply it by three.
+
     Args:
         xyz_dgrid: d-grid cartesian coordinates as a 3-d array, last dimension
             of length 3 indicating x/y/z
@@ -593,7 +599,8 @@ def get_rectangle_area(p1, p2, p3, p4, radius, np):
     """
     Given four point arrays whose last dimensions are x/y/z in clockwise or
     counterclockwise order, return an array of spherical rectangle areas.
-    NOTE, this is not the exact same order of operations as the Fortran code
+
+    NOTE: This is not the exact same order of operations as the Fortran code.
     This results in some errors in the last digit, but the spherical_angle
     is an exact match. The errors in the last digit multiplied out by the radius
     end up causing relative errors larger than 1e-14, but still within 1e-12.
@@ -626,13 +633,17 @@ def fortran_vector_spherical_angle(e1, e2, e3):
    The Fortran version
     Given x/y/z tuples, compute the spherical angle between
     them according to:
-!           p3
-!         /
-!        /
-!       p_center ---> angle
-!         \
-!          \
-!           p2
+
+    ```none
+        p3
+      /
+     /
+    p_center ---> angle
+     \\
+      \\
+       p2
+    ```
+
     This angle will always be less than Pi.
     """
 
@@ -665,13 +676,17 @@ def spherical_angle(p_center, p2, p3, np):
     """
     Given ndarrays whose last dimension is x/y/z, compute the spherical angle between
     them according to:
-!           p3
-!         /
-!        /
-!       p_center ---> angle
-!         \
-!          \
-!           p2
+
+    ```
+        p3
+      /
+     /
+    p_center ---> angle
+     \\
+      \\
+       p2
+    ```
+
     This angle will always be less than Pi.
     """
 
@@ -690,7 +705,7 @@ def spherical_angle(p_center, p2, p3, np):
 
 def spherical_cos(p_center, p2, p3, np):
     """
-    As Spherical angle, but returns cos(angle)
+    As Spherical angle, but returns cos(angle).
     """
     p = np.cross(p_center, p2)
     q = np.cross(p_center, p3)
@@ -701,7 +716,7 @@ def spherical_cos(p_center, p2, p3, np):
 
 def get_unit_vector_direction(p1, p2, np):
     """
-    Returns the unit vector pointing from a set of lonlat points p1 to lonlat points p2
+    Returns the unit vector pointing from a set of lonlat points p1 to lonlat points p2.
     """
     xyz1 = lon_lat_to_xyz(p1[:, :, 0], p1[:, :, 1], np)
     xyz2 = lon_lat_to_xyz(p2[:, :, 0], p2[:, :, 1], np)
@@ -713,7 +728,7 @@ def get_unit_vector_direction(p1, p2, np):
 def get_lonlat_vect(lonlat_grid, np):
     """
     Calculates the unit vectors pointing in the longitude/latitude directions
-    for a set of longitude/latitude points
+    for a set of longitude/latitude points.
     """
     lon_vector = np.array(
         [

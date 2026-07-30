@@ -4,11 +4,12 @@ import copy
 import dataclasses
 import inspect
 import numbers
+import warnings
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
-import dace
 import numpy as np
+from dace.config import Config as DaceConfig
 from gt4py.cartesian import config as gt_config
 from gt4py.cartesian import definitions as gt_definitions
 from gt4py.cartesian import gtscript
@@ -16,6 +17,7 @@ from gt4py.cartesian.definitions import FieldInfo
 from gt4py.cartesian.gtc.passes.oir_pipeline import DefaultPipeline, OirPipeline
 from gt4py.cartesian.stencil_object import StencilObject
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.decomposition import block_waiting_for_compilation, unblock_waiting_tiles
@@ -32,7 +34,7 @@ from ndsl.constants import (
     K_DIMS,
     K_INTERFACE_DIM,
 )
-from ndsl.debug import ndsl_debugger
+from ndsl.debug import get_debugger
 from ndsl.dsl.dace.orchestration import SDFGConvertible
 from ndsl.dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from ndsl.dsl.typing import (
@@ -49,9 +51,8 @@ from ndsl.dsl.typing import (
     cast_to_index3d,
 )
 from ndsl.initialization import GridSizer
-from ndsl.logging import ndsl_log
+from ndsl.internal.deferred_type import resolve_deferred_types
 from ndsl.quantity import Quantity
-from ndsl.quantity.field_bundle import FieldBundleType, MarkupFieldBundleType
 from ndsl.testing.comparison import LegacyMetric
 
 
@@ -60,13 +61,13 @@ def report_difference(args, kwargs, args_copy, kwargs_copy, function_name, gt_id
     report_segments = []
     for i, (arg, numpy_arg) in enumerate(zip(args, args_copy)):
         if isinstance(arg, Quantity):
-            arg = arg.data
+            arg = arg[:]
             numpy_arg = numpy_arg.data
         if isinstance(arg, np.ndarray):
             report_segments.append(report_diff(arg, numpy_arg, label=f"arg {i}"))
     for name in kwargs:
         if isinstance(kwargs[name], Quantity):
-            kwarg = kwargs[name].data
+            kwarg = kwargs[name]._data
             numpy_kwarg = kwargs_copy[name].data
         else:
             kwarg = kwargs[name]
@@ -245,7 +246,7 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
     differences = {}
     for name, maybe_array in sorted(data.items(), key=lambda x: x[0]):
         if isinstance(maybe_array, Quantity):
-            maybe_array = maybe_array.data
+            maybe_array = maybe_array._data
         if hasattr(maybe_array, "data") and isinstance(maybe_array.data, np.ndarray):
             array = maybe_array.data
             other = comm.sendrecv(array, pair_rank)
@@ -253,6 +254,16 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
             if arr_diffs > 0:
                 differences[name] = arr_diffs
     return differences
+
+
+_DEPRECATED_STENCILS = []
+"""Collect deprecrated stencils"""
+
+
+def deprecated_stencil(func: Callable) -> Callable:
+    """Wrapper (use as @deprecated_stencil) to mark a stencil as deprecated"""
+    _DEPRECATED_STENCILS.append(func)
+    return func
 
 
 class FrozenStencil(SDFGConvertible):
@@ -288,6 +299,17 @@ class FrozenStencil(SDFGConvertible):
             comm: if given, inputs and outputs will be compared to the "twin"
                 rank of this rank
         """
+        # Check for deprecation
+        if func in _DEPRECATED_STENCILS:
+            # We use a UserWarning because this is not meant for DSL internals but
+            # for user code
+            warnings.warn(
+                f"Stencil {func} is deprecated and will be removed in a future version.",
+                UserWarning,
+                stacklevel=2,
+            )
+            _DEPRECATED_STENCILS.remove(func)  # Warn only once
+
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
         self.origin = origin
@@ -321,7 +343,7 @@ class FrozenStencil(SDFGConvertible):
             BackendFramework.DACE
             == self.stencil_config.compilation_config.backend.framework
         ):
-            dace.Config.set(
+            DaceConfig.set(
                 "default_build_folder",
                 value="{gt_root}/{gt_cache}/dacecache".format(
                     gt_root=gt_config.cache_settings["root_path"],
@@ -348,6 +370,9 @@ class FrozenStencil(SDFGConvertible):
             "BoolFieldIJ": BoolFieldIJ,
         }
 
+        # Deal with placeholder/markup type by resolving their true types
+        resolve_deferred_types(func)
+
         # Keep compilation at __init__ if we are not orchestrated.
         # If we orchestrate, move the compilation at call time to make sure
         # disable_codegen do not lead to call to uncompiled stencils, which fails
@@ -368,14 +393,6 @@ class FrozenStencil(SDFGConvertible):
                 and compilation_config.run_mode != RunMode.Run
             ):
                 block_waiting_for_compilation(MPI.COMM_WORLD, compilation_config)
-
-            # Field Bundle might have dropped a placeholder type that we now
-            # have to resolve to the proper type.
-            for name, types in func.__annotations__.items():
-                if isinstance(types, MarkupFieldBundleType):
-                    func.__annotations__[name] = FieldBundleType.T(
-                        types.name, do_markup=False
-                    )
 
             self.stencil_object = gtscript.stencil(
                 definition=func,
@@ -443,10 +460,10 @@ class FrozenStencil(SDFGConvertible):
                 )
 
         # Debugger actions if turned on
-        if ndsl_debugger:
+        debugger = get_debugger()
+        if debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=True)
+            debugger.save_as_dataset(all_args, self._func_qualname, is_in=True)
 
         # Execute stencil
         if (
@@ -475,11 +492,9 @@ class FrozenStencil(SDFGConvertible):
             )
 
         # Debugger actions if turned on
-        if ndsl_debugger:
+        if debugger:
             all_args = args_as_kwargs | kwargs
-            ndsl_debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.track_data(all_args, self._func_qualname, is_in=False)
-            ndsl_debugger.increment_call_count(self._func_qualname)
+            debugger.save_as_dataset(all_args, self._func_qualname, is_in=False)
 
         # Ranks comparison tool
         if self.comm is not None:
@@ -617,7 +632,7 @@ def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def
             # this means it's a Quantity, so we need
             # to pull off the ndarray.
             arg.dims
-            args[i] = arg.data
+            args[i] = arg._data
         except AttributeError:
             pass
     for name, arg in kwargs.items():
@@ -626,7 +641,7 @@ def _convert_quantities_to_storage(args, kwargs):  # type: ignore[no-untyped-def
             # this means it's a Quantity, so we need
             # to pull off the ndarray.
             arg.dims
-            kwargs[name] = arg.data
+            kwargs[name] = arg._data
         except AttributeError:
             pass
 
@@ -884,6 +899,8 @@ class GridIndexing:
                 return_origin.append(self.origin[1])
             elif dim in K_DIMS:
                 return_origin.append(self.origin[2])
+            else:
+                raise ValueError(f"Unknown dimension '{dim}'.")
         return return_origin
 
     def _domain_from_dims(self, dimensions: Iterable[str]) -> list[int]:
@@ -891,16 +908,18 @@ class GridIndexing:
         for dimension in dimensions:
             if dimension == I_DIM:
                 result.append(self.domain[0])
-            if dimension == I_INTERFACE_DIM:
+            elif dimension == I_INTERFACE_DIM:
                 result.append(self.domain[0] + 1)
-            if dimension == J_DIM:
+            elif dimension == J_DIM:
                 result.append(self.domain[1])
-            if dimension == J_INTERFACE_DIM:
+            elif dimension == J_INTERFACE_DIM:
                 result.append(self.domain[1] + 1)
-            if dimension == K_DIM:
+            elif dimension == K_DIM:
                 result.append(self.domain[2])
-            if dimension == K_INTERFACE_DIM:
+            elif dimension == K_INTERFACE_DIM:
                 result.append(self.domain[2] + 1)
+            else:
+                raise ValueError(f"Unknown dimension '{dimension}'.")
         return result
 
     def get_shape(

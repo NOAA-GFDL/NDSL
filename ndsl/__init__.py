@@ -1,6 +1,7 @@
 # isort:skip_file
-from . import dsl  # isort:skip
-from .logging import ndsl_log  # isort:skip
+from .logging import ndsl_log, ndsl_log_on_rank_0
+from .internal import hmm
+from . import dsl
 from .comm.communicator import CubedSphereCommunicator, TileCommunicator
 from .comm.local_comm import LocalComm
 from .comm.mpi import MPIComm
@@ -9,18 +10,29 @@ from .config.backend import Backend
 from .constants import ConstantVersions
 from .dsl.caches.codepath import FV3CodePath
 from .quantity import Quantity
+from .dsl.optimization_config import OptimizationConfig
 from .dsl.ndsl_runtime import NDSLRuntime
-from .dsl.stencil import FrozenStencil, GridIndexing, StencilFactory, TimingCollector
+from .dsl.stencil import (
+    FrozenStencil,
+    GridIndexing,
+    StencilFactory,
+    TimingCollector,
+    deprecated_stencil,
+)
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
 from .monitor.netcdf_monitor import NetCDFMonitor
+from .monitor.diag_manager_monitor import DiagManagerMonitor
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
 from .performance.profiler import NullProfiler, Profiler
 from .performance.report import Experiment, Report, TimeReport
 from .quantity import Local, LocalState, State
-from .quantity.field_bundle import FieldBundle, FieldBundleType  # Break circular import
+from .quantity.data_dimensions_field import (
+    DataDimensionsField,
+    DataDimensionsMarkupType,
+)
 from .types import Allocator
 from .utils import MetaEnumStr
 
@@ -36,6 +48,7 @@ from .dsl.dace.orchestration import orchestrate, orchestrate_function
 
 
 __all__ = [
+    "hmm",
     "dsl",
     "Backend",
     "CubedSphereCommunicator",
@@ -70,6 +83,7 @@ __all__ = [
     "GridSizer",
     "SubtileGridSizer",
     "ndsl_log",
+    "ndsl_log_on_rank_0",
     "NetCDFMonitor",
     "NullPerformanceCollector",
     "PerformanceCollector",
@@ -79,12 +93,15 @@ __all__ = [
     "Report",
     "TimeReport",
     "Quantity",
-    "FieldBundle",
-    "FieldBundleType",
     "Allocator",
     "MetaEnumStr",
     "State",
     "LocalState",
+    "OptimizationConfig",
     "NDSLRuntime",
     "Local",
+    "DiagManagerMonitor",
+    "DataDimensionsField",
+    "DataDimensionsMarkupType",
+    "deprecated_stencil",
 ]

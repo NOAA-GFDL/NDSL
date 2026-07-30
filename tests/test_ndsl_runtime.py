@@ -2,20 +2,19 @@ from typing import Any
 
 import pytest
 
-from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
+from ndsl import (
+    NDSLRuntime,
+    OptimizationConfig,
+    QuantityFactory,
+    StencilFactory,
+    stencils,
+)
 from ndsl.boilerplate import (
     get_factories_single_tile,
     get_factories_single_tile_orchestrated,
 )
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval
-from ndsl.dsl.typing import FloatField
-
-
-def the_copy_stencil(from_: FloatField, to: FloatField) -> None:
-    with computation(PARALLEL), interval(...):
-        to = from_
 
 
 class Code(NDSLRuntime):
@@ -24,7 +23,7 @@ class Code(NDSLRuntime):
     ) -> None:
         super().__init__(stencil_factory)
         self.copy = stencil_factory.from_dims_halo(
-            the_copy_stencil, compute_dims=[I_DIM, J_DIM, K_DIM]
+            stencils.copy, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
         self.local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
 
@@ -105,3 +104,36 @@ def test_runtime_fail_when_not_super_init() -> None:
         RuntimeError, match="inherit from NDSLRuntime but didn't call super()"
     ):
         bad_code = BadCode_NoSuperInit()
+
+
+def test_runtime_with_performance_config() -> None:
+    class CustomPerformanceConfig(NDSLRuntime):
+        def __init__(
+            self,
+            stencil_factory: StencilFactory,
+            optimization_config: OptimizationConfig,
+        ) -> None:
+            super().__init__(stencil_factory, optimization_config)
+            self.copy = stencil_factory.from_dims_halo(
+                stencils.copy, compute_dims=[I_DIM, J_DIM, K_DIM]
+            )
+
+        def __call__(self, src, dst) -> None:  # type: ignore[no-untyped-def]
+            self.copy(src, dst)
+
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        nx=5, ny=5, nz=3, nhalo=0, backend=Backend.cpu()
+    )
+
+    # setup code
+    config = OptimizationConfig()
+    code = CustomPerformanceConfig(stencil_factory, config)
+
+    # setup inputs/outputs
+    src = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+    dst = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+
+    # call code with inputs/outputs
+    code(src, dst)
+
+    assert (src.field[:] == dst.field[:]).all()

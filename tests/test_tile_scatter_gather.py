@@ -166,15 +166,15 @@ def test_tile_gather_state(
     assert result.dims == tile_quantity.dims
     assert result.units == tile_quantity.units
     assert result.extent == tile_quantity.extent
-    assert isinstance(result.data, type(tile_quantity.data))
-    tile_quantity.np.testing.assert_array_equal(result.view[:], tile_quantity.view[:])
+    assert isinstance(result[:], type(tile_quantity[:]))
+    tile_quantity.np.testing.assert_array_equal(result.field[:], tile_quantity.field[:])
 
 
 def test_tile_gather_state_with_recv_state(
     tile_quantity, scattered_quantities, communicator_list, time
 ):
     recv_state = {"time": time, "air_temperature": copy.deepcopy(tile_quantity)}
-    recv_state["air_temperature"].data[:] = -1
+    recv_state["air_temperature"][:] = -1
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
@@ -227,7 +227,7 @@ def test_tile_scatter_with_recv_quantity(
 ):
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
-        q.data[:] = 0.0
+        q[:] = 0.0
     for recv, communicator in zip(recv_quantities, communicator_list):
         if communicator.rank == 0:
             result = communicator.scatter(
@@ -249,7 +249,7 @@ def test_tile_gather_with_recv_quantity(
     tile_quantity, scattered_quantities, communicator_list
 ):
     recv_quantity = copy.deepcopy(tile_quantity)
-    recv_quantity.data[:] = -1
+    recv_quantity[:] = -1
     for communicator, rank_quantity in reversed(
         list(zip(communicator_list, scattered_quantities))
     ):
@@ -312,7 +312,7 @@ def test_tile_scatter_state_with_recv_state(
     tile_state = {"time": time, "air_temperature": tile_quantity}
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
-        q.data[:] = 0.0
+        q[:] = 0.0
     for recv, communicator in zip(recv_quantities, communicator_list):
         state = {
             "time": time - datetime.timedelta(hours=1),
@@ -339,7 +339,7 @@ def test_tile_scatter_state_with_recv_state_without_time(
     tile_state = {"air_temperature": tile_quantity}
     recv_quantities = copy.deepcopy(scattered_quantities)
     for q in recv_quantities:
-        q.data[:] = 0.0
+        q[:] = 0.0
     for recv, communicator in zip(recv_quantities, communicator_list):
         state = {
             "air_temperature": recv,

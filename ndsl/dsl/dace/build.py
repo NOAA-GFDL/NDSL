@@ -2,10 +2,10 @@ from dace import config as dace_conf
 from dace.sdfg import SDFG
 from gt4py.cartesian import config as gt_config
 
+from ndsl import ndsl_log
 from ndsl.config import Backend
 from ndsl.dsl.caches.cache_location import get_cache_directory, get_cache_fullpath
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
-from ndsl.logging import ndsl_log
 
 
 ################################################
@@ -27,6 +27,7 @@ def write_build_info(
     sdfg: SDFG,
     layout: tuple[int, int],
     resolution_per_tile: list[int],
+    memory_report: str,
     backend: Backend,
 ) -> None:
     """Write down all relevant information on the build to identify
@@ -41,6 +42,9 @@ def write_build_info(
         build_info_read.write(f"{backend}\n")
         build_info_read.write(f"{str(layout)}\n")
         build_info_read.write(f"{str(resolution_per_tile)}\n")
+
+    with open(f"{path_to_sdfg_dir}/memory_report.txt", "w") as f:
+        f.write(memory_report)
 
 
 ################################################
@@ -58,7 +62,7 @@ def get_sdfg_path(
     """Build an SDFG path from the qualified program name or it's direct path to .sdfg
 
     Args:
-        program_name: qualified name in the form module_qualname if module is not locals
+        daceprog_name: qualified name in the form module_qualname if module is not locals
         sdfg_file_path: absolute path to a .sdfg file
     """
     import os

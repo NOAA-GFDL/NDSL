@@ -1,17 +1,18 @@
 import contextlib
+from typing import Any, Generator
 
 import numpy as np
 from mpi4py import MPI
 
-from ndsl import Timer
+from ndsl.performance import Timer
 
 
 @contextlib.contextmanager
-def nullcontext():
+def nullcontext() -> Generator[None, Any, None]:
     yield
 
 
-def print_global_timings(times, comm, root=0):
+def print_global_timings(timer: Timer, comm: MPI.Comm, root: int = 0) -> None:
     is_root = comm.Get_rank() == root
     recvbuf = np.array(0.0)
     for name, value in timer.times.items():
@@ -45,4 +46,4 @@ if __name__ == "__main__":
     comm = MPI.COMM_WORLD
     # timer.times is a dictionary giving you the total time in seconds spent on each
     # operation
-    print_global_timings(timer.times, comm)
+    print_global_timings(timer, comm)

@@ -17,11 +17,24 @@ class SubtileGridSizer(GridSizer):
         n_halo: int,
         data_dimensions: dict[str, int],
         backend: Backend,
+        *,
+        pad_non_interface_dimensions: bool = False,
     ) -> None:
+        for name, size in data_dimensions.items():
+            if not isinstance(size, int):
+                raise TypeError(
+                    f"Wrong size type for data dimension '{name}'. Expected plain 'int', got {type(size)}."
+                )
+
         super().__init__(nx, ny, nz, n_halo, data_dimensions)
 
         fortran_style_memory = backend.is_fortran_aligned()
-        self._pad_non_interface_dimensions = not fortran_style_memory
+
+        # TODO: pad_non_interface_dimensions should not be kept. In general
+        #       this should _always_ be False and non-interface dimensions never padded by default
+        self._pad_non_interface_dimensions = (
+            not fortran_style_memory or pad_non_interface_dimensions
+        )
 
     @classmethod
     def from_tile_params(
@@ -36,6 +49,7 @@ class SubtileGridSizer(GridSizer):
         data_dimensions: dict[str, int] | None = None,
         tile_partitioner: TilePartitioner | None = None,
         tile_rank: int = 0,
+        pad_non_interface_dimensions: bool = False,
     ) -> Self:
         """Create a SubtileGridSizer from parameters about the full tile.
 
@@ -76,7 +90,15 @@ class SubtileGridSizer(GridSizer):
                 "SubtileGridSizer::from_tile_params: Compute domain extent must be greater than halo size"
             )
 
-        return cls(nx, ny, nz, n_halo, data_dimensions, backend)
+        return cls(
+            nx,
+            ny,
+            nz,
+            n_halo,
+            data_dimensions,
+            backend,
+            pad_non_interface_dimensions=pad_non_interface_dimensions,
+        )
 
     @classmethod
     def from_namelist(

@@ -6,7 +6,6 @@ from types import ModuleType
 from typing import Any, cast
 
 import dace
-import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from gt4py import storage as gt_storage
@@ -23,6 +22,27 @@ from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 
 if cupy is None:
     import numpy as cupy
+
+
+def normalize_dimensions(
+    dims: Sequence[str], shape: tuple[int, ...]
+) -> tuple[str, ...]:
+    """
+    Normalize dimensions for the gt4py.cartesian allocator.
+
+    The allocator expects "I", "J" or "K", or  the size of the dimension as a string.
+    """
+    dims_as_list = []
+    for index, dim in enumerate(dims):
+        if dim in constants.SPATIAL_DIMS:
+            # Interface dimensions are cartesian dimensions for gt4py
+            # with an added point in the shape
+            if dim in constants.INTERFACE_DIMS:
+                dim = dim.removesuffix("_interface")
+            dims_as_list.append(dim.upper())
+        else:
+            dims_as_list.append(str(shape[index]))
+    return tuple(dims_as_list)
 
 
 class Quantity:
@@ -68,7 +88,7 @@ class Quantity:
         ):
             raise ValueError(
                 f"Floating-point data type mismatch, asked for {data.dtype}, "
-                f"Pace configured for {Float}"
+                f"NDSL configured for {Float}"
             )
         if origin is None:
             origin = (0,) * len(dims)  # default origin at origin of array
@@ -88,21 +108,7 @@ class Quantity:
         _validate_quantity_property_lengths(data.shape, dims, origin, extent)
 
         gt4py_backend_cls = gt_backend.from_name(backend.as_gt4py())
-        is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
         device = gt4py_backend_cls.storage_info["device"]
-
-        dimensions: tuple[str | int, ...] = tuple(
-            [
-                (
-                    axis  # type: ignore # mypy can't parse this list construction of hell
-                    if any(dim in axis_dims for axis_dims in constants.SPATIAL_DIMS)
-                    else str(data.shape[index])
-                )
-                for index, (dim, axis) in enumerate(
-                    zip(dims, ("I", "J", "K", *([None] * (len(dims) - 3))))
-                )
-            ]
-        )
 
         if isinstance(data, np.ndarray):
             is_correct_device = device == "cpu"
@@ -112,6 +118,9 @@ class Quantity:
             raise ValueError(
                 f"Unknown device target for quantity allocation {type(data)}"
             )
+
+        is_optimal_layout = gt4py_backend_cls.storage_info["is_optimal_layout"]
+        dimensions = normalize_dimensions(dims, data.shape)
 
         if is_optimal_layout(data, dimensions) and is_correct_device:
             self._data = data
@@ -141,7 +150,7 @@ class Quantity:
         )
         self._attrs = {}  # type: ignore[var-annotated]
         self._compute_domain_view = BoundedArrayView(
-            self.data, self.dims, self.origin, self.extent
+            self._data, self.dims, self.origin, self.extent
         )
 
     @classmethod
@@ -209,9 +218,9 @@ class Quantity:
 
         return QuantityHaloSpec(
             n_halo,
-            self.data.strides,
-            self.data.itemsize,
-            self.data.shape,
+            self._data.strides,
+            self._data.itemsize,
+            self._data.shape,
             self.metadata.origin,
             self.metadata.extent,
             self.metadata.dims,
@@ -221,7 +230,7 @@ class Quantity:
 
     def __repr__(self) -> str:
         return (
-            f"Quantity(\n    data=\n{self.data},\n    dims={self.dims},\n"
+            f"Quantity(\n    data=\n{self._data},\n    dims={self.dims},\n"
             f"    units={self.units},\n    origin={self.origin},\n"
             f"    extent={self.extent}\n)"
         )
@@ -237,6 +246,7 @@ class Quantity:
             view_selection: an ndarray-like selection of the given indices
                 on `self.view`
         """
+
         return self.view[tuple(kwargs.get(dim, slice(None, None)) for dim in self.dims)]
 
     @property
@@ -275,10 +285,27 @@ class Quantity:
     @property
     def data(self) -> np.ndarray | cupy.ndarray:
         """The underlying array of data"""
+        warnings.warn(
+            "Quantity.data accessor is now deprecated. Use a slicing operation directly on "
+            "the quantity, e.g. `my_quantity[:]` instead of `my_quantity.data[:]`",
+            category=UserWarning,
+            stacklevel=2,
+        )
         return self._data
 
     @data.setter
     def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
+        warnings.warn(
+            "Quantity.data setter is now deprecated. Build a quantity from a data with the "
+            "dedicated constructor. If you need no-copy mapping, talk to the team.",
+            category=UserWarning,
+            stacklevel=2,
+        )
+        self.swap_buffer(input_data)
+
+    def swap_buffer(self, input_data: np.ndarray | cupy.ndarray) -> None:
+        """Swap internal buffer for given input. Use with _extreme_ care as it might
+        trip hash calculations for other subsystems."""
         if type(input_data) not in [np.ndarray, cupy.ndarray]:
             raise TypeError(
                 "Quantity.data buffer swap failed: "
@@ -291,10 +318,9 @@ class Quantity:
                 f"new data ({input_data.shape}) is smaller "
                 f"than expected extent ({self.extent})."
             )
-
         self._data = input_data
         self._compute_domain_view = BoundedArrayView(
-            self.data, self.dims, self.origin, self.extent
+            self._data, self.dims, self.origin, self.extent
         )
 
     @property
@@ -319,23 +345,31 @@ class Quantity:
     @property
     def data_as_xarray(self) -> xr.DataArray:
         """Returns an Xarray.DataArray of the underlying array"""
-        if isinstance(self.data, np.ndarray):
-            data = self.data
+        if isinstance(self._data, np.ndarray):
+            data = self._data
         else:
-            data = self.data.get()
+            data = self._data.get()
         return xr.DataArray(data, dims=self.dims, attrs=self.attrs)
 
     @property
     def np(self) -> ModuleType:
         return self.metadata.np
 
+    def __getitem__(self, subscript: Any) -> Any:
+        """Slicing operator accessing the full buffer"""
+        return self._data[subscript]
+
+    def __setitem__(self, subscript: Any, value: Any) -> None:
+        """Slicing operator setting the full buffer"""
+        self._data[subscript] = value
+
     @property
     def __array_interface__(self):  # type: ignore[no-untyped-def]
-        return self.data.__array_interface__
+        return self._data.__array_interface__
 
     @property
     def __cuda_array_interface__(self):  # type: ignore[no-untyped-def]
-        return self.data.__cuda_array_interface__
+        return self._data.__cuda_array_interface__
 
     def __hash__(self) -> int:
         """Hash based on underlying memory
@@ -344,13 +378,17 @@ class Quantity:
         This hash does not cover _all_ of Quantity (metadata, etc.) but it reflects the
         runtime reality of Quantity.
         """
-        if isinstance(self.data, np.ndarray):
-            return hash(self.data.__array_interface__["data"])
-        return hash(self.data.__cuda_array_interface__["data"])
+        if isinstance(self._data, np.ndarray):
+            return hash(self._data.__array_interface__["data"])
+        return hash(self._data.__cuda_array_interface__["data"])
 
     @property
     def shape(self):  # type: ignore[no-untyped-def]
-        return self.data.shape
+        return self._data.shape
+
+    @property
+    def dtype(self):  # type: ignore[no-untyped-def]
+        return self._data.dtype
 
     def __descriptor__(self) -> Any:
         """The descriptor is a property that dace uses.
@@ -359,7 +397,7 @@ class Quantity:
         If the internal data given doesn't follow the protocol it will most likely
         fail.
         """
-        return dace.data.create_datadescriptor(self.data)
+        return dace.data.create_datadescriptor(self._data)
 
     def transpose(
         self,
@@ -408,7 +446,7 @@ class Quantity:
         target_dims = _collapse_dims(target_dims, self.dims)
         transpose_order = [self.dims.index(dim) for dim in target_dims]
         transposed = Quantity(
-            self.np.transpose(self.data, transpose_order),
+            self.np.transpose(self._data, transpose_order),
             dims=_transpose_sequence(self.dims, transpose_order),
             units=self.units,
             origin=_transpose_sequence(self.origin, transpose_order),
@@ -420,7 +458,9 @@ class Quantity:
         return transposed
 
     def plot_k_level(self, k_index: int = 0) -> None:
-        field = self.data
+        import matplotlib.pyplot as plt
+
+        field = self._data
         plt.xlabel("I")
         plt.ylabel("J")
 

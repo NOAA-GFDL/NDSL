@@ -52,6 +52,8 @@ _NDSL_TO_GT4PY_BACKEND_NAMING = {
     "orch:dace:cpu:KJI": "dace:cpu_KJI",
     "st:dace:gpu:KJI": "dace:gpu",
     "orch:dace:gpu:KJI": "dace:gpu",
+    "st:dace:gpu:IJK": "dace:gpu_IJK",
+    "orch:dace:gpu:IJK": "dace:gpu_IJK",
 }
 """Internal: match the NDSL backend names with the GT4Py names"""
 
@@ -76,7 +78,7 @@ class Backend:
     on the frontend code. Additionally, it gives a hint toward the macro-strategy
     for loop ordering (IJK, KJI, etc.) or a more broad intent (debug, numpy).
 
-    For convenience, shorcuts are given to the most common needs (
+    For convenience, shortcuts are given to the most common needs (
     `backend_python`, `backend_cpu`, `backend_gpu`).
     """
 
@@ -187,6 +189,51 @@ class Backend:
 
     def is_gpu_backend(self) -> bool:
         return self._device == BackendTargetDevice.GPU
+
+    def equivalent_cpu_backend(self) -> "Backend":
+        """Return the equivalent backend (same strategy, framework and loop order) but for CPU device."""
+        if self._device == BackendTargetDevice.CPU:
+            return self
+        return Backend(
+            f"{self._strategy.value}:{self._framework.value}:{BackendTargetDevice.CPU.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_gpu_backend(self) -> "Backend":
+        """Return the equivalent backend (same strategy, framework and loop order) but for GPU device."""
+        if self._device == BackendTargetDevice.GPU:
+            return self
+        return Backend(
+            f"{self._strategy.value}:{self._framework.value}:{BackendTargetDevice.GPU.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_stencil_backend(self) -> "Backend":
+        """Return the equivalent backend (same device, framework and loop order) but for Stencil strategy."""
+        if self._strategy == BackendStrategy.STENCIL:
+            return self
+        return Backend(
+            f"{BackendStrategy.STENCIL.value}:{self._framework.value}:{self._device.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_orchestration_backend(self) -> "Backend":
+        """Return the equivalent backend (same device, framework and loop order) but with orchestration strategy."""
+        if self._strategy == BackendStrategy.ORCHESTRATION:
+            return self
+        return Backend(
+            f"{BackendStrategy.ORCHESTRATION.value}:{self._framework.value}:{self._device.value}:{self._loop_order.value}"
+        )
+
+    def equivalent_backend_with_loop_order(
+        self, loop_order: BackendLoopOrder
+    ) -> "Backend":
+        """
+        Return the equivalent backend (same strategy, framework, and device) with a different loop order.
+        """
+        if self._loop_order == loop_order:
+            return self
+
+        return Backend(
+            f"{self._strategy.value}:{self._framework.value}:{self._device.value}:{loop_order.value}"
+        )
 
     def is_fortran_aligned(self) -> bool:
         """Check that the standard 3D field on cartesian axis is memory-aligned with Fortran

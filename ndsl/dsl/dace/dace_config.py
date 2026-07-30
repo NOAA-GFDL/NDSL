@@ -10,14 +10,20 @@ from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
 
 from ndsl import LocalComm
+from ndsl.comm import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
+from ndsl.dsl import NDSL_COMPILER_SILENCE, NDSL_GLOBAL_PRECISION
 from ndsl.dsl.caches.cache_location import identify_code_path
 from ndsl.dsl.caches.codepath import FV3CodePath
-from ndsl.dsl.typing import get_precision
+from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.optional_imports import cupy as cp
-from ndsl.performance.collector import NullPerformanceCollector, PerformanceCollector
+from ndsl.performance.collector import (
+    AbstractPerformanceCollector,
+    NullPerformanceCollector,
+    PerformanceCollector,
+)
 
 
 if TYPE_CHECKING:
@@ -29,12 +35,14 @@ if TYPE_CHECKING:
 DEACTIVATE_DISTRIBUTED_DACE_COMPILE = False
 
 
-def _debug_dace_orchestration() -> bool:
+def _sync_gpu_option() -> bool:
     """
+    Force synchronize after each kernel call.
+
     Debugging Dace orchestration deeper can be done by turning on `syncdebug`.
     We control this Dace configuration below with our own override.
     """
-    return os.getenv("NDSL_DACE_DEBUG", "False") == "True"
+    return os.getenv("NDSL_DACE_FORCE_SYNC_GPU", "False") == "True"
 
 
 def _is_corner(rank: int, partitioner: Partitioner) -> bool:
@@ -164,12 +172,12 @@ class DaceConfig:
         Args:
             communicator: used for setting the distributed caches
             backend: string for the backend
-            tile_nx: x/y domain size for a single time
-            tile_nz: z domain size for a single time
+            tile_nx: x/y domain size for a single tile
+            tile_nz: z domain size for a single tile
             orchestration: orchestration mode from DaCeOrchestration
             time: trigger performance collection, available to user with
                 `performance_collector`
-            single_codepath: code is expected to be the same on every rank (case
+            single_code_path: code is expected to be the same on every rank (case
                 of column-physics) and therefore can be compiled once
         """
 
@@ -179,16 +187,12 @@ class DaceConfig:
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
         self.loaded_dace_executables: DaceExecutables = {}
-        self.performance_collector = (
-            PerformanceCollector(
-                "InternalOrchestrationTimer",
-                comm=(
-                    LocalComm(0, 6, {}) if communicator is None else communicator.comm
-                ),
+        if not time:
+            self.performance_collector: AbstractPerformanceCollector = (
+                NullPerformanceCollector()
             )
-            if time
-            else NullPerformanceCollector()
-        )
+        else:
+            self.set_timer(communicator.comm if communicator else None)
 
         # Temporary. This is a bit too out of the ordinary for the common user.
         # We should refactor the architecture to allow for a `gtc:orchestrated:dace:X`
@@ -202,6 +206,14 @@ class DaceConfig:
             self._orchestrate = DaCeOrchestration[fv3_dacemode_env_var]
         else:
             self._orchestrate = orchestration
+
+        # Verbose optimizations
+        self.verbose_orchestration = (
+            os.getenv("NDSL_VERBOSE_ORCHESTRATION", "False") == "True"
+        )
+        self.verbose_schedule_tree_optimizations = (
+            os.getenv("NDSL_VERBOSE_SCHEDULE_TREE_OPTIMIZATIONS", "False") == "True"
+        )
 
         # We hijack the optimization level of GT4Py because we don't
         # have the configuration at NDSL level, but we do use the GT4Py
@@ -234,11 +246,12 @@ class DaceConfig:
             march_cpu = "armv8-a" if is_arm_neoverse else "native"
             # Removed --fmath
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
+            warnings_policy = "-w" if NDSL_COMPILER_SILENCE else "-Wall"
             dace.config.Config.set(
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-march={march_cpu} -std=c++17 -fPIC -Wall -Wextra -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
+                value=f"-march={march_cpu} -std=c++20 -fPIC {warnings_policy} -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -254,21 +267,29 @@ class DaceConfig:
             march_option = "-mcpu=native" if is_arm_neoverse else "-march=native"
             # Removed --fast-math
             gpu_config = gpu_configuration(GT4PY_COMPILE_OPT_LEVEL)
+            gpu_cflags = " ".join(gpu_config.gpu_compile_flags).strip()
             dace.config.Config.set(
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_config.gpu_compile_flags}",
+                value=f"-std=c++14 {warnings_policy} -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_cflags}",
             )
 
-            cuda_sm = cp.cuda.Device(0).compute_capability if cp else 60
-            dace.config.Config.set("compiler", "cuda", "cuda_arch", value=f"{cuda_sm}")
-            # Block size/thread count is defaulted to an average value for recent
-            # hardware (Pascal and upward). The problem of setting an optimized
-            # block/thread is both hardware and problem dependant. Fine tuners
-            # available in DaCe should be relied on for further tuning of this value.
+            # Target compilation for hardware micro-code capacities
+            gpu_defaults = get_gpu_hardware_defaults()
             dace.config.Config.set(
-                "compiler", "cuda", "default_block_size", value="64,8,1"
+                "compiler",
+                "cuda",
+                "cuda_arch",
+                value=f"{gpu_defaults.compute_capability}",
+            )
+
+            # Default block size for kernels launch
+            dace.config.Config.set(
+                "compiler",
+                "cuda",
+                "default_block_size",
+                value=str(gpu_defaults.block_size)[1:-1],
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -298,11 +319,16 @@ class DaceConfig:
                 "dont_fuse_callbacks",
                 value=True,
             )
-            # Unroll all loop - outer loop should be exempted with dace.nounroll
+            # Unroll no loop.
+            # Dev NOTE: while unrolling small loop could have an impact on speed
+            #           espcially small loop, the cost of potential increase in
+            #           build time is too high. The user needs to use `nounroll`
+            #           on it's own code, shifting an optimization responsability
+            #           away from the DSL. We opt for the default - no unrolling.
             dace.config.Config.set(
                 "frontend",
                 "unroll_threshold",
-                value=False,
+                value=-1,
             )
             # Allow for a longer stack dump when parsing fails
             dace.config.Config.set(
@@ -318,10 +344,10 @@ class DaceConfig:
 
             # Enable to debug GPU failures
             dace.config.Config.set(
-                "compiler", "cuda", "syncdebug", value=_debug_dace_orchestration()
+                "compiler", "cuda", "syncdebug", value=_sync_gpu_option()
             )
 
-            if get_precision() == 32:
+            if NDSL_GLOBAL_PRECISION == 32:
                 # When using 32-bit float, we flip the default dtypes to be all
                 # C, e.g. 32 bit.
                 dace.Config.set(
@@ -329,6 +355,9 @@ class DaceConfig:
                     "default_data_types",
                     value="c",
                 )
+
+            # Debug lineinfo is incorrect anyway for the stencils
+            dace.config.Config.set("compiler", "lineinfo", value="none")
 
         # Attempt to kill the dace.conf to avoid confusion
         dace_conf_to_kill = dace.config.Config.cfg_filename()
@@ -345,7 +374,7 @@ class DaceConfig:
             self.code_path = identify_code_path(
                 self.my_rank,
                 communicator.partitioner,
-                self._single_code_path,
+                single_code_path=self._single_code_path,
             )
             self.layout = communicator.partitioner.layout
             self.do_compile = (
@@ -397,4 +426,20 @@ class DaceConfig:
         config.rank_size = data["rank_size"]
         config.layout = data["layout"]
         config.tile_resolution = data["tile_resolution"]
-        return config
+        # TODO
+        # Computed properties like `self.code_path` and `self.do_compile`
+        # aren't updated.
+        # We also don't `set_distributed_caches()` based on that updated
+        # information.
+        raise NotImplementedError(
+            "Implementation of `DaceConfig.from_dict()` is incomplete."
+        )
+
+    def set_timer(self, comm: Comm | None) -> None:
+        """Set timer on configuration externally"""
+        # TODO: this absolutely should not be a on a Configuration object
+        #      and even less setup outside. Madness, we have lost our ways...
+        self.performance_collector = PerformanceCollector(
+            "InternalOrchestrationTimer",
+            comm=(LocalComm(0, 6, {}) if comm is None else comm),
+        )

@@ -1,6 +1,7 @@
 import typing
 
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, function, interval
+from ndsl.dsl.stencil import deprecated_stencil
 from ndsl.dsl.typing import (
     Bool,
     BoolFieldIJ,
@@ -12,78 +13,248 @@ from ndsl.dsl.typing import (
 )
 
 
-def copy(q_in: FloatField, q_out: FloatField) -> None:
+def copy(input: FloatField, output: FloatField) -> None:
     """
-    Copy q_in to q_out.
+    Copy one field into another.
 
     Args:
-        q_in: input field
-        q_out: output field
+        input: input field
+        output: output field
     """
     with computation(PARALLEL), interval(...):
-        q_out = q_in
+        output = input
 
 
-def adjustmentfactor_stencil(adjustment: FloatFieldIJ, q_out: FloatField) -> None:
+def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:
     """
-    Multiplies every element of q_out by every element of the adjustment field over the
-    interval, replacing the elements of q_out by the result of the multiplication.
+    Copy one field into another - 2D variant.
 
     Args:
-        adjustment: adjustment field
-        q_out: output field
+        input: input field
+        output: output field
+    """
+    with computation(FORWARD), interval(...):
+        output = input
+
+
+def add(summand_1: FloatField, summand_2: FloatField, sum: FloatField) -> None:
+    """
+    Add two inputs together, sum to a new field.
+
+    Args:
+        summand_1: input field
+        summand_2: input field
+        sum: output field
     """
     with computation(PARALLEL), interval(...):
-        q_out = q_out * adjustment
+        sum = summand_1 + summand_2
 
 
-def set_value(q_out: FloatField, value: Float) -> None:
+def add_to_self(field: FloatField, summand: FloatField) -> None:
     """
-    Sets every element of q_out to the value specified by value argument.
+    Add a summand to a field.
 
     Args:
-        q_out: output field
-        value: NDSL Float type
+        field: field to be modifid
+        summand: modification to be made
     """
     with computation(PARALLEL), interval(...):
-        q_out = value
+        field = field + summand
 
 
-def set_value_2D(buffer: FloatFieldIJ, value: Float) -> None:
+def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) -> None:
     """
-    Sets every element of buffer to the value specified by value argument.
+    Add two inputs together, sum to a new field - 2D variant.
 
     Args:
-        buffer: output field
+        summand_1: input field
+        summand_2: input field
+        sum: output field
+    """
+    with computation(FORWARD), interval(0, 1):
+        sum = summand_1 + summand_2
+
+
+def add_to_self_2d(field: FloatFieldIJ, summand: FloatFieldIJ) -> None:
+    """
+    Add a summand to a field - 2D variant.
+
+    Args:
+        field: field to be modifid
+        summand: modification to be made
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field + summand
+
+
+def subtract(
+    minuend: FloatField, subtrahend: FloatField, difference: FloatField
+) -> None:
+    """
+    Subtract subtrahend from minuend, output to a new field.
+
+    Args:
+        minuend: input field
+        subtrahend: input field
+        difference: output field
+    """
+    with computation(PARALLEL), interval(...):
+        difference = minuend - subtrahend
+
+
+def subtract_to_self(field: FloatField, subtrahend: FloatField) -> None:
+    """
+    Subtract a subtrahend from a field.
+
+    Args:
+        field: field to be modifid
+        subtrahend: modification to be made
+    """
+    with computation(PARALLEL), interval(...):
+        field = field - subtrahend
+
+
+def subtract_2d(
+    minuend: FloatFieldIJ, subtrahend: FloatFieldIJ, difference: FloatFieldIJ
+) -> None:
+    """
+    Subtract summand_2 from minuend, output to a new field - 2D variant.
+
+    Args:
+        minuend: input field
+        summand_2: input field
+        difference: output field
+    """
+    with computation(FORWARD), interval(0, 1):
+        difference = minuend - subtrahend
+
+
+def subtract_to_self_2d(field: FloatFieldIJ, subtrahend: FloatFieldIJ) -> None:
+    """
+    Subtract a modification from a field - 2D variant.
+
+    Args:
+        field: field to be modifid
+        subtrahend: modification to be made
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field - subtrahend
+
+
+def multiply(factor_1: FloatField, factor_2: FloatField, product: FloatField) -> None:
+    """
+    Multiply two inputs together, output to a new field.
+
+    Args:
+        factor_1: input field
+        factor_2: input field
+        output: output field
+    """
+    with computation(PARALLEL), interval(...):
+        product = factor_1 * factor_2
+
+
+def multiply_to_self(field: FloatField, factor: FloatField) -> None:
+    """
+    Muultiply a field by a factor.
+
+    Args:
+        field: field to be modifid
+        factor: modification factor
+    """
+    with computation(PARALLEL), interval(...):
+        field = field * factor
+
+
+def multiply_2d(
+    factor_1: FloatFieldIJ, factor_2: FloatFieldIJ, product: FloatFieldIJ
+) -> None:
+    """
+    Multiply two inputs together, output to a new field - 2D variant.
+
+    Args:
+        factor_1: input field
+        factor_2: input field
+        output: output field
+    """
+    with computation(FORWARD), interval(0, 1):
+        product = factor_1 * factor_2
+
+
+def multiply_to_self_2d(field: FloatFieldIJ, factor: FloatFieldIJ) -> None:
+    """
+    Muultiply a field by a factor - 2D variant.
+
+    Args:
+        field: field to be modifid
+        factor: modification factor
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field * factor
+
+
+def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> None:
+    """
+    Divide dividend by divisor, output to a new field.
+
+    Args:
+        dividend: input field
+        divisor: input field
+        quotient: output field
+    """
+    with computation(PARALLEL), interval(...):
+        quotient = dividend / divisor
+
+
+def divide_to_self(field: FloatField, divisor: FloatField) -> None:
+    """
+    Muultiply a field by a factor - 2D variant.
+
+    Args:
+        field: field to be modifid
+        divisor: modification factor
+    """
+    with computation(PARALLEL), interval(...):
+        field = field / divisor
+
+
+def divide_2d(
+    dividend: FloatFieldIJ, divisor: FloatFieldIJ, quotient: FloatFieldIJ
+) -> None:
+    """
+    Divide dividend by divisor, output to a new field - 2D variant.
+
+    Args:
+        dividend: input field
+        divisor: input field
+        quotient: output field
+    """
+    with computation(FORWARD), interval(0, 1):
+        quotient = dividend / divisor
+
+
+def divide_to_self_2d(field: FloatFieldIJ, divisor: FloatFieldIJ) -> None:
+    """
+    Muultiply a field by a factor - 2D variant.
+
+    Args:
+        field: field to be modifid
+        divisor: modification factor
+    """
+    with computation(FORWARD), interval(0, 1):
+        field = field / divisor
+
+
+def set_value(field: FloatField, value: Float) -> None:
+    """
+    Sets every element of a field to a single value.
+
+    Args:
+        field: output field
         value: value of Float type
     """
-    with computation(FORWARD), interval(0, 1):
-        buffer = value
-
-
-def set_IJ_mask_value(mask_out: BoolFieldIJ, value: Bool) -> None:
-    """
-    Sets every element of buffer to the value specified by value argument.
-
-    Args:
-        mask_out: output field
-        value: value of Bool type
-    """
-    with computation(FORWARD), interval(0, 1):
-        mask_out = value
-
-
-def adjust_divide_stencil(adjustment: FloatField, q_out: FloatField) -> None:
-    """
-    Divides every element of q_out by every element of the adjustment field over the
-    interval, replacing the elements of q_out by the result of the division.
-
-    Args:
-        adjustment: adjustment field
-        q_out: output field
-    """
     with computation(PARALLEL), interval(...):
-        q_out = q_out / adjustment
+        field = value
 
 
 def select_k(
@@ -108,6 +279,51 @@ def select_k(
             out_field = in_field
 
 
+#############################
+# Deprecated stencils       #
+#############################
+
+
+@deprecated_stencil
+def set_value_2D(field: FloatFieldIJ, value: Float) -> None:
+    """
+    Sets every element of a field to a single value - 2D variant.
+
+    Args:
+        field: output field
+        value: value of Float type
+    """
+    with computation(FORWARD), interval(...):
+        field = value
+
+
+@deprecated_stencil
+@typing.no_type_check
+@function
+def sign(a, b):
+    """
+    Defines a_sign_b as the absolute value of a, and checks if b is positive or
+    negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
+
+    Args:
+        a: A number
+        b: A number
+    """
+    a_sign_b = abs(a)
+    return a_sign_b if b > 0 else -a_sign_b
+
+
+@deprecated_stencil
+@typing.no_type_check
+@function
+def dim(a, b):
+    """
+    Calculates a - b, camped to 0, i.e. max(a - b, 0).
+    """
+    return max(a - b, 0)
+
+
+@deprecated_stencil
 def average_in(
     q_out: FloatField,
     adjustment: FloatField,
@@ -124,25 +340,40 @@ def average_in(
         q_out = (q_out + adjustment) * 0.5
 
 
-@typing.no_type_check
-@function
-def sign(a, b):
+@deprecated_stencil
+def set_IJ_mask_value(field: BoolFieldIJ, value: Bool) -> None:
     """
-    Defines a_sign_b as the absolute value of a, and checks if b is positive or
-    negative, assigning the analogous sign value to a_sign_b. a_sign_b is returned.
+    Sets every element of buffer to either True or False.
 
     Args:
-        a: A number
-        b: A number
+        field: output field
+        value: value of Bool type
     """
-    a_sign_b = abs(a)
-    return a_sign_b if b > 0 else -a_sign_b
+    with computation(FORWARD), interval(0, 1):
+        field = value
 
 
-@typing.no_type_check
-@function
-def dim(a, b):
+@deprecated_stencil
+def adjustmentfactor_stencil(adjustment: FloatFieldIJ, field: FloatField) -> None:
     """
-    Calculates a - b, camped to 0, i.e. max(a - b, 0).
+    Multiplies a field by an adjustment factor, modifying the original field.
+
+    Args:
+        adjustment: adjustment factor
+        field: field to be modified
     """
-    return max(a - b, 0)
+    with computation(PARALLEL), interval(...):
+        field = field * adjustment
+
+
+@deprecated_stencil
+def adjust_divide_stencil(adjustment: FloatField, field: FloatField) -> None:
+    """
+    Divides a field by an adjustment factor, modifying the original field.
+
+    Args:
+        adjustment: adjustment factor
+        field: field to be modified
+    """
+    with computation(PARALLEL), interval(...):
+        field = field / adjustment

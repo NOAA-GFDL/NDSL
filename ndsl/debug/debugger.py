@@ -7,9 +7,31 @@ from typing import Any
 import pandas as pd
 import xarray as xr
 
-from ndsl.logging import ndsl_log
+from ndsl import ndsl_log
 from ndsl.quantity import Quantity
-from ndsl.quantity.field_bundle import FieldBundle
+
+
+@dataclasses.dataclass
+class DebuggerStartFrom:
+    """The StartFrom configuration aims at delaying the debugger recording until a certain NDSLRuntime
+    is called N times. After that, recording is allowed."""
+
+    # Configuration
+    ndslruntime_name: str = ""
+    start_from_call: int = -1
+
+    # Runtime data
+    call_count: int = -1
+
+    def record(self, savename: str) -> None:
+        if self.start_from_call < 1:
+            return
+
+        if savename == self.ndslruntime_name:
+            self.call_count += 1
+
+    def can_run(self) -> bool:
+        return self.start_from_call < 0 or self.call_count >= self.start_from_call
 
 
 @dataclasses.dataclass
@@ -22,11 +44,18 @@ class Debugger:
     track_parameter_by_name: list[str] = dataclasses.field(default_factory=list)
     save_compute_domain_only: bool = False
     dir_name: str = "./"
+    save_all: bool = False
+    save_from: DebuggerStartFrom = dataclasses.field(default_factory=DebuggerStartFrom)
 
     # Runtime data
     rank: int = -1
+    step: int = 0
     calls_count: dict[str, int] = dataclasses.field(default_factory=dict)
     track_parameter_count: dict[str, int] = dataclasses.field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if isinstance(self.save_from, dict):
+            self.save_from = DebuggerStartFrom(**self.save_from)
 
     def _to_xarray(self, data: Any, name: str | None) -> xr.DataArray:
         if isinstance(data, Quantity):
@@ -34,7 +63,7 @@ class Debugger:
                 mem = data.field
                 shp = data.field.shape
             else:
-                mem = data.data
+                mem = data[:]
                 shp = data.shape
         elif hasattr(data, "shape"):
             mem = data
@@ -78,36 +107,40 @@ class Debugger:
 
         Note: Unknown types in the dictionary won't be saved.
         """
-        if savename not in self.stencils_or_class:
+        self.track_data(data_as_dict, savename, is_in)
+
+        if is_in:
+            self.save_from.record(savename)
+
+        if savename not in self.stencils_or_class and not self.save_all:
+            return
+
+        call_count = self.calls_count.setdefault(savename, 0)
+        if not is_in:
+            self.calls_count[savename] += 1
+
+        if not self.save_from.can_run():
             return
 
         data_arrays = {}
         for name, data in data_as_dict.items():
+            if data is None:
+                continue
             if dataclasses.is_dataclass(data):
                 for field in dataclasses.fields(data):
                     data_arrays[f"{name}.{field.name}"] = self._to_xarray(
                         getattr(data, field.name), field.name
                     )
-            elif isinstance(data, FieldBundle):
-                data_arrays[name] = data.quantity.field_as_xarray
             else:
                 data_arrays[name] = self._to_xarray(data, name)
 
-        call_count = (
-            self.calls_count[savename] if savename in self.calls_count.keys() else 0
-        )
         path = pathlib.Path(f"{self.dir_name}/debug/savepoints/R{self.rank}/")
         os.makedirs(path, exist_ok=True)
         path = pathlib.Path(
-            f"{path}/{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
+            f"{path}/S{self.step:06d}_{savename}-Call{call_count}-{'In' if is_in else 'Out'}.nc4"
         )
         try:
             xr.Dataset(data_arrays).to_netcdf(path)
         except ValueError as e:
             ndsl_log.error(f"[DebugInfo] Failure to save {savename}: {e}")
-
-    def increment_call_count(self, savename: str) -> None:
-        """Increment the call count for this savename"""
-        if savename not in self.calls_count.keys():
-            self.calls_count[savename] = 0
-        self.calls_count[savename] += 1
+        self.step += 1

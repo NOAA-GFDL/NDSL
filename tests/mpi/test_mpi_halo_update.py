@@ -349,7 +349,7 @@ def test_zeros_halo_update(
                 quantity.dims,
                 quantity.origin,
                 quantity.extent,
-                quantity.data.shape,
+                quantity.shape,
                 boundary,
                 n_points_update,
                 interior=False,
@@ -360,9 +360,7 @@ def test_zeros_halo_update(
                 boundary=boundary,
                 boundary_slice=boundary_slice,
             ):
-                numpy.testing.assert_array_equal(
-                    quantity.data[tuple(boundary_slice)], 0.0
-                )
+                numpy.testing.assert_array_equal(quantity[tuple(boundary_slice)], 0.0)
 
 
 @pytest.mark.parallel
@@ -387,7 +385,7 @@ def test_zeros_vector_halo_update(
                 x_quantity.dims,
                 x_quantity.origin,
                 x_quantity.extent,
-                x_quantity.data.shape,
+                x_quantity.shape,
                 boundary,
                 n_points_update,
                 interior=False,
@@ -400,7 +398,7 @@ def test_zeros_vector_halo_update(
             ):
                 for quantity in y_quantity, x_quantity:
                     numpy.testing.assert_array_equal(
-                        quantity.data[tuple(boundary_slice)], 0.0
+                        quantity[tuple(boundary_slice)], 0.0
                     )
 
 

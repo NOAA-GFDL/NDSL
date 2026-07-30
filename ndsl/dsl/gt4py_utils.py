@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Any
@@ -7,11 +6,10 @@ import numpy as np
 import numpy.typing as npt
 from gt4py import storage as gt_storage
 
-from ndsl import xumpy
+from ndsl import ndsl_log, xumpy
 from ndsl.config.backend import Backend
 from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import Float
-from ndsl.logging import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
 
@@ -20,23 +18,6 @@ managed_memory = True
 
 # Number of halo lines for each field and default origin
 origin = (N_HALO_DEFAULT, N_HALO_DEFAULT, 0)
-
-# TODO: Both pyFV3 and pySHiELD need to know what is being advected
-#       but the actual value should come from outside of `ndsl`.
-#       There should be a set of API to deal with tracers, that lives in `ndsl`
-#       but their call doesn't.
-# TODO get from field_table
-tracer_variables = [
-    "qvapor",
-    "qliquid",
-    "qrain",
-    "qice",
-    "qsnow",
-    "qgraupel",
-    "qo3mr",
-    "qsgs_tke",
-    "qcld",
-]
 
 
 def mark_untested(msg="This is not tested"):
@@ -100,21 +81,33 @@ def make_storage_data(
         shape: Shape of the new storage. Number of indices should be equal
             to number of unmasked axes
         origin: Default origin for gt4py stencil calls
+        backend: current backend in use
         dtype: Data type
         mask: Tuple indicating the axes used when initializing the storage.
             True indicates a masked axis, False is a used axis.
         start: Starting points for slices in data copies
         dummy: Dummy axes
         axis: Axis for 2D to 3D arrays
-        backend: current backend in use
+        max_dim: Number of cartesian dimensions. Those will be index-aligned,
+            while additional "data" dimensions are considered "en block".
+        read_only: ?
 
     Returns:
         Field[..., dtype]: New storage
 
-    Examples:
-        1) ptop = utils.make_storage_data(top_p, q4_1.shape)
-        2) ws3 = utils.make_storage_data(ws3[:, :, -1], shape, origin=(0, 0, 0))
-        3) data_dict[names[i]] = make_storage_data(
+    Example:
+        ```py
+        ptop = utils.make_storage_data(top_p, q4_1.shape)
+        ```
+
+    Example:
+        ```py
+        ws3 = utils.make_storage_data(ws3[:, :, -1], shape, origin=(0, 0, 0))
+        ```
+
+    Example:
+        ```py
+        data_dict[names[i]] = make_storage_data(
                data[:, :, :, i],
                shape,
                origin=origin,
@@ -122,6 +115,7 @@ def make_storage_data(
                dummy=dummy,
                axis=axis,
            )
+        ```
 
     """
     n_dims = len(data.shape)
@@ -167,6 +161,14 @@ def make_storage_data(
             dtype=dtype,
             backend=backend,
         )
+    elif n_dims == 3:
+        data = _make_storage_data_3d(
+            data,
+            shape,
+            start,
+            dtype=dtype,
+            backend=backend,
+        )
     elif n_dims >= 4:
         data = _make_storage_data_Nd(
             data,
@@ -175,25 +177,16 @@ def make_storage_data(
             dtype=dtype,
             backend=backend,
         )
-    elif n_dims >= 4:
-        data = _make_storage_data_Nd(data, shape, start, backend=backend)
     else:
-        data = _make_storage_data_3d(
-            data,
-            shape,
-            start,
-            dtype=dtype,
-            backend=backend,
-        )
+        raise ValueError(f"Expected `n_dims >= 1`, got {n_dims} instead.")
 
-    storage = gt_storage.from_array(
+    return gt_storage.from_array(
         data,
         dtype,
         backend=backend.as_gt4py(),
         aligned_index=_translate_origin(origin, mask),
         dimensions=_mask_to_dimensions(mask, data.shape),
     )
-    return storage
 
 
 def _make_storage_data_1d(
@@ -325,12 +318,22 @@ def make_storage_from_shape(
     Returns:
         Field[..., dtype]: New storage
 
-    Examples:
-        1) utmp = utils.make_storage_from_shape(ua.shape)
-        2) qx = utils.make_storage_from_shape(
+    Example:
+        ```py
+        utmp = utils.make_storage_from_shape(ua.shape)
+        ```
+
+    Example:
+        ```py
+        qx = utils.make_storage_from_shape(
                qin.shape, origin=(grid().is_, grid().jsd, kstart)
            )
-        3) q_out = utils.make_storage_from_shape(q_in.shape, origin,)
+        ```
+
+    Example:
+        ```py
+        q_out = utils.make_storage_from_shape(q_in.shape, origin)
+        ```
     """
     if mask is None:
         n_dims = len(shape)
@@ -449,15 +452,6 @@ def asarray(array, to_type=np.ndarray, dtype=None, order=None):
             return cp.asarray(array, dtype, order)
 
 
-def zeros(shape, dtype=Float, *, backend: Backend):
-    warnings.warn(
-        "gt4py_utils.zeros() is deprecated. Use `zeros()` from `ndsl.xumpy` instead.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return xumpy.zeros(shape, backend, dtype)
-
-
 def sum(array, axis=None, dtype=Float, out=None, keepdims=False):
     xp = cp if cp and type(array) is cp.ndarray else np
     return xp.sum(array, axis, dtype, out, keepdims)
@@ -527,10 +521,10 @@ def device_sync(backend: Backend) -> None:
         cp.cuda.Device(0).synchronize()
 
 
-def split_cartesian_into_storages(var: np.ndarray) -> Sequence[np.ndarray]:
+def split_cartesian_into_storages(var: np.ndarray) -> list[np.ndarray]:
     """
-    Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM]
-         or [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM]
+    Provided a storage of dims [I_DIM, J_DIM, CARTESIAN_DIM] or
+    [I_INTERFACE_DIM, J_INTERFACE_DIM, CARTESIAN_DIM].
     Split it into separate 2D storages for each cartesian
     dimension, and return these in a list.
     """
@@ -540,3 +534,16 @@ def split_cartesian_into_storages(var: np.ndarray) -> Sequence[np.ndarray]:
             asarray(var, type(var))[:, :, cart],
         )
     return var_data
+
+
+def run_once(f):
+    """Python trick to enforce function is only called once"""
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+
+    wrapper.has_run = False
+    return wrapper
