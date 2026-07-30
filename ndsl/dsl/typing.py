@@ -25,15 +25,6 @@ K = gtscript.K  # noqa: E741
 DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.float64
 
 
-def get_precision() -> int:
-    warnings.warn(
-        "`get_precision()` is deprecated in favor of `NDSL_GLOBAL_PRECISION`. This function will be removed in the next version.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return NDSL_GLOBAL_PRECISION
-
-
 # Default float and int types
 # Dev note: the `TypeAlias` of Float/Int depending on a switch has been giving
 #           us linting headaches. We revert to the previous version here that
