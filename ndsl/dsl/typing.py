@@ -44,10 +44,10 @@ if NDSL_GLOBAL_PRECISION not in [32, 64]:
     raise NotImplementedError(
         f"{NDSL_GLOBAL_PRECISION} bit precision not implemented or tested."
     )
-Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32  # type: ignore
-Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32  # type: ignore
-Bool = np.bool_
 
+Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32  # type: ignore
+Float64 = np.float64
+Float32 = np.float32
 FloatField = Field[gtscript.IJK, Float]
 FloatField64 = Field[gtscript.IJK, np.float64]
 FloatField32 = Field[gtscript.IJK, np.float32]
@@ -64,6 +64,9 @@ FloatFieldK = Field[gtscript.K, Float]
 FloatFieldK64 = Field[gtscript.K, np.float64]
 FloatFieldK32 = Field[gtscript.K, np.float32]
 
+Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32  # type: ignore
+Int64 = np.int64
+Int32 = np.int32
 IntField = Field[gtscript.IJK, Int]
 IntField64 = Field[gtscript.IJK, np.int64]
 IntField32 = Field[gtscript.IJK, np.int32]
@@ -80,6 +83,7 @@ IntFieldK = Field[gtscript.K, Int]
 IntFieldK64 = Field[gtscript.K, np.int64]
 IntFieldK32 = Field[gtscript.K, np.int32]
 
+Bool = np.bool_
 BoolField = Field[gtscript.IJK, Bool]
 BoolFieldI = Field[gtscript.I, Bool]
 BoolFieldJ = Field[gtscript.J, Bool]
