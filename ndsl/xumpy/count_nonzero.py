@@ -11,7 +11,7 @@ from ndsl.optional_imports import cupy as cp
 def count_nonzero(
     in_buffer: npt.NDArray | Quantity,
     axis: int | tuple[int, ...] | None = None,
-) -> int:
+) -> np.integer:
     """Count non zero element in buffer."""
     raise NotImplementedError("`count_nonzero` called with not supported type")
 
@@ -20,7 +20,7 @@ def count_nonzero(
 def _(
     buffer: npt.NDArray,
     axis: int | tuple[int, ...] | None = None,
-) -> int:
+) -> np.integer:
     return np.count_nonzero(buffer, axis)
 
 
@@ -28,7 +28,7 @@ def _(
 def _(
     in_quantity: Quantity,
     axis: int | tuple[int, ...] | None = None,
-) -> int:
+) -> np.integer:
     return count_nonzero(in_quantity.field, axis)
 
 
@@ -38,5 +38,6 @@ if cp is not None:
     def _(
         buffer: npt.NDArray,
         axis: int | tuple[int, ...] | None = None,
-    ) -> int:
+    ) -> np.integer:
+        assert cp
         return cp.count_nonzero(buffer, axis)

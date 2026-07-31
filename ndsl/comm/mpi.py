@@ -84,10 +84,12 @@ class MPIComm(Comm):
     def allreduce(
         self, sendobj: T, op: ReductionOperator = ReductionOperator.NO_OP
     ) -> T:
-        return self._comm.allreduce(sendobj, self._op_mapping[op])
+        return self._comm.allreduce(sendobj, self._op_mapping[op])  # type: ignore[arg-type]
 
     def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
-        return self._comm.Allreduce(sendobj, recvobj, self._op_mapping[op])
+        return self._comm.Allreduce(sendobj, recvobj, self._op_mapping[op])  # type: ignore[arg-type]
 
     def Allreduce_inplace(self, recvobj: T, op: ReductionOperator) -> T:
-        return self._comm.Allreduce(MPI.IN_PLACE, recvobj, self._op_mapping[op])
+        return self._comm.Allreduce(
+            MPI.IN_PLACE, recvobj, self._op_mapping[op]  # type: ignore[arg-type]
+        )
