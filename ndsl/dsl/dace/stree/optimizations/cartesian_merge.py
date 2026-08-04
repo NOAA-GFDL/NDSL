@@ -7,6 +7,7 @@ from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
     MergeConditionals,
+    SimplifyConditional,
 )
 
 
@@ -24,11 +25,13 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         *,
         overcompute: bool = True,
         merge_order: str = "default",
+        verbose: bool = False,
     ) -> None:
         super().__init__()
         self._backend = backend
         self._overcompute = overcompute
         self._merge_order = merge_order
+        self._verbose = verbose
 
         if self._merge_order not in (
             "default",
@@ -46,16 +49,37 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         axis_merge_order = self._axis_merge_order()
+        if self._verbose:
+            with open("CartesianMerge_step0.txt", "w") as f:
+                f.write(node.as_string())
+
+        SimplifyConditional().visit(node)
+        if self._verbose:
+            with open("CartesianMerge_step1_SimplifyConditional.txt", "w") as f:
+                f.write(node.as_string())
+
         for axis in axis_merge_order:
             InlineOffGridConditionals(axis).visit(node)
-        MergeConditionals().visit(node)
+            if self._verbose:
+                with open(
+                    f"CartesianMerge_step2_{axis.as_str()}_InlineOffgridConditional.txt",
+                    "w",
+                ) as f:
+                    f.write(node.as_string())
 
         for axis in axis_merge_order:
             CartesianAxisMerge(
                 axis, overcompute=self._overcompute
             ).visit_ScheduleTreeRoot(node)
+            if self._verbose:
+                with open(f"CartesianMerge_step3_{axis.as_str()}_Merge.txt", "w") as f:
+                    f.write(node.as_string())
 
         ExtractOffGridConditionals().visit(node)
+        if self._verbose:
+            with open("CartesianMerge_step4_ExtractOffgridConditional.txt", "w") as f:
+                f.write(node.as_string())
+
         MergeConditionals().visit(node)
 
     def _axis_merge_order(self) -> tuple[AxisIterator, ...]:

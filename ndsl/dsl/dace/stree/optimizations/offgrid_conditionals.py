@@ -1,13 +1,50 @@
+from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.stree.optimizations.common import (
     AxisIterator,
     get_next_node,
+    get_previous_node,
     is_axis_map,
     is_last_node,
+    is_offgrid_conditional,
     list_index,
+    swap_node_in_tree,
 )
+
+
+class SimplifyConditional(tn.ScheduleNodeVisitor):
+    """Turn Else and ElseIf into Ifs"""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def __str__(self) -> str:
+        return "SimplifyConditional"
+
+    def visit_ElifScope(self, node: tn.ElifScope) -> None:
+        for child in node.children:
+            self.visit(child)
+
+        ndsl_log.debug("ElifScope in SimplifyConditional unimplemented.")
+
+    def visit_ElseScope(self, node: tn.ElseScope) -> None:
+        assert node.parent
+
+        # Recurse first
+        for child in node.children:
+            self.visit(child)
+
+        potential_if = get_previous_node(node.parent.children, node)
+        if isinstance(potential_if, tn.IfScope):
+            code = potential_if.condition.as_string
+            if_scope = tn.IfScope(
+                condition=CodeBlock(f"not ({code})"),
+                children=node.children,
+                parent=node.parent,
+            )
+            swap_node_in_tree(node, if_scope)
 
 
 class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
@@ -45,6 +82,11 @@ class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
 
     def visit_IfScope(self, node: tn.IfScope) -> None:
         assert node.parent is not None  # just to keep pyright happy
+        if not is_offgrid_conditional(node):
+            return
+
+        for child in node.children:
+            self.visit(child)
 
         # For now, skip in case there's an `elif` or `else` following.
         if not is_last_node(node.parent.children, node):
@@ -56,10 +98,8 @@ class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
                 return
 
         if not all(
-            [
-                isinstance(child, tn.MapScope) and is_axis_map(child, self._axis)
-                for child in node.children
-            ]
+            isinstance(child, tn.MapScope) and is_axis_map(child, self._axis)
+            for child in node.children
         ):
             return
 
@@ -101,7 +141,7 @@ class ExtractOffGridConditionals(tn.ScheduleNodeTransformer):
         ndsl_log.debug("ExtractOffgridConditionals is not implemented yet.")
 
 
-class MergeConditionals(tn.ScheduleNodeTransformer):
+class MergeConditionals(tn.ScheduleNodeVisitor):
     """
     Merge consecutive and equal conditionals.
 
@@ -109,18 +149,26 @@ class MergeConditionals(tn.ScheduleNodeTransformer):
     ```
         if a_flag == 0:
             map i, j, k:
-                ...
         if a_flag == 0:
             map i, j, k:
-                ...
     ```
     into
     ```
         if a_flag == 0:
             map i, j, k:
-                ...
             map i, j, k:
-                ...
+    ```
+
+    or merge nested conditionals
+    ```
+    if a_flag == 0:
+        if b_flag == 0:
+            map i, j, k
+    ```
+    into
+    ```
+    if a_flag = 0 and b_flag == 0:
+        map i,j,k
     ```
 
     Outside of user code, combination of ExtractOffGridConditionals,
