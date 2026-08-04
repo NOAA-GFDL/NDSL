@@ -182,6 +182,11 @@ def _build_sdfg(
     backend_name = config.get_backend()
 
     if is_compiling:
+
+        # Enforce cache directory made so all downstream caching file
+        # won't hit an non existing directory
+        Path(sdfg.build_folder).mkdir(parents=True, exist_ok=True)
+
         if optimization_config is None:
             ndsl_log.debug(f"Using default optimization config for {sdfg.label}.")
             optimization_config = OptimizationConfig()
