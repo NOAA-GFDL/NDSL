@@ -27,3 +27,11 @@ def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
             return True
 
     return False
+
+
+def is_offgrid_conditional(node: tn.IfScope) -> bool:
+    """Conditional is offgrid if the code block refers to the cartesian symbols"""
+    for symbol in node.condition.get_free_symbols():
+        if "__i" in symbol or "__j" in symbol or "__k" in symbol:
+            return False
+    return True

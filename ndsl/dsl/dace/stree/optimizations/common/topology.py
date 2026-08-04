@@ -1,4 +1,4 @@
-from typing import Collection
+from collections.abc import Collection
 
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
@@ -34,6 +34,17 @@ def swap_node_position_in_tree(
         child.parent = child_node
 
 
+def swap_node_in_tree(
+    node_to_remove: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode
+) -> None:
+    """Swap a node for a new node in the tree. Used when children (downstream) changes that
+    cannot be covered with the ScheduleNodeTransformer"""
+
+    assert node_to_remove.parent.children
+    index = list_index(node_to_remove.parent.children, node_to_remove)
+    node_to_remove.parent.children[index] = new_node
+
+
 def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
     """Detect the cycles in the tree."""
     # Dev note: isn't there a DaCe tool for this?!
@@ -54,13 +65,31 @@ def list_index(
     return next(index for index, element in enumerate(collection) if element is node)
 
 
+def get_previous_node(
+    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
+) -> tn.ScheduleTreeNode | None:
+    index = list_index(nodes, node)
+    if index == 0:
+        return None
+    return nodes[index - 1]
+
+
 def get_next_node(
     nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
-) -> tn.ScheduleTreeNode:
+) -> tn.ScheduleTreeNode | None:
     """Get next node in the children from given node"""
-    return nodes[list_index(nodes, node) + 1]
+    index = list_index(nodes, node)
+    if index == len(nodes) - 1:
+        return None
+    return nodes[index + 1]
 
 
 def is_last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
     """Check if the node is the last node of the list."""
     return list_index(nodes, node) >= len(nodes) - 1
+
+
+def remove_from_tree(node: tn.ScheduleTreeNode) -> None:
+    """Remove a node from the tree. DO NOT take care of children of to-be-delete node"""
+    if node.parent:
+        node.parent.children.remove(node)
