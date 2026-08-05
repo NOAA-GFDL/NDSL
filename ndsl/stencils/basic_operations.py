@@ -81,7 +81,7 @@ def multiply(factor_1: FloatField, factor_2: FloatField, product: FloatField) ->
 
 def multiply_to_self(field: FloatField, factor: FloatField) -> None:
     """
-    Muultiply a field by a factor.
+    Multiply a field by a factor.
 
     Args:
         field: field to be modifid
@@ -106,10 +106,10 @@ def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> N
 
 def divide_self(field: FloatField, divisor: FloatField) -> None:
     """
-    Muultiply a field by a factor - 2D variant.
+    Divide a field by a divisor.
 
     Args:
-        field: field to be modifid
+        field: field to be modified
         divisor: modification factor
     """
     with computation(PARALLEL), interval(...):
