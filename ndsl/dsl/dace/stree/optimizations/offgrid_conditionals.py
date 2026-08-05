@@ -27,6 +27,19 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
         for child in node.children:
             self.visit(child)
 
+        # Dev Note: parsing turns
+        # ```
+        # If y
+        # ElseIf x
+        # Else
+        # ```
+        # into
+        # ```
+        # If y
+        # Else
+        #   If x
+        #   Else
+        # ```
         ndsl_log.debug("ElifScope in SimplifyConditional unimplemented.")
 
     def visit_ElseScope(self, node: tn.ElseScope) -> None:
