@@ -1,5 +1,5 @@
-from ndsl.dsl.gt4py import FORWARD, PARALLEL, computation, interval
-from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntField, IntFieldIJ
+from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
+from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, IntFieldIJ
 
 
 def copy(input: FloatField, output: FloatField) -> None:
@@ -11,18 +11,6 @@ def copy(input: FloatField, output: FloatField) -> None:
         output: output field
     """
     with computation(PARALLEL), interval(...):
-        output = input
-
-
-def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:
-    """
-    Copy one field into another - 2D variant.
-
-    Args:
-        input: input field
-        output: output field
-    """
-    with computation(FORWARD), interval(...):
         output = input
 
 
@@ -51,31 +39,6 @@ def add_to_self(field: FloatField, summand: FloatField) -> None:
         field = field + summand
 
 
-def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) -> None:
-    """
-    Add two inputs together, sum to a new field - 2D variant.
-
-    Args:
-        summand_1: input field
-        summand_2: input field
-        sum: output field
-    """
-    with computation(FORWARD), interval(0, 1):
-        sum = summand_1 + summand_2
-
-
-def add_to_self_2d(field: FloatFieldIJ, summand: FloatFieldIJ) -> None:
-    """
-    Add a summand to a field - 2D variant.
-
-    Args:
-        field: field to be modifid
-        summand: modification to be made
-    """
-    with computation(FORWARD), interval(0, 1):
-        field = field + summand
-
-
 def subtract(
     minuend: FloatField, subtrahend: FloatField, difference: FloatField
 ) -> None:
@@ -91,7 +54,7 @@ def subtract(
         difference = minuend - subtrahend
 
 
-def subtract_to_self(field: FloatField, subtrahend: FloatField) -> None:
+def subtract_from_self(field: FloatField, subtrahend: FloatField) -> None:
     """
     Subtract a subtrahend from a field.
 
@@ -100,33 +63,6 @@ def subtract_to_self(field: FloatField, subtrahend: FloatField) -> None:
         subtrahend: modification to be made
     """
     with computation(PARALLEL), interval(...):
-        field = field - subtrahend
-
-
-def subtract_2d(
-    minuend: FloatFieldIJ, subtrahend: FloatFieldIJ, difference: FloatFieldIJ
-) -> None:
-    """
-    Subtract summand_2 from minuend, output to a new field - 2D variant.
-
-    Args:
-        minuend: input field
-        summand_2: input field
-        difference: output field
-    """
-    with computation(FORWARD), interval(0, 1):
-        difference = minuend - subtrahend
-
-
-def subtract_to_self_2d(field: FloatFieldIJ, subtrahend: FloatFieldIJ) -> None:
-    """
-    Subtract a modification from a field - 2D variant.
-
-    Args:
-        field: field to be modifid
-        subtrahend: modification to be made
-    """
-    with computation(FORWARD), interval(0, 1):
         field = field - subtrahend
 
 
@@ -155,33 +91,6 @@ def multiply_to_self(field: FloatField, factor: FloatField) -> None:
         field = field * factor
 
 
-def multiply_2d(
-    factor_1: FloatFieldIJ, factor_2: FloatFieldIJ, product: FloatFieldIJ
-) -> None:
-    """
-    Multiply two inputs together, output to a new field - 2D variant.
-
-    Args:
-        factor_1: input field
-        factor_2: input field
-        output: output field
-    """
-    with computation(FORWARD), interval(0, 1):
-        product = factor_1 * factor_2
-
-
-def multiply_to_self_2d(field: FloatFieldIJ, factor: FloatFieldIJ) -> None:
-    """
-    Muultiply a field by a factor - 2D variant.
-
-    Args:
-        field: field to be modifid
-        factor: modification factor
-    """
-    with computation(FORWARD), interval(0, 1):
-        field = field * factor
-
-
 def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> None:
     """
     Divide dividend by divisor, output to a new field.
@@ -195,7 +104,7 @@ def divide(dividend: FloatField, divisor: FloatField, quotient: FloatField) -> N
         quotient = dividend / divisor
 
 
-def divide_to_self(field: FloatField, divisor: FloatField) -> None:
+def divide_self(field: FloatField, divisor: FloatField) -> None:
     """
     Muultiply a field by a factor - 2D variant.
 
@@ -204,33 +113,6 @@ def divide_to_self(field: FloatField, divisor: FloatField) -> None:
         divisor: modification factor
     """
     with computation(PARALLEL), interval(...):
-        field = field / divisor
-
-
-def divide_2d(
-    dividend: FloatFieldIJ, divisor: FloatFieldIJ, quotient: FloatFieldIJ
-) -> None:
-    """
-    Divide dividend by divisor, output to a new field - 2D variant.
-
-    Args:
-        dividend: input field
-        divisor: input field
-        quotient: output field
-    """
-    with computation(FORWARD), interval(0, 1):
-        quotient = dividend / divisor
-
-
-def divide_to_self_2d(field: FloatFieldIJ, divisor: FloatFieldIJ) -> None:
-    """
-    Muultiply a field by a factor - 2D variant.
-
-    Args:
-        field: field to be modifid
-        divisor: modification factor
-    """
-    with computation(FORWARD), interval(0, 1):
         field = field / divisor
 
 
@@ -249,7 +131,6 @@ def set_value(field: FloatField, value: Float) -> None:
 def select_k(
     in_field: FloatField,
     out_field: FloatFieldIJ,
-    k_mask: IntField,
     k_select: IntFieldIJ,
 ) -> None:
     """
@@ -259,10 +140,24 @@ def select_k(
     Args:
         in_field: A 3D array to select from
         out_field: A 2D field to save values in
-        k_mask: a field that lists each k-index
         k_select: the k-value to extract from in_field
     """
-    # TODO: refactor this using THIS_K instead of a mask
     with computation(FORWARD), interval(...):
-        if k_mask == k_select:
+        if K == k_select:
             out_field = in_field
+
+
+def average_input(
+    field: FloatField,
+    adjustment: FloatField,
+) -> None:
+    """
+    Averages every element of q_out with every element of the adjustment field,
+    overwriting q_out.
+
+    Args:
+        adjustment: adjustment field
+        q_out: output field
+    """
+    with computation(PARALLEL), interval(...):
+        field = (field + adjustment) * 0.5
