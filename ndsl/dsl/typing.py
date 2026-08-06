@@ -1,4 +1,3 @@
-import warnings
 from typing import TypeAlias
 
 import numpy as np
@@ -23,15 +22,6 @@ K = gtscript.K  # noqa: E741
 
 # Union of valid data types (from gt4py.cartesian.gtscript)
 DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.float64
-
-
-def get_precision() -> int:
-    warnings.warn(
-        "`get_precision()` is deprecated in favor of `NDSL_GLOBAL_PRECISION`. This function will be removed in the next version.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return NDSL_GLOBAL_PRECISION
 
 
 # Default float and int types
