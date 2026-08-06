@@ -68,6 +68,7 @@ def list_index(
 def get_previous_node(
     nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
 ) -> tn.ScheduleTreeNode | None:
+    """Get previous node in the children, return None if first node"""
     index = list_index(nodes, node)
     if index == 0:
         return None
@@ -77,7 +78,7 @@ def get_previous_node(
 def get_next_node(
     nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
 ) -> tn.ScheduleTreeNode | None:
-    """Get next node in the children from given node"""
+    """Get next node in the children from given node, return None if last node"""
     index = list_index(nodes, node)
     if index == len(nodes) - 1:
         return None
