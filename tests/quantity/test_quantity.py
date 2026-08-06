@@ -346,3 +346,7 @@ def test_data_setter():
     # Expected fail: new array is not even an array
     with pytest.raises(TypeError, match="Quantity.data buffer swap failed.*"):
         quantity.swap_buffer("meh")
+
+
+def test_string_representation(quantity: Quantity) -> None:
+    assert f"{quantity}".startswith("Quantity(")
