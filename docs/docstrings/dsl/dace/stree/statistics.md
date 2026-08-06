@@ -1,6 +1,6 @@
-# loops
+# statistics
 
-::: dsl.dace.stree.optimizations.common.control_flow
+::: dsl.dace.stree.statistics
 
 <style>
 /* re-enable the left side navigation bar for this page */
