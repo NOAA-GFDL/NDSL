@@ -22,7 +22,7 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
 
     def __init__(self) -> None:
         super().__init__()
-        self._else_turned_if: list[tn.IfScope] = []
+        self.else_turned_if: list[tn.IfScope] = []
 
     def __str__(self) -> str:
         return "SimplifyConditional"
@@ -61,16 +61,24 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
                 children=node.children,
                 parent=node.parent,
             )
-            self._else_turned_if.append(if_scope)
+            self.else_turned_if.append(if_scope)
             swap_node_in_tree(node, if_scope)
 
-    def restore(self) -> None:
+
+class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
+    """Reverting the SimplifyConditional based on bookeeping done during SimplyConditional transform"""
+
+    def __init__(self, original_simplify: SimplifyConditional) -> None:
+        self._simplify_conditional = original_simplify
+
+    def visit_ScheduleTreeRoot(self, _node: tn.ScheduleTreeRoot) -> None:
         """Restore original Else.
 
         WARNING: no check if those still exists in the tree, if merging of conditionals
         or any other operation happened, this will create bad stree.
         """
-        for if_scope in self._else_turned_if:
+        for if_scope in self._simplify_conditional.else_turned_if:
+            assert if_scope.parent
             potential_if = get_previous_node(if_scope.parent.children, if_scope)
             if not isinstance(potential_if, tn.IfScope):
                 continue

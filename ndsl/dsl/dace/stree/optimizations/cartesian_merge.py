@@ -5,6 +5,7 @@ from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
     MergeConditionals,
+    RevertSimplifyConditional,
     SimplifyConditional,
 )
 from ndsl.dsl.dace.stree.pipeline import StreePipeline
@@ -44,12 +45,13 @@ class CartesianMerge(StreePipeline):
 
         axis_merge_order = self._axis_merge_order()
 
-        passes.append(SimplifyConditional())
+        simplify_conditional = SimplifyConditional()
+        passes.append(simplify_conditional)
 
         for axis in axis_merge_order:
             passes.append(InlineOffGridConditionals(axis))
 
-        # SimplifyConditional().restore()
+        passes.append(RevertSimplifyConditional(simplify_conditional))
 
         for axis in axis_merge_order:
             passes.append(CartesianAxisMerge(axis, overcompute=self._overcompute))
