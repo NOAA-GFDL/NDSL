@@ -1,14 +1,13 @@
-from ndsl.dsl.dace.stree.pipeline import StreePipeline
-
 from ndsl.config import Backend, BackendLoopOrder
-from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
 from ndsl.dsl.dace.stree.common import AxisIterator
+from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
 from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
     MergeConditionals,
     SimplifyConditional,
 )
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
 
 
 class CartesianMerge(StreePipeline):
@@ -53,9 +52,7 @@ class CartesianMerge(StreePipeline):
         # SimplifyConditional().restore()
 
         for axis in axis_merge_order:
-            passes.append(CartesianAxisMerge(
-                axis, overcompute=self._overcompute
-            ))
+            passes.append(CartesianAxisMerge(axis, overcompute=self._overcompute))
 
         passes.append(ExtractOffGridConditionals())
 
@@ -65,7 +62,6 @@ class CartesianMerge(StreePipeline):
 
     def __str__(self) -> str:
         return "CartesianMergePipeline"
-
 
     def _axis_merge_order(self) -> tuple[AxisIterator, ...]:
         if self._merge_order == "default":

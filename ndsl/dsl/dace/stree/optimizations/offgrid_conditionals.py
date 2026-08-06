@@ -16,13 +16,13 @@ from ndsl.dsl.dace.stree.common import (
 
 class SimplifyConditional(tn.ScheduleNodeVisitor):
     """Turn Else and ElseIf into Ifs.
-    
+
     Can restore original nodes using `restore`.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self._else_turned_if = []
+        self._else_turned_if: list[tn.IfScope] = []
 
     def __str__(self) -> str:
         return "SimplifyConditional"
@@ -66,7 +66,7 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
 
     def restore(self) -> None:
         """Restore original Else.
-        
+
         WARNING: no check if those still exists in the tree, if merging of conditionals
         or any other operation happened, this will create bad stree.
         """
@@ -75,8 +75,7 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
             if not isinstance(potential_if, tn.IfScope):
                 continue
             else_scope = tn.ElseScope(
-                children=if_scope.children,
-                parent=if_scope.parent
+                children=if_scope.children, parent=if_scope.parent
             )
             swap_node_in_tree(if_scope, else_scope)
 

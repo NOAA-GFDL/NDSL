@@ -1,9 +1,8 @@
-from ndsl import Backend, OptimizationConfig
 from pathlib import Path
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl.dsl.dace.stree.pipeline import StreePipeline
+from ndsl import Backend, OptimizationConfig
 from ndsl.dsl.dace.stree.optimizations import (
     CartesianMerge,
     CartesianRefineTransients,
@@ -12,6 +11,7 @@ from ndsl.dsl.dace.stree.optimizations import (
     KernelizeMaps,
     LocalOptimizations,
 )
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
 
 
 class CPUPipeline(StreePipeline):

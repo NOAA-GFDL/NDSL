@@ -313,7 +313,7 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
-                    gpu_merger.visit_ScheduleTreeRoot(child)
+                    gpu_merger.run(child)
 
                 if config.stree.kernelize:
                     if config.stree.merger.order not in ("IJK", "KJI"):

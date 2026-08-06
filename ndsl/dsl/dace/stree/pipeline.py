@@ -11,7 +11,9 @@ class StreePipeline:
     def __init__(
         self,
         *,
-        passes: Sequence["tn.ScheduleNodeVisitor | tn.ScheduleNodeTransformer | StreePipeline"],
+        passes: Sequence[
+            "tn.ScheduleNodeVisitor | tn.ScheduleNodeTransformer | StreePipeline"
+        ],
         cache_directory: Path | None = None,
     ) -> None:
         if cache_directory is None:
@@ -32,12 +34,12 @@ class StreePipeline:
         verbose: bool = False,
         *,
         nesting: int = 0,
-        cache_directory: Path | None = None
+        cache_directory: Path | None = None,
     ) -> tn.ScheduleTreeScope:
         # Re-entry for nested pipeline
         if cache_directory is None:
             cache_directory = self.cache_directory
-        
+
         if nesting == 0:
             tree_stats = TreeOptimizationStatistics()
             tree_stats.original(stree)
@@ -51,7 +53,7 @@ class StreePipeline:
             if isinstance(p, tn.ScheduleNodeVisitor):
                 p.visit(stree)
             elif isinstance(p, StreePipeline):
-                p.run(stree, verbose, nesting=nesting+1)
+                p.run(stree, verbose, nesting=nesting + 1)
 
             if verbose:
                 assert path is not None

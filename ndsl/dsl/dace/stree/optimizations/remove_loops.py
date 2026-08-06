@@ -4,11 +4,7 @@ from typing import Any
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.stree.common import (
-    AxisIterator,
-    is_axis_for,
-    list_index,
-)
+from ndsl.dsl.dace.stree.common import AxisIterator, is_axis_for, list_index
 from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import ReplaceAxisSymbol
 
 
