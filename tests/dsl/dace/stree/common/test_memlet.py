@@ -1,9 +1,7 @@
 from dace.symbolic import symbol
 
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
-from ndsl.dsl.dace.stree.optimizations.common.memlet import (
-    normalize_cartesian_indexation,
-)
+from ndsl.dsl.dace.stree.common import AxisIterator
+from ndsl.dsl.dace.stree.common.memlet import normalize_cartesian_indexation
 
 
 def test_normalize_cartesian_index():
