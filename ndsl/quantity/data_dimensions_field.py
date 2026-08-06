@@ -175,18 +175,11 @@ class DataDimensionsField(StencilTypeRegistrar):
         cls,
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
+        *,
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,
         axes: Sequence[gtscript.Axis] = gtscript.IJK,
-def declare_and_register(
-cls,
-quantity_factory: QuantityFactory,
-data_dimensions_names: list[str],
-*,
-name_mapping: SparseNameMapping | None = None,
-dtype: npt.DTypeLike = Float,
-axes: Sequence[gtscript.Axis] = gtscript.IJK,
-) -> "DataDimensionsMarkupType":
+    ) -> "DataDimensionsMarkupType":
         """Declare a data dimension field and register it's size.
 
         Args:
