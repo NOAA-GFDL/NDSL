@@ -32,6 +32,20 @@ def test_dace_data_descriptor_is_transient() -> None:
     assert array.transient
 
 
+def test_string_representation() -> None:
+    nx = 5
+    shape = (nx,)
+    local = Local(
+        data=np.empty(shape),
+        origin=(0,),
+        extent=(nx,),
+        dims=("dim_X",),
+        units="n/a",
+        backend=Backend.python(),
+    )
+    assert f"{local}".startswith("Local(")
+
+
 @dataclasses.dataclass
 class GoodLocals(LocalState):
     my_local: Local = dataclasses.field(
