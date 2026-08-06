@@ -71,6 +71,9 @@ class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
     def __init__(self, original_simplify: SimplifyConditional) -> None:
         self._simplify_conditional = original_simplify
 
+    def __str__(self) -> str:
+        return "RevertSimplifyConditional"
+
     def visit_ScheduleTreeRoot(self, _node: tn.ScheduleTreeRoot) -> None:
         """Restore original Else.
 

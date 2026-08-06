@@ -53,7 +53,9 @@ class StreePipeline:
             if isinstance(p, tn.ScheduleNodeVisitor):
                 p.visit(stree)
             elif isinstance(p, StreePipeline):
-                p.run(stree, verbose, nesting=nesting + 1)
+                p.run(
+                    stree, verbose, nesting=nesting + 1, cache_directory=cache_directory
+                )
 
             if verbose:
                 assert path is not None
