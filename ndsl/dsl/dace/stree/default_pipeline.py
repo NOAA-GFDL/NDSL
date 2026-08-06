@@ -1,0 +1,80 @@
+from ndsl import Backend, OptimizationConfig
+from pathlib import Path
+
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
+
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
+from ndsl.dsl.dace.stree.optimizations import (
+    CartesianMerge,
+    CartesianRefineTransients,
+    CleanUpScheduleTree,
+    InlineVertical2DWrite,
+    KernelizeMaps,
+    LocalOptimizations,
+)
+
+
+class CPUPipeline(StreePipeline):
+    def __init__(
+        self,
+        config: OptimizationConfig,
+        backend: Backend,
+        *,
+        passes: list[tn.ScheduleNodeVisitor] | None = None,
+        cache_directory: Path | None = None,
+    ) -> None:
+        if passes is None:
+            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
+            if config.stree.inline_K_loops_size_one:
+                ppl_passes.append(InlineVertical2DWrite())
+            if config.stree.merger.enabled:
+                ppl_passes.append(
+                    CartesianMerge(
+                        backend,
+                        overcompute=config.stree.merger.overcompute,
+                        merge_order=config.stree.merger.order,
+                    )
+                )
+            if config.stree.refine_transients:
+                ppl_passes.append(CartesianRefineTransients())
+        else:
+            ppl_passes = passes
+        super().__init__(
+            passes=ppl_passes,
+            cache_directory=cache_directory,
+        )
+
+
+class GPUPipeline(StreePipeline):
+    def __init__(
+        self,
+        config: OptimizationConfig,
+        backend: Backend,
+        *,
+        passes: list[tn.ScheduleNodeVisitor] | None = None,
+        cache_directory: Path | None = None,
+    ) -> None:
+        if passes is None:
+            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
+            if config.stree.inline_K_loops_size_one:
+                ppl_passes.append(InlineVertical2DWrite())
+            if config.stree.merger.enabled:
+                ppl_passes.append(
+                    CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
+                )
+            if config.stree.kernelize:
+                ppl_passes.append(KernelizeMaps(backend))
+            if config.stree.refine_transients:
+                # TODO
+                # 🐞 Transient refine can't be used
+                #    because of bugs transients showing in code generation
+                # ppl_passes.append(CartesianRefineTransients(backend))
+                raise ValueError(
+                    "Transient refinement is currently unavailable in the GPU pipeline."
+                )
+        else:
+            ppl_passes = passes
+        super().__init__(
+            passes=ppl_passes,
+            cache_directory=cache_directory,
+        )

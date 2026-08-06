@@ -10,7 +10,6 @@ from .offgrid_conditionals import (
 )
 from .refine_transients import CartesianRefineTransients
 from .remove_loops import InlineVertical2DWrite
-from .statistics import TreeOptimizationStatistics
 
 
 __all__ = [

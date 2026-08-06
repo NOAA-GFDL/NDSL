@@ -1,6 +1,6 @@
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
+from ndsl.dsl.dace.stree.common import AxisIterator
 
 
 def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:

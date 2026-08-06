@@ -40,7 +40,7 @@ def swap_node_in_tree(
     """Swap a node for a new node in the tree. Used when children (downstream) changes that
     cannot be covered with the ScheduleNodeTransformer"""
 
-    assert node_to_remove.parent.children
+    assert node_to_remove.parent and node_to_remove.parent.children
     index = list_index(node_to_remove.parent.children, node_to_remove)
     node_to_remove.parent.children[index] = new_node
 

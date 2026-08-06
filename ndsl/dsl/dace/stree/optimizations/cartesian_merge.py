@@ -1,8 +1,8 @@
-from dace.sdfg.analysis.schedule_tree import treenodes as tn
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
 
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
+from ndsl.dsl.dace.stree.common import AxisIterator
 from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
@@ -11,7 +11,7 @@ from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
 )
 
 
-class CartesianMerge(tn.ScheduleNodeTransformer):
+class CartesianMerge(StreePipeline):
     """Merge Cartesian computation blocks.
 
     Args:
@@ -25,13 +25,10 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         *,
         overcompute: bool = True,
         merge_order: str = "default",
-        verbose: bool = False,
     ) -> None:
-        super().__init__()
         self._backend = backend
         self._overcompute = overcompute
         self._merge_order = merge_order
-        self._verbose = verbose
 
         if self._merge_order not in (
             "default",
@@ -44,43 +41,31 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         ):
             raise ValueError(f"Unexpected merge order {self._merge_order}.")
 
-    def __str__(self) -> str:
-        return "CartesianMerge"
+        passes = []
 
-    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         axis_merge_order = self._axis_merge_order()
-        if self._verbose:
-            with open("CartesianMerge_step0.txt", "w") as f:
-                f.write(node.as_string())
 
-        SimplifyConditional().visit(node)
-        if self._verbose:
-            with open("CartesianMerge_step1_SimplifyConditional.txt", "w") as f:
-                f.write(node.as_string())
+        passes.append(SimplifyConditional())
 
         for axis in axis_merge_order:
-            InlineOffGridConditionals(axis).visit(node)
-            if self._verbose:
-                with open(
-                    f"CartesianMerge_step2_{axis.as_str()}_InlineOffgridConditional.txt",
-                    "w",
-                ) as f:
-                    f.write(node.as_string())
+            passes.append(InlineOffGridConditionals(axis))
+
+        # SimplifyConditional().restore()
 
         for axis in axis_merge_order:
-            CartesianAxisMerge(
+            passes.append(CartesianAxisMerge(
                 axis, overcompute=self._overcompute
-            ).visit_ScheduleTreeRoot(node)
-            if self._verbose:
-                with open(f"CartesianMerge_step3_{axis.as_str()}_Merge.txt", "w") as f:
-                    f.write(node.as_string())
+            ))
 
-        ExtractOffGridConditionals().visit(node)
-        if self._verbose:
-            with open("CartesianMerge_step4_ExtractOffgridConditional.txt", "w") as f:
-                f.write(node.as_string())
+        passes.append(ExtractOffGridConditionals())
 
-        MergeConditionals().visit(node)
+        passes.append(MergeConditionals())
+
+        super().__init__(passes=passes)
+
+    def __str__(self) -> str:
+        return "CartesianMergePipeline"
+
 
     def _axis_merge_order(self) -> tuple[AxisIterator, ...]:
         if self._merge_order == "default":

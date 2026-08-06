@@ -2,7 +2,7 @@ from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.stree.optimizations.common import (
+from ndsl.dsl.dace.stree.common import (
     AxisIterator,
     get_next_node,
     get_previous_node,
@@ -15,10 +15,14 @@ from ndsl.dsl.dace.stree.optimizations.common import (
 
 
 class SimplifyConditional(tn.ScheduleNodeVisitor):
-    """Turn Else and ElseIf into Ifs"""
+    """Turn Else and ElseIf into Ifs.
+    
+    Can restore original nodes using `restore`.
+    """
 
     def __init__(self) -> None:
         super().__init__()
+        self._else_turned_if = []
 
     def __str__(self) -> str:
         return "SimplifyConditional"
@@ -57,7 +61,24 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
                 children=node.children,
                 parent=node.parent,
             )
+            self._else_turned_if.append(if_scope)
             swap_node_in_tree(node, if_scope)
+
+    def restore(self) -> None:
+        """Restore original Else.
+        
+        WARNING: no check if those still exists in the tree, if merging of conditionals
+        or any other operation happened, this will create bad stree.
+        """
+        for if_scope in self._else_turned_if:
+            potential_if = get_previous_node(if_scope.parent.children, if_scope)
+            if not isinstance(potential_if, tn.IfScope):
+                continue
+            else_scope = tn.ElseScope(
+                children=if_scope.children,
+                parent=if_scope.parent
+            )
+            swap_node_in_tree(if_scope, else_scope)
 
 
 class InlineOffGridConditionals(tn.ScheduleNodeVisitor):

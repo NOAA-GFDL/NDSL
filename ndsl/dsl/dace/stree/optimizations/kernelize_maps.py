@@ -4,7 +4,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend
 from ndsl.config import BackendLoopOrder
-from ndsl.dsl.dace.stree.optimizations.common import (
+from ndsl.dsl.dace.stree.common import (
     AxisIterator,
     is_axis_map,
     is_cartesian_axis,

@@ -1,24 +1,17 @@
+from collections.abc import Sequence
 from pathlib import Path
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl import Backend, OptimizationConfig, ndsl_log_on_rank_0
-from ndsl.dsl.dace.stree.optimizations import (
-    CartesianMerge,
-    CartesianRefineTransients,
-    CleanUpScheduleTree,
-    InlineVertical2DWrite,
-    KernelizeMaps,
-    LocalOptimizations,
-    TreeOptimizationStatistics,
-)
+from ndsl import ndsl_log_on_rank_0
+from ndsl.dsl.dace.stree.statistics import TreeOptimizationStatistics
 
 
 class StreePipeline:
     def __init__(
         self,
         *,
-        passes: list[tn.ScheduleNodeVisitor],
+        passes: Sequence["tn.ScheduleNodeVisitor | tn.ScheduleNodeTransformer | StreePipeline"],
         cache_directory: Path | None = None,
     ) -> None:
         if cache_directory is None:
@@ -35,91 +28,38 @@ class StreePipeline:
 
     def run(
         self,
-        stree: tn.ScheduleTreeScope,
+        stree: tn.ScheduleTreeRoot,
         verbose: bool = False,
+        *,
+        nesting: int = 0,
+        cache_directory: Path | None = None
     ) -> tn.ScheduleTreeScope:
-        tree_stats = TreeOptimizationStatistics()
-        tree_stats.original(stree)
+        # Re-entry for nested pipeline
+        if cache_directory is None:
+            cache_directory = self.cache_directory
+        
+        if nesting == 0:
+            tree_stats = TreeOptimizationStatistics()
+            tree_stats.original(stree)
 
         for i, p in enumerate(self.passes):
             path: Path | None = None
             if verbose:
-                path = self.cache_directory / f"pass{i}_{p}.txt"
+                path = cache_directory / f"pass_n{nesting}_{i}_{p}.txt"
                 ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
 
-            p.visit(stree)
+            if isinstance(p, tn.ScheduleNodeVisitor):
+                p.visit(stree)
+            elif isinstance(p, StreePipeline):
+                p.run(stree, verbose, nesting=nesting+1)
 
             if verbose:
                 assert path is not None
                 with open(path, "w+") as f:
                     f.write(stree.as_string())
 
-        tree_stats.optimized(stree)
-        ndsl_log_on_rank_0.info(tree_stats.report())
+        if nesting == 0:
+            tree_stats.optimized(stree)
+            ndsl_log_on_rank_0.info(tree_stats.report())
+
         return stree
-
-
-class CPUPipeline(StreePipeline):
-    def __init__(
-        self,
-        config: OptimizationConfig,
-        backend: Backend,
-        *,
-        passes: list[tn.ScheduleNodeVisitor] | None = None,
-        cache_directory: Path | None = None,
-    ) -> None:
-        if passes is None:
-            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
-            if config.stree.inline_K_loops_size_one:
-                ppl_passes.append(InlineVertical2DWrite())
-            if config.stree.merger.enabled:
-                ppl_passes.append(
-                    CartesianMerge(
-                        backend,
-                        overcompute=config.stree.merger.overcompute,
-                        merge_order=config.stree.merger.order,
-                    )
-                )
-            if config.stree.refine_transients:
-                ppl_passes.append(CartesianRefineTransients())
-        else:
-            ppl_passes = passes
-        super().__init__(
-            passes=ppl_passes,
-            cache_directory=cache_directory,
-        )
-
-
-class GPUPipeline(StreePipeline):
-    def __init__(
-        self,
-        config: OptimizationConfig,
-        backend: Backend,
-        *,
-        passes: list[tn.ScheduleNodeVisitor] | None = None,
-        cache_directory: Path | None = None,
-    ) -> None:
-        if passes is None:
-            ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
-            if config.stree.inline_K_loops_size_one:
-                ppl_passes.append(InlineVertical2DWrite())
-            if config.stree.merger.enabled:
-                ppl_passes.append(
-                    CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
-                )
-            if config.stree.kernelize:
-                ppl_passes.append(KernelizeMaps(backend))
-            if config.stree.refine_transients:
-                # TODO
-                # 🐞 Transient refine can't be used
-                #    because of bugs transients showing in code generation
-                # ppl_passes.append(CartesianRefineTransients(backend))
-                raise ValueError(
-                    "Transient refinement is currently unavailable in the GPU pipeline."
-                )
-        else:
-            ppl_passes = passes
-        super().__init__(
-            passes=ppl_passes,
-            cache_directory=cache_directory,
-        )

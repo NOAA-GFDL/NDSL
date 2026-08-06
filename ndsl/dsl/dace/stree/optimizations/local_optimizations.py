@@ -352,7 +352,7 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
-                    cpu_merger.visit_ScheduleTreeRoot(child)
+                    cpu_merger.run(child)
 
                 if config.stree.refine_transients:
                     # We can't know if transients are local to the scope that we are working in.
