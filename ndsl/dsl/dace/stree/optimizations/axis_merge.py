@@ -66,7 +66,7 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
 
     def visit_MapScope(self, node: tn.MapScope) -> tn.MapScope:
         all_children_are_maps = all(
-            [isinstance(child, tn.MapScope) for child in node.children]
+            isinstance(child, tn.MapScope) for child in node.children
         )
         if all_children_are_maps:
             node.children = self.visit(node.children)
@@ -163,9 +163,10 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     ) -> int:
         """Push tasklet into a consecutive map."""
         in_memlets = the_tasklet.input_memlets()
-        if len(in_memlets) != 0:
-            if "__pystate" in [tasklet.data for tasklet in the_tasklet.input_memlets()]:
-                return 0  # Tasklet is a callback
+        if len(in_memlets) != 0 and "__pystate" in [
+            tasklet.data for tasklet in the_tasklet.input_memlets()
+        ]:
+            return 0  # Tasklet is a callback
 
         next_index = list_index(the_tasklet, nodes)
         if next_index == len(nodes) - 1:
