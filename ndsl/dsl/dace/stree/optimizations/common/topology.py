@@ -64,3 +64,8 @@ def get_next_node(
 def is_last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
     """Check if the node is the last node of the list."""
     return list_index(nodes, node) >= len(nodes) - 1
+
+
+def is_first_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
+    """Check if the node is the first node of the list."""
+    return list_index(nodes, node) == 0
