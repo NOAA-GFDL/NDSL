@@ -122,20 +122,22 @@ def test_replace_node_in_tree(schedule_tree: tn.ScheduleTreeRoot) -> None:
     assert schedule_tree.children[0].node.label == "map_i"
     assert schedule_tree.children[1].node.label == "map2_i"
 
+    old_map = schedule_tree.children[0]
     replace_node_in_tree(
-        schedule_tree.children[0],
+        old_map,
         schedule_tree.children[1],
     )
 
+    assert old_map.parent is None
     assert schedule_tree.children[0].node.label == "map2_i"
     assert schedule_tree.children[1].node.label == "map2_i"
 
 
-def test_detect_cyle(
+def test_detect_cycle(
     schedule_tree: tn.ScheduleTreeRoot, bad_schedule_tree: tn.ScheduleTreeRoot
 ):
     assert not detect_cycle(schedule_tree.children, set())
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Cycle detected"):
         assert detect_cycle(bad_schedule_tree.children, set())
 
 
@@ -166,5 +168,7 @@ def test_is_first_node(schedule_tree: tn.ScheduleTreeRoot) -> None:
 
 def test_remove_from_tree(schedule_tree: tn.ScheduleTreeRoot) -> None:
     assert len(schedule_tree.children) == 2
-    remove_from_tree(schedule_tree.children[1])
+    to_remove = schedule_tree.children[1]
+    remove_from_tree(to_remove)
+    assert to_remove.parent is None
     assert len(schedule_tree.children) == 1
