@@ -4,7 +4,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend, OptimizationConfig
 from ndsl.dsl.dace.stree.optimizations import (
-    CartesianMerge,
+    CartesianMergePipeline,
     CartesianRefineTransients,
     CleanUpScheduleTree,
     InlineVertical2DWrite,
@@ -29,7 +29,7 @@ class CPUPipeline(StreePipeline):
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
                 ppl_passes.append(
-                    CartesianMerge(
+                    CartesianMergePipeline(
                         backend,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
@@ -60,7 +60,9 @@ class GPUPipeline(StreePipeline):
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
                 ppl_passes.append(
-                    CartesianMerge(backend, overcompute=config.stree.merger.overcompute)
+                    CartesianMergePipeline(
+                        backend, overcompute=config.stree.merger.overcompute
+                    )
                 )
             if config.stree.kernelize:
                 ppl_passes.append(KernelizeMaps(backend))

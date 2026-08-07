@@ -1,5 +1,5 @@
 from .axis_merge import CartesianAxisMerge
-from .cartesian_merge import CartesianMerge
+from .cartesian_merge import CartesianMergePipeline
 from .clean_tree import CleanUpScheduleTree
 from .kernelize_maps import KernelizeMaps
 from .local_optimizations import LocalOptimizations
@@ -14,7 +14,7 @@ from .remove_loops import InlineVertical2DWrite
 
 __all__ = [
     "CartesianAxisMerge",
-    "CartesianMerge",
+    "CartesianMergePipeline",
     "CleanUpScheduleTree",
     "KernelizeMaps",
     "LocalOptimizations",

@@ -22,6 +22,9 @@ class StreePipeline:
         self.cache_directory = cache_directory
         self.passes = passes
 
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
     def __hash__(self) -> int:
         return hash(repr(self))
 

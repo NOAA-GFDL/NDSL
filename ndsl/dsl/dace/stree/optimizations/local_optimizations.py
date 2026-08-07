@@ -1,7 +1,7 @@
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
-from ndsl.dsl.dace.stree.optimizations.cartesian_merge import CartesianMerge
+from ndsl.dsl.dace.stree.optimizations.cartesian_merge import CartesianMergePipeline
 from ndsl.dsl.dace.stree.optimizations.kernelize_maps import KernelizeMaps
 from ndsl.dsl.dace.stree.optimizations.remove_loops import InlineVertical2DWrite
 
@@ -347,7 +347,7 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                     cpu_inliner.visit_ScheduleTreeRoot(child)
 
                 if config.stree.merger.enabled:
-                    cpu_merger = CartesianMerge(
+                    cpu_merger = CartesianMergePipeline(
                         self._backend,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,

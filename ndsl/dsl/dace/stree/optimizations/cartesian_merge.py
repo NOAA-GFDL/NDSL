@@ -11,7 +11,7 @@ from ndsl.dsl.dace.stree.optimizations.off_grid_conditionals import (
 from ndsl.dsl.dace.stree.pipeline import StreePipeline
 
 
-class CartesianMerge(StreePipeline):
+class CartesianMergePipeline(StreePipeline):
     """Merge Cartesian computation blocks.
 
     Args:
@@ -61,9 +61,6 @@ class CartesianMerge(StreePipeline):
         passes.append(MergeConditionals())
 
         super().__init__(passes=passes)
-
-    def __str__(self) -> str:
-        return "CartesianMergePipeline"
 
     def _axis_merge_order(self) -> tuple[AxisIterator, ...]:
         if self._merge_order == "default":
