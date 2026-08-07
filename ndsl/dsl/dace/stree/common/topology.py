@@ -34,11 +34,11 @@ def swap_node_position_in_tree(
         child.parent = child_node
 
 
-def swap_node_in_tree(
+def replace_node_in_tree(
     old_node: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode
 ) -> None:
     """
-    Replace `old_node`  with `new_node`  in the children of the old nodes' parent.
+    Replace `old_node` with `new_node`  in the children of the old nodes' parent.
 
     Used when children (downstream) changes that cannot be covered with the ScheduleNodeTransformer.
     """
@@ -55,7 +55,7 @@ def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
     # Dev note: isn't there a DaCe tool for this?!
     for node in nodes:
         if id(node) in visited:
-            breakpoint()
+            raise ValueError("Cycle detected in schedule tree")
         visited.add(id(node))
         if isinstance(node, tn.ScheduleTreeScope):
             detect_cycle(node.children, visited)
@@ -114,5 +114,5 @@ def is_first_node(node: tn.ScheduleTreeNode) -> bool:
 def remove_from_tree(node: tn.ScheduleTreeNode) -> None:
     """Remove a node from the tree. DO NOT take care of children of to-be-delete node"""
     if node.parent:
-        node.parent.children.remove(node)
+        node.parent.children.pop(list_index(node))
         node.parent = None

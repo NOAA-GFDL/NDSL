@@ -13,7 +13,7 @@ from .topology import (
     is_last_node,
     list_index,
     remove_from_tree,
-    swap_node_in_tree,
+    replace_node_in_tree,
     swap_node_position_in_tree,
 )
 
@@ -31,7 +31,7 @@ __all__ = [
     "swap_node_position_in_tree",
     "detect_cycle",
     "list_index",
-    "swap_node_in_tree",
+    "replace_node_in_tree",
     "get_previous_node",
     "remove_from_tree",
 ]

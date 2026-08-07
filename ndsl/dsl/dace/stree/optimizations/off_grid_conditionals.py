@@ -10,7 +10,7 @@ from ndsl.dsl.dace.stree.common import (
     is_last_node,
     is_off_grid_conditional,
     list_index,
-    swap_node_in_tree,
+    replace_node_in_tree,
 )
 
 
@@ -62,7 +62,7 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
                 parent=node.parent,
             )
             self.else_turned_if.append(if_scope)
-            swap_node_in_tree(node, if_scope)
+            replace_node_in_tree(node, if_scope)
 
 
 class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
@@ -88,7 +88,7 @@ class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
             else_scope = tn.ElseScope(
                 children=if_scope.children, parent=if_scope.parent
             )
-            swap_node_in_tree(if_scope, else_scope)
+            replace_node_in_tree(if_scope, else_scope)
 
 
 class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
