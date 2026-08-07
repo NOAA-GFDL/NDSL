@@ -308,7 +308,7 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                     gpu_inliner.visit_ScheduleTreeRoot(child)
 
                 if config.stree.merger.enabled:
-                    gpu_merger = CartesianMerge(
+                    gpu_merger = CartesianMergePipeline(
                         self._backend,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,

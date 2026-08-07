@@ -3,7 +3,9 @@ from collections.abc import Collection
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 
-def swap_node_position_in_tree(top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope) -> None:
+def swap_node_position_in_tree(
+    top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
+) -> None:
     """Top node becomes child, child becomes top node."""
     # Ensue parent/children relationship is valid
     tn.validate_children_and_parents_align(top_node)
@@ -32,7 +34,9 @@ def swap_node_position_in_tree(top_node: tn.ScheduleTreeScope, child_node: tn.Sc
         child.parent = child_node
 
 
-def swap_node_in_tree(old_node: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode) -> None:
+def swap_node_in_tree(
+    old_node: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode
+) -> None:
     """
     Replace `old_node`  with `new_node`  in the children of the old nodes' parent.
 
@@ -92,9 +96,11 @@ def get_next_node(
     return nodes[index + 1]
 
 
-def is_last_node(node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode] | None = None) -> bool:
+def is_last_node(
+    node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode] | None = None
+) -> bool:
     """Check if the node is the last node of the list."""
-    assert node.parent    
+    assert node.parent
     if nodes is None:
         nodes = node.parent.children
     return list_index(node, nodes) >= len(nodes) - 1
