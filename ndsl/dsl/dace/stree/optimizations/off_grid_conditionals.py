@@ -53,7 +53,7 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
         for child in node.children:
             self.visit(child)
 
-        potential_if = get_previous_node(node.parent.children, node)
+        potential_if = get_previous_node(node)
         if isinstance(potential_if, tn.IfScope):
             code = potential_if.condition.as_string
             if_scope = tn.IfScope(
@@ -82,7 +82,7 @@ class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
         """
         for if_scope in self._simplify_conditional.else_turned_if:
             assert if_scope.parent
-            potential_if = get_previous_node(if_scope.parent.children, if_scope)
+            potential_if = get_previous_node(if_scope)
             if not isinstance(potential_if, tn.IfScope):
                 continue
             else_scope = tn.ElseScope(
@@ -133,8 +133,8 @@ class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
             self.visit(child)
 
         # For now, skip in case there's an `elif` or `else` following.
-        if not is_last_node(node.parent.children, node):
-            next_node = get_next_node(node.parent.children, node)
+        if not is_last_node(node):
+            next_node = get_next_node(node)
             if isinstance(next_node, (tn.ElifScope, tn.ElseScope)):
                 ndsl_log.debug(
                     "Can't handle conditionals with `elif` and `else` blocks yet :("
@@ -166,7 +166,7 @@ class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
             child.parent = node.parent  # re-parent to parent of old if_scope
             new_nodes.append(child)
 
-        insert_at = list_index(node.parent.children, node)
+        insert_at = list_index(node)
         node.parent.children[insert_at:insert_at] = new_nodes
         node.parent.children.remove(node)
 

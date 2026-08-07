@@ -167,7 +167,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             if "__pystate" in [tasklet.data for tasklet in the_tasklet.input_memlets()]:
                 return 0  # Tasklet is a callback
 
-        next_index = list_index(nodes, the_tasklet)
+        next_index = list_index(the_tasklet, nodes)
         if next_index == len(nodes) - 1:
             return 0  # Last node - done
 
@@ -193,13 +193,13 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         # End of nodes OR
         # Not the right axis
         # --> recurse
-        if is_last_node(nodes, the_map) or not is_axis_map(the_map, self.axis):
+        if is_last_node(the_map, nodes) or not is_axis_map(the_map, self.axis):
             merged = 0
             for child in the_map.children:
                 merged += self._merge_node(child, the_map.children)
             return merged
 
-        next_node = get_next_node(nodes, the_map)
+        next_node = get_next_node(the_map, nodes)
 
         # Next node is not a MapScope - no merge
         if not isinstance(next_node, tn.MapScope):
@@ -263,7 +263,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             ReplaceAxisSymbol(replacements).visit(first_map)
 
         # delete now-merged second_map
-        del nodes[list_index(nodes, next_node)]
+        del nodes[list_index(next_node, nodes)]
 
         return 1
 

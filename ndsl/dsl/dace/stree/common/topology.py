@@ -3,9 +3,7 @@ from collections.abc import Collection
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 
-def swap_node_position_in_tree(
-    top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope
-) -> None:
+def swap_node_position_in_tree(top_node: tn.ScheduleTreeScope, child_node: tn.ScheduleTreeScope) -> None:
     """Top node becomes child, child becomes top node."""
     # Ensue parent/children relationship is valid
     tn.validate_children_and_parents_align(top_node)
@@ -18,7 +16,7 @@ def swap_node_position_in_tree(
     # Swap children
     top_node.children = child_node.children
     child_node.children = [top_node]
-    top_children.insert(list_index(top_children, top_node), child_node)
+    top_children.insert(list_index(top_node, top_children), child_node)
 
     # Re-parent
     top_node.parent = child_node
@@ -34,9 +32,7 @@ def swap_node_position_in_tree(
         child.parent = child_node
 
 
-def swap_node_in_tree(
-    old_node: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode
-) -> None:
+def swap_node_in_tree(old_node: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode) -> None:
     """
     Replace `old_node`  with `new_node`  in the children of the old nodes' parent.
 
@@ -44,7 +40,7 @@ def swap_node_in_tree(
     """
 
     assert old_node.parent and old_node.parent.children
-    index = list_index(old_node.parent.children, old_node)
+    index = list_index(old_node)
     old_node.parent.children[index] = new_node
     new_node.parent = old_node.parent
     old_node.parent = None
@@ -62,37 +58,46 @@ def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
 
 
 def list_index(
-    collection: Collection[tn.ScheduleTreeNode],
     node: tn.ScheduleTreeNode,
+    collection: Collection[tn.ScheduleTreeNode] | None = None,
 ) -> int:
     """Check if node is in list with "is" operator."""
     # compare with "is" to get memory comparison. ".index()" uses value comparison
+    if collection is None:
+        assert node.parent
+        collection = node.parent.children
     return next(index for index, element in enumerate(collection) if element is node)
 
 
-def get_previous_node(
-    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
-) -> tn.ScheduleTreeNode | None:
+def get_previous_node(node: tn.ScheduleTreeNode) -> tn.ScheduleTreeNode | None:
     """Get previous node in the children, return None if first node"""
-    index = list_index(nodes, node)
+    assert node.parent
+    index = list_index(node)
     if index == 0:
         return None
-    return nodes[index - 1]
+    return node.parent.children[index - 1]
 
 
 def get_next_node(
-    nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode
+    node: tn.ScheduleTreeNode,
+    nodes: list[tn.ScheduleTreeNode] | None = None,
 ) -> tn.ScheduleTreeNode | None:
     """Get next node in the children from given node, return None if last node"""
-    index = list_index(nodes, node)
+    assert node.parent
+    if nodes is None:
+        nodes = node.parent.children
+    index = list_index(node, nodes)
     if index == len(nodes) - 1:
         return None
     return nodes[index + 1]
 
 
-def is_last_node(nodes: list[tn.ScheduleTreeNode], node: tn.ScheduleTreeNode) -> bool:
+def is_last_node(node: tn.ScheduleTreeNode, nodes: list[tn.ScheduleTreeNode] | None = None) -> bool:
     """Check if the node is the last node of the list."""
-    return list_index(nodes, node) >= len(nodes) - 1
+    assert node.parent    
+    if nodes is None:
+        nodes = node.parent.children
+    return list_index(node, nodes) >= len(nodes) - 1
 
 
 def remove_from_tree(node: tn.ScheduleTreeNode) -> None:
