@@ -3,7 +3,7 @@ from .control_flow import (
     is_axis_for,
     is_axis_map,
     is_cartesian_axis,
-    is_offgrid_conditional,
+    is_off_grid_conditional,
 )
 from .topology import (
     detect_cycle,
@@ -22,7 +22,7 @@ __all__ = [
     "no_data_dependencies_on_cartesian_axis",
     "is_axis_map",
     "is_cartesian_axis",
-    "is_offgrid_conditional",
+    "is_off_grid_conditional",
     "is_axis_for",
     "get_next_node",
     "is_last_node",

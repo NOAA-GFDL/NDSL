@@ -1,4 +1,4 @@
-# loops
+# control_flow
 
 ::: dsl.dace.stree.common.control_flow
 

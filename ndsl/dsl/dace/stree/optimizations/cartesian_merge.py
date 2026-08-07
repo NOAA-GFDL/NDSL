@@ -1,7 +1,7 @@
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.dsl.dace.stree.common import AxisIterator
 from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
-from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
+from ndsl.dsl.dace.stree.optimizations.off_grid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
     MergeConditionals,

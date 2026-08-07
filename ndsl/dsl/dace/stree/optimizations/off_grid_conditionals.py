@@ -8,7 +8,7 @@ from ndsl.dsl.dace.stree.common import (
     get_previous_node,
     is_axis_map,
     is_last_node,
-    is_offgrid_conditional,
+    is_off_grid_conditional,
     list_index,
     swap_node_in_tree,
 )
@@ -126,7 +126,7 @@ class InlineOffGridConditionals(tn.ScheduleNodeVisitor):
 
     def visit_IfScope(self, node: tn.IfScope) -> None:
         assert node.parent is not None  # just to keep pyright happy
-        if not is_offgrid_conditional(node):
+        if not is_off_grid_conditional(node):
             return
 
         for child in node.children:

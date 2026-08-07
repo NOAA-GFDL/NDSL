@@ -29,8 +29,8 @@ def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
     return False
 
 
-def is_offgrid_conditional(node: tn.IfScope) -> bool:
-    """Conditional is offgrid if the code block refers to the cartesian symbols"""
+def is_off_grid_conditional(node: tn.IfScope) -> bool:
+    """Conditional is off-grid if the code block does not refer to the cartesian symbols"""
     for symbol in node.condition.get_free_symbols():
         if (
             AxisIterator._I.as_str() in symbol
