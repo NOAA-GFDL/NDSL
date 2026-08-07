@@ -106,6 +106,11 @@ def is_last_node(
     return list_index(node, nodes) >= len(nodes) - 1
 
 
+def is_first_node(node: tn.ScheduleTreeNode) -> bool:
+    """Check if the node is the first node of the tree."""
+    return list_index(node) == 0
+
+
 def remove_from_tree(node: tn.ScheduleTreeNode) -> None:
     """Remove a node from the tree. DO NOT take care of children of to-be-delete node"""
     if node.parent:
