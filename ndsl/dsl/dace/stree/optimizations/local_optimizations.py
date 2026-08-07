@@ -2,6 +2,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.dsl.dace.stree.optimizations.cartesian_merge import CartesianMerge
+from ndsl.dsl.dace.stree.optimizations.common import is_first_node, is_last_node
 from ndsl.dsl.dace.stree.optimizations.kernelize_maps import KernelizeMaps
 from ndsl.dsl.dace.stree.optimizations.remove_loops import InlineVertical2DWrite
 
@@ -186,6 +187,13 @@ class _LabelSections(ScheduleTreeScopeTransformer):
             if not child.node.name == "NDSLRuntime_Label":
                 # Leave other library call nodes alone.
                 children_stack[-1].append(child)
+                continue
+
+            # The very first Labeler
+            if child.parent == child.get_root() and (
+                is_last_node(child.parent.children, child)
+                or is_first_node(child.parent.children, child)
+            ):
                 continue
 
             if child.node.unique_name.startswith("Enter__"):
