@@ -17,7 +17,7 @@ from ndsl.dsl.dace.stree.common import (
 class SimplifyConditional(tn.ScheduleNodeVisitor):
     """Turn Else and ElseIf into Ifs.
 
-    Can restore original nodes using `restore`.
+    The original nodes can be restored with `RevertSimplifyConditional`.
     """
 
     def __init__(self) -> None:

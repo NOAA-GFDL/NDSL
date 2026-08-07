@@ -35,14 +35,17 @@ def swap_node_position_in_tree(
 
 
 def swap_node_in_tree(
-    node_to_remove: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode
+    old_node: tn.ScheduleTreeNode, new_node: tn.ScheduleTreeNode
 ) -> None:
-    """Swap a node for a new node in the tree. Used when children (downstream) changes that
-    cannot be covered with the ScheduleNodeTransformer"""
+    """
+    Replace `old_node`  with `new_node`  in the children of the old nodes' parent.
 
-    assert node_to_remove.parent and node_to_remove.parent.children
-    index = list_index(node_to_remove.parent.children, node_to_remove)
-    node_to_remove.parent.children[index] = new_node
+    Used when children (downstream) changes that cannot be covered with the ScheduleNodeTransformer.
+    """
+
+    assert old_node.parent and old_node.parent.children
+    index = list_index(old_node.parent.children, old_node)
+    old_node.parent.children[index] = new_node
 
 
 def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
