@@ -1,5 +1,4 @@
 import inspect
-import warnings
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -75,27 +74,6 @@ class _DataDimensionFieldMaker(_FieldDescriptorMaker):
 _DataDimensionDescriptor = _DataDimensionFieldMaker()
 
 
-def _check_to_be_kwargs(func):  # type: ignore
-    """Temporary function to enforce `name_mapping`, `dtype`, and `axes` as kwargs in the next release."""
-
-    def inner(*args, **kwargs):  # type: ignore
-        to_be_kwargs = ["name_mapping", "dtype", "axes"]
-        min_lengths = (
-            (3, 4, 5) if func.__name__ == "declare_and_register" else (4, 5, 6)
-        )
-        for to_be_kwarg, min_length in zip(to_be_kwargs, min_lengths):
-            if len(args) > min_length and to_be_kwarg not in kwargs:
-                warnings.warn(
-                    f"`{to_be_kwarg}` is not passed as keyword argument; use `{func.__name__}(..., {to_be_kwarg}=...). This will be enforced in the next version.",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
-
-        return func(*args, **kwargs)
-
-    return inner
-
-
 class DataDimensionsField(StencilTypeRegistrar):
     """Type allowing semi-dynamic sizing of field with data dimensions.
 
@@ -107,7 +85,6 @@ class DataDimensionsField(StencilTypeRegistrar):
     _type_registrar: dict[str, _DataDimensionsFieldDescriptor] = {}
 
     @classmethod
-    @_check_to_be_kwargs
     def register(
         cls,
         pre_registration_type: "DataDimensionsMarkupType",
@@ -194,11 +171,11 @@ class DataDimensionsField(StencilTypeRegistrar):
         return DataDimensionsMarkupType(name)
 
     @classmethod
-    @_check_to_be_kwargs
     def declare_and_register(
         cls,
         quantity_factory: QuantityFactory,
         data_dimensions_names: list[str],
+        *,
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,
         axes: Sequence[gtscript.Axis] = gtscript.IJK,
@@ -214,10 +191,7 @@ class DataDimensionsField(StencilTypeRegistrar):
             dtype: Inner data type, defaults to Float.
             axes: Cartesian axes, defaults to `IJK` i.e. all of them.
         """
-        # We have to go an additional frame back because now there's a (temporary)
-        # decorator to check the arguments. Remove `.f_back` from the next line when
-        # the decorator `@_check_to_be_kwargs` is removed and the breaking change is made.
-        name = get_lhs_name(inspect.currentframe().f_back)  # type: ignore
+        name = get_lhs_name(inspect.currentframe())
         markup_type = DataDimensionsMarkupType(name)
         cls.register(
             markup_type,
