@@ -76,7 +76,10 @@ def list_index(
 def get_previous_node(node: tn.ScheduleTreeNode) -> tn.ScheduleTreeNode | None:
     """Get previous node in the children, return None if first node"""
     assert node.parent
-    index = list_index(node)
+    try:
+        index = list_index(node)
+    except StopIteration:
+        raise ValueError("Node not found in children of parents.")
     if index == 0:
         return None
     return node.parent.children[index - 1]

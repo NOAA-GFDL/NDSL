@@ -66,7 +66,7 @@ class SimplifyConditional(tn.ScheduleNodeVisitor):
 
 
 class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
-    """Reverting the SimplifyConditional based on bookeeping done during SimplyConditional transform"""
+    """Reverting the SimplifyConditional based on book-keeping done during SimplyConditional transform"""
 
     def __init__(self, original_simplify: SimplifyConditional) -> None:
         self._simplify_conditional = original_simplify
@@ -82,7 +82,14 @@ class RevertSimplifyConditional(tn.ScheduleNodeVisitor):
         """
         for if_scope in self._simplify_conditional.else_turned_if:
             assert if_scope.parent
-            potential_if = get_previous_node(if_scope)
+            try:
+                potential_if = get_previous_node(if_scope)
+            except ValueError as e:
+                if e.args[0] == "Node not found in children of parents.":
+                    # if_scope has a stale parent and/or is not part of the tree anymore
+                    continue
+                else:
+                    raise e
             if not isinstance(potential_if, tn.IfScope):
                 continue
             else_scope = tn.ElseScope(
