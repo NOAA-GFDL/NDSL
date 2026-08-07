@@ -46,6 +46,8 @@ def swap_node_in_tree(
     assert old_node.parent and old_node.parent.children
     index = list_index(old_node.parent.children, old_node)
     old_node.parent.children[index] = new_node
+    new_node.parent = old_node.parent
+    old_node.parent = None
 
 
 def detect_cycle(nodes: list[tn.ScheduleTreeNode], visited: set) -> None:
@@ -97,3 +99,4 @@ def remove_from_tree(node: tn.ScheduleTreeNode) -> None:
     """Remove a node from the tree. DO NOT take care of children of to-be-delete node"""
     if node.parent:
         node.parent.children.remove(node)
+        node.parent = None
