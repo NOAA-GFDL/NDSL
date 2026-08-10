@@ -1,6 +1,6 @@
-# offgrid_conditionals
+# topology
 
-::: dsl.dace.stree.optimizations.offgrid_conditionals
+::: dsl.dace.stree.common.topology
 
 <style>
 /* re-enable the left side navigation bar for this page */

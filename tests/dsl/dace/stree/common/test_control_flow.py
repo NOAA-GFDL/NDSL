@@ -1,12 +1,14 @@
+from dace.properties import CodeBlock
 from dace.sdfg import nodes
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 
-from ndsl.dsl.dace.stree.optimizations.common import (
+from ndsl.dsl.dace.stree.common import (
     AxisIterator,
     is_axis_for,
     is_axis_map,
     is_cartesian_axis,
+    is_off_grid_conditional,
 )
 
 
@@ -94,3 +96,10 @@ def test_is_axis_for_i() -> None:
 def test_is_axis_for_not_i() -> None:
     node = tn.ForScope(loop=LoopRegion("for_i", loop_var="__i0"), children=[])
     assert not is_axis_for(node, AxisIterator._I)
+
+
+def test_is_off_grid_conditional() -> None:
+    node = tn.IfScope(condition=CodeBlock("field[__i, __j, __k] == 0"), children=[])
+    assert not is_off_grid_conditional(node)
+    node = tn.IfScope(condition=CodeBlock("flag"), children=[])
+    assert is_off_grid_conditional(node)

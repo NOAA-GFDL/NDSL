@@ -137,7 +137,7 @@ class TestKernelizeMaps:
                     if (
                         params[0:2] == ["__i", "__j"]
                         and isinstance(k_param, str)
-                        and k_param.startswith("__k")
+                        and k_param == "__k"
                     ):
                         ijk_maps += 1
 
@@ -153,7 +153,7 @@ class TestKernelizeMaps:
             ]
             # expect one k-loop is preserved
             assert len(all_loop_regions) == 1
-            assert all_loop_regions[0].loop_variable.startswith("__k")
+            assert all_loop_regions[0].loop_variable == "__k"
         else:
             # check that we keep IJ loops merged
             all_maps = [
@@ -169,7 +169,7 @@ class TestKernelizeMaps:
                     ij_maps += 1
                 elif len(map_entry.map.params) == 1:
                     param = map_entry.map.params[0]
-                    if isinstance(param, str) and param.startswith("__k"):
+                    if isinstance(param, str) and param == "__k":
                         k_maps += 1
 
             # expect one IJ-map and two K-maps
@@ -184,4 +184,4 @@ class TestKernelizeMaps:
             ]
             # expect one k-loop is preserved
             assert len(all_loop_regions) == 1
-            assert all_loop_regions[0].loop_variable.startswith("__k")
+            assert all_loop_regions[0].loop_variable == "__k"

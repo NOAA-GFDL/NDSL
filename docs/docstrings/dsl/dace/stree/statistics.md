@@ -1,6 +1,6 @@
 # statistics
 
-::: dsl.dace.stree.optimizations.statistics
+::: dsl.dace.stree.statistics
 
 <style>
 /* re-enable the left side navigation bar for this page */

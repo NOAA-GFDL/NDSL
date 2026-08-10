@@ -182,6 +182,11 @@ def _build_sdfg(
     backend_name = config.get_backend()
 
     if is_compiling:
+
+        # Enforce cache directory made so all downstream caching file
+        # won't hit an non existing directory
+        Path(sdfg.build_folder).mkdir(parents=True, exist_ok=True)
+
         if optimization_config is None:
             ndsl_log.debug(f"Using default optimization config for {sdfg.label}.")
             optimization_config = OptimizationConfig()
@@ -755,6 +760,7 @@ def orchestrate(
 ) -> None:
     """
     Orchestrate a method of an object with DaCe.
+
     The method object is patched in place, replacing the original Callable with
     a wrapper that will trigger orchestration at call time.
     If the model configuration doesn't demand orchestration, this won't do anything.
@@ -766,11 +772,21 @@ def orchestrate(
         dace_compiletime_args: list of names of arguments to be flagged has
                                dace.compiletime for orchestration to behave
     """
-    if not config.is_dace_orchestrated():
-        return
+    if hasattr(obj, "_ndsl_orchestrated_methods"):
+        # Automatically register all orchestrated methods of NDSLRuntime classes
+        # to track where Locals can be used.
+        # See __post_init__() of NDSLRuntime.
+        obj._ndsl_orchestrated_methods.append(method_to_orchestrate)
 
     if config is None:
         raise ValueError("DaCe config cannot be None")
+
+    if not config.is_dace_orchestrated():
+        return
+
+    # We have to un-monkey patch the __call__ (from the debugger)
+    if method_to_orchestrate == "__call__" and hasattr(type(obj), "_original__call__"):
+        type(obj).__call__ = type(obj)._original__call__  # type: ignore[method-assign,attr-defined]
 
     if not hasattr(obj, method_to_orchestrate):
         raise RuntimeError(
