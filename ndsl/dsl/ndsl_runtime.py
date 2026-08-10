@@ -31,6 +31,9 @@ class NDSLRuntime:
         self._stencil_factory = stencil_factory
         # Use this flag to detect that the init wasn't done properly
         self._base_class_was_properly_super_init = True
+        # Used to track where usage of Locals is safe.
+        self._ndsl_orchestrated_methods: list[str] = []
+
         self._optimization_config = optimization_config
 
     def __init_subclass__(cls: type[NDSLRuntime], **kwargs: dict[str, Any]) -> None:
@@ -121,10 +124,7 @@ class NDSLRuntime:
             check_for_quantity(self)
 
         # Orchestrate __call__ by default
-        if self._stencil_factory.backend.is_orchestrated() and callable(self):
-            # Do we have to un-monkey patch the __call__
-            if hasattr(type(self), "_original__call__"):
-                type(self).__call__ = type(self)._original__call__  # type: ignore[method-assign,attr-defined]
+        if callable(self):
             orchestrate(
                 obj=self,
                 config=self._stencil_factory.config.dace_config,
@@ -137,11 +137,14 @@ class NDSLRuntime:
         # in the locals.
         # All other cases are forbidden.
         if isinstance(attr, Local):
+            class_name = type(self).__name__
             frame = inspect.currentframe()
             if frame is None:
                 raise NotImplementedError(
-                    "Locals check cannot locate frame. Talk to the team."
+                    "Locals check cannot locate frame. Talk to the team. ",
+                    f"Class name: {class_name}",
                 )
+
             caller_frame = frame.f_back
             if (
                 not caller_frame
@@ -150,9 +153,20 @@ class NDSLRuntime:
             ):
                 # We expect the original class to have been monkey-patched
                 # See `dace.dsl.orchestration.orchestrate`
-                class_name = type(self).__name__
                 raise RuntimeError(
                     f"Forbidden Local access: {name} called outside of {class_name}."
+                )
+
+            calling_method = caller_frame.f_code.co_name
+            if (
+                caller_frame.f_code.co_qualname.endswith(
+                    f"{class_name}.{calling_method}"
+                )
+                and calling_method not in self._ndsl_orchestrated_methods
+            ):
+                # Locals can only be safely used inside orchestrated code paths.
+                raise RuntimeError(
+                    f"Forbidden Local access: {name} called in non-orchestrated method {caller_frame.f_code.co_name}."
                 )
 
         return attr
