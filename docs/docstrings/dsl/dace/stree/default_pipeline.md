@@ -1,6 +1,6 @@
-# loops
+# pipeline
 
-::: dsl.dace.stree.optimizations.common.loops
+::: dsl.dace.stree.default_pipeline
 
 <style>
 /* re-enable the left side navigation bar for this page */

@@ -15,7 +15,7 @@ class SpecializeCartesianMaps(tn.ScheduleNodeVisitor):
                 dims.append((0, self._mappings["__I"], 1))
             if p == "__j":
                 dims.append((0, self._mappings["__J"], 1))
-            if p.startswith("__k"):
+            if p == "__k":
                 dims.append((0, self._mappings["__K"], 1))
         node.node.map.range = sbs.Range(dims)
 

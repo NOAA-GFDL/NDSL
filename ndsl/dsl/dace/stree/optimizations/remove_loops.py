@@ -4,11 +4,7 @@ from typing import Any
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.stree.optimizations.common import (
-    AxisIterator,
-    is_axis_for,
-    list_index,
-)
+from ndsl.dsl.dace.stree.common import AxisIterator, is_axis_for, list_index
 from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import ReplaceAxisSymbol
 
 
@@ -65,7 +61,7 @@ class InlineVertical2DWrite(tn.ScheduleNodeVisitor):
         ReplaceAxisSymbol({the_for.loop.loop_variable: str(init_value)}).visit(the_for)
 
         # Insert children of the ForScope to parent
-        insert_at = list_index(the_for.parent.children, the_for)
+        insert_at = list_index(the_for)
         for child in the_for.children:
             child.parent = the_for.parent
         the_for.parent.children[insert_at:insert_at] = the_for.children

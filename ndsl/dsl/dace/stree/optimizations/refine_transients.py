@@ -4,7 +4,7 @@ import dace.data
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
+from ndsl.dsl.dace.stree.common import AxisIterator
 
 
 def _change_index_of_tuple(

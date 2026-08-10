@@ -1,8 +1,8 @@
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
-from ndsl.dsl.dace.stree.optimizations.cartesian_merge import CartesianMerge
-from ndsl.dsl.dace.stree.optimizations.common import is_first_node, is_last_node
+from ndsl.dsl.dace.stree.common import is_first_node, is_last_node
+from ndsl.dsl.dace.stree.optimizations.cartesian_merge import CartesianMergePipeline
 from ndsl.dsl.dace.stree.optimizations.kernelize_maps import KernelizeMaps
 from ndsl.dsl.dace.stree.optimizations.remove_loops import InlineVertical2DWrite
 
@@ -184,15 +184,14 @@ class _LabelSections(ScheduleTreeScopeTransformer):
                 children_stack[-1].append(child)
                 continue
 
-            if not child.node.name == "NDSLRuntime_Label":
+            if child.node.name != "NDSLRuntime_Label":
                 # Leave other library call nodes alone.
                 children_stack[-1].append(child)
                 continue
 
             # The very first Labeler
             if child.parent == child.get_root() and (
-                is_last_node(child.parent.children, child)
-                or is_first_node(child.parent.children, child)
+                is_last_node(child) or is_first_node(child)
             ):
                 continue
 
@@ -316,12 +315,12 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                     gpu_inliner.visit_ScheduleTreeRoot(child)
 
                 if config.stree.merger.enabled:
-                    gpu_merger = CartesianMerge(
+                    gpu_merger = CartesianMergePipeline(
                         self._backend,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
-                    gpu_merger.visit_ScheduleTreeRoot(child)
+                    gpu_merger.run(child)
 
                 if config.stree.kernelize:
                     if config.stree.merger.order not in ("IJK", "KJI"):
@@ -355,12 +354,12 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                     cpu_inliner.visit_ScheduleTreeRoot(child)
 
                 if config.stree.merger.enabled:
-                    cpu_merger = CartesianMerge(
+                    cpu_merger = CartesianMergePipeline(
                         self._backend,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
-                    cpu_merger.visit_ScheduleTreeRoot(child)
+                    cpu_merger.run(child)
 
                 if config.stree.refine_transients:
                     # We can't know if transients are local to the scope that we are working in.

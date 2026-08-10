@@ -1,6 +1,6 @@
-# topology
+# memlet
 
-::: dsl.dace.stree.optimizations.common.topology
+::: dsl.dace.stree.common.memlet
 
 <style>
 /* re-enable the left side navigation bar for this page */

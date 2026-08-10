@@ -1,6 +1,6 @@
-# memlet
+# off_grid_conditionals
 
-::: dsl.dace.stree.optimizations.common.memlet
+::: dsl.dace.stree.optimizations.off_grid_conditionals
 
 <style>
 /* re-enable the left side navigation bar for this page */
