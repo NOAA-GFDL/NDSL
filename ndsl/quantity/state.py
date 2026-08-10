@@ -1,27 +1,19 @@
-from __future__ import annotations
-
 import dataclasses
 import inspect
+import warnings
 from collections.abc import Callable
 from pathlib import Path
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Hashable, Self, TypeAlias
+from typing import Any, Hashable, Self, TypeAlias
 
 import dacite
 import numpy as np
 import xarray as xr
 
 from ndsl.comm.mpi import MPI
+from ndsl.initialization import DataDimensions, QuantityFactory
+from ndsl.quantity import Local, Quantity
 from ndsl.types import Number
-
-
-from ndsl.quantity import Quantity, Local  # isort:skip
-
-
-if TYPE_CHECKING:
-    from ndsl import QuantityFactory
-
-import warnings
 
 
 _ArrayLike: TypeAlias = Quantity | np.ndarray
@@ -142,13 +134,13 @@ class State:
         the data dimensions at allocation time.
         """
 
-        def __init__(self, factory: QuantityFactory, ddims: dict[str, int]):
-            self._ddims = ddims
+        def __init__(self, factory: QuantityFactory, data_dimensions: DataDimensions):
+            self._data_dimensions = data_dimensions
             self._factory = factory
 
         def __enter__(self) -> None:
             self._original_dims = self._factory.sizer.data_dimensions
-            self._factory.sizer.data_dimensions = self._ddims
+            self._factory.sizer.data_dimensions = self._data_dimensions
 
         def __exit__(
             self,
@@ -177,7 +169,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allocate all quantities. Do not expect 0 on values, values are random.
 
@@ -201,7 +193,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allocate all quantities and fill their value to zeros
 
@@ -225,7 +217,7 @@ class State:
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allocate all quantities and fill their value to ones
 
@@ -250,7 +242,7 @@ class State:
         quantity_factory: QuantityFactory,
         value: Number,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allocate all quantities and fill them with the input value
 
@@ -277,7 +269,7 @@ class State:
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allocate all quantities and fill their value based
         on the given memory map. See `update_from_memory`.
@@ -305,7 +297,7 @@ class State:
         quantity_factory: QuantityFactory,
         memory_map: StateMemoryMapping,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
         check_shape_and_strides: bool = True,
     ) -> Self:
         """Allocate all quantities and move memory based on
@@ -631,7 +623,7 @@ class LocalState(State):
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allocate all elements as Locals. Do not expect 0 on values, values are random.
 
@@ -655,7 +647,7 @@ class LocalState(State):
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         """Allow LocalState to be allocate as if it was a regular State, e.g. with Quantities.
 
@@ -757,7 +749,7 @@ class LocalState(State):
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         raise TypeError("LocalState cannot be allocated to zeros, use `make_locals`")
 
@@ -766,7 +758,7 @@ class LocalState(State):
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         raise TypeError("LocalState cannot be allocated to empty, use `make_locals`")
 
@@ -775,7 +767,7 @@ class LocalState(State):
         cls,
         quantity_factory: QuantityFactory,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         raise TypeError("LocalState cannot be allocated to ones, use `make_locals`")
 
@@ -785,6 +777,6 @@ class LocalState(State):
         quantity_factory: QuantityFactory,
         value: Number,
         *,
-        data_dimensions: dict[str, int] | None = None,
+        data_dimensions: DataDimensions | None = None,
     ) -> Self:
         raise TypeError("LocalState cannot be allocated to full, use `make_locals`")

@@ -339,11 +339,8 @@ def test_data_dim_ndsl_type(domain: Domain) -> None:
         backend=Backend("st:dace:cpu:IJK"),
     )
 
-    with pytest.raises(TypeError, match="Wrong size type for data dimension."):
-        # This _should_ be possible, i.e. we _should_ allow any `numbers.Integral`
-        # type here. To support this, we'll need changes GT4Py as well as in DaCe.
-        # For now, we are thus making sure that NDSL users get a clear error message.
-        quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
+    # Make sure we can declare data dimension sizes with NDSL `Int` type
+    quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
 
 
 def test_data_dimension_table(domain: Domain) -> None:
