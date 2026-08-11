@@ -15,7 +15,7 @@ def test_enum_runtime() -> None:
         B = 20
         C = 30
 
-    def stencil_with_enum(out_field: IntField, order: MyEnum):  # type:ignore
+    def stencil_with_enum(out_field: IntField, order: MyEnum):  # type: ignore
         with computation(PARALLEL), interval(0, 1):
             out_field = 32
             if order < MyEnum.A:
