@@ -7,7 +7,6 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval, max
 from ndsl.dsl.typing import Float, FloatField, set_4d_field_size
 
-
 TRACER_DIM = "n_tracers"
 FloatFieldTracer = set_4d_field_size(9, Float)
 ntracers = 9

@@ -25,7 +25,6 @@ from ndsl.performance.collector import (
     PerformanceCollector,
 )
 
-
 if TYPE_CHECKING:
     from ndsl.dsl.dace.dace_executable import DaceExecutables
 

@@ -18,7 +18,6 @@ from ndsl.stencils.testing.savepoint import DataLoader, SavepointCase, dataset_t
 from ndsl.testing.comparison import BaseMetric, LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
 
-
 # this only matters for manually-added print statements
 np.set_printoptions(threshold=4096)
 

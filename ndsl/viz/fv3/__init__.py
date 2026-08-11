@@ -18,7 +18,6 @@ from ._timestep_histograms import (
     plot_hourly_hist,
 )
 
-
 __all__ = [
     "plot_daily_and_hourly_hist",
     "plot_daily_hist",

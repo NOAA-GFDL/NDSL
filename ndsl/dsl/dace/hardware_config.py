@@ -6,7 +6,6 @@ from typing import Literal
 from ndsl import ndsl_log
 from ndsl.optional_imports import cupy as cp
 
-
 GPUVendor = Literal["Nvidia"] | Literal["AMD"] | Literal["Intel"] | Literal["Unknown"]
 
 # Taken straight out of https://pcisig.com/membership/member-companies

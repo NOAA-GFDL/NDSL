@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from gt4py.cartesian import config as gt_config
 from mpi4py import MPI
 
-
 if TYPE_CHECKING:
     from ndsl.dsl.stencil_config import CompilationConfig
 

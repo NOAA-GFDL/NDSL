@@ -13,7 +13,6 @@ from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
 from ndsl.quantity import Local, Quantity
 
-
 _TOP_LEVEL: object | None = None
 
 

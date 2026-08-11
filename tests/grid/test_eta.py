@@ -13,7 +13,6 @@ from ndsl import (
 from ndsl.config import Backend
 from ndsl.grid import MetricTerms
 
-
 """
 This test checks to ensure that ak and bk values are read-in and stored properly. In
 addition, this test checks to ensure that the function set_hybrid_pressure_coefficients

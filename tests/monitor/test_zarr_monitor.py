@@ -21,7 +21,6 @@ from ndsl.constants import (
 from ndsl.monitor.zarr_monitor import ZarrMonitor, array_chunks, get_calendar
 from ndsl.optional_imports import zarr
 
-
 # pace's K_DIMS doesn't check the soil dimension
 ALL_K_DIMS = ("k", "k_interface", "k_soil")
 

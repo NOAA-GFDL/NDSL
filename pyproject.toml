@@ -54,6 +54,9 @@ Repository = "https://github.com/NOAA-GFDL/NDSL"
 
 [tool.aliases]
 
+[tool.black]
+target-version = ["py312", "py313"]
+
 [tool.coverage.run]
 branch = true
 omit = ["tests/*", "*gt_cache*", ".dacecache*", "external/*", "__init__.py"]
@@ -80,7 +83,6 @@ max-line-length = 88
 [tool.isort]
 default_section = "THIRDPARTY"
 known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py,dace"
-lines_after_imports = 2
 profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 

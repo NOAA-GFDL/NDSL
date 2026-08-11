@@ -64,7 +64,6 @@ from gt4py.cartesian.gtscript import (
 
 from ndsl.internal.deferred_type import resolve_deferred_types
 
-
 function = lazy_function(before_annotation=resolve_deferred_types)
 
 __all__ = [

@@ -4,7 +4,6 @@ import abc
 import enum
 from typing import Generic, TypeVar
 
-
 T = TypeVar("T")
 
 

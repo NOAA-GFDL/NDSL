@@ -7,7 +7,6 @@ import xarray as xr
 
 from ndsl import ndsl_log
 
-
 ETA_0 = 0.252
 SURFACE_PRESSURE = 1.0e5  # units of (Pa), from Table VI of DCMIP2016
 

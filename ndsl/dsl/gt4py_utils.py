@@ -12,7 +12,6 @@ from ndsl.constants import N_HALO_DEFAULT
 from ndsl.dsl.typing import Float
 from ndsl.optional_imports import cupy as cp
 
-
 # If True, automatically transfers memory between CPU and GPU (see gt4py.storage)
 managed_memory = True
 

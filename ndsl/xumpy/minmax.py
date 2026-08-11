@@ -7,7 +7,6 @@ import numpy.typing as npt
 from ndsl import Quantity
 from ndsl.optional_imports import cupy as cp
 
-
 if cp is None:
     cp = np
 

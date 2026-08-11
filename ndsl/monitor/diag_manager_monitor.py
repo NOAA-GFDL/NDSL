@@ -5,7 +5,6 @@ import numpy.typing as npt
 
 from ndsl.monitor.protocol import Monitor
 
-
 try:
     from pyfms import diag_manager
 

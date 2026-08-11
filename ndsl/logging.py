@@ -7,7 +7,6 @@ from typing import Annotated
 
 from ndsl.comm.mpi import MPI
 
-
 # Python log levels are hierarchical. The following dict is sorted by
 # severity. Setting the log level to "info" means that "info" and everything
 # more severe (e.g. "warning") will be logged.

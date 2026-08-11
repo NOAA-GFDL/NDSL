@@ -10,7 +10,6 @@ from .helper import (
     VerticalGridData,
 )
 
-
 __all__ = [
     "HybridPressureCoefficients",
     "GridDefinitions",

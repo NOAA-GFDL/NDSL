@@ -22,7 +22,6 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, function, interval
 from ndsl.dsl.typing import Float, FloatField, Int
 
-
 Tracers = DataDimensionsField.declare()
 TracersAndPlumes = DataDimensionsField.declare()
 GlobalTable = DataDimensionsField.declare()

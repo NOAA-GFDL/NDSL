@@ -6,7 +6,6 @@ from gt4py.cartesian import gtscript
 
 from ndsl.dsl import NDSL_GLOBAL_PRECISION
 
-
 # A Field
 Field = gtscript.Field
 """A gt4py field"""

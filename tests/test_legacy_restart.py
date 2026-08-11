@@ -22,7 +22,6 @@ from ndsl.restart._legacy_restart import (
     open_restart,
 )
 
-
 TEST_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 DATA_DIRECTORY = os.path.join(TEST_DIRECTORY, "data")
 
