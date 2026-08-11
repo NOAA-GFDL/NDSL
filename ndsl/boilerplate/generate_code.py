@@ -5,9 +5,7 @@ from __future__ import annotations
 import argparse
 import textwrap
 
-
-TEMPLATE = textwrap.dedent(
-    """\
+TEMPLATE = textwrap.dedent("""\
     from ndsl import NDSLRuntime
     from ndsl.boilerplate import get_factories_single_tile
     from ndsl.config import Backend
@@ -37,11 +35,9 @@ TEMPLATE = textwrap.dedent(
         def __call__(self, input_field: FloatField, output_field: FloatField):
             self._copy(input_field, output_field)
     {main_section}
-    """
-)
+    """)
 
-MAIN_SECTION = textwrap.dedent(
-    """\
+MAIN_SECTION = textwrap.dedent("""\
 
     def main() -> None:
 
@@ -66,8 +62,7 @@ MAIN_SECTION = textwrap.dedent(
 
     if __name__ == "__main__":
         main()
-    """
-)
+    """)
 
 
 def instance_name_from_class(class_name: str) -> str:

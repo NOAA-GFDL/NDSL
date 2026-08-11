@@ -6,7 +6,6 @@ from ndsl.dsl.dace.utils import (
     memory_static_analysis_from_path,
 )
 
-
 # Count the memory from a given SDFG
 ACTION_SDFG_MEMORY_STATIC_ANALYSIS = "sdfg_memory_static_analysis"
 ACTION_SDFG_KERNEL_THEORETICAL_TIMING = "sdfg_kernel_theoretical_timing"

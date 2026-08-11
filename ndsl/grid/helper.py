@@ -160,10 +160,8 @@ class VerticalGridData:
 
         ak_bk_data_file = pathlib.Path(restart_path) / data_file
         if not ak_bk_data_file.is_file():
-            raise ValueError(
-                """vertical_grid_from_restart is true,
-                but no fv_core.res.nc in restart data file."""
-            )
+            raise ValueError("""vertical_grid_from_restart is true,
+                but no fv_core.res.nc in restart data file.""")
 
         ak = quantity_factory.zeros([K_INTERFACE_DIM], units="Pa")
         bk = quantity_factory.zeros([K_INTERFACE_DIM], units="")

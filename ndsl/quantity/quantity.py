@@ -19,7 +19,6 @@ from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 
-
 if cupy is None:
     import numpy as cupy
 

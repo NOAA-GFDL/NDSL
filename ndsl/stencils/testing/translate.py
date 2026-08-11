@@ -10,7 +10,6 @@ from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid
 from ndsl.stencils.testing.savepoint import DataLoader
 
-
 if cupy is None:
     import numpy as cupy
 

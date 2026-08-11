@@ -5,7 +5,6 @@ import numpy as np
 
 from ndsl.quantity import Quantity
 
-
 T = TypeVar("T", bound=Quantity | np.ndarray)
 
 

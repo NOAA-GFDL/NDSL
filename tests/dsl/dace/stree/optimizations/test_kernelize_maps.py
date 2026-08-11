@@ -26,7 +26,7 @@ def stencil_kernelize(in_field: FloatField, out_field: FloatField) -> None:  # t
 
 def stencil_only_serial_noop(
     in_field: FloatField, out_field: FloatField
-) -> None:  # type:ignore
+) -> None:  # type: ignore
     with computation(FORWARD), interval(...):
         tmp = in_field
 
@@ -36,7 +36,7 @@ def stencil_only_serial_noop(
 
 def stencil_only_parallel_noop(
     in_field: FloatField, out_field: FloatField
-) -> None:  # type:ignore
+) -> None:  # type: ignore
     with computation(PARALLEL), interval(0, 2):
         out_field = in_field
 

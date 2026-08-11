@@ -17,7 +17,6 @@ from .topology import (
     swap_node_position_in_tree,
 )
 
-
 __all__ = [
     "AxisIterator",
     "no_data_dependencies_on_cartesian_axis",

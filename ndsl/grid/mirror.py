@@ -1,6 +1,5 @@
 from ndsl.constants import PI, RADIUS
 
-
 __all__ = ["mirror_grid"]
 
 RIGHT_HAND_GRID = False

@@ -6,7 +6,6 @@ from typing import Literal
 from ndsl import ndsl_log
 from ndsl.comm.mpi import MPI
 
-
 gt4py_config_module = "gt4py.cartesian.config"
 if gt4py_config_module in sys.modules:
     raise RuntimeError(
@@ -23,7 +22,7 @@ def _get_literal_precision(default: Literal["32", "64"] = "64") -> Literal["32",
 
     expected: list[Literal["32", "64"]] = ["32", "64"]
     if precision in expected:
-        return precision  # type: ignore
+        return precision
 
     ndsl_log.warning(
         f"Unexpected literal precision '{precision}', falling back to '{default}'. Valid values are {expected}."
@@ -39,7 +38,6 @@ os.environ["GT4PY_LITERAL_FLOAT_PRECISION"] = str(NDSL_GLOBAL_PRECISION)
 # Set cache names for default gt backends workflow
 import gt4py.cartesian.config  # noqa: E402
 
-
 if MPI is not None:
     import os
 
@@ -50,7 +48,6 @@ if MPI is not None:
 
 # Raise an error if DaCe backends aren't registered in GT4Py.
 import gt4py.cartesian.backend as gt_backend  # noqa: E402
-
 
 if not any([name.startswith("dace") for name in gt_backend.REGISTRY.names]):
     raise RuntimeError(

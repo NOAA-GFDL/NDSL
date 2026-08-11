@@ -8,7 +8,6 @@ from .thresholds import (
 )
 from .validation import ValidationCheckpointer
 
-
 __all__ = [
     "NullCheckpointer",
     "SnapshotCheckpointer",

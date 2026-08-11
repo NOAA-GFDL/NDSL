@@ -5,7 +5,6 @@ import xarray as xr
 
 from ndsl.quantity import Quantity
 
-
 # Calendar constant values copied from time_manager in FMS
 THIRTY_DAY_MONTHS = 1
 JULIAN = 2

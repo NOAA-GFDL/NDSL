@@ -7,7 +7,6 @@ from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm, ReductionOperator
 from ndsl.utils import ensure_contiguous, safe_assign_array
 
-
 T = TypeVar("T")
 
 

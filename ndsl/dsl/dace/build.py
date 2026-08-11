@@ -7,7 +7,6 @@ from ndsl.config import Backend
 from ndsl.dsl.caches.cache_location import get_cache_directory, get_cache_fullpath
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 
-
 ################################################
 # Distributed compilation
 

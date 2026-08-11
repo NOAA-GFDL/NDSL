@@ -16,7 +16,6 @@ from ndsl.utils import (
     safe_mpi_allocate,
 )
 
-
 BufferKey = tuple[Callable, Iterable[int], npt.DTypeLike]
 BUFFER_CACHE: dict[BufferKey, list["Buffer"]] = {}
 
