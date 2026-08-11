@@ -7,14 +7,12 @@ repos:
     rev: 26.5.1
     hooks:
       - id: black-jupyter
-        args: ["--target-version", "py312"]
         additional_dependencies: ["black[jupyter]"]
 
   - repo: https://github.com/pycqa/isort
     rev: 8.0.1
     hooks:
       - id: isort
-        args: ["--profile", "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.3.0
