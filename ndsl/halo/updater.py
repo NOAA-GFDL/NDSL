@@ -18,7 +18,6 @@ from ndsl.quantity import Quantity, QuantityHaloSpec
 from ndsl.types import AsyncRequest
 from ndsl.utils import device_synchronize
 
-
 if TYPE_CHECKING:
     from ndsl.comm.communicator import Communicator
 

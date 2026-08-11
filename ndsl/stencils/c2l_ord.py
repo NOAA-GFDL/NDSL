@@ -18,7 +18,6 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ
 from ndsl.grid.helper import GridData
 from ndsl.initialization.allocator import QuantityFactory
 
-
 A1 = 0.5625
 A2 = -0.0625
 C1 = 1.125

@@ -24,7 +24,6 @@ from ndsl.halo.data_transformer import QuantityHaloSpec
 from ndsl.initialization import QuantityFactory, SubtileGridSizer
 from ndsl.quantity import Quantity
 
-
 TRACER_DIM = "tracers"
 
 

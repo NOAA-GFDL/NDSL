@@ -10,7 +10,6 @@ import numpy.typing as npt
 from ndsl.config.backend import Backend
 from ndsl.optional_imports import cupy
 
-
 if cupy is None:
     import numpy as cupy
 

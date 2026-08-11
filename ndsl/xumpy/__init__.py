@@ -13,7 +13,6 @@ from ndsl.xumpy.alloc import empty, full, ones, random, zeros
 from ndsl.xumpy.count_nonzero import count_nonzero
 from ndsl.xumpy.minmax import max, max_on_horizontal_plane, min
 
-
 __all__ = [
     "max",
     "min",

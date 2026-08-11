@@ -52,7 +52,6 @@ from ndsl.dsl.dace.utils import (
 from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, State
 
-
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
 
 

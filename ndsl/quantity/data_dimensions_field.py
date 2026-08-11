@@ -16,10 +16,8 @@ from ndsl.internal.deferred_type import (
     get_lhs_name,
 )
 
-
 from gt4py.cartesian import gtscript  # isort: skip
 from gt4py.cartesian.gtscript import _FieldDescriptorMaker  # isort: skip
-
 
 DataDimensionIndex = int
 SparseNameMapping = dict[str, DataDimensionIndex]

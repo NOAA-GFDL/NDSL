@@ -11,7 +11,6 @@ from .off_grid_conditionals import (
 from .refine_transients import CartesianRefineTransients
 from .remove_loops import InlineVertical2DWrite
 
-
 __all__ = [
     "CartesianAxisMerge",
     "CartesianMergePipeline",

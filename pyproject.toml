@@ -80,7 +80,6 @@ max-line-length = 88
 [tool.isort]
 default_section = "THIRDPARTY"
 known_third_party = "f90nml,pytest,xarray,numpy,mpi4py,gt4py,dace"
-lines_after_imports = 2
 profile = "black"
 sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
 

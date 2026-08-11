@@ -5,7 +5,6 @@ from typing import TypeAlias
 
 from ndsl.types import IntegralNumber
 
-
 DataDimensions: TypeAlias = dict[str, IntegralNumber]
 
 

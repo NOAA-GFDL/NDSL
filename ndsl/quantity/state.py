@@ -15,7 +15,6 @@ from ndsl.initialization import DataDimensions, QuantityFactory
 from ndsl.quantity import Local, Quantity
 from ndsl.types import Number
 
-
 _ArrayLike: TypeAlias = Quantity | np.ndarray
 StateMemoryMapping: TypeAlias = dict[str, dict | _ArrayLike | None]
 OptionalQuantityType: TypeAlias = Quantity | None

@@ -12,7 +12,6 @@ from ndsl.comm.partitioner import get_tile_index
 from ndsl.quantity import Quantity
 from ndsl.restart._properties import RESTART_PROPERTIES, RestartProperties
 
-
 __all__ = ["open_restart"]
 
 RESTART_NAMES = ("fv_core.res", "fv_srf_wnd.res", "fv_tracer.res")

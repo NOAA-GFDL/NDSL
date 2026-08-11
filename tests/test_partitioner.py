@@ -18,7 +18,6 @@ from ndsl.constants import (
     TILE_DIM,
 )
 
-
 rank_list = []
 total_rank_list = []
 tile_index_list = []

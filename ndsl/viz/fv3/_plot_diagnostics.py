@@ -18,7 +18,6 @@ from scipy.stats import binned_statistic
 
 from ._constants import COORD_I_CENTER, COORD_J_CENTER, INIT_TIME_DIM
 
-
 STACK_DIMS = ["tile", INIT_TIME_DIM, COORD_I_CENTER, COORD_J_CENTER]
 
 

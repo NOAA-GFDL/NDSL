@@ -15,7 +15,6 @@ from .translate import (
     read_serialized_data,
 )
 
-
 __all__ = [
     "Grid",
     "ParallelTranslate",

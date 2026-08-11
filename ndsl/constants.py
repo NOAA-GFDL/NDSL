@@ -28,7 +28,7 @@ def _get_constant_version(
             f"Constants '{constants_as_str}' is not implemented, abort. Valid values are {expected}."
         )
 
-    return constants_as_str  # type: ignore
+    return constants_as_str
 
 
 CONST_VERSION = ConstantVersions[_get_constant_version()]
