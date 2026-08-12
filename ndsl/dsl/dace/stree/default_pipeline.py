@@ -36,7 +36,7 @@ class CPUPipeline(StreePipeline):
                     )
                 )
             if config.stree.refine_transients:
-                ppl_passes.append(CartesianRefineTransients())
+                ppl_passes.append(CartesianRefineTransients(backend))
         else:
             ppl_passes = passes
         super().__init__(
