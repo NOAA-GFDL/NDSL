@@ -3,7 +3,7 @@ import warnings
 import dace.data
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl import ndsl_log
+from ndsl import Backend, ndsl_log
 from ndsl.dsl.dace.stree.common import AxisIterator
 
 
@@ -24,9 +24,10 @@ def _change_index_of_tuple(
 
 def _reduce_cartesian_axis_size_to_1(
     axis: AxisIterator,
+    backend: Backend,
     transient_map_reads: dace.subsets.Range | None,
     transient_map_writes: dace.subsets.Range | None,
-    transient_data: dace.data.Data,
+    transient_data: dace.data.Array,
 ) -> bool:
     """Reduce dimension size of transient to 1 if all access (reads and writes)
     are atomic"""
@@ -59,7 +60,14 @@ def _reduce_cartesian_axis_size_to_1(
         value=1,
     )
     transient_data.set_shape(new_shape)
-    transient_data.lifetime = dace.dtypes.AllocationLifetime.State
+    transient_data.set_strides_from_layout(*backend.as_layout_map())
+
+    # CPU doesn't carry a memory pool - therefore any allocation will end
+    # up on the scope it is needed. Post refine, this can mean allocation every
+    # loop iteration. We push the transient on Persistent to make sure this does not happen.
+    if not backend.is_gpu_backend():
+        transient_data.lifetime = dace.dtypes.AllocationLifetime.Persistent
+
     return True
 
 
@@ -219,13 +227,14 @@ class CartesianRefineTransients(tn.ScheduleNodeTransformer):
         memory (e.g. halo) for the `RebuildMemletsFromContainers`!
     """
 
-    def __init__(self) -> None:
+    def __init__(self, backend: Backend) -> None:
         warnings.warn(
             "CartesianRefineTransients is a WIP. It's usage is *severely* limited "
             "and will most likely lead to bad numerics. Check the docs, check utest.",
             UserWarning,
             stacklevel=2,
         )
+        self._backend = backend
 
     def __str__(self) -> str:
         return "CartesianRefineTransients"
@@ -256,6 +265,7 @@ class CartesianRefineTransients(tn.ScheduleNodeTransformer):
                 # Refine axis down to 1
                 refined |= _reduce_cartesian_axis_size_to_1(
                     axis,
+                    self._backend,
                     collect_map.transients_range_reads[name],
                     collect_map.transients_range_writes[name],
                     data,
