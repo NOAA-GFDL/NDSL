@@ -60,7 +60,11 @@ def _reduce_cartesian_axis_size_to_1(
         value=1,
     )
     transient_data.set_shape(new_shape)
-    transient_data.set_strides_from_layout(*backend.as_layout_map())
+    # ⚠️ The below ddim calculation only works because we _know_ it's a 3D field
+    #    We need to somehow carry the information of the cartesian access here to go to 3D
+    transient_data.set_strides_from_layout(
+        *backend.as_layout_map(data_dimensions_size=len(new_shape) - 3)
+    )
 
     # CPU doesn't carry a memory pool - therefore any allocation will end
     # up on the scope it is needed. Post refine, this can mean allocation every

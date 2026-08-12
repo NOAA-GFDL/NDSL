@@ -1,3 +1,5 @@
+from dace.data import Array
+
 from ndsl import (
     NDSLRuntime,
     OptimizationConfig,
@@ -8,7 +10,7 @@ from ndsl import (
 )
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
-from ndsl.constants import I_DIM, J_DIM, K_DIM
+from ndsl.constants import I_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
 from ndsl.dsl.typing import Float, FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
@@ -33,6 +35,11 @@ def stencil_with_JK_offset(in_field: FloatField, out_field: FloatField) -> None:
         out_field = in_field[J + 1, K + 1] + 3
 
 
+def stencil_with_J_offset(in_field: FloatField, out_field: FloatField) -> None:
+    with computation(PARALLEL), interval(...):
+        out_field = in_field[J + 1] + 3
+
+
 def stencil_with_ddim(in_field: DDIM_TYPE, out_field: DDIM_TYPE) -> None:
     with computation(PARALLEL), interval(...):
         n = 0
@@ -49,6 +56,7 @@ class TransientRefineableCode(NDSLRuntime):
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
+                refine_transients=True,
             )
         )
         super().__init__(stencil_factory, optimization_config=config)
@@ -103,10 +111,17 @@ class TransientRefineableCode(NDSLRuntime):
         self.stencil_with_ddim(self.tmp_ddim, out_field)
 
 
+def _check_strides(array: Array, backend: Backend):
+    old_strides = array.strides
+    array.set_strides_from_layout(*backend.as_layout_map(len(array.shape) - 3))
+    assert old_strides == array.strides
+
+
 def test_stree_roundtrip_transient_is_refined() -> None:
     domain = (3, 3, 4)
+    backend = Backend.cpu()
     stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
-        domain[0], domain[1], domain[2], 0, backend=Backend.cpu()
+        domain[0], domain[1], domain[2], 0, backend=backend
     )
 
     in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
@@ -124,6 +139,7 @@ def test_stree_roundtrip_transient_is_refined() -> None:
     for array in precompiled_sdfg.sdfg.arrays.values():
         if array.transient:
             assert array.shape == (1, 1, 1)
+            _check_strides(array, backend)
 
     # Refine cartesian axis to buffers
     #   IJ merges - K is a buffer
@@ -136,6 +152,7 @@ def test_stree_roundtrip_transient_is_refined() -> None:
                 1,
                 domain[2] + 1,  # Quantity are domain size + 1
             )
+            _check_strides(array, backend)
 
     # I merges - JK buffer
     code.refine_to_JK_buffer(in_qty, out_qty)
@@ -147,10 +164,72 @@ def test_stree_roundtrip_transient_is_refined() -> None:
                 domain[1] + 1,  # Quantity are domain size + 1
                 domain[2] + 1,
             )
+            _check_strides(array, backend)
 
     # Refine to remaining data dimensions
     code.do_not_refine_datadims(in_qty_ddim, out_qty_ddim)
     precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
     for array in precompiled_sdfg.sdfg.arrays.values():
-        if array.transient:
-            assert array.shape == (1, 1, 1, DATADIM_SIZE) or len(array.shape) == 1
+        if array.transient and isinstance(array, Array):
+            assert array.shape == (1, 1, 1, DATADIM_SIZE)
+            _check_strides(array, backend)
+
+
+class TransientStrideTestCode(NDSLRuntime):
+    def __init__(
+        self, stencil_factory: StencilFactory, quantity_factory: QuantityFactory
+    ) -> None:
+        config = OptimizationConfig(
+            stree=OptimizationConfig.Tree(
+                enabled=True,
+                merger=OptimizationConfig.Tree.Merger(enabled=True),
+                refine_transients=True,
+            )
+        )
+        super().__init__(stencil_factory, optimization_config=config)
+        self.tmp = self.make_local(quantity_factory, [I_DIM, J_INTERFACE_DIM, K_DIM])
+        self.stencil = stencil_factory.from_dims_halo(
+            func=stencil,
+            compute_dims=[I_DIM, J_DIM, K_DIM],
+        )
+        self.stencil_with_J_offset = stencil_factory.from_dims_halo(
+            func=stencil_with_J_offset,
+            compute_dims=[I_DIM, J_DIM, K_DIM],
+        )
+
+    def __call__(self, in_field: Quantity, out_field: Quantity) -> None:
+        self.stencil(in_field, self.tmp)
+        self.stencil_with_J_offset(self.tmp, out_field)
+
+
+def test_stree_refined_strides_and_lifetime() -> None:
+    domain = (3, 4, 5)
+
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
+    )
+    in_qty = quantity_factory.ones([I_DIM, J_INTERFACE_DIM, K_DIM], "")
+    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+    code_ijk = TransientStrideTestCode(stencil_factory, quantity_factory)
+    code_ijk(in_qty, out_qty)
+    precompiled_sdfg_ijk = get_SDFG_and_purge(stencil_factory)
+
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:KJI")
+    )
+    in_qty = quantity_factory.ones([I_DIM, J_INTERFACE_DIM, K_DIM], "")
+    out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+    code_kji = TransientStrideTestCode(stencil_factory, quantity_factory)
+    code_kji(in_qty, out_qty)
+    precompiled_sdfg_kji = get_SDFG_and_purge(stencil_factory)
+
+    for array_ijk, array_kji in zip(
+        precompiled_sdfg_ijk.sdfg.arrays.values(),
+        precompiled_sdfg_kji.sdfg.arrays.values(),
+    ):
+        if array_ijk.transient and isinstance(array_ijk, Array):
+            # Both first axis refined - shape are differnt now - but J is the same
+            assert array_ijk.shape != array_kji.shape
+            assert array_ijk.shape[1] == array_kji.shape[1]
+            # Strides are still different
+            assert array_ijk.strides != array_kji.strides
