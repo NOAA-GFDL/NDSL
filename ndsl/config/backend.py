@@ -187,7 +187,9 @@ class Backend:
             len(loop_order_as_string) - 1 - loop_order_as_string.index(axis)
             for axis in "IJK"
         ]
-        data_dimensions = [ddim + len(cartesian) for ddim in range(data_dimensions_size)]
+        data_dimensions = [
+            ddim + len(cartesian) for ddim in range(data_dimensions_size)
+        ]
         return tuple(cartesian + data_dimensions)
 
     def is_orchestrated(self) -> bool:
