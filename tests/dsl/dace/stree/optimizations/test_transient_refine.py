@@ -113,7 +113,9 @@ class TransientRefineableCode(NDSLRuntime):
 
 def _check_strides(array: Array, backend: Backend):
     old_strides = array.strides
-    array.set_strides_from_layout(*backend.as_layout_map(len(array.shape) - 3))
+    array.set_strides_from_layout(
+        *backend.as_layout_map(data_dimensions_size=len(array.shape) - 3)
+    )
     assert old_strides == array.strides
 
 
