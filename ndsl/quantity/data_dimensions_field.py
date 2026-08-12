@@ -87,6 +87,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         cls,
         pre_registration_type: "DataDimensionsMarkupType",
         quantity_factory: QuantityFactory,
+        *,
         data_dimensions_names: list[str],
         name_mapping: SparseNameMapping | None = None,
         dtype: npt.DTypeLike = Float,
@@ -194,7 +195,7 @@ class DataDimensionsField(StencilTypeRegistrar):
         cls.register(
             markup_type,
             quantity_factory,
-            data_dimensions_names,
+            data_dimensions_names=data_dimensions_names,
             axes=axes,
             name_mapping=name_mapping,
             dtype=dtype,
