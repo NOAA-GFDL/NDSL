@@ -69,7 +69,7 @@ def _reduce_cartesian_axis_size_to_1(
     # CPU doesn't carry a memory pool - therefore any allocation will end
     # up on the scope it is needed. Post refine, this can mean allocation every
     # loop iteration. We push the transient on Persistent to make sure this does not happen.
-    if not backend.is_gpu_backend():
+    if backend.is_cpu_backend():
         transient_data.lifetime = dace.dtypes.AllocationLifetime.Persistent
 
     return True
