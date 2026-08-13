@@ -29,7 +29,6 @@ from ._plot_helpers import (
 )
 from .grid_metadata import GridMetadata, GridMetadataFV3, GridMetadataScream
 
-
 if os.getenv("CARTOPY_EXTERNAL_DOWNLOADER") != "natural_earth":
     # workaround to host our own global-scale coastline shapefile instead
     # of unreliable cartopy source
@@ -435,10 +434,8 @@ def center_longitudes(lon_array, central_longitude):
 
 def _validate_cube_shape(lat_shape, lon_shape, latb_shape, lonb_shape, array_shape):
     if (lon_shape[-1] != 6) or (lat_shape[-1] != 6) or (array_shape[-1] != 6):
-        raise ValueError(
-            """Last axis of each array must have six elements for
-            cubed-sphere tiles."""
-        )
+        raise ValueError("""Last axis of each array must have six elements for
+            cubed-sphere tiles.""")
 
     if (
         (lon_shape[0] != lat_shape[0])
@@ -446,10 +443,8 @@ def _validate_cube_shape(lat_shape, lon_shape, latb_shape, lonb_shape, array_sha
         or (lon_shape[1] != lat_shape[1])
         or (lat_shape[1] != array_shape[1])
     ):
-        raise ValueError(
-            """Horizontal axis lengths of lat and lon must be equal to
-            those of array."""
-        )
+        raise ValueError("""Horizontal axis lengths of lat and lon must be equal to
+            those of array.""")
 
     if (len(lonb_shape) != 3) or (len(latb_shape) != 3) or (len(array_shape) != 3):
         raise ValueError("Lonb, latb, and data_var each must be 3-dimensional.")
@@ -465,10 +460,8 @@ def _validate_cube_shape(lat_shape, lon_shape, latb_shape, lonb_shape, array_sha
         or (lonb_shape[1] != latb_shape[1])
         or (latb_shape[1] != (array_shape[1] + 1))
     ):
-        raise ValueError(
-            """Horizontal axis lengths of latb and lonb
-            must be one greater than those of array."""
-        )
+        raise ValueError("""Horizontal axis lengths of latb and lonb
+            must be one greater than those of array.""")
 
     if (len(lon_shape) != 3) or (len(lat_shape) != 3) or (len(array_shape) != 3):
         raise ValueError("Lon, lat, and data_var each must be 3-dimensional.")
@@ -522,10 +515,8 @@ def _plot_cube_axes(
     if plotting_function in ["pcolormesh", "contour", "contourf"]:
         _plotting_function = getattr(ax, plotting_function)
     else:
-        raise ValueError(
-            """Plotting functions only include pcolormesh, contour,
-            and contourf."""
-        )
+        raise ValueError("""Plotting functions only include pcolormesh, contour,
+            and contourf.""")
 
     if "vmin" not in kwargs:
         kwargs["vmin"] = np.nanmin(array)
@@ -588,10 +579,8 @@ def _plot_scream_axes(
         }
         _plotting_function = getattr(ax, mapping[plotting_function])
     else:
-        raise ValueError(
-            """Plotting functions only include pcolormesh, contour,
-            and contourf."""
-        )
+        raise ValueError("""Plotting functions only include pcolormesh, contour,
+            and contourf.""")
     if "vmin" not in kwargs:
         kwargs["vmin"] = np.nanmin(array)
 

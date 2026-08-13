@@ -29,7 +29,6 @@ from .basic_operations import (
 )
 from .corners import FillCornersBGrid
 
-
 __all__ = [
     "FillCornersBGrid",
     "add",

@@ -4,7 +4,6 @@ from .data_transformer import (
     HaloDataTransformerGPU,
 )
 
-
 __all__ = [
     "HaloDataTransformer",
     "HaloDataTransformerCPU",

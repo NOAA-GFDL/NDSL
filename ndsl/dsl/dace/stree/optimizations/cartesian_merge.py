@@ -1,16 +1,17 @@
-from dace.sdfg.analysis.schedule_tree import treenodes as tn
-
 from ndsl.config import Backend, BackendLoopOrder
+from ndsl.dsl.dace.stree.common import AxisIterator
 from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
-from ndsl.dsl.dace.stree.optimizations.offgrid_conditionals import (
+from ndsl.dsl.dace.stree.optimizations.off_grid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
     MergeConditionals,
+    RevertSimplifyConditional,
+    SimplifyConditional,
 )
+from ndsl.dsl.dace.stree.pipeline import StreePipeline
 
 
-class CartesianMerge(tn.ScheduleNodeTransformer):
+class CartesianMergePipeline(StreePipeline):
     """Merge Cartesian computation blocks.
 
     Args:
@@ -25,7 +26,6 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         overcompute: bool = True,
         merge_order: str = "default",
     ) -> None:
-        super().__init__()
         self._backend = backend
         self._overcompute = overcompute
         self._merge_order = merge_order
@@ -41,22 +41,26 @@ class CartesianMerge(tn.ScheduleNodeTransformer):
         ):
             raise ValueError(f"Unexpected merge order {self._merge_order}.")
 
-    def __str__(self) -> str:
-        return "CartesianMerge"
+        passes = []
 
-    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         axis_merge_order = self._axis_merge_order()
-        for axis in axis_merge_order:
-            InlineOffGridConditionals(axis).visit(node)
-        MergeConditionals().visit(node)
+
+        simplify_conditional = SimplifyConditional()
+        passes.append(simplify_conditional)
 
         for axis in axis_merge_order:
-            CartesianAxisMerge(
-                axis, overcompute=self._overcompute
-            ).visit_ScheduleTreeRoot(node)
+            passes.append(InlineOffGridConditionals(axis))
 
-        ExtractOffGridConditionals().visit(node)
-        MergeConditionals().visit(node)
+        passes.append(RevertSimplifyConditional(simplify_conditional))
+
+        for axis in axis_merge_order:
+            passes.append(CartesianAxisMerge(axis, overcompute=self._overcompute))
+
+        passes.append(ExtractOffGridConditionals())
+
+        passes.append(MergeConditionals())
+
+        super().__init__(passes=passes)
 
     def _axis_merge_order(self) -> tuple[AxisIterator, ...]:
         if self._merge_order == "default":

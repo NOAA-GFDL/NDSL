@@ -6,7 +6,6 @@ from ndsl.buffer import recv_buffer
 from ndsl.comm.local_comm import ConcurrencyError
 from ndsl.comm.mpi import MPI
 
-
 worker_function_list = []
 
 MAX_WORKER_ITERATIONS = 16

@@ -29,7 +29,6 @@ from ndsl import ndsl_log
 from ndsl.optional_imports import cupy as cp
 from ndsl.optional_imports import numpy_allocator as np_allocator
 
-
 _IS_HMM_AVAILABLE: bool | None = None
 
 

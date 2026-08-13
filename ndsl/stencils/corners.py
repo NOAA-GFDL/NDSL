@@ -8,7 +8,6 @@ from ndsl.constants import I_INTERFACE_DIM, J_INTERFACE_DIM, K_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
 
-
 FillCornersDirection: TypeAlias = Literal["i", "j"]
 GridType: TypeAlias = Literal["A", "B"]  # Arakawa grid type
 

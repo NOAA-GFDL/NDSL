@@ -1,6 +1,6 @@
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
-from ndsl.dsl.dace.stree.optimizations.common import AxisIterator
+from ndsl.dsl.dace.stree.common import AxisIterator
 
 
 def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
@@ -27,3 +27,15 @@ def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
             return True
 
     return False
+
+
+def is_off_grid_conditional(node: tn.IfScope) -> bool:
+    """Conditional is off-grid if the code block does not refer to the cartesian symbols"""
+    for symbol in node.condition.get_free_symbols():
+        if (
+            AxisIterator._I.as_str() in symbol
+            or AxisIterator._J.as_str() in symbol
+            or AxisIterator._K.as_str() in symbol
+        ):
+            return False
+    return True

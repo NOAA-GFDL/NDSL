@@ -174,12 +174,23 @@ class Backend:
     def as_safe_for_path(self) -> str:
         return self._humanly_readable.replace(":", "_")
 
-    def as_layout_map(self) -> tuple[int, ...]:
+    def as_layout_map(self, *, data_dimensions_size: int = 0) -> tuple[int, ...]:
+        """Give back the layout as a tuple of integer signifying the order of
+        the axis in the strides.
+
+        Args:
+            data_dimensions_size: when > 0 extends the map to include the data_dimensions
+            expected layout
+        """
         loop_order_as_string = self._loop_order.value
-        return tuple(
+        cartesian = [
             len(loop_order_as_string) - 1 - loop_order_as_string.index(axis)
             for axis in "IJK"
-        )
+        ]
+        data_dimensions = [
+            ddim + len(cartesian) for ddim in range(data_dimensions_size)
+        ]
+        return tuple(cartesian + data_dimensions)
 
     def is_orchestrated(self) -> bool:
         return self._strategy == BackendStrategy.ORCHESTRATION
@@ -189,6 +200,9 @@ class Backend:
 
     def is_gpu_backend(self) -> bool:
         return self._device == BackendTargetDevice.GPU
+
+    def is_cpu_backend(self) -> bool:
+        return self._device == BackendTargetDevice.CPU
 
     def equivalent_cpu_backend(self) -> "Backend":
         """Return the equivalent backend (same strategy, framework and loop order) but for CPU device."""

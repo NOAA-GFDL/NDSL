@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytest
 from dace import nodes
 
@@ -29,8 +31,10 @@ class OrchestratedCode(NDSLRuntime):
         methods_to_orchestrate = [
             "happy_case",
             "happy_case_2",
-            "blocked_by_else",
+            "simple_if_else",
             "blocked_by_other_nodes",
+            "simple_if_elseif_else",
+            "optional_field",
         ]
 
         for method in methods_to_orchestrate:
@@ -45,31 +49,61 @@ class OrchestratedCode(NDSLRuntime):
             func=stencils.copy, compute_dims=[I_DIM, J_DIM, K_DIM]
         )
 
-    def happy_case(self, in_field: FloatField, out_field: FloatField) -> None:
-        if in_field[0, 0, 0] > 0:
+    def happy_case(
+        self, flag: bool, in_field: FloatField, out_field: FloatField
+    ) -> None:
+        if flag:
             self._copy_stencil(in_field, out_field)
         self._copy_stencil(in_field, out_field)
 
-    def happy_case_2(self, in_field: FloatField, out_field: FloatField) -> None:
-        if not in_field[0, 0, 0] > 0:
+    def happy_case_2(
+        self, flag: bool, in_field: FloatField, out_field: FloatField
+    ) -> None:
+        if not flag:
             self._copy_stencil(in_field, out_field)
         self._copy_stencil(in_field, out_field)
 
-    def blocked_by_else(self, in_field: FloatField, out_field: FloatField) -> None:
+    def simple_if_else(
+        self, flag: bool, in_field: FloatField, out_field: FloatField
+    ) -> None:
         self._copy_stencil(in_field, out_field)
 
-        if in_field[0, 0, 0] > 0:
+        if flag:
             self._copy_stencil(in_field, out_field)
         else:
             self._copy_stencil(out_field, in_field)
 
-    def blocked_by_other_nodes(
-        self, in_field: FloatField, out_field: FloatField
+    def simple_if_elseif_else(
+        self, flag: bool, flag_b: bool, in_field: FloatField, out_field: FloatField
     ) -> None:
-        if in_field[0, 0, 0] > 0:
+        self._copy_stencil(in_field, out_field)
+
+        if flag:
+            self._copy_stencil(in_field, out_field)
+        elif flag_b:
+            self._copy_stencil(out_field, in_field)
+        else:
+            self._copy_stencil(out_field, in_field)
+
+    def blocked_by_other_nodes(
+        self, flag: bool, in_field: FloatField, out_field: FloatField
+    ) -> None:
+        if flag:
             in_field[:] = 42.0
             self._copy_stencil(in_field, out_field)
         self._copy_stencil(in_field, out_field)
+
+    def optional_field(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+        opt_field: Optional[FloatField] = None,
+    ) -> None:
+        self._copy_stencil(in_field, out_field)
+        if opt_field is None:
+            self._copy_stencil(out_field, in_field)
+        else:
+            self._copy_stencil(out_field, opt_field)
 
 
 class TestStreeInlineOffgridConditionals:
@@ -86,8 +120,9 @@ class TestStreeInlineOffgridConditionals:
         code = OrchestratedCode(stencil_factory)
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        in_flag = True
 
-        code.happy_case(in_quantity, out_quantity)
+        code.happy_case(in_flag, in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -104,8 +139,9 @@ class TestStreeInlineOffgridConditionals:
         code = OrchestratedCode(stencil_factory)
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        in_flag = True
 
-        code.happy_case_2(in_quantity, out_quantity)
+        code.happy_case_2(in_flag, in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -116,14 +152,15 @@ class TestStreeInlineOffgridConditionals:
         ]
         assert len(all_maps) == 1  # all merged and collapsed
 
-    def test_blocked_by_else(self, factories: Factories) -> None:
+    def test_if_else(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
 
         code = OrchestratedCode(stencil_factory)
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        in_flag = True
 
-        code.blocked_by_else(in_quantity, out_quantity)
+        code.simple_if_else(in_flag, in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -132,7 +169,30 @@ class TestStreeInlineOffgridConditionals:
             for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # 3 * IJK/KJI
+        assert len(all_maps) == 1
+
+    def test_if_elif_else(self, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+
+        code = OrchestratedCode(stencil_factory)
+        in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        in_flag = True
+
+        code.simple_if_elseif_else(in_flag, True, in_quantity, out_quantity)
+
+        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+
+        all_maps = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+
+        # Dev note:
+        #  ElseIf are parsed as Else then If. As long as it's the case
+        #  the merging will work. BUT the proper `ElseIf` is not implemented
+        assert len(all_maps) == 1
 
     def test_blocked_by_other_nodes(self, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -140,8 +200,9 @@ class TestStreeInlineOffgridConditionals:
         code = OrchestratedCode(stencil_factory)
         in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        in_flag = True
 
-        code.blocked_by_other_nodes(in_quantity, out_quantity)
+        code.blocked_by_other_nodes(in_flag, in_quantity, out_quantity)
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
@@ -152,7 +213,26 @@ class TestStreeInlineOffgridConditionals:
         ]
 
         # ⚠️ Dev note:
-        # This should be just `assert len(all_maps) == 2`, but currently, the K-loops
-        # can't merge because the K-iterators are different. To be fixed (and simplified
-        # here) with a subsequent commit.
+        # The first node in_field[:] = 42.0 unroll as a 3-axis loop. This _would_
+        # be mergeable but DaCe is not aware of the cartesianess and therefore names them
+        # __i0, __i1, __i2 - which trips our merger (for now)
         assert len(all_maps) == 3
+
+    def test_optional_field(self, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+
+        code = OrchestratedCode(stencil_factory)
+        in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        code.optional_field(in_quantity, out_quantity, out_quantity)
+
+        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+
+        all_maps = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+
+        assert len(all_maps) == 1

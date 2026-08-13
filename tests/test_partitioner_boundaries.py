@@ -16,7 +16,6 @@ from ndsl.constants import (
     WEST,
 )
 
-
 # the test examples for the 2x2 cube here were recorded by manually inspecting
 # a paper cube with printed ranks
 

@@ -8,7 +8,6 @@ from ndsl.config import Backend
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 
-
 if cupy is None:
     import numpy as cupy
 
@@ -48,3 +47,10 @@ class Local(Quantity):
         data = dace.data.create_datadescriptor(self._data)
         data.transient = True if not self._on_gpu else False
         return data
+
+    def __repr__(self) -> str:
+        return (
+            f"Local(\n    data=\n{self._data},\n    dims={self.dims},\n"
+            f"    units={self.units},\n    origin={self.origin},\n"
+            f"    extent={self.extent}\n)"
+        )

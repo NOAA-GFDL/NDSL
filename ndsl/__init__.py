@@ -22,7 +22,7 @@ from .dsl.stencil import (
 from .dsl.stencil_config import CompilationConfig, RunMode, StencilConfig
 from .halo.data_transformer import HaloExchangeSpec
 from .halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
-from .initialization import GridSizer, QuantityFactory, SubtileGridSizer
+from .initialization import DataDimensions, GridSizer, QuantityFactory, SubtileGridSizer
 from .monitor.netcdf_monitor import NetCDFMonitor
 from .monitor.diag_manager_monitor import DiagManagerMonitor
 from .performance.collector import NullPerformanceCollector, PerformanceCollector
@@ -45,7 +45,6 @@ from .dsl.dace.utils import (
 )
 from .dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from .dsl.dace.orchestration import orchestrate, orchestrate_function
-
 
 __all__ = [
     "hmm",
@@ -80,6 +79,7 @@ __all__ = [
     "HaloUpdateRequest",
     "VectorInterfaceHaloUpdater",
     "QuantityFactory",
+    "DataDimensions",
     "GridSizer",
     "SubtileGridSizer",
     "ndsl_log",

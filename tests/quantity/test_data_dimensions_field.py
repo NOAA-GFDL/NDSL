@@ -22,31 +22,30 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, function, interval
 from ndsl.dsl.typing import Float, FloatField, Int
 
-
 Tracers = DataDimensionsField.declare()
 TracersAndPlumes = DataDimensionsField.declare()
 GlobalTable = DataDimensionsField.declare()
 
 
-def _the_stencil_5D(in_field: TracersAndPlumes, out_field: FloatField, add: FloatField):
+def _the_stencil_5D(in_field: TracersAndPlumes, out_field: FloatField, add: FloatField) -> None:  # type: ignore
     with computation(PARALLEL), interval(...):
         out_field = in_field.A[1, 1] + add
 
 
-def _the_stencil_4D(in_tracers: Tracers, out_field: FloatField, add: FloatField):
+def _the_stencil_4D(in_tracers: Tracers, out_field: FloatField, add: FloatField) -> None:  # type: ignore
     with computation(PARALLEL), interval(...):
-        from __externals__ import C
+        from __externals__ import C  # type: ignore
 
         out_field = in_tracers[0, 0, 0][C] + add
 
 
-def _the_stencil_3D(in_field: FloatField, out_field: FloatField, add: FloatField):
+def _the_stencil_3D(in_field: FloatField, out_field: FloatField, add: FloatField) -> None:  # type: ignore
     with computation(PARALLEL), interval(...):
         out_field = in_field + add
 
 
-def _the_stencil_table(in_field: FloatField, table: GlobalTable, out_field: Tracers):
-    from __externals__ import tracer_count
+def _the_stencil_table(in_field: FloatField, table: GlobalTable, out_field: Tracers) -> None:  # type: ignore
+    from __externals__ import tracer_count  # type: ignore
 
     with computation(PARALLEL), interval(...):
         tracer_id = 0
@@ -56,12 +55,12 @@ def _the_stencil_table(in_field: FloatField, table: GlobalTable, out_field: Trac
 
 
 @function
-def _compute_function(in_field: FloatField, tracer_id: int, table: GlobalTable):  # type: ignore
+def _compute_function(in_field: FloatField, tracer_id: int, table: GlobalTable) -> None:  # type: ignore
     return in_field * tracer_id + table.A[5]
 
 
 def _the_stencil_function_with_table(
-    in_field: FloatField, table: GlobalTable, out_field: Tracers
+    in_field: FloatField, table: GlobalTable, out_field: Tracers  # type: ignore
 ) -> None:
     with computation(PARALLEL), interval(...):
         tracer_id = 0
@@ -73,9 +72,9 @@ def _the_stencil_function_with_table(
 
 
 def _the_stencil_function_with_table_and_externals(
-    in_field: FloatField, table: GlobalTable, out_field: Tracers
+    in_field: FloatField, table: GlobalTable, out_field: Tracers  # type: ignore
 ) -> None:
-    from __externals__ import tracer_count
+    from __externals__ import tracer_count  # type: ignore
 
     with computation(PARALLEL), interval(...):
         tracer_id = 0
@@ -89,7 +88,7 @@ def _the_stencil_function_with_table_and_externals(
 SETUP_DDIMS_ONCE = False
 
 
-def setup_data_dimensions(quantity_factory: QuantityFactory):
+def setup_data_dimensions(quantity_factory: QuantityFactory) -> None:
     quantity_factory.add_data_dimensions({"tracers": 8, "plumes": 3})
     quantity_factory.add_data_dimensions({"table_size": 42})
 
@@ -101,13 +100,23 @@ def setup_data_dimensions(quantity_factory: QuantityFactory):
 
     mappings = {"A": 0, "C": 2, "D": 3, "G": 6, "H": 7}
     DataDimensionsField.register(
-        Tracers, quantity_factory, ["tracers"], name_mapping=mappings
+        Tracers,
+        quantity_factory,
+        data_dimensions_names=["tracers"],
+        name_mapping=mappings,
     )
     DataDimensionsField.register(
-        TracersAndPlumes, quantity_factory, ["tracers", "plumes"], name_mapping=mappings
+        TracersAndPlumes,
+        quantity_factory,
+        data_dimensions_names=["tracers", "plumes"],
+        name_mapping=mappings,
     )
     DataDimensionsField.register(
-        GlobalTable, quantity_factory, ["table_size"], axes=[], dtype=np.int64
+        GlobalTable,
+        quantity_factory,
+        data_dimensions_names=["table_size"],
+        axes=[],
+        dtype=np.int64,
     )
 
 
@@ -226,7 +235,10 @@ def test_data_dimensions_registration_errors(domain: Domain) -> None:
         ),
     ):
         DataDimensionsField.register(
-            TracersAndPlumes, quantity_factory, ["tracers"], name_mapping={}
+            TracersAndPlumes,
+            quantity_factory,
+            data_dimensions_names=["tracers"],
+            name_mapping={},
         )
 
     with pytest.raises(
@@ -321,39 +333,6 @@ def test_data_dim_multi_line_declare(domain: Domain) -> None:
     )
 
 
-def test_register_deprecations(domain: Domain) -> None:
-    _, quantity_factory = get_factories_single_tile(
-        nx=domain[0],
-        ny=domain[1],
-        nz=domain[2],
-        nhalo=0,
-        backend=Backend("st:dace:cpu:IJK"),
-    )
-    quantity_factory.update_data_dimensions({"asdf": 3})
-
-    # case: declare() and register() separately
-    Field1 = DataDimensionsField.declare()
-    Field2 = DataDimensionsField.declare()
-    Field3 = DataDimensionsField.declare()
-
-    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
-        DataDimensionsField.register(Field1, quantity_factory, ["asdf"], {})
-    assert len(warnings) == 1
-
-    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
-        DataDimensionsField.register(Field2, quantity_factory, ["asdf"], {}, Float)
-    assert len(warnings) == 2
-
-    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
-        DataDimensionsField.register(Field3, quantity_factory, ["asdf"], {}, Float, [])
-    assert len(warnings) == 3
-
-    # case declare_and_register()
-    with pytest.deprecated_call(match="is not passed as keyword argument") as warnings:
-        F = DataDimensionsField.declare_and_register(quantity_factory, ["asdf"], {})
-    assert len(warnings) == 1
-
-
 def test_data_dim_ndsl_type(domain: Domain) -> None:
     _, quantity_factory = get_factories_single_tile(
         nx=domain[0],
@@ -363,11 +342,8 @@ def test_data_dim_ndsl_type(domain: Domain) -> None:
         backend=Backend("st:dace:cpu:IJK"),
     )
 
-    with pytest.raises(TypeError, match="Wrong size type for data dimension."):
-        # This _should_ be possible, i.e. we _should_ allow any `numbers.Integral`
-        # type here. To support this, we'll need changes GT4Py as well as in DaCe.
-        # For now, we are thus making sure that NDSL users get a clear error message.
-        quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
+    # Make sure we can declare data dimension sizes with NDSL `Int` type
+    quantity_factory.update_data_dimensions({"data_dimension": Int(3)})
 
 
 def test_data_dimension_table(domain: Domain) -> None:

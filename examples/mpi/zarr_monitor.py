@@ -16,7 +16,6 @@ from ndsl.config import backend_python
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.monitor import ZarrMonitor
 
-
 OUTPUT_PATH = "output/zarr_monitor.zarr"
 
 

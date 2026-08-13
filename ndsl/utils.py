@@ -11,7 +11,6 @@ import ndsl.constants as constants
 from ndsl.optional_imports import cupy as cp
 from ndsl.types import Allocator
 
-
 # Run a deviceSynchronize() to check
 # that the GPU is present and ready to run
 if cp is not None:
@@ -108,7 +107,7 @@ def safe_mpi_allocate(
     if cp and (allocator is cp.empty or allocator is cp.zeros):
         original_allocator = cp.cuda.get_allocator()
         cp.cuda.set_allocator(cp.get_default_memory_pool().malloc)
-        array = allocator(shape, dtype=dtype)  # type: ignore # np.ndarray
+        array = allocator(shape, dtype=dtype)
         cp.cuda.set_allocator(original_allocator)
     else:
         array = allocator(shape, dtype=dtype)  # type: ignore # np.ndarray

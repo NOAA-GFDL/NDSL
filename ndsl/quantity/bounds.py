@@ -6,7 +6,6 @@ import ndsl.constants as constants
 from ndsl.comm._boundary_utils import bound_default_slice, shift_boundary_slice_tuple
 from ndsl.optional_imports import cupy
 
-
 if cupy is None:
     import numpy as cupy
 

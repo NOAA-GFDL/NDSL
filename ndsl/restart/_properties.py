@@ -10,7 +10,6 @@ from ..constants import (
     K_SOIL_DIM,
 )
 
-
 RestartProperties = Mapping[str, Mapping[str, str | Iterable[str]]]
 RESTART_PROPERTIES: RestartProperties = {
     "accumulated_x_courant_number": {

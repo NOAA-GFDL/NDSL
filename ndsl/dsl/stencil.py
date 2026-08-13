@@ -256,12 +256,12 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
     return differences
 
 
-_DEPRECATED_STENCILS = []
-"""Collect deprecrated stencils"""
+_DEPRECATED_STENCILS: list[Callable] = []
+"""Collect deprecated stencils"""
 
 
 def deprecated_stencil(func: Callable) -> Callable:
-    """Wrapper (use as @deprecated_stencil) to mark a stencil as deprecated"""
+    """Wrapper to mark a stencil as deprecated: use as `@deprecated_stencil`."""
     _DEPRECATED_STENCILS.append(func)
     return func
 

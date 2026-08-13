@@ -14,7 +14,6 @@ from ndsl.stencils.column_operations import (
     column_min_ddim,
 )
 
-
 FloatField_ddim = set_4d_field_size(2, Float)
 
 

@@ -1,9 +1,7 @@
 from enum import Enum
-from numbers import Number
 
 from dace.memlet import Memlet
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
-from dace.symbolic import symbol
 
 from ndsl import ndsl_log
 
@@ -24,21 +22,6 @@ class AxisIterator(Enum):
             return other.startswith(self.as_str())
 
         return other == self.as_str()
-
-
-def normalize_cartesian_indexation(
-    index: Number | symbol, axis: AxisIterator
-) -> symbol:
-    """Return a normalize indexation symbol for cartesian indexation."""
-    if isinstance(index, Number):
-        # Special case for refined cartesian indices, i.e. when `index` is 0.
-        return index
-
-    rename_maps = {}
-    for symb in index.free_symbols:
-        if symb.name.startswith(axis.as_str()):
-            rename_maps[symb] = symbol(axis.as_str())
-    return index.subs(rename_maps)
 
 
 def no_data_dependencies_on_cartesian_axis(
@@ -64,39 +47,37 @@ def no_data_dependencies_on_cartesian_axis(
             # Dimension does not exist
             continue
 
-        previous_axis_index = normalize_cartesian_indexation(
-            write.subset[axis_index][0], axis
-        )
+        previous_axis_index = write.subset[axis_index][0]
 
         # Write-after-write with an offset case
         for other_write in other_writes.out_memlets:
-            if write.data == other_write.data:
-                if previous_axis_index != normalize_cartesian_indexation(
-                    other_write.subset[axis_index][0], axis
-                ):
-                    ndsl_log.debug(
-                        f"[{axis.name} Merge] Found write after write conflict "
-                        f"for {write.data} "
-                        f"with different offset to {axis.name} ("
-                        f"first write at {previous_axis_index}, "
-                        f"second write at {other_write.subset[axis_index][0]})"
-                    )
-                    return False
+            if (
+                write.data == other_write.data
+                and previous_axis_index != other_write.subset[axis_index][0]
+            ):
+                ndsl_log.debug(
+                    f"[{axis.name} Merge] Found write after write conflict "
+                    f"for {write.data} "
+                    f"with different offset to {axis.name} ("
+                    f"first write at {previous_axis_index}, "
+                    f"second write at {other_write.subset[axis_index][0]})"
+                )
+                return False
 
         # Read-after-write with an offset case
         for read in read_collector.in_memlets:
-            if write.data == read.data:
-                if previous_axis_index != normalize_cartesian_indexation(
-                    read.subset[axis_index][0], axis
-                ):
-                    ndsl_log.debug(
-                        f"[{axis.name} Merge] Found read after write conflict "
-                        f"for {write.data} "
-                        f"with different offset to {axis.name} ("
-                        f"write at {write.subset[axis_index][0]}, "
-                        f"read at {read.subset[axis_index][0]})"
-                    )
-                    return False
+            if (
+                write.data == read.data
+                and previous_axis_index != read.subset[axis_index][0]
+            ):
+                ndsl_log.debug(
+                    f"[{axis.name} Merge] Found read after write conflict "
+                    f"for {write.data} "
+                    f"with different offset to {axis.name} ("
+                    f"write at {write.subset[axis_index][0]}, "
+                    f"read at {read.subset[axis_index][0]})"
+                )
+                return False
 
     return True
 
@@ -146,14 +127,12 @@ def has_dynamic_memlets(first: tn.MapScope, second: tn.MapScope) -> bool:
     first_collector.visit(first)
     second_collector.visit(second)
     has_dynamic_memlets = any(
-        [
-            memlet.dynamic
-            for memlet in [
-                *first_collector.in_memlets,
-                *first_collector.out_memlets,
-                *second_collector.in_memlets,
-                *second_collector.out_memlets,
-            ]
+        memlet.dynamic
+        for memlet in [
+            *first_collector.in_memlets,
+            *first_collector.out_memlets,
+            *second_collector.in_memlets,
+            *second_collector.out_memlets,
         ]
     )
     return has_dynamic_memlets

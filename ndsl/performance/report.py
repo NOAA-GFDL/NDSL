@@ -122,9 +122,9 @@ def get_sypd(timing_info: dict[str, TimeReport], dt_atmos: float) -> float:
             isinstance(el, list) for el in timing_info["mainloop"].times
         )
         if is_list_of_list:
-            mainloop = np.mean(sum(timing_info["mainloop"].times, []))
+            mainloop = np.mean(sum(timing_info["mainloop"].times, []), dtype=float)
         else:
-            mainloop = np.mean(timing_info["mainloop"].times)
+            mainloop = np.mean(timing_info["mainloop"].times, dtype=float)
         speedup = dt_atmos / mainloop
         sypd = 1.0 / 365.0 * speedup
     else:

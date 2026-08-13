@@ -26,7 +26,6 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import Quantity, QuantityHaloSpec
 from ndsl.utils import device_synchronize
 
-
 # ------------------------------------------------------------------------
 # Simple pool of streams to lower the driver pressure
 # Use _pop/_push_stream to manipulate the pool

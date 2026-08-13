@@ -54,7 +54,7 @@ _ndsl_debugger = _set_debugger_from_config()
 """Global NDSL debugger, set to None if NDSL_DEBUG_CONFIG is unset"""
 
 
-def get_debugger(force_reload: bool = False) -> Debugger | None:
+def get_debugger(*, force_reload: bool = False) -> Debugger | None:
     if force_reload:
         global _ndsl_debugger
         _ndsl_debugger = _set_debugger_from_config()

@@ -29,18 +29,21 @@ def test_debug_config_loader_reads_yaml(monkeypatch, tmp_path: Path) -> None:
         )
     )
 
-    monkeypatch.setenv("NDSL_DEBUG_CONFIG", str(config_path))
-    debugger = debug_config._set_debugger_from_config()
+    with monkeypatch.context() as context:
+        context.setenv("NDSL_DEBUG_CONFIG", str(config_path))
+        debugger = debug_config._set_debugger_from_config()
 
-    assert isinstance(debugger, Debugger)
-    assert debugger.rank == 0
-    assert debugger.stencils_or_class == ["StencilA"]
-    assert debugger.track_parameter_by_name == ["alpha"]
-    assert debugger.save_compute_domain_only is True
-    assert debugger.dir_name == str(tmp_path)
-    assert debugger.save_all is False
-    assert debugger.save_from.ndslruntime_name == "StencilA"
-    assert debugger.save_from.start_from_call == 2
+        assert isinstance(debugger, Debugger)
+        assert debugger.rank == 0
+        assert debugger.stencils_or_class == ["StencilA"]
+        assert debugger.track_parameter_by_name == ["alpha"]
+        assert debugger.save_compute_domain_only is True
+        assert debugger.dir_name == str(tmp_path)
+        assert debugger.save_all is False
+        assert debugger.save_from.ndslruntime_name == "StencilA"
+        assert debugger.save_from.start_from_call == 2
+
+    assert debug_config.get_debugger() is None
 
 
 def test_debugger_start_from_threshold() -> None:
@@ -115,78 +118,81 @@ def test_ndslruntime_saves_data_for_python_backend(tmp_path: Path, monkeypatch) 
             }
         )
     )
-    monkeypatch.setenv("NDSL_DEBUG_CONFIG", str(config_path))
-    debugger = get_debugger(True)
 
-    stencil_factory, quantity_factory = get_factories_single_tile(
-        nx=5,
-        ny=5,
-        nz=3,
-        nhalo=0,
-        backend=Backend.python(),
-    )
+    with monkeypatch.context() as context:
+        context.setenv("NDSL_DEBUG_CONFIG", str(config_path))
+        debugger = get_debugger(force_reload=True)
 
-    A_ = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
-    B_ = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+        stencil_factory, quantity_factory = get_factories_single_tile(
+            nx=5,
+            ny=5,
+            nz=3,
+            nhalo=0,
+            backend=Backend.python(),
+        )
 
-    # Code definition needs to be done after `_set_debugger_from_config` so that the class
-    # gets the correct monkey patching of it's __call__ method
-    def copy_stencil(A: FloatField, B: FloatField):
-        with computation(PARALLEL), interval(...):
-            B = A
+        A_ = quantity_factory.ones(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+        B_ = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
 
-    class DebugCode(NDSLRuntime):
-        def __init__(self, stencil_factory, quantity_factory):
-            super().__init__(stencil_factory)
-            self.copy = stencil_factory.from_dims_halo(
-                copy_stencil, compute_dims=[I_DIM, J_DIM, K_DIM]
-            )
+        # Code definition needs to be done after `_set_debugger_from_config` so that the class
+        # gets the correct monkey patching of it's __call__ method
+        def copy_stencil(A: FloatField, B: FloatField):
+            with computation(PARALLEL), interval(...):
+                B = A
 
-        def __call__(self, A: FloatField, B: FloatField):
-            self.copy(A, B)
+        class DebugCode(NDSLRuntime):
+            def __init__(self, stencil_factory, quantity_factory):
+                super().__init__(stencil_factory)
+                self.copy = stencil_factory.from_dims_halo(
+                    copy_stencil, compute_dims=[I_DIM, J_DIM, K_DIM]
+                )
 
-    code = DebugCode(stencil_factory, quantity_factory)
-    code(A_, B_)
+            def __call__(self, A: FloatField, B: FloatField):
+                self.copy(A, B)
 
-    print(tmp_path)
+        code = DebugCode(stencil_factory, quantity_factory)
+        code(A_, B_)
 
-    qualname_of_locals = "test_ndslruntime_saves_data_for_python_backend.<locals>"
+        qualname_of_locals = "test_ndslruntime_saves_data_for_python_backend.<locals>"
 
-    input_file = (
-        tmp_path
-        / "debug"
-        / "savepoints"
-        / "R0"
-        / f"S000000_{qualname_of_locals}.DebugCode-Call0-In.nc4"
-    )
-    output_file = (
-        tmp_path
-        / "debug"
-        / "savepoints"
-        / "R0"
-        / f"S000003_{qualname_of_locals}.DebugCode-Call0-Out.nc4"
-    )
-    track_file_a = (
-        tmp_path
-        / "debug"
-        / "tracks"
-        / "A"
-        / "R0"
-        / f"0_A_{qualname_of_locals}.DebugCode-In.nc4"
-    )
-    track_file_b = (
-        tmp_path
-        / "debug"
-        / "tracks"
-        / "B"
-        / "R0"
-        / f"0_B_{qualname_of_locals}.DebugCode-In.nc4"
-    )
+        input_file = (
+            tmp_path
+            / "debug"
+            / "savepoints"
+            / "R0"
+            / f"S000000_{qualname_of_locals}.DebugCode-Call0-In.nc4"
+        )
+        output_file = (
+            tmp_path
+            / "debug"
+            / "savepoints"
+            / "R0"
+            / f"S000003_{qualname_of_locals}.DebugCode-Call0-Out.nc4"
+        )
+        track_file_a = (
+            tmp_path
+            / "debug"
+            / "tracks"
+            / "A"
+            / "R0"
+            / f"0_A_{qualname_of_locals}.DebugCode-In.nc4"
+        )
+        track_file_b = (
+            tmp_path
+            / "debug"
+            / "tracks"
+            / "B"
+            / "R0"
+            / f"0_B_{qualname_of_locals}.DebugCode-In.nc4"
+        )
 
-    assert input_file.exists(), "NDSLRuntime should save input data"
-    assert output_file.exists(), "NDSLRuntime should save output data"
-    assert track_file_a.exists(), "Debugger should track A input data"
-    assert track_file_b.exists(), "Debugger should track B input data"
-    assert debugger
-    assert debugger.step == 4
-    assert (A_.field[:] == B_.field[:]).all()
+        assert input_file.exists(), "NDSLRuntime should save input data"
+        assert output_file.exists(), "NDSLRuntime should save output data"
+        assert track_file_a.exists(), "Debugger should track A input data"
+        assert track_file_b.exists(), "Debugger should track B input data"
+        assert debugger
+        assert debugger.step == 4
+        assert (A_.field[:] == B_.field[:]).all()
+
+    # Unset the debugger
+    assert debug_config.get_debugger(force_reload=True) is None

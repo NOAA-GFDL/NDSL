@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import TypeAlias
+
+from ndsl.types import IntegralNumber
+
+DataDimensions: TypeAlias = dict[str, IntegralNumber]
 
 
 @dataclass
@@ -13,7 +18,7 @@ class GridSizer(ABC):
     """Length of the z compute dimension for produced arrays."""
     n_halo: int
     """Number of horizontal halo points for produced arrays."""
-    data_dimensions: dict[str, int]
+    data_dimensions: DataDimensions
     """Name/Lengths pair of any non-x/y/z dimensions, such as land or radiation dimensions."""
 
     @abstractmethod
