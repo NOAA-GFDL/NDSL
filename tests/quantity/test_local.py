@@ -116,6 +116,9 @@ class TheCode(NDSLRuntime):
         self._quantity_factory = quantity_factory
         self._locals = GoodLocals.make_locals(quantity_factory)
         self._a_local = self.make_local(quantity_factory, [I_DIM, J_DIM, K_DIM])
+        self._a_constant = self.make_constant_quantity(
+            np.array([1.0, 2.0, 3.0, 4.0, 5.0]), self._quantity_factory, [K_DIM]
+        )
 
     def allocate_bad_locals(self) -> None:
         self._bad = BadLocals.make_locals(self._quantity_factory)
@@ -203,3 +206,23 @@ def test_nested_local_state_as_regular_state() -> None:
 
     # Ensure that locals have been correctly reset
     NestedLocals._check_only_locals()
+
+
+def test_constant_quantity() -> None:
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        3, 3, 5, 0, backend=Backend.python()
+    )
+
+    the_code = TheCode(stencil_factory, quantity_factory)
+
+    the_code()
+
+    # Allow read outside of Code without a warning
+    _ = the_code._a_constant[:]
+
+    # Disallow writes
+    with pytest.raises(
+        RuntimeError,
+        match="ConstantQuantity cannot be written too after initialization*",
+    ):
+        the_code._a_constant[:] = 3
