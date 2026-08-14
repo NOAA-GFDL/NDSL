@@ -2,7 +2,7 @@ import copy
 import dataclasses
 import json
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
@@ -99,11 +99,12 @@ def gather_timing_data(
     return timing_info
 
 
-def write_to_timestamped_json(experiment: Report) -> None:
-    now = datetime.now()
-    filename = now.strftime("%Y-%m-%d-%H-%M-%S")
-    with open(filename + ".json", "w") as outfile:
+def write_to_timestamped_json(experiment: Report) -> str:
+    now = datetime.now(UTC)
+    filename = now.strftime("%Y-%m-%d-%H-%M-%S") + ".json"
+    with open(filename, "w") as outfile:
         json.dump(dataclasses.asdict(experiment), outfile, sort_keys=True, indent=4)
+    return filename
 
 
 def gather_hit_counts(

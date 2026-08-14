@@ -6,6 +6,7 @@ from typing import Protocol
 
 import numpy as np
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm
 from ndsl.config import Backend
 from ndsl.optional_imports import cupy as cp
@@ -77,6 +78,21 @@ class PerformanceCollector(AbstractPerformanceCollector):
         self.hits_per_step.append(self.timestep_timer.hits)
         self.timestep_timer.reset()
 
+    def clock_timestep(self, name: str):
+        class Wrapper:
+            def __init__(self, collector: PerformanceCollector, name: str) -> None:
+                self.collector = collector
+                self.name = name
+
+            def __enter__(self) -> None:
+                self.collector.timestep_timer.start(name)
+
+            def __exit__(self, type, value, traceback):  # type: ignore[no-untyped-def]
+                self.collector.timestep_timer.stop(name)
+                self.collector.collect_performance()
+
+        return Wrapper(self, name)
+
     def write_out_rank_0(
         self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
     ) -> None:
@@ -109,7 +125,8 @@ class PerformanceCollector(AbstractPerformanceCollector):
                 dt_atmos=dt_atmos,
                 sim_status=sim_status,
             )
-            write_to_timestamped_json(report)
+            filename = write_to_timestamped_json(report)
+            ndsl_log.info(f"Performance report in : {filename}")
         else:
             pass
 

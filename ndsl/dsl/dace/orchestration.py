@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numbers
 import os
+import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from pprint import pformat
@@ -12,7 +13,7 @@ from dace import compiletime as DaceCompiletime
 from dace import dtypes
 from dace import method as dace_method
 from dace import nodes
-from dace import program as dace_program
+from dace import program as dace_program_wrapper
 from dace.dtypes import DeviceType as DaceDeviceType
 from dace.dtypes import ScheduleType
 from dace.dtypes import StorageType as DaceStorageType
@@ -28,6 +29,7 @@ from gt4py import storage as gt_storage
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.comm.mpi import MPI
+from ndsl.dsl.dace.bench.executable_recorder import DaceExecutableRecorder
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
@@ -430,7 +432,7 @@ def _build_sdfg(
     if mode == DaCeOrchestration.Build:
         MPI.COMM_WORLD.Barrier()  # Protect against early exist which kill SLURM jobs
         ndsl_log.info(f"{DaCeProgress.default_prefix(config)} Build only, exiting.")
-        exit(0)
+        sys.exit(0)
 
     if mode == DaCeOrchestration.BuildAndRun:
         if not is_compiling:
@@ -457,6 +459,10 @@ def _build_sdfg(
                 )
 
 
+# Temporary hack to not record things all the time
+_RECORD_ONCE: set[DaceProgram] = set()
+
+
 def _call_sdfg(
     dace_program: DaceProgram,
     sdfg: SDFG,
@@ -467,6 +473,11 @@ def _call_sdfg(
 ) -> list | None:
     """Dispatch to either SDFG execution and/or build."""
 
+    bde = None
+    if dace_program not in _RECORD_ONCE:
+        bde = DaceExecutableRecorder()
+        _RECORD_ONCE.add(dace_program)
+
     with config.performance_collector.timestep_timer.clock(f"{dace_program.name}.Call"):
         # Check if we need to build first
         mode = config.get_orchestrate()
@@ -474,6 +485,8 @@ def _call_sdfg(
             mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
             and dace_program not in config.loaded_dace_executables  # already cached
         ):
+            if bde:
+                bde.set_gt4py_sdfg(sdfg)
             _build_sdfg(dace_program, sdfg, config, optimization_config, args, kwargs)
 
         if mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
@@ -504,6 +517,10 @@ def _call_sdfg(
                     )
                     exe.arguments_hash = hash_
                     exe.arguments = marshalled_sdfg_args
+
+            if bde:
+                bde.set_exe_args(exe)
+                bde.save()
 
             # Calling into the C
             with config.performance_collector.timestep_timer.clock(
@@ -603,7 +620,7 @@ class _LazyComputepathFunction(SDFGConvertible):
         self.func = func
         self.config = config
         self.optimization_config = optimization_config
-        self.daceprog: DaceProgram = dace_program(self.func)
+        self.daceprog: DaceProgram = dace_program_wrapper(self.func)
         self._sdfg = None
 
     def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
