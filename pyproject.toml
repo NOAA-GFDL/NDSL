@@ -14,7 +14,25 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13"
 ]
-dynamic = ["dependencies", "version"]
+dependencies = [
+  "dace",
+  "gt4py",
+  "mpi4py>=4.1",
+  "cftime",
+  "xarray>=2025.01.2",  # datatree + fixes
+  "f90nml>=1.1.0",
+  "netcdf4==1.7.2",
+  "scipy",  # restart capacities only
+  "h5netcdf",  # for xarray
+  "h5py",  # for h5netcdf >= 1.8
+  "dask",  # for xarray
+  "numpy>=2",
+  "matplotlib",  # for plotting in boilerplate
+  "cartopy",  # for plotting in ndsl.viz
+  "pytest-subtests",  # for translate tests
+  "dacite"  # for state
+]
+dynamic = ["version"]
 license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
@@ -150,3 +168,7 @@ include = ["ndsl", "ndsl.*"]
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
 tag.strict = "true"  # only consider tags with at least one dot (e.g. v1.0, 2025.06.03)
+
+[tool.uv.sources]
+dace = {path = "./external/dace", editable = true}
+gt4py = {path = "./external/gt4py", editable = true}
