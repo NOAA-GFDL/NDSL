@@ -49,7 +49,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install Python packages
-        run: uv sync --no-dev --extra [${{matrix.extra}}]
+        run: uv sync --no-dev --extra ${{matrix.extra}}
 
       - name: Install MPI
         if: ${{!contains(matrix.extra, 'pyfms')}}
