@@ -48,18 +48,18 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
+      - name: Install pyFMS dependencies (includes system MPI)
+        if: contains(matrix.extra, 'pyfms')
+        run: |
+          sudo apt-get update
+          sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
+
       - name: Install Python packages
         run: uv sync --no-dev --extra ${{matrix.extra}}
 
       - name: Install MPI
         if: ${{!contains(matrix.extra, 'pyfms')}}
         run: uv pip install openmpi
-
-      - name: Install pyFMS dependencies (includes system MPI)
-        if: contains(matrix.extra, 'pyfms')
-        run: |
-          sudo apt-get update
-          sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Run serial cpu tests
         run: uv run coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
