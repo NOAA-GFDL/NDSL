@@ -3,6 +3,7 @@ import collections
 import numpy as np
 import xarray as xr
 
+from ndsl import Quantity
 from ndsl.checkpointer.base import ArrayLike, Checkpointer, SavepointName, VariableName
 from ndsl.optional_imports import cupy as cp
 
@@ -65,7 +66,10 @@ class SnapshotCheckpointer(Checkpointer):
 
     def __call__(self, savepoint_name: SavepointName, **kwargs: ArrayLike) -> None:
         for name, value in kwargs.items():
-            array_data = np.copy(value.data)
+            if isinstance(value, Quantity):
+                array_data = np.copy(value[:])
+            else:
+                array_data = np.copy(value.data)
             self._snapshots.store(savepoint_name, name, array_data)
 
     @property
