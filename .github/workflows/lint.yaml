@@ -32,8 +32,11 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit_${{ env.pythonLocation }}_${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Install pre-commit
-        run: pip install pre-commit
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Run lint via pre-commit
-        run: pre-commit run --show-diff-on-failure --color=always --all-files
+        run: uv run pre-commit run --show-diff-on-failure --color=always --all-files
