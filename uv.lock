@@ -3,10 +3,10 @@ revision = 3
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'win32'",
     "python_full_version >= '3.13' and sys_platform == 'emscripten'",
-    "python_full_version < '3.13' and sys_platform == 'emscripten'",
     "python_full_version >= '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.13' and sys_platform == 'win32'",
+    "python_full_version < '3.13' and sys_platform == 'emscripten'",
     "python_full_version < '3.13' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
@@ -542,14 +542,16 @@ wheels = [
 
 [[package]]
 name = "dace"
-version = "2.0.0a5"
-source = { editable = "external/dace" }
+version = "2.0.0a6"
+source = { git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6#e432a8c69f05b3e7cbaae5aad85cf371a82f8c27" }
 dependencies = [
     { name = "astunparse" },
     { name = "dill" },
     { name = "fparser" },
+    { name = "ml-dtypes" },
     { name = "networkx" },
     { name = "numpy" },
+    { name = "ordered-set" },
     { name = "packaging" },
     { name = "ply" },
     { name = "pyreadline", marker = "sys_platform == 'win32'" },
@@ -557,57 +559,6 @@ dependencies = [
     { name = "sympy" },
     { name = "typing-extensions" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "absl-py", marker = "extra == 'ml-testing'" },
-    { name = "absl-py", marker = "extra == 'testing'" },
-    { name = "astunparse" },
-    { name = "click", marker = "extra == 'ml-testing'" },
-    { name = "click", marker = "extra == 'testing'" },
-    { name = "coverage", marker = "extra == 'ml-testing'" },
-    { name = "coverage", marker = "extra == 'testing'" },
-    { name = "dill" },
-    { name = "efficientnet-pytorch", marker = "extra == 'ml-testing'" },
-    { name = "fparser", specifier = ">=0.1.3,!=0.2.3" },
-    { name = "ipykernel", marker = "extra == 'ml-testing'" },
-    { name = "ipykernel", marker = "extra == 'testing'" },
-    { name = "jax", marker = "extra == 'ml-testing'", specifier = "<=0.6.2" },
-    { name = "jinja2", marker = "extra == 'docs'", specifier = "<3.2.0" },
-    { name = "nbconvert", marker = "extra == 'ml-testing'" },
-    { name = "nbconvert", marker = "extra == 'testing'" },
-    { name = "networkx", specifier = ">=2.5,<=3.5" },
-    { name = "ninja", marker = "extra == 'ml'" },
-    { name = "numpy" },
-    { name = "onnx", marker = "extra == 'ml'" },
-    { name = "onnxruntime", marker = "extra == 'ml'" },
-    { name = "onnxscript", marker = "extra == 'ml'" },
-    { name = "onnxsim", marker = "extra == 'ml'" },
-    { name = "opt-einsum", marker = "extra == 'ml-testing'" },
-    { name = "opt-einsum", marker = "extra == 'testing'" },
-    { name = "packaging" },
-    { name = "ply" },
-    { name = "pre-commit", marker = "extra == 'linting'", specifier = "==4.1.0" },
-    { name = "protobuf", marker = "extra == 'ml'" },
-    { name = "pymlir", marker = "extra == 'ml-testing'" },
-    { name = "pymlir", marker = "extra == 'testing'" },
-    { name = "pyreadline", marker = "sys_platform == 'win32'" },
-    { name = "pytest-cov", marker = "extra == 'ml-testing'" },
-    { name = "pytest-cov", marker = "extra == 'testing'" },
-    { name = "pytest-timeout", marker = "extra == 'ml-testing'" },
-    { name = "pytest-timeout", marker = "extra == 'testing'" },
-    { name = "pyyaml" },
-    { name = "scipy", marker = "extra == 'ml-testing'" },
-    { name = "scipy", marker = "extra == 'testing'" },
-    { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'" },
-    { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = ">=0.5.1" },
-    { name = "sympy", specifier = ">=1.9" },
-    { name = "torch", marker = "extra == 'ml'" },
-    { name = "transformers", marker = "extra == 'ml-testing'", specifier = "==4.50" },
-    { name = "typing-extensions" },
-    { name = "yapf", marker = "extra == 'linting'", specifier = "==0.43.0" },
-]
-provides-extras = ["ml", "testing", "ml-testing", "docs", "linting"]
 
 [[package]]
 name = "dacite"
@@ -897,7 +848,8 @@ wheels = [
 
 [[package]]
 name = "gt4py"
-source = { editable = "external/gt4py" }
+version = "1.2.0.post22+511a7ab9"
+source = { git = "https://github.com/Gridtools/gt4py.git?rev=511a7ab966f3b2ccc61b897240afe64adb322cf4#511a7ab966f3b2ccc61b897240afe64adb322cf4" }
 dependencies = [
     { name = "array-api-compat" },
     { name = "attrs" },
@@ -929,165 +881,6 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "versioningit" },
     { name = "xxhash" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "array-api-compat", specifier = ">=1.13" },
-    { name = "attrs", specifier = ">=21.3" },
-    { name = "black", specifier = ">=25.11" },
-    { name = "boltons", specifier = ">=20.1" },
-    { name = "cached-property", specifier = ">=1.5.1" },
-    { name = "clang-format", marker = "extra == 'standard'", specifier = ">=18.1" },
-    { name = "click", specifier = ">=8.0.0" },
-    { name = "cmake", specifier = ">=3.22" },
-    { name = "cupy", marker = "extra == 'rocm6'", specifier = ">=13.4.1,<14.0" },
-    { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
-    { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
-    { name = "cupy-rocm-7-0", marker = "extra == 'rocm7'", specifier = ">=14.0" },
-    { name = "cytoolz", specifier = ">=1.0.1" },
-    { name = "dace", specifier = ">=2.0.0a5" },
-    { name = "deepdiff", specifier = ">=8.1.0" },
-    { name = "devtools", specifier = ">=0.6" },
-    { name = "factory-boy", specifier = ">=3.3.3" },
-    { name = "filelock", specifier = ">=3.18.0" },
-    { name = "frozendict", specifier = ">=2.3" },
-    { name = "gridtools-cpp", specifier = "==2.*,>=2.3.9" },
-    { name = "gt4py", extras = ["cuda12"], marker = "extra == 'jax-cuda12'" },
-    { name = "gt4py", extras = ["cuda13"], marker = "extra == 'jax-cuda13'" },
-    { name = "gt4py", extras = ["jax", "standard", "testing"], marker = "extra == 'cartesian'" },
-    { name = "gt4py", extras = ["jax", "standard", "testing"], marker = "extra == 'next'" },
-    { name = "hypothesis", marker = "extra == 'testing'", specifier = ">=6.93" },
-    { name = "jax", marker = "python_full_version >= '3.14' and extra == 'jax'", specifier = ">=0.9.1" },
-    { name = "jax", marker = "python_full_version < '3.14' and extra == 'jax'", specifier = ">=0.4.26" },
-    { name = "jax", extras = ["cuda12-local"], marker = "extra == 'jax-cuda12'", specifier = ">=0.6.0" },
-    { name = "jax", extras = ["cuda13-local"], marker = "extra == 'jax-cuda13'", specifier = ">=0.7.0" },
-    { name = "jinja2", specifier = ">=3.0.0" },
-    { name = "lark", specifier = ">=1.1.2" },
-    { name = "mako", specifier = ">=1.3" },
-    { name = "nanobind", specifier = ">=1.9.0" },
-    { name = "ninja", specifier = ">=1.11" },
-    { name = "numpy", marker = "python_full_version < '3.14'", specifier = ">=2.0.0" },
-    { name = "numpy", marker = "python_full_version >= '3.14'", specifier = ">=2.3.2" },
-    { name = "ordered-set", specifier = ">=4.1.0" },
-    { name = "packaging", specifier = ">=20.0" },
-    { name = "pybind11", specifier = ">=3.0.3" },
-    { name = "pytest", marker = "extra == 'testing'", specifier = ">=7.0" },
-    { name = "scipy", marker = "extra == 'standard'", specifier = ">=1.16.1" },
-    { name = "setuptools", specifier = ">=77.0.3" },
-    { name = "tabulate", specifier = ">=0.8.10" },
-    { name = "toolz", specifier = ">=0.12.1" },
-    { name = "typing-extensions", specifier = ">=4.12.0" },
-    { name = "versioningit", specifier = ">=3.1.1" },
-    { name = "xxhash", specifier = ">=3.5.0" },
-]
-provides-extras = ["cartesian", "cuda12", "cuda13", "jax", "jax-cuda12", "jax-cuda13", "next", "rocm6", "rocm7", "standard", "testing"]
-
-[package.metadata.requires-dev]
-build = [
-    { name = "cython", specifier = ">=3.0.0" },
-    { name = "pip", specifier = ">=22.1.1" },
-    { name = "setuptools", specifier = ">=77.0.3" },
-    { name = "wheel", specifier = ">=0.33.6" },
-]
-dev = [
-    { name = "atlas4py", specifier = ">=0.41", index = "https://test.pypi.org/simple" },
-    { name = "coverage", extras = ["toml"], specifier = ">=7.6.1" },
-    { name = "cython", specifier = ">=3.0.0" },
-    { name = "esbonio", specifier = ">=0.16.0" },
-    { name = "hypothesis", specifier = ">=6.0.0" },
-    { name = "jupytext", specifier = ">=1.14" },
-    { name = "matplotlib", specifier = ">=3.9.0" },
-    { name = "mypy", extras = ["faster-cache"], specifier = ">=1.13.0" },
-    { name = "myst-parser", specifier = ">=4.0.0" },
-    { name = "nbmake", specifier = ">=1.4.6" },
-    { name = "nox", specifier = ">=2025.2.9" },
-    { name = "nvtx", specifier = ">=0.2.14" },
-    { name = "packaging" },
-    { name = "pip", specifier = ">=22.1.1" },
-    { name = "pre-commit", specifier = ">=4.0.1" },
-    { name = "pygments", specifier = ">=2.7.3" },
-    { name = "pytest", specifier = ">=8.0.1" },
-    { name = "pytest-benchmark", specifier = ">=5.0.0" },
-    { name = "pytest-cache", specifier = ">=1.0" },
-    { name = "pytest-cov", specifier = ">=5.0.0" },
-    { name = "pytest-factoryboy", specifier = ">=2.6.1" },
-    { name = "pytest-instafail", specifier = ">=0.5.0" },
-    { name = "pytest-xdist", extras = ["psutil"], specifier = ">=3.5.0" },
-    { name = "pyyaml", specifier = ">=6.0.1" },
-    { name = "ruff", specifier = ">=0.8.0" },
-    { name = "setuptools", specifier = ">=77.0.3" },
-    { name = "sphinx", specifier = ">=7.3.7" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.0.1" },
-    { name = "sphinx-toolbox", specifier = ">=3.8.1" },
-    { name = "tach", specifier = ">=0.23.0" },
-    { name = "typer", specifier = ">=0.16.0" },
-    { name = "types-decorator", specifier = ">=5.1.8" },
-    { name = "types-docutils", specifier = ">=0.21.0" },
-    { name = "types-pytz", specifier = ">=2024.2.0" },
-    { name = "types-pyyaml", specifier = ">=6.0.10" },
-    { name = "types-tabulate", specifier = ">=0.8.10" },
-    { name = "validate-pyproject-schema-store", extras = ["all"], specifier = ">=2025.6.13" },
-    { name = "viztracer", specifier = ">=1.1.1" },
-    { name = "wheel", specifier = ">=0.33.6" },
-]
-docs = [
-    { name = "esbonio", specifier = ">=0.16.0" },
-    { name = "jupytext", specifier = ">=1.14" },
-    { name = "matplotlib", specifier = ">=3.9.0" },
-    { name = "myst-parser", specifier = ">=4.0.0" },
-    { name = "pygments", specifier = ">=2.7.3" },
-    { name = "sphinx", specifier = ">=7.3.7" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.0.1" },
-    { name = "sphinx-toolbox", specifier = ">=3.8.1" },
-]
-frameworks = [{ name = "atlas4py", specifier = ">=0.41", index = "https://test.pypi.org/simple" }]
-lint = [
-    { name = "pre-commit", specifier = ">=4.0.1" },
-    { name = "ruff", specifier = ">=0.8.0" },
-    { name = "tach", specifier = ">=0.23.0" },
-    { name = "validate-pyproject-schema-store", extras = ["all"], specifier = ">=2025.6.13" },
-]
-profiling = [
-    { name = "nvtx", specifier = ">=0.2.14" },
-    { name = "viztracer", specifier = ">=1.1.1" },
-]
-scripts = [
-    { name = "packaging" },
-    { name = "pyyaml", specifier = ">=6.0.1" },
-    { name = "typer", specifier = ">=0.16.0" },
-]
-test = [
-    { name = "coverage", extras = ["toml"], specifier = ">=7.6.1" },
-    { name = "hypothesis", specifier = ">=6.0.0" },
-    { name = "nbmake", specifier = ">=1.4.6" },
-    { name = "nox", specifier = ">=2025.2.9" },
-    { name = "pytest", specifier = ">=8.0.1" },
-    { name = "pytest-benchmark", specifier = ">=5.0.0" },
-    { name = "pytest-cache", specifier = ">=1.0" },
-    { name = "pytest-cov", specifier = ">=5.0.0" },
-    { name = "pytest-factoryboy", specifier = ">=2.6.1" },
-    { name = "pytest-instafail", specifier = ">=0.5.0" },
-    { name = "pytest-xdist", extras = ["psutil"], specifier = ">=3.5.0" },
-]
-typing = [
-    { name = "mypy", extras = ["faster-cache"], specifier = ">=1.13.0" },
-    { name = "types-decorator", specifier = ">=5.1.8" },
-    { name = "types-docutils", specifier = ">=0.21.0" },
-    { name = "types-pytz", specifier = ">=2024.2.0" },
-    { name = "types-pyyaml", specifier = ">=6.0.10" },
-    { name = "types-tabulate", specifier = ">=0.8.10" },
-]
-typing-exports = [
-    { name = "mypy", extras = ["faster-cache"], specifier = ">=1.13.0" },
-    { name = "pytest-mypy-plugins", specifier = ">=4.0.0" },
-    { name = "types-decorator", specifier = ">=5.1.8" },
-    { name = "types-docutils", specifier = ">=0.21.0" },
-    { name = "types-pytz", specifier = ">=2024.2.0" },
-    { name = "types-pyyaml", specifier = ">=6.0.10" },
-    { name = "types-six", specifier = ">=1.17.0.20251009" },
-    { name = "types-tabulate", specifier = ">=0.8.10" },
-    { name = "xarray", specifier = ">=2024.1.0" },
 ]
 
 [[package]]
@@ -1555,6 +1348,27 @@ wheels = [
 ]
 
 [[package]]
+name = "ml-dtypes"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/12/72/307d7c4bd0600601c7133fba5cb78af7db968152951c1cd473abb1cda782/ml_dtypes-0.6.0.tar.gz", hash = "sha256:5e60251d32ced5598972e4d5e06a2f044341f9291402551a3f6f0ec44f9299b0", size = 3032327, upload-time = "2026-08-13T14:14:40.215Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/6a/441eb053b078954f7fea284dfb288701884d0a1404d39babb858e1649023/ml_dtypes-0.6.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:5359c588cc62de6f78d7430f06b65853d884955494d86d6ad90b6dd64a3f3a08", size = 565447, upload-time = "2026-08-13T14:14:01.737Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/cf/87e8a6c57eed63a91782a0d229856ddf73e138ce004dd71e2799a9dcdb33/ml_dtypes-0.6.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:37da32aa97749251025666d62372775019594577b9c9e9cfda83bed48d778fdb", size = 360227, upload-time = "2026-08-13T14:14:02.938Z" },
+    { url = "https://files.pythonhosted.org/packages/c7/f9/7d76c1eae866f5d4636401b31b6d6dd90e4b4ced1fa7cfdfcca9c60e4bd3/ml_dtypes-0.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3b4a480aa8fd54a1805b8ac10f3f91763926a74f73c0c364c10f9231854f4170", size = 409890, upload-time = "2026-08-13T14:14:04.248Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/db/9c61ec2760b5cbfb1c6558d5c991a6d8fd3271053c32db20506a9a90272b/ml_dtypes-0.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:2a3e9d53925597fbffafd2a37048dadeddd0bdaba58058f6ae0869ed709a184d", size = 439333, upload-time = "2026-08-13T14:14:05.501Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/57/780ca3e5ab135b9fbdd8e5441abf5f801b30398371b691291e05ab9834c0/ml_dtypes-0.6.0-cp312-cp312-win_arm64.whl", hash = "sha256:6eaed129a4afe90694b8685e2f9b6294849f5eda4af9a15be83a4326eeebd775", size = 552268, upload-time = "2026-08-13T14:14:06.866Z" },
+    { url = "https://files.pythonhosted.org/packages/50/51/fd1582b8f5ed8a9e7be0e161a6ea0dff70cb280479a12178df0b3a72700e/ml_dtypes-0.6.0-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:084dfe51a7ad58b171f05115f8226ed4233a454a1611371947e806e76f0c638d", size = 565468, upload-time = "2026-08-13T14:14:08.5Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/22/20fd70ca6ed12446cb92d5b2a7745bd185f9d8b8cdeeadad976574398e6b/ml_dtypes-0.6.0-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:28d676428b104bb9717b0928bc5c5129f2d6b51b6727587cc4289e7bf8713cb5", size = 360232, upload-time = "2026-08-13T14:14:09.873Z" },
+    { url = "https://files.pythonhosted.org/packages/89/a5/da8ae6c6f1babe4b68e3e55d43d39b529e29774f10e0910671a6b8c86eb8/ml_dtypes-0.6.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:26b1f1fa4f0435a2946859823f6e2bf06796f1e9f10f5a05b08a5e3c8f46ff69", size = 410169, upload-time = "2026-08-13T14:14:11.036Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/55/4561acefa00fa4bcbfb82ca6a48578b41f372cd7dd7cdd6eb4720abc2e5f/ml_dtypes-0.6.0-cp313-cp313-win_amd64.whl", hash = "sha256:fb87f46b4f7ad7b5d3ad8f4b452b024bd4229d44c8ff934798c1fe656210387a", size = 439357, upload-time = "2026-08-13T14:14:12.172Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/5d/6a01538e507ef0ed5e879985b13a92467bf8960696fb1131f8b8cadc60ff/ml_dtypes-0.6.0-cp313-cp313-win_arm64.whl", hash = "sha256:57ed0d6b4ac5e7868361303a9c57fbcf63b768236ee14456f585dfcf260d0292", size = 552278, upload-time = "2026-08-13T14:14:13.539Z" },
+]
+
+[[package]]
 name = "mpi4py"
 version = "4.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1695,12 +1509,12 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'test'" },
     { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
     { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
-    { name = "dace", editable = "external/dace" },
+    { name = "dace", git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6" },
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
     { name = "flake8-pyproject", marker = "extra == 'dev'" },
-    { name = "gt4py", editable = "external/gt4py" },
+    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=511a7ab966f3b2ccc61b897240afe64adb322cf4" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "ipykernel", marker = "extra == 'demos'" },

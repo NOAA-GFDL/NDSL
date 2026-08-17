@@ -15,8 +15,8 @@ classifiers = [
   "Programming Language :: Python :: 3.13"
 ]
 dependencies = [
-  "dace",
-  "gt4py",
+  "dace @ git+https://github.com/spcl/dace.git@v2.0.0-alpha6",  # example usage with tag
+  "gt4py @ git+https://github.com/Gridtools/gt4py.git@511a7ab966f3b2ccc61b897240afe64adb322cf4",  # example usage with commit hash
   "mpi4py>=4.1",
   "cftime",
   "xarray>=2025.01.2",  # datatree + fixes
@@ -168,7 +168,3 @@ include = ["ndsl", "ndsl.*"]
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"
 tag.strict = "true"  # only consider tags with at least one dot (e.g. v1.0, 2025.06.03)
-
-[tool.uv.sources]
-dace = {path = "./external/dace", editable = true}
-gt4py = {path = "./external/gt4py", editable = true}
