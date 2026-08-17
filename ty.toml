@@ -1,2 +1,0 @@
-[environment]
-extra-paths = ["./external/gt4py/src", "./external/dace/"]
