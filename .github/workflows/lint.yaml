@@ -38,5 +38,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
+      - name: Install Python packages
+        run: uv sync --no-dev --extra dev
+
       - name: Run lint via pre-commit
         run: uv run pre-commit run --show-diff-on-failure --color=always --all-files
