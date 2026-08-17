@@ -2,7 +2,7 @@ import copy
 import os.path
 import subprocess
 from collections.abc import Mapping
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -28,6 +28,8 @@ class AbstractPerformanceCollector(Protocol):
     timestep_timer: Timer
 
     def collect_performance(self) -> None: ...
+
+    def clock_timestep(self, name: str) -> Any: ...
 
     def write_out_performance(
         self,
@@ -78,7 +80,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
         self.hits_per_step.append(self.timestep_timer.hits)
         self.timestep_timer.reset()
 
-    def clock_timestep(self, name: str):
+    def clock_timestep(self, name: str) -> Any:
         class Wrapper:
             def __init__(self, collector: PerformanceCollector, name: str) -> None:
                 self.collector = collector
@@ -189,4 +191,7 @@ class NullPerformanceCollector(AbstractPerformanceCollector):
     def write_out_rank_0(
         self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
     ) -> None:
+        pass
+
+    def clock_timestep(self, name: str) -> Any:
         pass

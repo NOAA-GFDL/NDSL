@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
 
 import dace.config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
@@ -24,9 +24,6 @@ from ndsl.performance.collector import (
     NullPerformanceCollector,
     PerformanceCollector,
 )
-
-if TYPE_CHECKING:
-    from ndsl.dsl.dace.dace_executable import DaceExecutables
 
 # This can be turned on to revert compilation for orchestration
 # in a rank-compile-itself more, instead of the distributed top-tile
@@ -185,7 +182,6 @@ class DaceConfig:
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
-        self.loaded_dace_executables: DaceExecutables = {}
         if not time:
             self.performance_collector: AbstractPerformanceCollector = (
                 NullPerformanceCollector()

@@ -1,29 +1,201 @@
 import dataclasses
+import pickle
 import warnings
+from pathlib import Path
 from typing import Any
 
 import dace
 from dace.frontend.python.parser import DaceProgram
+from dace.sdfg.sdfg import SDFG
+from gt4py import storage as gt_storage
 
+from ndsl.config.backend import Backend
+from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
+from ndsl.dsl.dace.utils import DaCeProgress
+from ndsl.comm.local_comm import LocalComm
+from ndsl.performance.collector import AbstractPerformanceCollector, PerformanceCollector
+from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import State
+
+DaceExecutables = dict[DaceProgram, "DaceExecutable"]
+DACE_EXECUTABLE_POOL: DaceExecutables = {}
+
+_BUNDLE_DIRECTORY_NAME = "NDSLRecording"
+_GT4PY_SDFG_NAME = "gt4py_sdfg"
+_ORCH_SDFG_NAME = "orch_sdfg"
+
+
+def _upload_to_device(host_data: list) -> None:
+    """Make sure any ndarrays gets uploaded to the device
+
+    This will raise an assertion if cupy is not installed.
+    """
+    assert cp is not None
+    for i, data in enumerate(host_data):
+        if isinstance(data, cp.ndarray):
+            host_data[i] = cp.asarray(data)
+
+
+def _download_results_from_dace(
+    backend: Backend, dace_result: list | None
+) -> list | None:
+    """Move all data from DaCe memory space to GT4Py"""
+    if dace_result is None:
+        return None
+
+    return [
+        gt_storage.from_array(result, backend=backend.as_gt4py())
+        for result in dace_result
+    ]
 
 
 @dataclasses.dataclass
 class DaceExecutable:
-    """Bundle the executable (lib) and its marshalled
-    arguments for execution"""
+    """Translate GT4Py-frozen parsed SDFG into an executable (dynamics lib)
+    and its marshalled arguments for fast execution.
+    """
 
     compiled_sdfg: dace.CompiledSDFG
     """Loaded compiled SDFG"""
+
+    performance_collector: AbstractPerformanceCollector
+    """Performance timer used to time runtime operations (overhead and numerics)"""
+
+    mode: DaCeOrchestration
+    """Orchestration mode the executable is built under"""
+
+    name: str
+    """DaCe program name"""
+
+    backend: Backend
+    """Backend the executable is build for"""
+
     arguments: dict[str, Any] | None = None
     """Arguments as C-ready pointers"""
-    arguments_hash: int = 0
-    """Hash reflecting the python/C pointers arguments"""
+
+    _arguments_hash: int = 0
+    """Internal: hash reflecting the python/C pointers arguments"""
+
     _skip_hash: bool = False
     """Internal: skip hash computation because some
     arguments where detected to be un-hashable last time"""
 
-    def hash_expected_dsl_args(self, args: tuple[Any], kwargs: dict[str, Any]) -> int:
+    _original_unoptimized_sdfg: SDFG | None = None
+    """Internal: unoptimized SDFG coming from GT4Py-frozen stencils + parsing"""
+
+    _record: bool = False
+    """Internal: next execution will be recorded for replayability"""
+
+    _replay: bool = False
+    """Internal: is this executable a replay or a fully defined DaceExecutable"""
+
+    def run(self, dace_program: DaceProgram, args: Any, kwargs: Any) -> list | None:
+        """Execute the loaded executable with as little overhead as possible"""
+        if self._replay:
+            raise RuntimeError(
+                f"Executable {self.name} is a replay - use replay to execute the replayable data."
+            )
+
+        with self.performance_collector.timestep_timer.clock(f"{self.name}.Call"):
+            if self.mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
+                raise ValueError(f"Unexpected DaceOrchestration mode `{self.mode}`.")
+
+            with DaCeProgress(self.mode, "Run"):
+                if self.backend.is_gpu_backend():
+                    _upload_to_device(list(args) + list(kwargs.values()))
+
+                # Marshall given arguments into C-binding ready memory
+                with self.performance_collector.timestep_timer.clock(
+                    f"{self.name}.ArgMarshalling"
+                ):
+                    hash_ = self._hash_expected_dsl_args(args, kwargs)
+                    if self.arguments is None or hash_ != self._arguments_hash:
+                        marshalled_sdfg_args = dace_program._create_sdfg_args(
+                            self.compiled_sdfg.sdfg,
+                            args,
+                            kwargs,
+                        )
+                        self._arguments_hash = hash_
+                        self.arguments = marshalled_sdfg_args
+
+                # if bde:
+                #     bde.set_exe_args(exe)
+                #     bde.save()
+
+                # Calling into the C
+                with self.performance_collector.timestep_timer.clock(
+                    f"{self.name}.Runtime"
+                ):
+                    results = self.compiled_sdfg(**self.arguments)
+
+        self.performance_collector.collect_performance()
+
+        return _download_results_from_dace(self.backend, results)
+
+    @classmethod
+    def from_compiled(
+        cls,
+        dace_program: DaceProgram,
+        config: DaceConfig,
+        compiled_sdfg: dace.CompiledSDFG,
+        original_unoptimized_sdfg: SDFG | None = None,
+    ) -> "DaceExecutable":
+        return cls(
+            name=dace_program.name,
+            compiled_sdfg=compiled_sdfg,
+            performance_collector=config.performance_collector,
+            mode=config.get_orchestrate(),
+            backend=config.get_backend(),
+            arguments={},
+            _original_unoptimized_sdfg=original_unoptimized_sdfg,
+        )
+
+    def _serialize(self) -> None:
+        bundle_dir = self.compiled_sdfg.sdfg.build_folder + "/" + _BUNDLE_DIRECTORY_NAME
+        Path(bundle_dir).mkdir(exist_ok=True, parents=True)
+
+        with open(bundle_dir / "de_args.pickle", "wb") as f:
+            pickle.dump(self.arguments, f)
+
+        if self._original_unoptimized_sdfg:
+            self._original_unoptimized_sdfg.save(
+                f"{bundle_dir}/{_GT4PY_SDFG_NAME}.sdfgz", compress=True
+            )
+
+        self.compiled_sdfg.sdfg.save(
+            f"{bundle_dir}/{_ORCH_SDFG_NAME}.sdfgz", compress=True
+        )
+        with open(bundle_dir / "backend.txt", "w") as f:
+            f.write(self.backend.as_humanly_readable())
+
+    @classmethod
+    def from_serialized_bundle(cls, bundle_dir: Path) -> "DaceExecutable":
+        """Read a serialized bundle and ready the system for replay."""
+        with open(bundle_dir / "de_args.pickle", "rb") as f:
+            arguments = pickle.load(f)
+
+        gt4py_sdfg_bundle_sdfg = bundle_dir / f"{_GT4PY_SDFG_NAME}.sdfgz"
+        if gt4py_sdfg_bundle_sdfg.exists():
+            original_unoptimized_sdfg = SDFG.from_file(str(gt4py_sdfg_bundle_sdfg))
+
+        sdfg = SDFG.from_file(f"{bundle_dir}/{_ORCH_SDFG_NAME}.sdfgz")
+        csdfg = sdfg.compile()
+
+        with open(bundle_dir / "backend.txt", "w") as f:
+            backend = Backend(f.readlines()[0])
+
+        return cls(
+            name=sdfg.name,
+            compiled_sdfg=csdfg,
+            performance_collector=PerformanceCollector("replay", LocalComm(0, 1, {})),
+            mode=DaCeOrchestration.Run,
+            backend=backend,
+            arguments=arguments,
+            _original_unoptimized_sdfg=original_unoptimized_sdfg,
+            _replay=True,
+        )
+
+    def _hash_expected_dsl_args(self, args: tuple[Any], kwargs: dict[str, Any]) -> int:
         """Hash direct memory of NDSL expected types.
 
         Handling the following types:
@@ -60,5 +232,26 @@ class DaceExecutable:
 
         return h
 
+    def replay(self, bench: bool = False) -> None:
+        if not self._replay:
+            raise RuntimeError(
+                f"Executable {self.name} is an online executable - use Run with args."
+            )
 
-DaceExecutables = dict[DaceProgram, DaceExecutable]
+        assert self.arguments
+
+        self.performance_collector.start_cuda_profiler()
+
+        self.compiled_sdfg(**self.arguments)
+
+        if bench:
+            with self.performance_collector.total_timer.clock("all"):
+                for _ in range(1000):
+                    with self.performance_collector.clock_timestep("ts"):
+                        self.compiled_sdfg(**self.arguments)
+
+            self.performance_collector.write_out_rank_0(
+                self.backend, True, dt_atmos=-1.0, sim_status="done"
+            )
+
+        self.performance_collector.stop_cuda_profiler()

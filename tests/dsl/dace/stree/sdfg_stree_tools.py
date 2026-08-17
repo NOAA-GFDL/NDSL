@@ -1,3 +1,4 @@
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_POOL
 from types import TracebackType
 
 import dace
@@ -10,13 +11,12 @@ from ndsl import StencilFactory
 def get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
     """Get the Precompiled SDFG from the dace config dict where they are cached post
     compilation and flush the cache in order for next build to re-use the function."""
-    sdfg_repo = stencil_factory.config.dace_config.loaded_dace_executables
 
-    if len(sdfg_repo.values()) != 1:
-        raise RuntimeError("Failure to compile SDFG")
-    sdfg = list(sdfg_repo.values())[0].compiled_sdfg
+    if len(DACE_EXECUTABLE_POOL.values()) != 1:
+        raise RuntimeError(f"Failure to compile SDFG {len(DACE_EXECUTABLE_POOL.values())}")
+    sdfg = list(DACE_EXECUTABLE_POOL.values())[0].compiled_sdfg
 
-    sdfg_repo.clear()
+    DACE_EXECUTABLE_POOL.clear()
 
     return sdfg
 
