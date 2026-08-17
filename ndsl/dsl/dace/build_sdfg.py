@@ -4,7 +4,6 @@ import copy
 import numbers
 import os
 import sys
-from collections.abc import Callable
 from pathlib import Path
 from pprint import pformat
 from typing import Any
