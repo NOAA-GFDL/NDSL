@@ -54,6 +54,7 @@ docs = ["zensical", "mkdocstrings[python]"]
 extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 hmm-cuda12 = ['numpy_allocator', 'ndsl[cuda12]']
 hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']
+openmpi = ['openmpi']
 pyfms = ["pyfms @ git+https://github.com/noaa-gfdl/pyfms.git"]
 serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
 test = [

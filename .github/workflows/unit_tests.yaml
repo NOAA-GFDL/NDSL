@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.12', '3.13']
-        extra: ['test,zarr']
+        extra: ['openmpi,test,zarr']
         marker-serial: ['not parallel and not gpu and not pyfms']
         marker-parallel: ['parallel and not gpu and not pyfms']
         include:
@@ -34,8 +34,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          submodules: 'recursive'
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -56,10 +54,6 @@ jobs:
 
       - name: Install Python packages
         run: uv sync --no-dev --extra ${{matrix.extra}}
-
-      - name: Install MPI
-        if: ${{!contains(matrix.extra, 'pyfms')}}
-        run: uv pip install openmpi
 
       - name: Run serial cpu tests
         run: uv run coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests

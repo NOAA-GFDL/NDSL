@@ -1488,6 +1488,9 @@ hmm-cuda13 = [
     { name = "cupy-cuda13x" },
     { name = "numpy-allocator" },
 ]
+openmpi = [
+    { name = "openmpi" },
+]
 pyfms = [
     { name = "pyfms" },
 ]
@@ -1535,6 +1538,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2" },
     { name = "numpy-allocator", marker = "extra == 'hmm-cuda12'" },
     { name = "numpy-allocator", marker = "extra == 'hmm-cuda13'" },
+    { name = "openmpi", marker = "extra == 'openmpi'" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pyfms", marker = "extra == 'pyfms'", git = "https://github.com/noaa-gfdl/pyfms.git" },
     { name = "pytest", marker = "extra == 'test'", specifier = "<9.1.0" },
@@ -1545,7 +1549,7 @@ requires-dist = [
     { name = "zarr", marker = "extra == 'zarr'", specifier = "<3" },
     { name = "zensical", marker = "extra == 'docs'" },
 ]
-provides-extras = ["cuda12", "cuda13", "demos", "dev", "docs", "extras", "hmm-cuda12", "hmm-cuda13", "pyfms", "serialbox", "test", "zarr"]
+provides-extras = ["cuda12", "cuda13", "demos", "dev", "docs", "extras", "hmm-cuda12", "hmm-cuda13", "openmpi", "pyfms", "serialbox", "test", "zarr"]
 
 [[package]]
 name = "nest-asyncio2"
@@ -1695,6 +1699,17 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ab/95/bb960f0cfa5917126c433e389f097431f51b5eb0c2536e90ee81051aa721/numpy_allocator-1.2.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b855120f4542103685f04f77b60608e2001ba1dea0a13258a60e2cdeac9bd0ee", size = 36858, upload-time = "2024-10-07T09:13:52.11Z" },
     { url = "https://files.pythonhosted.org/packages/7f/b9/216ef902f77c21efc5febfb30690d7e672ea7d054e6b95cdb2ffe3933b3b/numpy_allocator-1.2.1-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:74651736de4d6a1446d13ca7661c65482008a71df4076865cea764c66b4bbd7d", size = 35621, upload-time = "2024-10-07T09:13:53.359Z" },
     { url = "https://files.pythonhosted.org/packages/de/5d/6ef604838764429586499f3c6a1420746e380cd41ed481b172854337c0af/numpy_allocator-1.2.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:ba8ab2d9705c7a0dcba53936585cca131d29709856a78373025e41da35703085", size = 36801, upload-time = "2024-10-07T09:13:54.2Z" },
+]
+
+[[package]]
+name = "openmpi"
+version = "5.0.10"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/48/47b429693ecfb64bb97caead4ef274a09e1c960242a4239929c942c6ad46/openmpi-5.0.10-py3-none-macosx_11_0_arm64.whl", hash = "sha256:6e9cd0cb0c29abd5157449343c93d31906f4aaaabf9e84fff5da67d305d1d55b", size = 3150518, upload-time = "2026-02-25T10:48:59.563Z" },
+    { url = "https://files.pythonhosted.org/packages/87/16/5f6260bd68e8bd1ed4939ebb3e3fda89e874426ee3d62db9e2e56bc7242f/openmpi-5.0.10-py3-none-macosx_11_0_x86_64.whl", hash = "sha256:f4f524543cf443072b79b1600a71fa0019e20c2ff3291968092f4f0552a17829", size = 3527026, upload-time = "2026-02-25T10:49:01.444Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/a7/731f37279225210f8ccfa42193e526555955c54fd7a58c59bcbb28b40add/openmpi-5.0.10-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:1ce81b0d03eeddccb11768b3b776fef24a5d43230c753bd0314cf8b3f6262b11", size = 6052929, upload-time = "2026-02-25T10:49:03.284Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/13/11d1b2cbe6034d88d938bceafe30b9d2f95db33a8f7fef06fddfbcad5399/openmpi-5.0.10-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:01eb48365f8b6e6627de29df16a080a9f82f184d61859debdbfcb1c9b76ffebf", size = 6551331, upload-time = "2026-02-25T10:49:04.801Z" },
 ]
 
 [[package]]
