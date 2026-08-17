@@ -4,7 +4,9 @@ We are building NDSL in the open. On this page we'll start to share our public r
 
 ## 2026.09.00
 
-- :rocket: More optimizations
+- :rocket: Cache-friendly merger debug
+- :rocket: CPU serial execution merger
+- :rocket: Scalarization and refinement of local memory for better cache access
 - :gear: use `uv` for dependency management
 
 ## 2026.08.00
