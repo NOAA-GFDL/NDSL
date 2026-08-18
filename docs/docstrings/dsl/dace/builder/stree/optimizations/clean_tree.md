@@ -1,6 +1,6 @@
-# refine_transients
+# clean_tree
 
-::: dsl.dace.stree.optimizations.refine_transients
+dsl.dace.builder.stree.optimizations.clean_tree
 
 <style>
 /* re-enable the left side navigation bar for this page */

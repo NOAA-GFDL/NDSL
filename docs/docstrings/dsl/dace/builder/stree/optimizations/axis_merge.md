@@ -1,6 +1,6 @@
-# specialize_maps
+# axis_merge
 
-::: dsl.dace.stree.optimizations.specialize_maps
+::: dsl.dace.builder.stree.optimizations.axis_merge
 
 <style>
 /* re-enable the left side navigation bar for this page */

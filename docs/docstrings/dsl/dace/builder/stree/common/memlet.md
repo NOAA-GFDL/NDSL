@@ -1,6 +1,6 @@
 # memlet
 
-::: dsl.dace.stree.common.memlet
+::: dsl.dace.builder.stree.common.memlet
 
 <style>
 /* re-enable the left side navigation bar for this page */

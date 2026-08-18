@@ -1,6 +1,6 @@
-# pipeline
+# topology
 
-::: dsl.dace.stree.default_pipeline
+::: dsl.dace.builder.stree.common.topology
 
 <style>
 /* re-enable the left side navigation bar for this page */

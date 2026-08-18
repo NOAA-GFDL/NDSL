@@ -1,6 +1,6 @@
-# axis_merge
+# statistics
 
-::: dsl.dace.stree.optimizations.axis_merge
+dsl.dace.builder.stree.statistics
 
 <style>
 /* re-enable the left side navigation bar for this page */

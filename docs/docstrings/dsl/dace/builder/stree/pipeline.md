@@ -1,6 +1,6 @@
-# local_optimizations
+# pipeline
 
-::: dsl.dace.stree.optimizations.local_optimizations
+dsl.dace.builder.stree.pipeline
 
 <style>
 /* re-enable the left side navigation bar for this page */
