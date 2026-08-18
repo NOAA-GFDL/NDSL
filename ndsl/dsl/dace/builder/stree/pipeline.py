@@ -4,7 +4,7 @@ from pathlib import Path
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log_on_rank_0
-from ndsl.dsl.dace.stree.statistics import TreeOptimizationStatistics
+from ndsl.dsl.dace.builder.stree.statistics import TreeOptimizationStatistics
 
 
 class StreePipeline:

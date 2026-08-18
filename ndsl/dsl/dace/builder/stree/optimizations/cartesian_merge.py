@@ -1,14 +1,14 @@
 from ndsl.config import Backend, BackendLoopOrder
-from ndsl.dsl.dace.stree.common import AxisIterator
-from ndsl.dsl.dace.stree.optimizations.axis_merge import CartesianAxisMerge
-from ndsl.dsl.dace.stree.optimizations.off_grid_conditionals import (
+from ndsl.dsl.dace.builder.stree.common import AxisIterator
+from ndsl.dsl.dace.builder.stree.optimizations.axis_merge import CartesianAxisMerge
+from ndsl.dsl.dace.builder.stree.optimizations.off_grid_conditionals import (
     ExtractOffGridConditionals,
     InlineOffGridConditionals,
     MergeConditionals,
     RevertSimplifyConditional,
     SimplifyConditional,
 )
-from ndsl.dsl.dace.stree.pipeline import StreePipeline
+from ndsl.dsl.dace.builder.stree.pipeline import StreePipeline
 
 
 class CartesianMergePipeline(StreePipeline):

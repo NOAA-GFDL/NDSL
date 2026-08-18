@@ -2,7 +2,7 @@ from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.stree.common import (
+from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
     get_next_node,
     get_previous_node,

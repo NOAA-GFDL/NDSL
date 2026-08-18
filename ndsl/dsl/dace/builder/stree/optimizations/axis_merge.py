@@ -5,7 +5,7 @@ from dace.properties import CodeBlock
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.stree.common import (
+from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
     detect_cycle,
     get_next_node,
@@ -16,7 +16,7 @@ from ndsl.dsl.dace.stree.common import (
     no_data_dependencies_on_cartesian_axis,
     swap_node_position_in_tree,
 )
-from ndsl.dsl.dace.stree.optimizations.replace_axis_symbol import ReplaceAxisSymbol
+from ndsl.dsl.dace.builder.stree.optimizations.replace_axis_symbol import ReplaceAxisSymbol
 
 
 def _both_same_single_axis_maps(
