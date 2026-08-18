@@ -2,7 +2,9 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.dsl.dace.builder.stree.common import is_first_node, is_last_node
-from ndsl.dsl.dace.builder.stree.optimizations.cartesian_merge import CartesianMergePipeline
+from ndsl.dsl.dace.builder.stree.optimizations.cartesian_merge import (
+    CartesianMergePipeline,
+)
 from ndsl.dsl.dace.builder.stree.optimizations.kernelize_maps import KernelizeMaps
 from ndsl.dsl.dace.builder.stree.optimizations.remove_loops import InlineVertical2DWrite
 

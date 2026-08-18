@@ -5,7 +5,9 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_for, list_index
-from ndsl.dsl.dace.builder.stree.optimizations.replace_axis_symbol import ReplaceAxisSymbol
+from ndsl.dsl.dace.builder.stree.optimizations.replace_axis_symbol import (
+    ReplaceAxisSymbol,
+)
 
 
 class InlineVertical2DWrite(tn.ScheduleNodeVisitor):
