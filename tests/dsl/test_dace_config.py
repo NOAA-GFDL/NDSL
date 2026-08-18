@@ -1,3 +1,4 @@
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 import unittest.mock
 
 from ndsl import CubedSpherePartitioner, DaceConfig, DaCeOrchestration, TilePartitioner
@@ -22,12 +23,10 @@ def test_orchestrate_function_calls_dace() -> None:
         orchestration=DaCeOrchestration.BuildAndRun,
     )
     wrapped = orchestrate_function(config=dace_config)(foo)
-    with unittest.mock.patch(
-        "ndsl.dsl.dace.orchestration._call_sdfg"
-    ) as mock_call_sdfg:
-        wrapped()
-    assert mock_call_sdfg.called
-    assert mock_call_sdfg.call_args.args[0].f == foo
+    wrapped()
+
+    assert len(DACE_EXECUTABLE_CACHE.values()) == 1
+    assert "foo" in next(iter(DACE_EXECUTABLE_CACHE.values())).name
 
 
 def test_orchestrate_function_does_not_call_dace() -> None:
@@ -39,12 +38,10 @@ def test_orchestrate_function_does_not_call_dace() -> None:
         backend=Backend("st:dace:cpu:KIJ"),
         orchestration=None,
     )
-    wrapped = orchestrate_function(config=dace_config)(foo)
-    with unittest.mock.patch(
-        "ndsl.dsl.dace.orchestration._call_sdfg"
-    ) as mock_call_sdfg:
-        wrapped()
-    assert not mock_call_sdfg.called
+    _ = orchestrate_function(config=dace_config)(foo)
+
+    # We test that no DaceExecutable was created
+    assert not DACE_EXECUTABLE_CACHE.values()
 
 
 def test_orchestrate_calls_dace() -> None:
@@ -61,12 +58,11 @@ def test_orchestrate_calls_dace() -> None:
         def foo(self) -> None:
             pass
 
-    with unittest.mock.patch(
-        "ndsl.dsl.dace.orchestration._call_sdfg"
-    ) as mock_call_sdfg:
-        a = A()
-        a.foo()
-    assert mock_call_sdfg.called
+    a = A()
+    a.foo()
+
+    assert len(DACE_EXECUTABLE_CACHE.values()) == 1
+    assert "foo" in next(iter(DACE_EXECUTABLE_CACHE.values())).name
 
 
 def test_orchestrate_does_not_call_dace() -> None:
@@ -83,13 +79,10 @@ def test_orchestrate_does_not_call_dace() -> None:
         def foo(self) -> None:
             pass
 
-    with unittest.mock.patch(
-        "ndsl.dsl.dace.orchestration._call_sdfg"
-    ) as mock_call_sdfg:
-        a = A()
-        a.foo()
-    assert not mock_call_sdfg.called
+    a = A()
+    a.foo()
 
+    assert not DACE_EXECUTABLE_CACHE.values()
 
 def test_orchestrate_distributed_build() -> None:
     dummy_dace_config = DaceConfig(
