@@ -219,6 +219,9 @@ class DaceConfig:
         # Set the configuration of DaCe to a rigid & tested set of divergence
         # from the defaults when orchestrating
         if self.is_dace_orchestrated():
+            # NDSL has its own rank-aware system
+            dace.config.Config.set("cache_distaware", value=False)
+
             # Detecting neoverse-v1/2 requires an external package, we swap it
             # for a read on GH200 nodes themselves.
             is_arm_neoverse = (
