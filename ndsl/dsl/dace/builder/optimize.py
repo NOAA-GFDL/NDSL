@@ -23,7 +23,7 @@ from gt4py import storage as gt_storage
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.comm.mpi import MPI
-from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
+from ndsl.dsl.caches.dace import DACE_BUILD_INFO_FILENAME, get_sdfg_path
 from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
@@ -156,6 +156,30 @@ def _optimization_pipeline(
     raise ValueError(
         f"Unknown device type `{device_type}`, expected {DeviceType.CPU} or {DeviceType.GPU}."
     )
+
+
+def _write_build_info(
+    sdfg: SDFG,
+    layout: tuple[int, int],
+    resolution_per_tile: list[int],
+    memory_report: str,
+    backend: Backend,
+) -> None:
+    """Write down all relevant information on the build to identify
+    it at load time."""
+    # Dev NOTE: we should be able to leverage sdfg.make_key to get a hash or
+    # even go to a complete hash base system and read the data from the SDFG itself
+    import os
+
+    path_to_sdfg_dir = os.path.abspath(sdfg.build_folder)
+    with open(f"{path_to_sdfg_dir}/{DACE_BUILD_INFO_FILENAME}", "w") as build_info_read:
+        build_info_read.write("#Schema: Backend Layout Resolution per tile\n")
+        build_info_read.write(f"{backend}\n")
+        build_info_read.write(f"{layout}\n")
+        build_info_read.write(f"{resolution_per_tile}\n")
+
+    with open(f"{path_to_sdfg_dir}/memory_report.txt", "w") as f:
+        f.write(memory_report)
 
 
 def optimize_full_program_sdfg(
@@ -420,7 +444,7 @@ def optimize_full_program_sdfg(
             ndsl_log.info(f"{DaCeProgress.default_prefix(mode)} {report}")
 
         # Store build info in the common cache directory
-        write_build_info(
+        _write_build_info(
             parsed_sdfg, config.layout, config.tile_resolution, report, backend_name
         )
 
