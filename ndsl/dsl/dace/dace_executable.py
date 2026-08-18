@@ -89,15 +89,8 @@ class DaceExecutable:
     _record: bool = False
     """Internal: next execution will be recorded for replayability"""
 
-    _replay: bool = False
-    """Internal: is this executable a replay or a fully defined DaceExecutable"""
-
     def run(self, dace_program: DaceProgram, args: Any, kwargs: Any) -> list | None:
         """Execute the loaded executable with as little overhead as possible"""
-        if self._replay:
-            raise RuntimeError(
-                f"Executable {self.name} is a replay - use replay to execute the replayable data."
-            )
 
         with self.performance_collector.timestep_timer.clock(f"{self.name}.Call"):
             if self.mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
@@ -120,10 +113,6 @@ class DaceExecutable:
                         )
                         self._arguments_hash = hash_
                         self.arguments = marshalled_sdfg_args
-
-                # if bde:
-                #     bde.set_exe_args(exe)
-                #     bde.save()
 
                 # Calling into the C
                 with self.performance_collector.timestep_timer.clock(
@@ -151,10 +140,10 @@ class DaceExecutable:
             backend=config.get_backend(),
             arguments={},
             _original_unoptimized_sdfg=original_unoptimized_sdfg,
-            _replay=False,
         )
 
-    def _serialize(self) -> None:
+    def serialize(self) -> None:
+        """Serialize arguments and code for blind replayability using `replay`"""
         bundle_dir = self.compiled_sdfg.sdfg.build_folder + "/" + _BUNDLE_DIRECTORY_NAME
         Path(bundle_dir).mkdir(exist_ok=True, parents=True)
 
@@ -196,7 +185,6 @@ class DaceExecutable:
             backend=backend,
             arguments=arguments,
             _original_unoptimized_sdfg=original_unoptimized_sdfg,
-            _replay=True,
         )
 
     def _hash_expected_dsl_args(self, args: tuple[Any], kwargs: dict[str, Any]) -> int:
@@ -237,12 +225,9 @@ class DaceExecutable:
         return h
 
     def replay(self, bench: bool = False) -> None:
-        if not self._replay:
-            raise RuntimeError(
-                f"Executable {self.name} is an online executable - use Run with args."
-            )
-
-        assert self.arguments
+        """Replay executable using last cached arguments"""
+        if not self.arguments:
+            raise RuntimeError(f"Cannot replay {self.name} - no arguments available")
 
         self.performance_collector.start_cuda_profiler()
 
