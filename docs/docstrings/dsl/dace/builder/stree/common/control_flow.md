@@ -1,6 +1,6 @@
 # control_flow
 
-::: dsl.dace.stree.common.control_flow
+::: dsl.dace.builder.stree.common.control_flow
 
 <style>
 /* re-enable the left side navigation bar for this page */
