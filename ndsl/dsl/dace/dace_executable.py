@@ -18,7 +18,7 @@ from ndsl.optional_imports import cupy as cp
 from ndsl.quantity import State
 
 DaceExecutables = dict[DaceProgram, "DaceExecutable"]
-DACE_EXECUTABLE_POOL: DaceExecutables = {}
+DACE_EXECUTABLE_CACHE: DaceExecutables = {}
 
 _BUNDLE_DIRECTORY_NAME = "NDSLRecording"
 _GT4PY_SDFG_NAME = "gt4py_sdfg"
@@ -148,6 +148,7 @@ class DaceExecutable:
             backend=config.get_backend(),
             arguments={},
             _original_unoptimized_sdfg=original_unoptimized_sdfg,
+            _replay=False,
         )
 
     def _serialize(self) -> None:

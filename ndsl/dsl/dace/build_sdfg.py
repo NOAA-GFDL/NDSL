@@ -29,7 +29,7 @@ from ndsl.dsl.dace.dace_config import (
     DaceConfig,
     DaCeOrchestration,
 )
-from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_POOL, DaceExecutable
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE, DaceExecutable
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.dsl.dace.sdfg_debug_passes import (
     negative_delp_checker,
@@ -387,7 +387,7 @@ def build_sdfg(
         # Compile
         with DaCeProgress(mode, "Codegen & compile"):
             compiled_sdfg = sdfg.compile()
-            DACE_EXECUTABLE_POOL[dace_program] = DaceExecutable.from_compiled(
+            DACE_EXECUTABLE_CACHE[dace_program] = DaceExecutable.from_compiled(
                 dace_program=dace_program,
                 config=config,
                 compiled_sdfg=compiled_sdfg,
@@ -441,7 +441,7 @@ def build_sdfg(
                 compiled_sdfg, _ = dace_program.load_precompiled_sdfg(
                     sdfg_path, *args, **kwargs
                 )
-                DACE_EXECUTABLE_POOL[dace_program] = DaceExecutable.from_compiled(
+                DACE_EXECUTABLE_CACHE[dace_program] = DaceExecutable.from_compiled(
                     dace_program=dace_program,
                     config=config,
                     compiled_sdfg=compiled_sdfg,

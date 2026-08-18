@@ -21,7 +21,7 @@ from ndsl.dsl.dace.dace_config import (
     DaceConfig,
     DaCeOrchestration,
 )
-from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_POOL, DaceExecutable
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE, DaceExecutable
 from ndsl.dsl.dace.labeler import set_label
 from ndsl.dsl.dace.utils import DaCeProgress
 from ndsl.quantity import Quantity, State
@@ -47,17 +47,17 @@ def _call_sdfg(
     mode = config.get_orchestrate()
     if (
         mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
-        and dace_program not in DACE_EXECUTABLE_POOL  # already cached
+        and dace_program not in DACE_EXECUTABLE_CACHE  # already cached
     ):
         build_sdfg(dace_program, sdfg, config, optimization_config, args, kwargs)
 
-    if dace_program not in DACE_EXECUTABLE_POOL:
+    if dace_program not in DACE_EXECUTABLE_CACHE:
         raise RuntimeError(
             "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
             "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
         )
 
-    return DACE_EXECUTABLE_POOL[dace_program].run(dace_program, args, kwargs)
+    return DACE_EXECUTABLE_CACHE[dace_program].run(dace_program, args, kwargs)
 
 
 def _parse_sdfg(
@@ -74,9 +74,10 @@ def _parse_sdfg(
         dace_program: the DaceProgram carrying reference to the original method/function
         config: the DaceConfig configuration for this execution
     """
+    
     # Check cache for already loaded SDFG
-    if dace_program in DACE_EXECUTABLE_POOL:
-        return DACE_EXECUTABLE_POOL[dace_program].compiled_sdfg
+    if dace_program in DACE_EXECUTABLE_CACHE:
+        return DACE_EXECUTABLE_CACHE[dace_program].compiled_sdfg
 
     ndsl_log.info(f"Building DaCe orchestration for {dace_program.f.__qualname__}")
 
@@ -124,7 +125,7 @@ def _parse_sdfg(
         compiled_sdfg, _ = dace_program.load_precompiled_sdfg(
             sdfg_path, *args, **kwargs
         )
-        DACE_EXECUTABLE_POOL[dace_program] = DaceExecutable.from_compiled(
+        DACE_EXECUTABLE_CACHE[dace_program] = DaceExecutable.from_compiled(
             dace_program=dace_program,
             config=config,
             compiled_sdfg=compiled_sdfg,
