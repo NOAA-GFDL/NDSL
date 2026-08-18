@@ -24,6 +24,11 @@ import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.comm.mpi import MPI
 from ndsl.dsl.dace.build import get_sdfg_path, write_build_info
+from ndsl.dsl.dace.builder.sdfg.debug_passes import (
+    negative_delp_checker,
+    negative_qtracers_checker,
+    sdfg_nan_checker,
+)
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
     DaceConfig,
@@ -31,11 +36,6 @@ from ndsl.dsl.dace.dace_config import (
 )
 from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE, DaceExecutable
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
-from ndsl.dsl.dace.sdfg_debug_passes import (
-    negative_delp_checker,
-    negative_qtracers_checker,
-    sdfg_nan_checker,
-)
 from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.stree.pipeline import StreePipeline
 from ndsl.dsl.dace.utils import (
