@@ -36,8 +36,7 @@ from ndsl.dsl.dace.dace_config import (
 )
 from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE, DaceExecutable
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
-from ndsl.dsl.dace.stree import CPUPipeline, GPUPipeline
-from ndsl.dsl.dace.stree.pipeline import StreePipeline
+from ndsl.dsl.dace.builder.stree import StreePipeline, CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
