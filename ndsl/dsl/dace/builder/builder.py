@@ -7,7 +7,7 @@ from dace.frontend.python.parser import DaceProgram
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import OptimizationConfig
-from ndsl.dsl.dace.builder import optimize_full_program_sdfg
+from ndsl.dsl.dace.builder.optimize import optimize_full_program_sdfg
 from ndsl.dsl.dace.dace_config import (
     DaceConfig,
     DaCeOrchestration,
