@@ -19,7 +19,6 @@ from ndsl.optional_imports import cupy
 from ndsl.quantity.bounds import BoundedArrayView
 from ndsl.quantity.metadata import QuantityHaloSpec, QuantityMetadata
 
-
 if cupy is None:
     import numpy as cupy
 
@@ -281,27 +280,6 @@ class Quantity:
     @property
     def field(self) -> np.ndarray | cupy.ndarray:
         return self._compute_domain_view[:]
-
-    @property
-    def data(self) -> np.ndarray | cupy.ndarray:
-        """The underlying array of data"""
-        warnings.warn(
-            "Quantity.data accessor is now deprecated. Use a slicing operation directly on "
-            "the quantity, e.g. `my_quantity[:]` instead of `my_quantity.data[:]`",
-            category=UserWarning,
-            stacklevel=2,
-        )
-        return self._data
-
-    @data.setter
-    def data(self, input_data: np.ndarray | cupy.ndarray) -> None:
-        warnings.warn(
-            "Quantity.data setter is now deprecated. Build a quantity from a data with the "
-            "dedicated constructor. If you need no-copy mapping, talk to the team.",
-            category=UserWarning,
-            stacklevel=2,
-        )
-        self.swap_buffer(input_data)
 
     def swap_buffer(self, input_data: np.ndarray | cupy.ndarray) -> None:
         """Swap internal buffer for given input. Use with _extreme_ care as it might

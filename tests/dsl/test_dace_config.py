@@ -6,7 +6,6 @@ from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import _determine_compiling_ranks
 from ndsl.dsl.dace.orchestration import orchestrate, orchestrate_function
 
-
 """
 Tests that the dace configuration ndsl.dsl.dace.dace_config
 which determines whether we use dace to run wrapped functions.

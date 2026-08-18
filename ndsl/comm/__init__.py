@@ -7,7 +7,6 @@ from .caching_comm import (
 )
 from .comm_abc import Comm, ReductionOperator, Request
 
-
 __all__ = [
     "CachingCommData",
     "CachingCommReader",

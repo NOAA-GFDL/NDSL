@@ -10,7 +10,7 @@ NDSL is a python DSL. You can install NDSL as a python package and write your co
 
     Before installing NDSL, make sure your environment includes:
 
-    - A python environment. We support python versions `3.11`, `3.12`, `3.13`.
+    - A python environment. We support python versions `3.12` and `3.13`.
     - A compiler toolchain for C, C++. Optionally, a Fortran compiler if you're bridging to Fortran code.
     - MPI (can be installed via python, see below)
 

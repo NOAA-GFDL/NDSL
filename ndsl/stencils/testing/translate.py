@@ -4,12 +4,11 @@ import numpy as np
 import numpy.typing as npt
 
 import ndsl.dsl.gt4py_utils as utils
-from ndsl import Backend, StencilFactory, ndsl_log
+from ndsl import Backend, StencilFactory
 from ndsl.optional_imports import cupy
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.grid import Grid
 from ndsl.stencils.testing.savepoint import DataLoader
-
 
 if cupy is None:
     import numpy as cupy
@@ -68,10 +67,7 @@ class TranslateFortranData2Py:
         self.ordered_input_vars = None
         self.ignore_near_zero_errors: dict[str, Any] = {}
         self.skip_test = skip_test
-        if self.stencil_factory.backend.is_fortran_aligned():
-            self.maxshape = self.grid.domain_shape_full()
-        else:
-            self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
+        self.maxshape = self.grid.domain_shape_full(add=(1, 1, 1))
 
     def extra_data_load(self, data_loader: DataLoader):
         pass
@@ -322,7 +318,15 @@ class TranslateGrid:
             grid_data[field] = read_serialized_data(serializer, grid_savepoint, field)
         return cls(grid_data, rank, layout, backend=backend)
 
-    def __init__(self, inputs, rank, layout, *, backend: Backend):
+    def __init__(
+        self,
+        inputs,
+        rank,
+        layout,
+        *,
+        backend: Backend,
+        pad_non_interface_dimensions: bool = False,
+    ):
         self.backend = backend
         self.indices = {}
         self.shape_params = {}
@@ -338,6 +342,7 @@ class TranslateGrid:
                 del inputs[index]
 
         self.data = inputs
+        self._pad_non_interface_dimensions = pad_non_interface_dimensions
 
     def _make_composite_var_storage(self, varname, data3d, shape, count):
         for s in range(count):
@@ -426,11 +431,6 @@ class TranslateGrid:
                 # TODO: when grid initialization model exists, may want to use
                 # it to inform this
                 istart, jstart = pygrid.horizontal_starts_from_shape(value.shape)
-                ndsl_log.debug(
-                    "Storage for Grid variable {}, {}, {}, {}".format(
-                        key, istart, jstart, value.shape
-                    )
-                )
                 origin = (istart, jstart, 0)
                 self.data[key] = utils.make_storage_data(
                     value,
@@ -444,7 +444,12 @@ class TranslateGrid:
 
     def python_grid(self):
         pygrid = Grid(
-            self.indices, self.shape_params, self.rank, self.layout, self.backend
+            self.indices,
+            self.shape_params,
+            self.rank,
+            self.layout,
+            self.backend,
+            pad_non_interface_dimensions=self._pad_non_interface_dimensions,
         )
         self.make_grid_storage(pygrid)
         pygrid.add_data(self.data)

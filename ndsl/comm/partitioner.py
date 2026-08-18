@@ -24,7 +24,6 @@ from ndsl.constants import (
 from ndsl.quantity import QuantityMetadata
 from ndsl.utils import list_by_dims
 
-
 # we're caching slice objects which are pretty small, and the number we
 # generate depends on the number of different array shapes/sizes which
 # should not be that many

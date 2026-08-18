@@ -1,12 +1,9 @@
-from __future__ import annotations
-
 import logging
 import os
 import sys
 from typing import Annotated
 
 from ndsl.comm.mpi import MPI
-
 
 # Python log levels are hierarchical. The following dict is sorted by
 # severity. Setting the log level to "info" means that "info" and everything
@@ -100,7 +97,9 @@ def _ndsl_logger_on_rank_0() -> logging.Logger:
 ndsl_log: Annotated[logging.Logger, "NDSL Python logger, logs on all rank"] = (
     _ndsl_logger()
 )
-ndsl_log.info(f"Log level: {_get_log_level()}")
+if not sys.argv[0].endswith("ndsl-gencode"):
+    ndsl_log.info(sys.argv[0])
+    ndsl_log.info(f"Log level: {_get_log_level()}")
 
 ndsl_log_on_rank_0: Annotated[
     logging.Logger, "NDSL Python logger, logs on rank 0 only"

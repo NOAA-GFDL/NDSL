@@ -8,7 +8,6 @@ import f90nml
 import numpy as np
 import xarray as xr
 
-
 try:
     import serialbox
 except ModuleNotFoundError:

@@ -10,7 +10,6 @@ from ndsl import MPIComm
 from ndsl.monitor.protocol import Monitor
 from ndsl.quantity import Quantity
 
-
 try:
     from pyfms import diag_manager, fms, mpp_domains, py_mpp
 

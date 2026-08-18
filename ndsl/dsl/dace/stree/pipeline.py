@@ -1,16 +1,19 @@
+from collections.abc import Sequence
 from pathlib import Path
 
-import dace.sdfg.analysis.schedule_tree.treenodes as stree
+from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log_on_rank_0
-from ndsl.dsl.dace.stree.optimizations import AxisIterator, CartesianAxisMerge
+from ndsl.dsl.dace.stree.statistics import TreeOptimizationStatistics
 
 
 class StreePipeline:
     def __init__(
         self,
         *,
-        passes: list[stree.ScheduleNodeTransformer],
+        passes: Sequence[
+            "tn.ScheduleNodeVisitor | tn.ScheduleNodeTransformer | StreePipeline"
+        ],
         cache_directory: Path | None = None,
     ) -> None:
         if cache_directory is None:
@@ -18,6 +21,9 @@ class StreePipeline:
 
         self.cache_directory = cache_directory
         self.passes = passes
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
 
     def __hash__(self) -> int:
         return hash(repr(self))
@@ -27,45 +33,40 @@ class StreePipeline:
 
     def run(
         self,
-        stree: stree.ScheduleTreeRoot,
+        stree: tn.ScheduleTreeRoot,
         verbose: bool = False,
-    ) -> stree.ScheduleTreeRoot:
+        *,
+        nesting: int = 0,
+        cache_directory: Path | None = None,
+    ) -> tn.ScheduleTreeScope:
+        # Re-entry for nested pipeline
+        if cache_directory is None:
+            cache_directory = self.cache_directory
+
+        if nesting == 0:
+            tree_stats = TreeOptimizationStatistics()
+            tree_stats.original(stree)
+
         for i, p in enumerate(self.passes):
+            path: Path | None = None
             if verbose:
-                path = self.cache_directory / f"pass{i}_{p}.txt"
+                path = cache_directory / f"pass_n{nesting}_{i}_{p}.txt"
                 ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
 
-            p.visit(stree)
+            if isinstance(p, tn.ScheduleNodeVisitor):
+                p.visit(stree)
+            elif isinstance(p, StreePipeline):
+                p.run(
+                    stree, verbose, nesting=nesting + 1, cache_directory=cache_directory
+                )
 
             if verbose:
+                assert path is not None
                 with open(path, "w+") as f:
                     f.write(stree.as_string())
 
+        if nesting == 0:
+            tree_stats.optimized(stree)
+            ndsl_log_on_rank_0.info(tree_stats.report())
+
         return stree
-
-
-class CPUPipeline(StreePipeline):
-    def __init__(
-        self,
-        *,
-        passes: list[stree.ScheduleNodeTransformer] | None = None,
-        cache_directory: Path | None = None,
-    ) -> None:
-        super().__init__(
-            passes=(
-                passes if passes is not None else [CartesianAxisMerge(AxisIterator._K)]
-            ),
-            cache_directory=cache_directory,
-        )
-
-
-class GPUPipeline(StreePipeline):
-    def __init__(
-        self,
-        passes: list[stree.ScheduleNodeTransformer] | None = None,
-        cache_directory: Path | None = None,
-    ) -> None:
-        super().__init__(
-            passes=passes if passes is not None else [],
-            cache_directory=cache_directory,
-        )

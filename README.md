@@ -11,7 +11,7 @@ Historically, NDSL was developed to port the FV3 dynamical core on the cubed-sph
 
 ## Quickstart
 
-Currently, NDSL requires `python` (versions `3.11`,`3.12`, and `3.13` are supported), a C/C++ compiler and MPI installed. All other dependencies installed during package installation. We recommend using a virtual (or conda) environment.
+Currently, NDSL requires `python` (versions `3.12` and `3.13` are supported), a C/C++ compiler and MPI installed. All other dependencies installed during package installation. We recommend using a virtual (or conda) environment.
 
 ```shell
 # We have submodules for GT4Py and DaCe. Don't forget to pull them
@@ -37,13 +37,13 @@ NDSL is under active development and may only work with specific setups. This is
 
 The run the CPU backends you will need:
 
-- Python: 3.11, 3.12, 3.13
+- Python: 3.12, 3.13
 - CXX compiler: GNU 11.2+
 - Libraries: MPI
 
 To run the GPU backends, you'll need:
 
-- Python: 3.11, 3.12, 3.13
+- Python: 3.12, 3.13
 - CXX compiler: GNU 11.2+
 - Libraries: MPI compiled with CUDA support
 - CUDA 11.2+

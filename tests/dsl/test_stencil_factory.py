@@ -16,7 +16,6 @@ from ndsl.dsl.gt4py_utils import make_storage_from_shape
 from ndsl.dsl.stencil import CompareToNumpyStencil, get_stencils_with_varied_bounds
 from ndsl.dsl.typing import Field, FloatField
 
-
 BACKENDS = [Backend.python(), Backend("st:dace:cpu:KIJ")]
 
 

@@ -1,6 +1,6 @@
-# tree_common_op
+# memlet
 
-::: dsl.dace.stree.optimizations.tree_common_op
+::: dsl.dace.stree.common.memlet
 
 <style>
 /* re-enable the left side navigation bar for this page */

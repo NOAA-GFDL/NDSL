@@ -29,7 +29,6 @@ from ndsl.dsl.typing import (
     IntFieldIJ64,
 )
 
-
 # GT4Py direct import need to be down after any `ndsl`
 import gt4py.cartesian.gtscript  # isort: skip
 from gt4py.cartesian import definitions  # isort: skip

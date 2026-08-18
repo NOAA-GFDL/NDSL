@@ -1,4 +1,5 @@
 import os
+import sys
 from enum import Enum
 from typing import Literal
 
@@ -28,11 +29,12 @@ def _get_constant_version(
             f"Constants '{constants_as_str}' is not implemented, abort. Valid values are {expected}."
         )
 
-    return constants_as_str  # type: ignore
+    return constants_as_str
 
 
 CONST_VERSION = ConstantVersions[_get_constant_version()]
-ndsl_log.info(f"Constant selected: {CONST_VERSION}")
+if not sys.argv[0].endswith("ndsl-gencode"):
+    ndsl_log.info(f"Constant selected: {CONST_VERSION}")
 
 #####################
 # Common constants

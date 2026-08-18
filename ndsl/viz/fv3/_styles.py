@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from cycler import cycler
 
-
 # adapted from https://davidmathlogic.com/colorblind
 wong_palette = [
     "#56B4E9",

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from gt4py.cartesian import config as gt_config
 from mpi4py import MPI
 
-
 if TYPE_CHECKING:
     from ndsl.dsl.stencil_config import CompilationConfig
 
@@ -48,7 +47,7 @@ def unblock_waiting_tiles(comm: MPI.Comm) -> None:
     size = comm.Get_size()
     if comm and size > 1:
         for tile in range(1, 6):
-            tile_size = size / 6
+            tile_size = int(size / 6)
             message = "compilation finished"
             comm.send(message, dest=tile * tile_size + rank)
 

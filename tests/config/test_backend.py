@@ -50,3 +50,14 @@ def test_equivalent_backend() -> None:
         kji_backend.equivalent_backend_with_loop_order(BackendLoopOrder.IJK)
         == ijk_backend
     )
+
+
+def test_backup_as_layout_map() -> None:
+    ijk_backend = Backend("st:python:cpu:IJK")
+    assert ijk_backend.as_layout_map() == (2, 1, 0)
+    assert ijk_backend.as_layout_map(data_dimensions_size=3) == (2, 1, 0, 3, 4, 5)
+    assert ijk_backend.as_layout_map(data_dimensions_size=0) == (2, 1, 0)
+    assert ijk_backend.as_layout_map(data_dimensions_size=-1) == (2, 1, 0)
+    kji_backend = Backend("orch:dace:cpu:KJI")
+    assert kji_backend.as_layout_map() == (0, 1, 2)
+    assert kji_backend.as_layout_map(data_dimensions_size=3) == (0, 1, 2, 3, 4, 5)

@@ -28,9 +28,7 @@ def pack_scalar_code(float_dtype: str) -> str:
         o_destinationBuffer[i_offset+tid] = i_sourceArray[i_indexes[tid]];
     }}
 
-    """.format(
-        fdtype=float_dtype
-    )
+    """.format(fdtype=float_dtype)
 
 
 def unpack_scalar_code(float_dtype: str) -> str:
@@ -57,9 +55,7 @@ def unpack_scalar_code(float_dtype: str) -> str:
                 o_destinationArray[i_indexes[tid]] = i_sourceBuffer[i_offset+tid];
             }}
 
-            """.format(
-        fdtype=float_dtype
-    )
+            """.format(fdtype=float_dtype)
 
 
 pack_scalar_f64_kernel = (
@@ -161,9 +157,7 @@ def pack_vector_code(float_dtype: str) -> str:
 
     }}
 
-    """.format(
-        fdtype=float_dtype
-    )
+    """.format(fdtype=float_dtype)
 
 
 def unpack_vector_code(float_dtype: str) -> str:
@@ -194,9 +188,7 @@ def unpack_vector_code(float_dtype: str) -> str:
                 o_destinationArrayY[i_indexesY[tid-i_nIndexX]] = i_sourceBuffer[i_offset+tid];
         }}
 
-        """.format(
-        fdtype=float_dtype
-    )
+        """.format(fdtype=float_dtype)
 
 
 pack_vector_f64_kernel = (

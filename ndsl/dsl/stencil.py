@@ -4,6 +4,7 @@ import copy
 import dataclasses
 import inspect
 import numbers
+import warnings
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast
 
@@ -255,6 +256,16 @@ def compare_ranks(comm: Comm, data: dict) -> Mapping[str, int]:
     return differences
 
 
+_DEPRECATED_STENCILS: list[Callable] = []
+"""Collect deprecated stencils"""
+
+
+def deprecated_stencil(func: Callable) -> Callable:
+    """Wrapper to mark a stencil as deprecated: use as `@deprecated_stencil`."""
+    _DEPRECATED_STENCILS.append(func)
+    return func
+
+
 class FrozenStencil(SDFGConvertible):
     """
     Wrapper for gt4py stencils which stores origin and domain at compile time,
@@ -288,6 +299,17 @@ class FrozenStencil(SDFGConvertible):
             comm: if given, inputs and outputs will be compared to the "twin"
                 rank of this rank
         """
+        # Check for deprecation
+        if func in _DEPRECATED_STENCILS:
+            # We use a UserWarning because this is not meant for DSL internals but
+            # for user code
+            warnings.warn(
+                f"Stencil {func} is deprecated and will be removed in a future version.",
+                UserWarning,
+                stacklevel=2,
+            )
+            _DEPRECATED_STENCILS.remove(func)  # Warn only once
+
         if isinstance(origin, tuple):
             origin = cast_to_index3d(origin)
         self.origin = origin

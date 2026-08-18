@@ -1,12 +1,10 @@
-import warnings
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
 from gt4py.cartesian import gtscript
 
 from ndsl.dsl import NDSL_GLOBAL_PRECISION
-
 
 # A Field
 Field = gtscript.Field
@@ -25,54 +23,20 @@ K = gtscript.K  # noqa: E741
 DTypes = bool | np.bool_ | int | np.int32 | np.int64 | float | np.float32 | np.float64
 
 
-def get_precision() -> int:
-    warnings.warn(
-        "`get_precision()` is deprecated in favor of `NDSL_GLOBAL_PRECISION`. This function will be removed in the next version.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return NDSL_GLOBAL_PRECISION
-
-
-# We redefine the type as a way to distinguish
-# the model definition of a float to other usage of the
-# common numpy type in the rest of the code.
-NDSL_32BIT_FLOAT_TYPE: TypeAlias = np.float32
-NDSL_64BIT_FLOAT_TYPE: TypeAlias = np.float64
-NDSL_32BIT_INT_TYPE: TypeAlias = np.int32
-NDSL_64BIT_INT_TYPE: TypeAlias = np.int64
-
-
-# mypy only really works with static type hints. `Float` and `Int` are set dynamically
-# at runtime based on `NDSL_GLOBAL_PRECISION`. For mypy this is the difference between
-# variables and `TypeAlias`:
-# https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
-# A `TypeAlias` can never be set conditionally, thus `Float` and `Int` are variables,
-# which `mypy` won't consider in type contexts. It is thus simpler to not type them
-# and potentially let IDEs / language servers infer types.
-def global_set_precision():  # type: ignore[no-untyped-def]
-    """Set the global precision for all references of Float and Int in the codebase.
-    Defaults to 64 bit."""
-
-    if NDSL_GLOBAL_PRECISION == 64:
-        return NDSL_64BIT_FLOAT_TYPE, NDSL_64BIT_INT_TYPE
-
-    if NDSL_GLOBAL_PRECISION == 32:
-        return NDSL_32BIT_FLOAT_TYPE, NDSL_32BIT_INT_TYPE
-
+# Default float and int types
+# Dev note: the `TypeAlias` of Float/Int depending on a switch has been giving
+#           us linting headaches. We revert to the previous version here that
+#           try to type hint directly. It will break. Good luck.
+#
+#           Past Florian.
+if NDSL_GLOBAL_PRECISION not in [32, 64]:
     raise NotImplementedError(
         f"{NDSL_GLOBAL_PRECISION} bit precision not implemented or tested."
     )
 
-
-# Default float and int types.
-if TYPE_CHECKING:
-    Float: TypeAlias = np.float64
-    Int: TypeAlias = np.int64
-else:
-    Float, Int = global_set_precision()
-Bool = np.bool_
-
+Float: TypeAlias = np.float64 if NDSL_GLOBAL_PRECISION == 64 else np.float32  # type: ignore
+Float64 = np.float64
+Float32 = np.float32
 FloatField = Field[gtscript.IJK, Float]
 FloatField64 = Field[gtscript.IJK, np.float64]
 FloatField32 = Field[gtscript.IJK, np.float32]
@@ -89,6 +53,9 @@ FloatFieldK = Field[gtscript.K, Float]
 FloatFieldK64 = Field[gtscript.K, np.float64]
 FloatFieldK32 = Field[gtscript.K, np.float32]
 
+Int: TypeAlias = np.int64 if NDSL_GLOBAL_PRECISION == 64 else np.int32  # type: ignore
+Int64 = np.int64
+Int32 = np.int32
 IntField = Field[gtscript.IJK, Int]
 IntField64 = Field[gtscript.IJK, np.int64]
 IntField32 = Field[gtscript.IJK, np.int32]
@@ -105,6 +72,7 @@ IntFieldK = Field[gtscript.K, Int]
 IntFieldK64 = Field[gtscript.K, np.int64]
 IntFieldK32 = Field[gtscript.K, np.int32]
 
+Bool = np.bool_
 BoolField = Field[gtscript.IJK, Bool]
 BoolFieldI = Field[gtscript.I, Bool]
 BoolFieldJ = Field[gtscript.J, Bool]

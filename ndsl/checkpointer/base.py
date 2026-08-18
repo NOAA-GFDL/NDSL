@@ -5,7 +5,6 @@ import numpy as np
 
 from ndsl import Quantity
 
-
 SavepointName: TypeAlias = str
 VariableName: TypeAlias = str
 ArrayLike: TypeAlias = Quantity | np.ndarray
