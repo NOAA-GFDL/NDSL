@@ -1,4 +1,5 @@
 import dataclasses
+import os
 import pickle
 import warnings
 from pathlib import Path
@@ -114,6 +115,10 @@ class DaceExecutable:
                         self._arguments_hash = hash_
                         self.arguments = marshalled_sdfg_args
 
+                if self._record:
+                    self.serialize()
+                    self._record = False
+
                 # Calling into the C
                 with self.performance_collector.timestep_timer.clock(
                     f"{self.name}.Runtime"
@@ -140,6 +145,7 @@ class DaceExecutable:
             backend=config.get_backend(),
             arguments={},
             _original_unoptimized_sdfg=original_unoptimized_sdfg,
+            _record=os.getenv("NDSL_RECORD_ORCHESTRATION", "False").lower() == "true",
         )
 
     def serialize(self) -> None:
@@ -185,6 +191,7 @@ class DaceExecutable:
             backend=backend,
             arguments=arguments,
             _original_unoptimized_sdfg=original_unoptimized_sdfg,
+            _record=False,
         )
 
     def _hash_expected_dsl_args(self, args: tuple[Any], kwargs: dict[str, Any]) -> int:
