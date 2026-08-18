@@ -1,6 +1,6 @@
-# loop_transform
+# parse
 
-::: dsl.dace.sdfg.loop_transform
+::: dsl.dace.builder.parse
 
 <style>
 /* re-enable the left side navigation bar for this page */
