@@ -192,7 +192,7 @@ def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:  # type: ignore[va
 
 class MaxBandwidthBenchmarkProgram:
     def __init__(self, size: Any, backend: Backend) -> None:
-        from ndsl.dsl.dace.orchestration import DaCeOrchestration, orchestrate
+        from ndsl.dsl.dace import DaCeOrchestration, orchestrate
 
         dace_config = DaceConfig(
             None, backend, orchestration=DaCeOrchestration.BuildAndRun

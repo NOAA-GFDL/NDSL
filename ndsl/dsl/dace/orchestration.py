@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from dace import SDFG
 from dace import compiletime as DaceCompiletime
 from dace import method as dace_method
 from dace import program as dace_program_wrapper
@@ -15,14 +14,11 @@ import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import OptimizationConfig
 from ndsl.dsl.dace.builder import (
     get_dace_executable,
-    optimize_full_program_sdfg,
     parse_sdfg,
 )
 from ndsl.dsl.dace.dace_config import (
     DaceConfig,
-    DaCeOrchestration,
 )
-from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE, DaceExecutable
 from ndsl.dsl.dace.labeler import set_label
 from ndsl.quantity import Quantity, State
 
@@ -32,34 +28,6 @@ _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | Non
 def dace_inhibitor(func: Callable) -> Callable:
     """Triggers callback generation wrapping `func` while doing DaCe parsing."""
     return func
-
-
-def _call_sdfg(
-    dace_program: DaceProgram,
-    sdfg: SDFG,
-    config: DaceConfig,
-    optimization_config: OptimizationConfig | None,
-    args: Any,
-    kwargs: Any,
-) -> DaceExecutable:
-    """Dispatch to either SDFG execution and/or build."""
-
-    mode = config.get_orchestrate()
-    if (
-        mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
-        and dace_program not in DACE_EXECUTABLE_CACHE  # already cached
-    ):
-        optimize_full_program_sdfg(
-            dace_program, sdfg, config, optimization_config, args, kwargs
-        )
-
-    if dace_program not in DACE_EXECUTABLE_CACHE:
-        raise RuntimeError(
-            "Dace program not found in cache. Are you running `DaCeOrchestration.Run` "
-            "without a pre-filled cache folder? Try `DacCeOrchestration.BuildAndRun` instead."
-        )
-
-    return DACE_EXECUTABLE_CACHE[dace_program].run(dace_program, args, kwargs)
 
 
 class _LazyComputepathFunction(SDFGConvertible):
