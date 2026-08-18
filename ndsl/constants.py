@@ -1,4 +1,5 @@
 import os
+import sys
 from enum import Enum
 from typing import Literal
 
@@ -32,7 +33,8 @@ def _get_constant_version(
 
 
 CONST_VERSION = ConstantVersions[_get_constant_version()]
-ndsl_log.info(f"Constant selected: {CONST_VERSION}")
+if not sys.argv[0].endswith("ndsl-gencode"):
+    ndsl_log.info(f"Constant selected: {CONST_VERSION}")
 
 #####################
 # Common constants

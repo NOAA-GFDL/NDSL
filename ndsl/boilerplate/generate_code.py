@@ -1,12 +1,10 @@
 """Generate boilerplate code with configurable executor at the bottom."""
 
-from __future__ import annotations
-
 import argparse
 import textwrap
 
 TEMPLATE = textwrap.dedent("""\
-    from ndsl import NDSLRuntime
+    from ndsl import NDSLRuntime, StencilFactory
     from ndsl.boilerplate import get_factories_single_tile
     from ndsl.config import Backend
     from ndsl.constants import I_DIM, J_DIM, K_DIM
@@ -14,50 +12,57 @@ TEMPLATE = textwrap.dedent("""\
     from ndsl.dsl.typing import FloatField
 
 
-    def copy_stencil(input_field: FloatField, output_field: FloatField):
-        \"""All stencil code should live in the global space.\"""
+    def square_stencil(input_field: FloatField, output_field: FloatField) -> None:
+        \"""Saves the squared values of `input_field`  in `output_field`.
+
+        Stencils usually live in the global space. Simple stencils (e.g. `copy`)
+        can be imported from `ndsl.stencils`.\"""
 
         with computation(PARALLEL), interval(...):
-            output_field = input_field
+            output_field = input_field * input_field
 
 
     class {class_name}(NDSLRuntime):
-        \"""All model code should be wrapped in NDSLRuntime object.\"""
+        \"""All model code should derive from NDSLRuntime objects.\"""
 
-        def __init__(self, stencil_factory):
+        def __init__(self, stencil_factory: StencilFactory) -> None:
             super().__init__(stencil_factory)
 
-            self._copy = stencil_factory.from_dims_halo(
-                func=copy_stencil,
+            self._square = stencil_factory.from_dims_halo(
+                func=square_stencil,
                 compute_dims=[I_DIM, J_DIM, K_DIM],
             )
 
-        def __call__(self, input_field: FloatField, output_field: FloatField):
-            self._copy(input_field, output_field)
+        def __call__(self, input_field: FloatField, output_field: FloatField) -> None:
+            self._square(input_field, output_field)
+
+
     {main_section}
     """)
 
 MAIN_SECTION = textwrap.dedent("""\
-
     def main() -> None:
-
         # We setup a single tile grid here
         stencil_factory, quantity_factory = get_factories_single_tile(
             nx=8,
             ny=8,
             nz=4,
             nhalo=1,
-            backend=Backend({backend!r}),
+            backend=Backend("{backend}"),
         )
 
         {instance_name} = {class_name}(stencil_factory)
 
-        qty_in = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="n/a", value=42.42)
-        qty_out = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
+        quantity = quantity_factory.full(
+            value=42.42, dims=[I_DIM, J_DIM, K_DIM], units="n/a"
+        )
+        squared = quantity_factory.zeros(dims=[I_DIM, J_DIM, K_DIM], units="n/a")
 
-        {instance_name}(qty_in, qty_out)
+        {instance_name}(quantity, squared)
 
-        assert (qty_out.field[:] == qty_in.field[:]).all(), "{class_name} does a copy"
+        assert (
+            squared.field[:] == quantity.field[:] * quantity.field[:]
+        ).all(), "{class_name} saves squared values."
 
 
     if __name__ == "__main__":
@@ -118,11 +123,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    output = build_script(args.name, args.backend, args.exec_main)
+    output = build_script(args.name, args.backend, args.exec_main).rstrip()
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as handle:
             handle.write(output)
+            handle.write("\n")
     else:
         print(output)
 

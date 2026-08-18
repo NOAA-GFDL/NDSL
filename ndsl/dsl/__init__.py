@@ -55,7 +55,8 @@ if not any([name.startswith("dace") for name in gt_backend.REGISTRY.names]):
     )
 
 
-ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")
+if not sys.argv[0].endswith("ndsl-gencode"):
+    ndsl_log.info(f"Literal precision: {NDSL_GLOBAL_PRECISION}")
 
 # We remove warnings from the compiler for higher level of logging
 NDSL_COMPILER_SILENCE = os.getenv("NDSL_COMPILER_SILENCE", "False").lower() == "true"
