@@ -1,10 +1,8 @@
-from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
-import unittest.mock
-
 from ndsl import CubedSpherePartitioner, DaceConfig, DaCeOrchestration, TilePartitioner
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import _determine_compiling_ranks
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 from ndsl.dsl.dace.orchestration import orchestrate, orchestrate_function
 
 """
@@ -83,6 +81,7 @@ def test_orchestrate_does_not_call_dace() -> None:
     a.foo()
 
     assert not DACE_EXECUTABLE_CACHE.values()
+
 
 def test_orchestrate_distributed_build() -> None:
     dummy_dace_config = DaceConfig(

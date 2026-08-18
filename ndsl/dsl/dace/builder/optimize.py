@@ -135,6 +135,7 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
         skip={"ScalarToSymbolPromotion", "ControlFlowRaising"},
     )
 
+
 def _optimization_pipeline(
     config: OptimizationConfig,
     device_type: DeviceType,
@@ -218,7 +219,7 @@ def optimize_full_program_sdfg(
                                 and node.schedule != ScheduleType.Sequential
                             ):
                                 node.schedule = ScheduleType.GPU_Device
-            
+
             if config.verbose_orchestration:
                 ndsl_log.debug("saving 00-gpu-maps.sdfgz")
                 parsed_sdfg.save(

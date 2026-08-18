@@ -150,8 +150,10 @@ class DaceExecutable:
 
     def serialize(self) -> None:
         """Serialize arguments and code for blind replayability using `replay`"""
-        bundle_dir = self.compiled_sdfg.sdfg.build_folder + "/" + _BUNDLE_DIRECTORY_NAME
-        Path(bundle_dir).mkdir(exist_ok=True, parents=True)
+        bundle_dir = Path(
+            self.compiled_sdfg.sdfg.build_folder + "/" + _BUNDLE_DIRECTORY_NAME
+        )
+        bundle_dir.mkdir(exist_ok=True, parents=True)
 
         with open(bundle_dir / "de_args.pickle", "wb") as f:
             pickle.dump(self.arguments, f)
@@ -168,19 +170,22 @@ class DaceExecutable:
             f.write(self.backend.as_humanly_readable())
 
     @classmethod
-    def from_serialized_bundle(cls, bundle_dir: Path) -> "DaceExecutable":
+    def from_serialized_bundle(cls, bundle_dir: str) -> "DaceExecutable":
         """Read a serialized bundle and ready the system for replay."""
-        with open(bundle_dir / "de_args.pickle", "rb") as f:
+
+        bundle_path = Path(bundle_dir) / _BUNDLE_DIRECTORY_NAME
+
+        with open(bundle_path / "de_args.pickle", "rb") as f:
             arguments = pickle.load(f)
 
-        gt4py_sdfg_bundle_sdfg = bundle_dir / f"{_GT4PY_SDFG_NAME}.sdfgz"
+        gt4py_sdfg_bundle_sdfg = bundle_path / f"{_GT4PY_SDFG_NAME}.sdfgz"
         if gt4py_sdfg_bundle_sdfg.exists():
             original_unoptimized_sdfg = SDFG.from_file(str(gt4py_sdfg_bundle_sdfg))
 
-        sdfg = SDFG.from_file(f"{bundle_dir}/{_ORCH_SDFG_NAME}.sdfgz")
+        sdfg = SDFG.from_file(f"{bundle_path}/{_ORCH_SDFG_NAME}.sdfgz")
         csdfg = sdfg.compile()
 
-        with open(bundle_dir / "backend.txt", "w") as f:
+        with open(bundle_path / "backend.txt", "r") as f:
             backend = Backend(f.readlines()[0])
 
         return cls(
