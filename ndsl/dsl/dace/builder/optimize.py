@@ -129,8 +129,11 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
     This function wraps `stree.as_sdfg()` with a configuration that is suitable for
     NDSL, e.g. skipping certain passes of `sdfg.simplify()`.
     """
-    return stree.as_sdfg(skip={"ScalarToSymbolPromotion", "ControlFlowRaising"})
-
+    return stree.as_sdfg(
+        validate=False,
+        simplify=True,
+        skip={"ScalarToSymbolPromotion", "ControlFlowRaising"},
+    )
 
 def _optimization_pipeline(
     config: OptimizationConfig,
@@ -215,12 +218,13 @@ def optimize_full_program_sdfg(
                                 and node.schedule != ScheduleType.Sequential
                             ):
                                 node.schedule = ScheduleType.GPU_Device
-
-            ndsl_log.debug("saving 00-gpu-maps.sdfgz")
-            parsed_sdfg.save(
-                os.path.abspath(f"{parsed_sdfg.build_folder}/00-gpu-maps.sdfgz"),
-                compress=True,
-            )
+            
+            if config.verbose_orchestration:
+                ndsl_log.debug("saving 00-gpu-maps.sdfgz")
+                parsed_sdfg.save(
+                    os.path.abspath(f"{parsed_sdfg.build_folder}/00-gpu-maps.sdfgz"),
+                    compress=True,
+                )
 
         with DaCeProgress(mode, "Simplify (1)"):
             _simplify(parsed_sdfg)
@@ -290,8 +294,12 @@ def optimize_full_program_sdfg(
         # We want all maps properly collapse to make sure the codegen will see nD parallel
         # axis as a single kernelizable map
         with DaCeProgress(mode, "Collapse maps"):
-            # allow `MapCollapse` to collapse maps with different schedules
-            parsed_sdfg.apply_transformations_repeated(MapCollapse, permissive=True)
+            # permissive: allow `MapCollapse` to collapse maps with different schedules
+            # progress: do not print intermediate transformations applied
+            # validate: do not validate after applying all transformations
+            parsed_sdfg.apply_transformations_repeated(
+                MapCollapse, permissive=True, progress=False, validate=False
+            )
 
         with DaCeProgress(mode, "Make transient persistents"):
             # Make the transients array persistents
