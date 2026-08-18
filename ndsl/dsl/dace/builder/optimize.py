@@ -29,6 +29,7 @@ from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
+from ndsl.dsl.dace.builder.stree import CPUPipeline, GPUPipeline, StreePipeline
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
     DaceConfig,
@@ -36,7 +37,6 @@ from ndsl.dsl.dace.dace_config import (
 )
 from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE, DaceExecutable
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
-from ndsl.dsl.dace.builder.stree import StreePipeline, CPUPipeline, GPUPipeline
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
