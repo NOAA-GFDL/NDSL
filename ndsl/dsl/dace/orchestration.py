@@ -13,7 +13,11 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import OptimizationConfig
-from ndsl.dsl.dace.builder import optimize_full_program_sdfg, parse_sdfg, get_dace_executable
+from ndsl.dsl.dace.builder import (
+    get_dace_executable,
+    optimize_full_program_sdfg,
+    parse_sdfg,
+)
 from ndsl.dsl.dace.dace_config import (
     DaceConfig,
     DaCeOrchestration,
@@ -45,7 +49,9 @@ def _call_sdfg(
         mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
         and dace_program not in DACE_EXECUTABLE_CACHE  # already cached
     ):
-        optimize_full_program_sdfg(dace_program, sdfg, config, optimization_config, args, kwargs)
+        optimize_full_program_sdfg(
+            dace_program, sdfg, config, optimization_config, args, kwargs
+        )
 
     if dace_program not in DACE_EXECUTABLE_CACHE:
         raise RuntimeError(
@@ -54,6 +60,7 @@ def _call_sdfg(
         )
 
     return DACE_EXECUTABLE_CACHE[dace_program].run(dace_program, args, kwargs)
+
 
 class _LazyComputepathFunction(SDFGConvertible):
     """JIT wrapper around a function for DaCe orchestration.

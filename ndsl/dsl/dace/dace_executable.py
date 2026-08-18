@@ -9,12 +9,15 @@ from dace.frontend.python.parser import DaceProgram
 from dace.sdfg.sdfg import SDFG
 from gt4py import storage as gt_storage
 
+from ndsl.comm.local_comm import LocalComm
 from ndsl.config.backend import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.dace.utils import DaCeProgress
-from ndsl.comm.local_comm import LocalComm
-from ndsl.performance.collector import AbstractPerformanceCollector, PerformanceCollector
 from ndsl.optional_imports import cupy as cp
+from ndsl.performance.collector import (
+    AbstractPerformanceCollector,
+    PerformanceCollector,
+)
 from ndsl.quantity import State
 
 DaceExecutables = dict[DaceProgram, "DaceExecutable"]

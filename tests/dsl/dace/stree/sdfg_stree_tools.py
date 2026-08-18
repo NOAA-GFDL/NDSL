@@ -1,4 +1,3 @@
-from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 from types import TracebackType
 
 import dace
@@ -6,6 +5,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 import ndsl.dsl.dace.orchestration as orch
 from ndsl import StencilFactory
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 
 
 def get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
@@ -13,7 +13,9 @@ def get_SDFG_and_purge(stencil_factory: StencilFactory) -> dace.CompiledSDFG:
     compilation and flush the cache in order for next build to re-use the function."""
 
     if len(DACE_EXECUTABLE_CACHE.values()) != 1:
-        raise RuntimeError(f"Failure to compile SDFG {len(DACE_EXECUTABLE_CACHE.values())}")
+        raise RuntimeError(
+            f"Failure to compile SDFG {len(DACE_EXECUTABLE_CACHE.values())}"
+        )
     sdfg = list(DACE_EXECUTABLE_CACHE.values())[0].compiled_sdfg
 
     DACE_EXECUTABLE_CACHE.clear()

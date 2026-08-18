@@ -32,7 +32,7 @@ def parse_sdfg(
         dace_program: the DaceProgram carrying reference to the original method/function
         config: the DaceConfig configuration for this execution
     """
-    
+
     # Check cache for already loaded SDFG
     if dace_program in DACE_EXECUTABLE_CACHE:
         return DACE_EXECUTABLE_CACHE[dace_program].compiled_sdfg
@@ -89,4 +89,3 @@ def parse_sdfg(
         )
 
     return compiled_sdfg
-

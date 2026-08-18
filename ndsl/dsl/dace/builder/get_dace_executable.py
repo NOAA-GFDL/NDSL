@@ -30,7 +30,9 @@ def get_dace_executable(
         mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
         and dace_program not in DACE_EXECUTABLE_CACHE  # already cached
     ):
-        optimize_full_program_sdfg(dace_program, sdfg, config, optimization_config, args, kwargs)
+        optimize_full_program_sdfg(
+            dace_program, sdfg, config, optimization_config, args, kwargs
+        )
 
     if dace_program not in DACE_EXECUTABLE_CACHE:
         raise RuntimeError(

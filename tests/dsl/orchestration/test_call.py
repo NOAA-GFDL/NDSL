@@ -1,4 +1,3 @@
-from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 import dataclasses
 
 import pytest
@@ -7,6 +6,7 @@ from ndsl import NDSLRuntime, Quantity, State, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.gt4py import PARALLEL, Field, computation, interval
 from ndsl.dsl.typing import FloatField

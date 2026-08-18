@@ -178,7 +178,9 @@ def optimize_full_program_sdfg(
         unoptimized_sdfg = copy.copy(parsed_sdfg)
 
         if optimization_config is None:
-            ndsl_log.debug(f"Using default optimization config for {parsed_sdfg.label}.")
+            ndsl_log.debug(
+                f"Using default optimization config for {parsed_sdfg.label}."
+            )
             optimization_config = OptimizationConfig()
 
         ndsl_log.debug(f"Compiling config:\n{pformat(optimization_config, indent=2)}")
@@ -248,7 +250,9 @@ def optimize_full_program_sdfg(
                 if config.verbose_orchestration:
                     ndsl_log.debug("saving 02-pre_opt.stree.txt")
                     with open(
-                        os.path.abspath(f"{parsed_sdfg.build_folder}/02-pre_opt.stree.txt"),
+                        os.path.abspath(
+                            f"{parsed_sdfg.build_folder}/02-pre_opt.stree.txt"
+                        ),
                         "w+",
                     ) as f:
                         f.write(stree.as_string())
@@ -265,7 +269,9 @@ def optimize_full_program_sdfg(
                 if config.verbose_orchestration:
                     ndsl_log.debug("saving 03-post_opt.stree.txt")
                     with open(
-                        os.path.abspath(f"{parsed_sdfg.build_folder}/03-post_opt.stree.txt"),
+                        os.path.abspath(
+                            f"{parsed_sdfg.build_folder}/03-post_opt.stree.txt"
+                        ),
                         "w+",
                     ) as f:
                         f.write(stree.as_string())
@@ -275,7 +281,9 @@ def optimize_full_program_sdfg(
                 if config.verbose_orchestration:
                     ndsl_log.debug("saving 04-from_stree.sdfgz")
                     parsed_sdfg.save(
-                        os.path.abspath(f"{parsed_sdfg.build_folder}/04-from_stree.sdfgz"),
+                        os.path.abspath(
+                            f"{parsed_sdfg.build_folder}/04-from_stree.sdfgz"
+                        ),
                         compress=True,
                     )
 
@@ -355,7 +363,9 @@ def optimize_full_program_sdfg(
                 if config.verbose_orchestration:
                     ndsl_log.debug("saving 05-simplify_2.sdfgz")
                     parsed_sdfg.save(
-                        os.path.abspath(f"{parsed_sdfg.build_folder}/05-simplify_2.sdfgz"),
+                        os.path.abspath(
+                            f"{parsed_sdfg.build_folder}/05-simplify_2.sdfgz"
+                        ),
                         compress=True,
                     )
         # Move all memory that can be into a pool to lower memory pressure for GPU
