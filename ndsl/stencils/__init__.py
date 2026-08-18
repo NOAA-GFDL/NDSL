@@ -27,6 +27,11 @@ from .basic_operations import (
     subtract_to_self,
     subtract_to_self_2d,
 )
+from .basic_operations import divide_to_self as divide_self
+from .basic_operations import subtract_to_self as subtract_from_self
+from .basic_operations import divide_to_self_2d as divide_self_2d
+from .basic_operations import set_value_2D as set_value_2d
+from .basic_operations import subtract_to_self_2d as subtract_from_self_2d
 from .corners import FillCornersBGrid
 
 
@@ -59,4 +64,9 @@ __all__ = [
     "subtract_2d",
     "subtract_to_self",
     "subtract_to_self_2d",
+    "divide_self",
+    "subtract_from_self",
+    "divide_self_2d",
+    "set_value_2d",
+    "subtract_from_self_2d",
 ]
