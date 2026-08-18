@@ -32,6 +32,7 @@ from .basic_operations import subtract_to_self as subtract_from_self
 from .basic_operations import divide_to_self_2d as divide_self_2d
 from .basic_operations import set_value_2D as set_value_2d
 from .basic_operations import subtract_to_self_2d as subtract_from_self_2d
+from .basic_operations import set_IJ_mask_value as set_boolean_value_2d
 from .corners import FillCornersBGrid
 
 
@@ -69,4 +70,5 @@ __all__ = [
     "divide_self_2d",
     "set_value_2d",
     "subtract_from_self_2d",
+    "set_boolean_value_2d",
 ]
