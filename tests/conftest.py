@@ -1,3 +1,4 @@
+from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 import numpy as np
 import pytest
 
@@ -33,3 +34,8 @@ def numpy(backend: str):
         return cupy
 
     raise NotImplementedError(f"Unsupported backend {backend} found in test setup.")
+
+@pytest.fixture(autouse=True)
+def dace_executable_cache_clear():
+    yield
+    DACE_EXECUTABLE_CACHE.clear()

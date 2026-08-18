@@ -53,8 +53,6 @@ def test_stree_roundtrip():
 
     assert (out_qty.field[:] == 4).all()
 
-    get_SDFG_and_purge(stencil_factory)
-
 
 def single_K_map(field: FloatField):
     with computation(FORWARD), interval(0, 1):
