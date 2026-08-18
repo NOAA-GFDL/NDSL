@@ -25,10 +25,16 @@ from .basic_operations import (
 )
 from .basic_operations import set_IJ_mask_value
 from .basic_operations import set_IJ_mask_value as set_boolean_value_2d
-from .basic_operations import set_value
+from .basic_operations import (
+    set_value,
+)
 from .basic_operations import set_value_2D
 from .basic_operations import set_value_2D as set_value_2d
-from .basic_operations import sign, subtract, subtract_2d
+from .basic_operations import (
+    sign,
+    subtract,
+    subtract_2d,
+)
 from .basic_operations import subtract_to_self
 from .basic_operations import subtract_to_self as subtract_from_self
 from .basic_operations import subtract_to_self_2d
