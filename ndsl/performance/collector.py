@@ -96,7 +96,11 @@ class PerformanceCollector(AbstractPerformanceCollector):
         return Wrapper(self, name)
 
     def write_out_rank_0(
-        self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
+        self,
+        backend: Backend,
+        is_orchestrated: bool,
+        dt_atmos: float,
+        sim_status: str,
     ) -> None:
         if self.comm.Get_rank() == 0:
             git_hash = "None"
@@ -110,15 +114,19 @@ class PerformanceCollector(AbstractPerformanceCollector):
                 for data_point in self.times_per_step:
                     if timer_name in data_point:
                         data.append(data_point[timer_name])
+                times = copy.deepcopy(np.array(data).tolist())
                 timing_info[timer_name] = TimeReport(
-                    hits=0, times=copy.deepcopy(np.array(data).tolist())
+                    hits=0,
+                    times=times,
+                    mean=np.mean(times),
+                    median=np.median(times),
+                    std_deviation=np.std(times),
                 )
             exp_info = get_experiment_info(
                 self.experiment_name,
                 len(self.hits_per_step) - 1,
                 backend,
                 git_hash,
-                is_orchestrated,
             )
             timing_info = gather_hit_counts(self.hits_per_step, timing_info)
             report = Report(
@@ -127,7 +135,7 @@ class PerformanceCollector(AbstractPerformanceCollector):
                 dt_atmos=dt_atmos,
                 sim_status=sim_status,
             )
-            filename = write_to_timestamped_json(report)
+            filename = write_to_timestamped_json(report, self.experiment_name)
             ndsl_log.info(f"Performance report in : {filename}")
         else:
             pass

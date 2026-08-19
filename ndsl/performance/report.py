@@ -25,6 +25,9 @@ class Experiment:
 class TimeReport:
     hits: int
     times: list
+    median: float
+    mean: float
+    std_deviation: float
 
 
 @dataclasses.dataclass
@@ -44,16 +47,14 @@ def get_experiment_info(
     time_step: int,
     backend: Backend,
     git_hash: str,
-    is_orchestrated: bool,
 ) -> Experiment:
-    orchestration = "orchestrated" if is_orchestrated else "python"
     experiment = Experiment(
         dataset=experiment_name,
         format_version=3,
         git_hash=git_hash,
         timestamp=datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
         timesteps=time_step,
-        backend=f"{orchestration}/{backend.as_safe_for_path()}",
+        backend=backend.as_safe_for_path(),
     )
     return experiment
 
@@ -92,16 +93,21 @@ def gather_timing_data(
             recvbuf = np.array([data] * comm.Get_size())
         comm.Gather(sendbuf, recvbuf, root=0)
         if is_root:
+            assert recvbuf
+            times = copy.deepcopy(recvbuf.tolist())
             timing_info[timer_name] = TimeReport(
                 hits=0,
-                times=copy.deepcopy(recvbuf.tolist()),  # type: ignore[union-attr] # (recvbuf is defined on root rank)
+                times=times,
+                median=np.median(times),
+                mean=np.mean(times),
+                std_deviation=np.std(times),
             )
     return timing_info
 
 
-def write_to_timestamped_json(experiment: Report) -> str:
+def write_to_timestamped_json(experiment: Report, experiment_name: str = "") -> str:
     now = datetime.now(UTC)
-    filename = now.strftime("%Y-%m-%d-%H-%M-%S") + ".json"
+    filename = experiment_name + now.strftime("%Y-%m-%d-%H-%M-%S") + ".json"
     with open(filename, "w") as outfile:
         json.dump(dataclasses.asdict(experiment), outfile, sort_keys=True, indent=4)
     return filename
@@ -151,9 +157,7 @@ def collect_data_and_write_to_file(
     timing_info = gather_timing_data(times_per_step, comm)
 
     if is_root:
-        exp_info = get_experiment_info(
-            experiment_name, time_step, backend, git_hash, is_orchestrated
-        )
+        exp_info = get_experiment_info(experiment_name, time_step, backend, git_hash)
         timing_info = gather_hit_counts(hits_per_step, timing_info)
         report = Report(setup=exp_info, times=timing_info, dt_atmos=dt_atmos)
-        write_to_timestamped_json(report)
+        write_to_timestamped_json(report, experiment_name=experiment_name)
