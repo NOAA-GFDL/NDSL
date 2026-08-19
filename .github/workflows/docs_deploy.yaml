@@ -30,7 +30,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-      - run: uv sync --no-dev --extra docs
+      - run: uv sync --group docs
       - run: uv run zensical build
       - uses: actions/upload-pages-artifact@v5
         with:

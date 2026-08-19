@@ -2,6 +2,25 @@
 build-backend = "setuptools.build_meta"
 requires = ["setuptools >= 80", "setuptools-scm>=10"]
 
+[dependency-groups]
+dev = [
+  {include-group = "docs"},
+  {include-group = "lint"},
+  {include-group = "test"}
+]
+docs = [
+  "mkdocstrings[python]",
+  "zensical"
+]
+lint = [
+  "flake8-pyproject",
+  "pre-commit"
+]
+test = [
+  "coverage",
+  "pytest<9.1.0"  # starting with 9.1.0 we get issues with test detection
+]
+
 [project]
 authors = [{name = "NOAA/NASA"}]
 classifiers = [
@@ -43,24 +62,11 @@ requires-python = ">=3.12,<3.14"
 cuda12 = ['cupy-cuda12x>=12.0']
 cuda13 = ['cupy-cuda13x>=14.0']
 demos = ["ipython", "ipykernel"]
-dev = [
-  "flake8-pyproject",
-  "ndsl[demos]",
-  "ndsl[docs]",
-  "ndsl[test]",
-  "pre-commit"
-]
-docs = ["zensical", "mkdocstrings[python]"]
-extras = ["ndsl[docs]", "ndsl[demos]", "ndsl[test]", "ndsl[dev]"]
 hmm-cuda12 = ['numpy_allocator', 'ndsl[cuda12]']
 hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']
 openmpi = ['openmpi']
 pyfms = ["pyfms @ git+https://github.com/noaa-gfdl/pyfms.git"]
 serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
-test = [
-  "pytest<9.1.0",  # starting with 9.1.0 we get issues with test detection
-  "coverage"
-]
 zarr = ["zarr<3"]
 
 [project.scripts]
