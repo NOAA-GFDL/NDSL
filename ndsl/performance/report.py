@@ -93,7 +93,7 @@ def gather_timing_data(
             recvbuf = np.array([data] * comm.Get_size())
         comm.Gather(sendbuf, recvbuf, root=0)
         if is_root:
-            assert recvbuf
+            assert recvbuf is not None
             times = copy.deepcopy(recvbuf.tolist())
             timing_info[timer_name] = TimeReport(
                 hits=0,
