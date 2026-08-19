@@ -1,6 +1,0 @@
-[lint]
-ignore = [
-  "I001",  # isort takes care of imports
-  "UP040",  # we need TypeAlias because type X doesn't cover our case
-  "RUF022"  # _all_ can be unsorted
-]
