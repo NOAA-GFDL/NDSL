@@ -40,7 +40,7 @@ jobs:
         run: uv sync --no-dev --extra openmpi
 
       - name: Generate and run code
-        run:
+        run: |
           source .venv/bin/activate
           ndsl-gencode --exec --output test_ndsl_gencode.py
           python test_ndsl_gencode.py
