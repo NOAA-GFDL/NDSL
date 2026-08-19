@@ -25,9 +25,9 @@ class Experiment:
 class TimeReport:
     hits: int
     times: list
-    median: float
-    mean: float
-    std_deviation: float
+    median: float = 0.0
+    mean: float = 0.0
+    std_deviation: float = 0.0
 
 
 @dataclasses.dataclass
