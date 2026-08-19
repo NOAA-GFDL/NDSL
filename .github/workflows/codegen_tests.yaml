@@ -30,13 +30,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: |
-          pip install openmpi
-          pip install .
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Generate executable code
-        run: ndsl-gencode --exec --output test_ndsl_gencode.py
+      - name: Install Python packages
+        run: uv sync --no-dev --extra openmpi
 
-      - name: Run generated code
-        run: python test_ndsl_gencode.py
+      - name: Generate and run code
+        run:
+          source .venv/bin/activate
+          ndsl-gencode --exec --output test_ndsl_gencode.py
+          python test_ndsl_gencode.py
