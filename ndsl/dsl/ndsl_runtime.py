@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import inspect
 import warnings
-from collections.abc import Callable
-from typing import Any, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
+
+import numpy as np
 
 from ndsl import OptimizationConfig
 from ndsl.debug import get_debugger
@@ -11,7 +13,12 @@ from ndsl.dsl.dace.orchestration import orchestrate
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import Float
 from ndsl.initialization.allocator import QuantityFactory
+from ndsl.optional_imports import cupy
 from ndsl.quantity import Local, Quantity
+from ndsl.quantity.local import ConstantQuantity
+
+if cupy is None:
+    import numpy as cupy
 
 _TOP_LEVEL: object | None = None
 
@@ -192,5 +199,32 @@ class NDSLRuntime:
             origin=quantity.origin,
             extent=quantity.extent,
             backend=quantity.backend,
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
+        )
+
+    def make_constant_quantity(
+        self,
+        data: np.ndarray | cupy.ndarray | Quantity,
+        quantity_factory: QuantityFactory,
+        dims: Sequence[str],
+        dtype: type = Float,
+        units: str = "unspecified",
+        *,
+        allow_mismatch_float_precision: bool = False,
+    ) -> ConstantQuantity:
+        constant = quantity_factory.zeros(
+            dims,
+            units,
+            dtype,
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
+        )
+        constant.field[:] = data[:]
+        return ConstantQuantity(
+            data=constant._data,
+            dims=constant.dims,
+            units=constant.units,
+            origin=constant.origin,
+            extent=constant.extent,
+            backend=constant.backend,
             allow_mismatch_float_precision=allow_mismatch_float_precision,
         )

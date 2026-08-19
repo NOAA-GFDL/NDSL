@@ -54,3 +54,34 @@ class Local(Quantity):
             f"    units={self.units},\n    origin={self.origin},\n"
             f"    extent={self.extent}\n)"
         )
+
+
+class ConstantQuantity(Quantity):
+    """ConstantQuantity is a Quantity that cannot be written to outside of it's allocation
+    (notably with the `NDSLRuntime.make_constant_quantity` method)."""
+
+    def __init__(
+        self,
+        data: np.ndarray | cupy.ndarray | Quantity,
+        dims: Sequence[str],
+        units: str,
+        *,
+        backend: Backend,
+        origin: Sequence[int] | None = None,
+        extent: Sequence[int] | None = None,
+        allow_mismatch_float_precision: bool = False,
+    ):
+        super().__init__(
+            data,
+            dims,
+            units,
+            origin=origin,
+            extent=extent,
+            allow_mismatch_float_precision=allow_mismatch_float_precision,
+            backend=backend,
+        )
+
+    def __setitem__(self, subscript: Any, value: Any) -> None:
+        raise RuntimeError(
+            "ConstantQuantity cannot be written too after initialization"
+        )

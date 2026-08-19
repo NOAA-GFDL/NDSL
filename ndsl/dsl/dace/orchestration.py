@@ -529,6 +529,7 @@ def _parse_sdfg(
     dace_program: DaceProgram,
     config: DaceConfig,
     optimization: OptimizationConfig | None,
+    top_level: bool = False,
     *args: Any,
     **kwargs: Any,
 ) -> SDFG | CompiledSDFG | None:
@@ -538,12 +539,15 @@ def _parse_sdfg(
     Attributes:
         dace_program: the DaceProgram carrying reference to the original method/function
         config: the DaceConfig configuration for this execution
+        optimization: the local OptimizationConfig
+        top_level: mark this SDFG as an entry point of parsing, rather than an nested/inner SDFG
     """
     # Check cache for already loaded SDFG
     if dace_program in config.loaded_dace_executables:
         return config.loaded_dace_executables[dace_program].compiled_sdfg
 
-    ndsl_log.info(f"Building DaCe orchestration for {dace_program.f.__qualname__}")
+    if top_level:
+        ndsl_log.info(f"Building DaCe orchestration for {dace_program.f.__qualname__}")
 
     # Build expected path
     sdfg_path = get_sdfg_path(dace_program.name, config)
@@ -621,6 +625,7 @@ class _LazyComputepathFunction(SDFGConvertible):
             self.daceprog,
             self.config,
             self.optimization_config,
+            True,
             *args,
             **kwargs,
         )
@@ -643,7 +648,12 @@ class _LazyComputepathFunction(SDFGConvertible):
 
     def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return _parse_sdfg(
-            self.daceprog, self.config, self.optimization_config, *args, **kwargs
+            self.daceprog,
+            self.config,
+            self.optimization_config,
+            False,
+            *args,
+            **kwargs,
         )
 
     def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
@@ -692,6 +702,7 @@ class _LazyComputepathMethod:
                 self.daceprog,
                 self.lazy_method.config,
                 self.lazy_method.optimization_config,
+                True,
                 *args,
                 **kwargs,
             )
@@ -709,6 +720,7 @@ class _LazyComputepathMethod:
                 self.daceprog,
                 self.lazy_method.config,
                 self.lazy_method.optimization_config,
+                False,
                 *args,
                 **kwargs,
             )
