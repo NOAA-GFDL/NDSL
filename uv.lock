@@ -1456,30 +1456,6 @@ demos = [
     { name = "ipykernel" },
     { name = "ipython" },
 ]
-dev = [
-    { name = "coverage" },
-    { name = "flake8-pyproject" },
-    { name = "ipykernel" },
-    { name = "ipython" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "zensical" },
-]
-docs = [
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "zensical" },
-]
-extras = [
-    { name = "coverage" },
-    { name = "flake8-pyproject" },
-    { name = "ipykernel" },
-    { name = "ipython" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "zensical" },
-]
 hmm-cuda12 = [
     { name = "cupy-cuda12x" },
     { name = "numpy-allocator" },
@@ -1497,59 +1473,62 @@ pyfms = [
 serialbox = [
     { name = "serialbox" },
 ]
-test = [
-    { name = "coverage" },
-    { name = "pytest" },
-]
 zarr = [
     { name = "zarr" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "coverage" },
+    { name = "flake8-pyproject" },
+    { name = "mkdocstrings", extra = ["python"] },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "zensical" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cartopy" },
     { name = "cftime" },
-    { name = "coverage", marker = "extra == 'test'" },
     { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
     { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
     { name = "dace", git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6" },
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
-    { name = "flake8-pyproject", marker = "extra == 'dev'" },
     { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=511a7ab966f3b2ccc61b897240afe64adb322cf4" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "ipykernel", marker = "extra == 'demos'" },
     { name = "ipython", marker = "extra == 'demos'" },
     { name = "matplotlib" },
-    { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'" },
     { name = "mpi4py", specifier = ">=4.1" },
     { name = "ndsl", extras = ["cuda12"], marker = "extra == 'hmm-cuda12'" },
     { name = "ndsl", extras = ["cuda13"], marker = "extra == 'hmm-cuda13'" },
-    { name = "ndsl", extras = ["demos"], marker = "extra == 'dev'" },
-    { name = "ndsl", extras = ["demos"], marker = "extra == 'extras'" },
-    { name = "ndsl", extras = ["dev"], marker = "extra == 'extras'" },
-    { name = "ndsl", extras = ["docs"], marker = "extra == 'dev'" },
-    { name = "ndsl", extras = ["docs"], marker = "extra == 'extras'" },
-    { name = "ndsl", extras = ["test"], marker = "extra == 'dev'" },
-    { name = "ndsl", extras = ["test"], marker = "extra == 'extras'" },
     { name = "netcdf4", specifier = "==1.7.2" },
     { name = "numpy", specifier = ">=2" },
     { name = "numpy-allocator", marker = "extra == 'hmm-cuda12'" },
     { name = "numpy-allocator", marker = "extra == 'hmm-cuda13'" },
     { name = "openmpi", marker = "extra == 'openmpi'" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pyfms", marker = "extra == 'pyfms'", git = "https://github.com/noaa-gfdl/pyfms.git" },
-    { name = "pytest", marker = "extra == 'test'", specifier = "<9.1.0" },
     { name = "pytest-subtests" },
     { name = "scipy" },
     { name = "serialbox", marker = "extra == 'serialbox'", git = "https://github.com/FlorianDeconinck/serialbox.git?subdirectory=src%2Fserialbox-python&rev=feature%2Fdata_ijkbuff" },
     { name = "xarray", specifier = ">=2025.1.2" },
     { name = "zarr", marker = "extra == 'zarr'", specifier = "<3" },
-    { name = "zensical", marker = "extra == 'docs'" },
 ]
-provides-extras = ["cuda12", "cuda13", "demos", "dev", "docs", "extras", "hmm-cuda12", "hmm-cuda13", "openmpi", "pyfms", "serialbox", "test", "zarr"]
+provides-extras = ["cuda12", "cuda13", "demos", "hmm-cuda12", "hmm-cuda13", "openmpi", "pyfms", "serialbox", "zarr"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "coverage" },
+    { name = "flake8-pyproject" },
+    { name = "mkdocstrings", extras = ["python"] },
+    { name = "pre-commit" },
+    { name = "pytest", specifier = "<9.1.0" },
+    { name = "zensical" },
+]
 
 [[package]]
 name = "nest-asyncio2"
