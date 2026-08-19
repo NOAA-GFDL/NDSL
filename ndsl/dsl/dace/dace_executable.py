@@ -59,8 +59,8 @@ class DaceExecutable:
     and its marshalled arguments for fast execution.
     """
 
-    compiled_sdfg: dace.CompiledSDFG
-    """Loaded compiled SDFG"""
+    compiled_sdfg: dace.CompiledSDFG | None
+    """Loaded compiled SDFG. Allowed to be None only when using `from_serialized_bundle`"""
 
     performance_collector: AbstractPerformanceCollector
     """Performance timer used to time runtime operations (overhead and numerics)"""
@@ -77,6 +77,9 @@ class DaceExecutable:
     arguments: dict[str, Any] | None = None
     """Arguments as C-ready pointers"""
 
+    original_unoptimized_sdfg: SDFG | None = None
+    """Optional: Unoptimized SDFG coming from GT4Py-frozen stencils + parsing."""
+
     _arguments_hash: int = 0
     """Internal: hash reflecting the python/C pointers arguments"""
 
@@ -84,15 +87,12 @@ class DaceExecutable:
     """Internal: skip hash computation because some
     arguments where detected to be un-hashable last time"""
 
-    _original_unoptimized_sdfg: SDFG | None = None
-    """Internal: unoptimized SDFG coming from GT4Py-frozen stencils + parsing"""
-
     _record: bool = False
     """Internal: next execution will be recorded for replayability"""
 
     def run(self, dace_program: DaceProgram, args: Any, kwargs: Any) -> list | None:
         """Execute the loaded executable with as little overhead as possible"""
-
+        assert self.compiled_sdfg
         with self.performance_collector.timestep_timer.clock(f"{self.name}.Call"):
             if self.mode not in [DaCeOrchestration.BuildAndRun, DaCeOrchestration.Run]:
                 raise ValueError(f"Unexpected DaceOrchestration mode `{self.mode}`.")
@@ -144,12 +144,13 @@ class DaceExecutable:
             mode=config.get_orchestrate(),
             backend=config.get_backend(),
             arguments={},
-            _original_unoptimized_sdfg=original_unoptimized_sdfg,
+            original_unoptimized_sdfg=original_unoptimized_sdfg,
             _record=os.getenv("NDSL_RECORD_ORCHESTRATION", "False").lower() == "true",
         )
 
     def serialize(self) -> None:
         """Serialize arguments and code for blind replayability using `replay`"""
+        assert self.compiled_sdfg
         bundle_dir = Path(
             self.compiled_sdfg.sdfg.build_folder + "/" + _BUNDLE_DIRECTORY_NAME
         )
@@ -158,8 +159,8 @@ class DaceExecutable:
         with open(bundle_dir / "de_args.pickle", "wb") as f:
             pickle.dump(self.arguments, f)
 
-        if self._original_unoptimized_sdfg:
-            self._original_unoptimized_sdfg.save(
+        if self.original_unoptimized_sdfg:
+            self.original_unoptimized_sdfg.save(
                 f"{bundle_dir}/{_GT4PY_SDFG_NAME}.sdfgz", compress=True
             )
 
@@ -170,7 +171,9 @@ class DaceExecutable:
             f.write(self.backend.as_humanly_readable())
 
     @classmethod
-    def from_serialized_bundle(cls, bundle_dir: str) -> "DaceExecutable":
+    def from_serialized_bundle(
+        cls, bundle_dir: str, do_compile: bool = True
+    ) -> "DaceExecutable":
         """Read a serialized bundle and ready the system for replay."""
 
         bundle_path = Path(bundle_dir) / _BUNDLE_DIRECTORY_NAME
@@ -183,10 +186,10 @@ class DaceExecutable:
             original_unoptimized_sdfg = SDFG.from_file(str(gt4py_sdfg_bundle_sdfg))
 
         sdfg = SDFG.from_file(f"{bundle_path}/{_ORCH_SDFG_NAME}.sdfgz")
-        csdfg = sdfg.compile()
-
         with open(bundle_path / "backend.txt", "r") as f:
             backend = Backend(f.readlines()[0])
+
+        csdfg = sdfg.compile() if do_compile else None
 
         return cls(
             name=sdfg.name,
@@ -195,7 +198,7 @@ class DaceExecutable:
             mode=DaCeOrchestration.Run,
             backend=backend,
             arguments=arguments,
-            _original_unoptimized_sdfg=original_unoptimized_sdfg,
+            original_unoptimized_sdfg=original_unoptimized_sdfg,
             _record=False,
         )
 
@@ -242,6 +245,9 @@ class DaceExecutable:
             raise RuntimeError(f"Cannot replay {self.name} - no arguments available")
 
         self.performance_collector.start_cuda_profiler()
+
+        if not self.compiled_sdfg:
+            raise RuntimeError("Replay impossible, CompiledSDFG is not set.")
 
         self.compiled_sdfg(**self.arguments)
 
