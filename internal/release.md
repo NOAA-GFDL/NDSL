@@ -4,22 +4,8 @@ This internal documentation guides you through the process of releasing a new ve
 
 1. Click [create a release](https://github.com/NOAA-GFDL/NDSL/compare/main...develop?expand=1&template=release.md) and follow the steps in the release checklist.
 
-## Patch release
+2. After merging that PR, create a GitHub release and tag the new version
+    - version format is `[year].[month].[patch]`, e.g. `2025.10.00`
+  - let GitHub auto-generate release notes from the last tagged version
 
-Every now and then, we'll need to patch the currently released version of NDSL. To do so, follow these steps:
-
-1. Create a branch from `main`.
-2. Commit your changes on that branch.
-3. Use the following URL <https://github.com/NOAA-GFDL/NDSL/compare/main...[your-branch-name]?expand=1&template=release-patch.md> and substitute `[your-branch-name]`.
-4. Follow the steps in the patch release checklist.
-
-As an example, you'd go and create branch `my-patches` from `main`
-
-```bash
-git checkout main
-git switch -c my-patches
-# do changes ...
-git push
-```
-
-and in that case, the URL with the patch release template is: <https://github.com/NOAA-GFDL/NDSL/compare/main...my-patches?expand=1&template=release-patch.md>.
+3. Send an announcement on Mattermost

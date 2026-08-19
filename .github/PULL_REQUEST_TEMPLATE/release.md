@@ -9,21 +9,16 @@ Things to do before the release. Helps to keep the fallout from this release as 
 
 ## Release checklist
 
-What to do to actually release:
-
-- [x] create this PR to merge changes from `develop` into `main`
-  - merge as "Merge commit"
-- [ ] once merged, create a GitHub release and tag the new version
+- [ ] Merge this PR
+- [ ] Create a GitHub release and tag the new version
   - version format is `[year].[month].[patch]`, e.g. `2025.10.00`
   - let GitHub auto-generate release notes from the last tagged version
-- [ ] send an announcement on Mattermost
 
 ## Post-release checklist
 
 What to do after a release:
 
-- [ ] merge `main` down into `develop` to ensure `setuptools_scm` finds the latest release tag
-- [ ] update the pace PR from the pre-commit checklist to include the released version of NDSL and merge it.
-- [ ] merge breaking changes in NDSL (e.g. search for deprecation warnings)
 - [ ] update the pinned version of [pyFV3](https://github.com/NOAA-GFDL/PyFV3/) to the new release-tag
 - [ ] update the pinned version of [pySHiELD](https://github.com/NOAA-GFDL/pySHiELD) to the new release-tag
+- [ ] update the pace PR from the pre-commit checklist to include the released version of NDSL and update the submodules before merging it.
+- [ ] merge breaking changes in NDSL (e.g. search for deprecation warnings)
