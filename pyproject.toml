@@ -25,8 +25,8 @@ classifiers = [
   "Programming Language :: Python :: 3.13"
 ]
 dependencies = [
-  "dace @ git+https://github.com/spcl/dace.git@v2.0.0-alpha6",  # example usage with tag
-  "gt4py @ git+https://github.com/Gridtools/gt4py.git@511a7ab966f3b2ccc61b897240afe64adb322cf4",  # example usage with commit hash
+  "dace>=2.0.0a6",
+  "gt4py>=1.2.1",
   "mpi4py>=4.1",
   "cftime",
   "xarray>=2025.01.2",  # datatree + fixes
