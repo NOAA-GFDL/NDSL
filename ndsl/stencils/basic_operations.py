@@ -327,9 +327,10 @@ def adjust_divide_stencil(adjustment: FloatField, field: FloatField) -> None:
 #############################
 # Moved stencils       #
 #############################
-# These stencils will be moved to the 2d file. Can't be deprecated because it is name-based.
-# Technically it is breaking to remove them from there, even though imports should not come form here,
+# These stencils will be moved to the 2d file.
+# Technically it is breaking to remove them there, even though imports should not come form here,
 # but from the top level init and that does support everything still. But we know our code, it happens
+@deprecated_stencil
 def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:
     """
     Copy one field into another - 2D variant.
@@ -342,6 +343,7 @@ def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:
         output = input
 
 
+@deprecated_stencil
 def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) -> None:
     """
     Add two inputs together, sum to a new field - 2D variant.
@@ -355,6 +357,7 @@ def add_2d(summand_1: FloatFieldIJ, summand_2: FloatFieldIJ, sum: FloatFieldIJ) 
         sum = summand_1 + summand_2
 
 
+@deprecated_stencil
 def add_to_self_2d(field: FloatFieldIJ, summand: FloatFieldIJ) -> None:
     """
     Add a summand to a field - 2D variant.
@@ -367,6 +370,7 @@ def add_to_self_2d(field: FloatFieldIJ, summand: FloatFieldIJ) -> None:
         field = field + summand
 
 
+@deprecated_stencil
 def subtract_2d(
     minuend: FloatFieldIJ, subtrahend: FloatFieldIJ, difference: FloatFieldIJ
 ) -> None:
@@ -382,6 +386,7 @@ def subtract_2d(
         difference = minuend - subtrahend
 
 
+@deprecated_stencil
 def subtract_to_self_2d(field: FloatFieldIJ, subtrahend: FloatFieldIJ) -> None:
     """
     Subtract a modification from a field - 2D variant.
@@ -394,6 +399,7 @@ def subtract_to_self_2d(field: FloatFieldIJ, subtrahend: FloatFieldIJ) -> None:
         field = field - subtrahend
 
 
+@deprecated_stencil
 def multiply_2d(
     factor_1: FloatFieldIJ, factor_2: FloatFieldIJ, product: FloatFieldIJ
 ) -> None:
@@ -409,6 +415,7 @@ def multiply_2d(
         product = factor_1 * factor_2
 
 
+@deprecated_stencil
 def multiply_to_self_2d(field: FloatFieldIJ, factor: FloatFieldIJ) -> None:
     """
     Muultiply a field by a factor - 2D variant.
@@ -421,6 +428,7 @@ def multiply_to_self_2d(field: FloatFieldIJ, factor: FloatFieldIJ) -> None:
         field = field * factor
 
 
+@deprecated_stencil
 def divide_2d(
     dividend: FloatFieldIJ, divisor: FloatFieldIJ, quotient: FloatFieldIJ
 ) -> None:
@@ -436,6 +444,7 @@ def divide_2d(
         quotient = dividend / divisor
 
 
+@deprecated_stencil
 def divide_to_self_2d(field: FloatFieldIJ, divisor: FloatFieldIJ) -> None:
     """
     Muultiply a field by a factor - 2D variant.
