@@ -22,12 +22,9 @@ TODO: this will be reworked in a larger caching rework
 
 The rest of the code are transforms or helpers that are used in the above steps.
 """
-from .builder import get_dace_executable
-from .parse import parse_sdfg
-from .labeler import set_label
 
-__all__ = [
-    "get_dace_executable",
-    "parse_sdfg",
-    "set_label"
-]
+from .builder import get_dace_executable
+from .labeler import set_label
+from .parse import parse_sdfg
+
+__all__ = ["get_dace_executable", "parse_sdfg", "set_label"]

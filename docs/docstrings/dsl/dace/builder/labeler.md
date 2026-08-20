@@ -1,6 +1,6 @@
 # labeler
 
-::: dsl.dace.labeler
+::: dsl.dace.builder.labeler
 
 <style>
 /* re-enable the left side navigation bar for this page */

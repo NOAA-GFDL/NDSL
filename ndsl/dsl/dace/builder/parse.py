@@ -6,10 +6,10 @@ from dace import SDFG
 from dace.frontend.python.parser import DaceProgram
 
 from ndsl import OptimizationConfig
+from ndsl.dsl.dace.builder.labeler import set_label
 from ndsl.dsl.dace.dace_config import (
     DaceConfig,
 )
-from ndsl.dsl.dace.builder.labeler import set_label
 from ndsl.dsl.dace.utils import DaCeProgress
 
 
