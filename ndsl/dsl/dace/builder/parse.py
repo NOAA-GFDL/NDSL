@@ -9,7 +9,7 @@ from ndsl import OptimizationConfig
 from ndsl.dsl.dace.dace_config import (
     DaceConfig,
 )
-from ndsl.dsl.dace.labeler import set_label
+from ndsl.dsl.dace.builder.labeler import set_label
 from ndsl.dsl.dace.utils import DaCeProgress
 
 

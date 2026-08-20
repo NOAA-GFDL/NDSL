@@ -12,11 +12,11 @@ from ndsl import OptimizationConfig
 from ndsl.dsl.dace.builder import (
     get_dace_executable,
     parse_sdfg,
+    set_label,
 )
 from ndsl.dsl.dace.dace_config import (
     DaceConfig,
 )
-from ndsl.dsl.dace.labeler import set_label
 from ndsl.quantity import Quantity, State
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
