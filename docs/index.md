@@ -15,7 +15,7 @@ A modern domain-specific language for portable, high-performance atmospheric mod
 
 Install the latest version of NDSL with a few commands and start writing code.
 
-[NDSL v2026.03.00 →](./install_ndsl.md){ .pretty-link }
+[NDSL v2026.08.00 →](./install_ndsl.md){ .pretty-link }
 </div>
 
 <div class="section-card" markdown>
