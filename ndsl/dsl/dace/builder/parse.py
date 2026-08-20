@@ -33,7 +33,6 @@ def parse_sdfg(
     with DaCeProgress(
         config.get_orchestrate(), f"Parse code of {dace_program.name} to SDFG"
     ):
-        print(f"Parse code of {dace_program.name} to SDFG {args} -- {kwargs}")
         sdfg = dace_program.to_sdfg(
             *args,
             save=False,
