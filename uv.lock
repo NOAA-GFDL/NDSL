@@ -543,7 +543,7 @@ wheels = [
 [[package]]
 name = "dace"
 version = "2.0.0a6"
-source = { git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6#e432a8c69f05b3e7cbaae5aad85cf371a82f8c27" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astunparse" },
     { name = "dill" },
@@ -559,6 +559,7 @@ dependencies = [
     { name = "sympy" },
     { name = "typing-extensions" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/ea/f2/31941fed070b22a94a265e612fb9615080a3d5f788273e37be6eadf57042/dace-2.0.0a6.tar.gz", hash = "sha256:d05884911a5f49bc89bf4b90b1aca2c1dc713541c5e0b5c9039cb7b39de24102", size = 6373222, upload-time = "2026-08-14T10:17:41.117Z" }
 
 [[package]]
 name = "dacite"
@@ -848,8 +849,8 @@ wheels = [
 
 [[package]]
 name = "gt4py"
-version = "1.2.0.post22+511a7ab9"
-source = { git = "https://github.com/Gridtools/gt4py.git?rev=511a7ab966f3b2ccc61b897240afe64adb322cf4#511a7ab966f3b2ccc61b897240afe64adb322cf4" }
+version = "1.2.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "array-api-compat" },
     { name = "attrs" },
@@ -881,6 +882,10 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "versioningit" },
     { name = "xxhash" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a7/1b/32d686217f33923be252c4dda950aedbd20aa94447d62e2332c1ae776fe1/gt4py-1.2.1.tar.gz", hash = "sha256:8f3cce85380994cf532b0433300496cddfb5e1855ee623642ef188851ce1ccea", size = 882545, upload-time = "2026-08-17T10:47:25.351Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/8d/30417e009216393825d4584f93a7cbf858a9d3987cc8ee28538af26f029a/gt4py-1.2.1-py3-none-any.whl", hash = "sha256:7cad0421f13c558166991a5e1f6042351473e52957461f406c068bec5d8b459c", size = 1100850, upload-time = "2026-08-17T10:47:23.49Z" },
 ]
 
 [[package]]
@@ -1486,6 +1491,18 @@ dev = [
     { name = "pytest" },
     { name = "zensical" },
 ]
+docs = [
+    { name = "mkdocstrings", extra = ["python"] },
+    { name = "zensical" },
+]
+lint = [
+    { name = "flake8-pyproject" },
+    { name = "pre-commit" },
+]
+test = [
+    { name = "coverage" },
+    { name = "pytest" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -1493,11 +1510,11 @@ requires-dist = [
     { name = "cftime" },
     { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
     { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
-    { name = "dace", git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6" },
+    { name = "dace", specifier = ">=2.0.0a6" },
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
-    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=511a7ab966f3b2ccc61b897240afe64adb322cf4" },
+    { name = "gt4py", specifier = ">=1.2.1" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "ipykernel", marker = "extra == 'demos'" },
@@ -1528,6 +1545,18 @@ dev = [
     { name = "pre-commit" },
     { name = "pytest", specifier = "<9.1.0" },
     { name = "zensical" },
+]
+docs = [
+    { name = "mkdocstrings", extras = ["python"] },
+    { name = "zensical" },
+]
+lint = [
+    { name = "flake8-pyproject" },
+    { name = "pre-commit" },
+]
+test = [
+    { name = "coverage" },
+    { name = "pytest", specifier = "<9.1.0" },
 ]
 
 [[package]]

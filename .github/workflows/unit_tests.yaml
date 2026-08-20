@@ -52,16 +52,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
-      - name: Install Python packages
-        run: uv sync --extra ${{matrix.extra}}
-
       - name: Run serial cpu tests
-        run: uv run coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
+        run: uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
-        run: uv run mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
+        run: uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |
-          uv run coverage combine
-          uv run coverage report
+          uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} coverage combine
+          uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} coverage report

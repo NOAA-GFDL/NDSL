@@ -4,12 +4,21 @@ requires = ["setuptools >= 80", "setuptools-scm>=10"]
 
 [dependency-groups]
 dev = [
-  "coverage",
-  "flake8-pyproject",
+  {include-group = 'docs'},
+  {include-group = 'lint'},
+  {include-group = 'test'}
+]
+docs = [
   "mkdocstrings[python]",
-  "pre-commit",
-  "pytest<9.1.0",  # starting with 9.1.0 we get issues with test detection
   "zensical"
+]
+lint = [
+  "flake8-pyproject",
+  "pre-commit"
+]
+test = [
+  "coverage",
+  "pytest<9.1.0"  # starting with 9.1.0 we get issues with test detection
 ]
 
 [project]

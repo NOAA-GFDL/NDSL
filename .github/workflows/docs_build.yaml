@@ -33,8 +33,5 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Install python packages
-        run: uv sync
-
       - name: Build docs
-        run: uv run zensical build
+        run: uv run --frozen --only-group=docs zensical build

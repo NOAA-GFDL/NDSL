@@ -37,7 +37,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install Python packages
-        run: uv sync --no-dev --extra openmpi
+        run: uv sync --frozen --no-dev --extra openmpi
 
       - name: Generate and run code
         run: |
