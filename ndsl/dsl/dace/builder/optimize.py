@@ -31,21 +31,10 @@ from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
     report_memory_static_analysis,
+    upload_to_device
 )
-from ndsl.optional_imports import cupy as cp
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
-
-
-def _upload_to_device(host_data: list) -> None:
-    """Make sure any ndarrays gets uploaded to the device
-
-    This will raise an assertion if cupy is not installed.
-    """
-    assert cp is not None
-    for i, data in enumerate(host_data):
-        if isinstance(data, cp.ndarray):
-            host_data[i] = cp.asarray(data)
 
 
 def _to_gpu(sdfg: SDFG) -> None:
@@ -277,7 +266,7 @@ def optimize_full_program_sdfg(
             make_transients_persistent(sdfg=parsed_sdfg, device=device_type)
 
             # Upload args to device
-            _upload_to_device(list(args) + list(kwargs.values()))
+            upload_to_device(list(args) + list(kwargs.values()))
         else:
             # TODO
             # The following should happen on the stree level

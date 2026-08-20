@@ -1,6 +1,6 @@
-# dace
+# cache
 
-::: dsl.caches.dace
+::: dsl.dace.builder.cache
 
 <style>
 /* re-enable the left side navigation bar for this page */

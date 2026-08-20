@@ -13,8 +13,7 @@ from gt4py import storage as gt_storage
 from ndsl.comm.local_comm import LocalComm
 from ndsl.config.backend import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
-from ndsl.dsl.dace.utils import DaCeProgress
-from ndsl.optional_imports import cupy as cp
+from ndsl.dsl.dace.utils import DaCeProgress, upload_to_device
 from ndsl.performance.collector import (
     AbstractPerformanceCollector,
     PerformanceCollector,
@@ -27,17 +26,6 @@ DACE_EXECUTABLE_CACHE: DaceExecutables = {}
 _BUNDLE_DIRECTORY_NAME = "NDSLRecording"
 _PARSED_SDFG_NAME = "parsed_sdfg"
 _OPTIMIZED_SDFG_NAME = "optimized_sdfg"
-
-
-def _upload_to_device(host_data: list) -> None:
-    """Make sure any ndarrays gets uploaded to the device
-
-    This will raise an assertion if cupy is not installed.
-    """
-    assert cp is not None
-    for i, data in enumerate(host_data):
-        if isinstance(data, cp.ndarray):
-            host_data[i] = cp.asarray(data)
 
 
 def _download_results_from_dace(
@@ -99,7 +87,7 @@ class DaceExecutable:
 
             with DaCeProgress(self.mode, "Run"):
                 if self.backend.is_gpu_backend():
-                    _upload_to_device(list(args) + list(kwargs.values()))
+                    upload_to_device(list(args) + list(kwargs.values()))
 
                 # Marshall given arguments into C-binding ready memory
                 with self.performance_collector.timestep_timer.clock(

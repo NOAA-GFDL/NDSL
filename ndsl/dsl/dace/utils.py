@@ -15,6 +15,7 @@ from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.stencil import CompilationConfig, FrozenStencil, StencilConfig
 from ndsl.dsl.typing import Float, FloatField
 
+from ndsl.optional_imports import cupy as cp
 
 class DaCeProgress:
     """Rough timer & log for major operations of DaCe build stack."""
@@ -358,3 +359,17 @@ def kernel_theoretical_timing_from_path(
         human_readable=True,
         out_format=output_format,
     )
+
+# ----------------------------------------------------------
+# Memory marshalling helpers
+# ----------------------------------------------------------
+
+def upload_to_device(host_data: list) -> None:
+    """Make sure any ndarrays gets uploaded to the device
+
+    This will raise an assertion if cupy is not installed.
+    """
+    assert cp is not None
+    for i, data in enumerate(host_data):
+        if isinstance(data, cp.ndarray):
+            host_data[i] = cp.asarray(data)
