@@ -9,6 +9,7 @@ import dace
 from dace.frontend.python.parser import DaceProgram
 from dace.sdfg.sdfg import SDFG
 from gt4py import storage as gt_storage
+from mpi4py import MPI
 
 from ndsl.comm.local_comm import LocalComm
 from ndsl.config.backend import Backend
@@ -137,7 +138,13 @@ class DaceExecutable:
         )
 
     def serialize(self) -> None:
-        """Serialize arguments and code for blind replayability using `replay`"""
+        """Serialize arguments and code for blind replayability using `replay`
+
+        Only serialize the rank 0
+        """
+        if MPI.COMM_WORLD.Get_rank() != 0:
+            return  # only save rank 0.
+
         assert self.compiled_sdfg
         bundle_dir = Path(
             self.compiled_sdfg.sdfg.build_folder + "/" + _BUNDLE_DIRECTORY_NAME
