@@ -6,7 +6,6 @@ from dace import method as dace_method
 from dace import program as dace_program_wrapper
 from dace.frontend.python.common import SDFGConvertible
 from dace.frontend.python.parser import DaceProgram
-from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import OptimizationConfig
 from ndsl.dsl.dace.builder import (
@@ -18,8 +17,6 @@ from ndsl.dsl.dace.dace_config import (
     DaceConfig,
 )
 from ndsl.quantity import Quantity, State
-
-_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
 
 
 def dace_inhibitor(func: Callable) -> Callable:
