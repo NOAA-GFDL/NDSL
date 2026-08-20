@@ -14,8 +14,8 @@ from ndsl.config import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.stencil import CompilationConfig, FrozenStencil, StencilConfig
 from ndsl.dsl.typing import Float, FloatField
-
 from ndsl.optional_imports import cupy as cp
+
 
 class DaCeProgress:
     """Rough timer & log for major operations of DaCe build stack."""
@@ -360,9 +360,11 @@ def kernel_theoretical_timing_from_path(
         out_format=output_format,
     )
 
+
 # ----------------------------------------------------------
 # Memory marshalling helpers
 # ----------------------------------------------------------
+
 
 def upload_to_device(host_data: list) -> None:
     """Make sure any ndarrays gets uploaded to the device

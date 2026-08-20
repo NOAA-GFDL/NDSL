@@ -31,7 +31,7 @@ from ndsl.dsl.dace.utils import (
     DaCeProgress,
     memory_static_analysis,
     report_memory_static_analysis,
-    upload_to_device
+    upload_to_device,
 )
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
