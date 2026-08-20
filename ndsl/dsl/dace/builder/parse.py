@@ -8,7 +8,7 @@ from dace.frontend.python.parser import DaceProgram
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import OptimizationConfig, ndsl_log
-from ndsl.dsl.caches.dace import get_sdfg_path
+from ndsl.dsl.dace.builder.cache import get_sdfg_path
 from ndsl.dsl.dace.dace_config import (
     DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
     DaceConfig,

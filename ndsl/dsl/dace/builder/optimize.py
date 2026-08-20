@@ -20,7 +20,7 @@ from gt4py import storage as gt_storage
 
 import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import Backend, OptimizationConfig, ndsl_log
-from ndsl.dsl.caches.dace import DACE_BUILD_INFO_FILENAME
+from ndsl.dsl.dace.builder.cache import DACE_BUILD_INFO_FILENAME
 from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
