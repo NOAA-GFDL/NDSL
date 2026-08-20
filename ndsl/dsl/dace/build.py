@@ -1,116 +1,10 @@
-from dace import config as dace_conf
-from dace.sdfg import SDFG
+import warnings
+
+import dace.config
 from gt4py.cartesian import config as gt_config
 
-from ndsl import ndsl_log
-from ndsl.config import Backend
-from ndsl.dsl.caches.cache_location import get_cache_directory, get_cache_fullpath
-from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
-
-################################################
-# Distributed compilation
-
-
-def unblock_waiting_tiles(comm, sdfg_path: str) -> None:  # type: ignore
-    if comm and comm.Get_size() > 1:
-        for tile in range(1, 6):
-            tilesize = comm.Get_size() / 6
-            comm.send(sdfg_path, dest=tile * tilesize + comm.Get_rank())
-
-
-def build_info_filepath() -> str:
-    return "build_info.txt"
-
-
-def write_build_info(
-    sdfg: SDFG,
-    layout: tuple[int, int],
-    resolution_per_tile: list[int],
-    memory_report: str,
-    backend: Backend,
-) -> None:
-    """Write down all relevant information on the build to identify
-    it at load time."""
-    # Dev NOTE: we should be able to leverage sdfg.make_key to get a hash or
-    # even go to a complete hash base system and read the data from the SDFG itself
-    import os
-
-    path_to_sdfg_dir = os.path.abspath(sdfg.build_folder)
-    with open(f"{path_to_sdfg_dir}/{build_info_filepath()}", "w") as build_info_read:
-        build_info_read.write("#Schema: Backend Layout Resolution per tile\n")
-        build_info_read.write(f"{backend}\n")
-        build_info_read.write(f"{str(layout)}\n")
-        build_info_read.write(f"{str(resolution_per_tile)}\n")
-
-    with open(f"{path_to_sdfg_dir}/memory_report.txt", "w") as f:
-        f.write(memory_report)
-
-
-################################################
-
-################################################
-# SDFG load (both .sdfg file and build directory containing .so)
-
-
-def get_sdfg_path(
-    daceprog_name: str,
-    config: DaceConfig,
-    sdfg_file_path: str | None = None,
-    override_run_only: bool = False,
-) -> str | None:
-    """Build an SDFG path from the qualified program name or it's direct path to .sdfg
-
-    Args:
-        daceprog_name: qualified name in the form module_qualname if module is not locals
-        sdfg_file_path: absolute path to a .sdfg file
-    """
-    import os
-
-    # TODO: check DaceConfig for cache.strategy == name
-    # Guarding against bad usage of this function
-    if not override_run_only and config.get_orchestrate() != DaCeOrchestration.Run:
-        return None
-
-    # Case of a .sdfg file given by the user to be compiled
-    if sdfg_file_path is not None:
-        if not os.path.isfile(sdfg_file_path):
-            raise RuntimeError(
-                f"SDFG filepath {sdfg_file_path} cannot be found or is not a file"
-            )
-        return sdfg_file_path
-
-    # Case of loading a precompiled .so - lookup using GT_CACHE
-    cache_fullpath = get_cache_fullpath(config.code_path)
-    sdfg_dir_path = f"{cache_fullpath}/dacecache/{daceprog_name}"
-    if not os.path.isdir(sdfg_dir_path):
-        raise RuntimeError(f"Precompiled SDFG is missing at {sdfg_dir_path}")
-
-    # Check layout in build time matches layout now
-    import ast
-
-    with open(f"{sdfg_dir_path}/{build_info_filepath()}") as build_info_file:
-        # Jump over schema comment
-        build_info_file.readline()
-        # Read in
-        build_backend = build_info_file.readline().rstrip()
-        if config.get_backend() != Backend(build_backend):
-            raise RuntimeError(
-                f"SDFG build for {build_backend}, {config._backend} has been asked"
-            )
-        # Check resolution per tile
-        build_layout = ast.literal_eval(build_info_file.readline())
-        build_resolution = ast.literal_eval(build_info_file.readline())
-        if (config.tile_resolution[0] / config.layout[0]) != (
-            build_resolution[0] / build_layout[0]
-        ):
-            raise RuntimeError(
-                f"SDFG build for resolution {build_resolution}, "
-                f"cannot be run with current resolution {config.tile_resolution}"
-            )
-
-    ndsl_log.debug(f"[DaCe Config] Rank {config.my_rank} loading SDFG {sdfg_dir_path}")
-
-    return sdfg_dir_path
+from ndsl import DaceConfig, DaCeOrchestration, ndsl_log
+from ndsl.dsl.caches import get_cache_directory, get_cache_fullpath
 
 
 def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> None:
@@ -118,6 +12,12 @@ def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> Non
 
     Optional: force build irregardless of backend or orchestration mode.
     """
+
+    warnings.warn(
+        "Use DaceConfig.set_distributed_caches",
+        UserWarning,
+        stacklevel=2,
+    )
 
     # Execute specific initialization per orchestration state
     if not config.get_backend().is_orchestrated() and not force_build:
@@ -137,7 +37,7 @@ def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> Non
             )
 
     # Set read/write caches to the target rank
-    if config.do_compile:
+    if config._do_compile:
         verb = "reading/writing"
     else:
         verb = "reading"
@@ -148,7 +48,7 @@ def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> Non
     # to set the build folder. The other code is in FrozenStencil and deals with the
     # case of `dace` used in both orchestrated and not orchestrated.
     # A better build system would deal with this in BOTH cases.
-    dace_conf.Config.set(
+    dace.config.Config.set(
         "default_build_folder",
         value="{gt_root}/{gt_cache}/dacecache".format(
             gt_root=gt_config.cache_settings["root_path"],

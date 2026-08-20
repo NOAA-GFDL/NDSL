@@ -4,7 +4,7 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 from dace.subsets import Range
 
-from ndsl.dsl.dace.stree.optimizations import CleanUpScheduleTree
+from ndsl.dsl.dace.builder.stree.optimizations import CleanUpScheduleTree
 
 
 def test_if_scope() -> None:
