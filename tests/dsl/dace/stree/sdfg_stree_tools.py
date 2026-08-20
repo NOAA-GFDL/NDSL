@@ -3,7 +3,7 @@ from types import TracebackType
 import dace
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-import ndsl.dsl.dace.orchestration as orch
+import ndsl.dsl.dace.builder.optimize as opt
 from ndsl import StencilFactory
 from ndsl.dsl.dace.dace_executable import DACE_EXECUTABLE_CACHE
 
@@ -28,8 +28,8 @@ class StreePipeline:
         self.passes = passes
 
     def __enter__(self) -> None:
-        self.original_passes = orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.passes
+        self.original_passes = opt._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES
+        opt._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.passes
 
     def __exit__(
         self,
@@ -37,4 +37,4 @@ class StreePipeline:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        orch._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.original_passes
+        opt._INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES = self.original_passes
