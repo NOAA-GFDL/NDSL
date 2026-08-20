@@ -37,10 +37,13 @@ def get_dace_executable(
     is_compiling = config.is_compiling()
 
     if mode == DaCeOrchestration.Run:
-        sdfg_path = get_sdfg_path_from_cache(dace_program.name, config)
-        compiled_sdfg, _ = dace_program.load_precompiled_sdfg(
-            str(sdfg_path), *args, **kwargs
-        )
+        with DaCeProgress(
+            config.get_orchestrate(), f"Load {dace_program.name} executable..."
+        ):
+            sdfg_path = get_sdfg_path_from_cache(dace_program.name, config)
+            compiled_sdfg, _ = dace_program.load_precompiled_sdfg(
+                str(sdfg_path), *args, **kwargs
+            )
         DACE_EXECUTABLE_CACHE[dace_program] = DaceExecutable.from_compiled(
             dace_program=dace_program,
             config=config,
@@ -52,18 +55,23 @@ def get_dace_executable(
         and dace_program not in DACE_EXECUTABLE_CACHE  # already cached
     ):
         if is_compiling:
-            parsed_sdfg = parse_sdfg(
-                dace_program,
-                config,
-                optimization_config,
-                True,  # top most code, since it's the call fetching the executable
-                *args,
-                **kwargs,
-            )
-            original_sdfg = copy.copy(parsed_sdfg)
-            compiled_sdfg = optimize_full_program_sdfg(
-                parsed_sdfg, config, optimization_config, args, kwargs
-            )
+            with DaCeProgress(
+                config.get_orchestrate(), f"Make {dace_program.name} executable..."
+            ):
+                parsed_sdfg = parse_sdfg(
+                    dace_program,
+                    config,
+                    optimization_config,
+                    True,  # top most code, since it's the call fetching the executable
+                    *args,
+                    **kwargs,
+                )
+                original_sdfg = copy.copy(parsed_sdfg)
+                compiled_sdfg = optimize_full_program_sdfg(
+                    parsed_sdfg, config, optimization_config, args, kwargs
+                )
+        else:
+            original_sdfg = None
 
         if not is_compiling:
             ndsl_log.info(
@@ -74,7 +82,9 @@ def get_dace_executable(
         MPI.COMM_WORLD.Barrier()
 
         if not is_compiling:
-            with DaCeProgress(mode, "Loading"):
+            with DaCeProgress(
+                config.get_orchestrate(), f"Load {dace_program.name} executable..."
+            ):
                 sdfg_path = get_sdfg_path_from_cache(dace_program.name, config)
                 compiled_sdfg, _ = dace_program.load_precompiled_sdfg(
                     str(sdfg_path), *args, **kwargs
