@@ -107,7 +107,7 @@ def gather_timing_data(
 
 def write_to_timestamped_json(experiment: Report, experiment_name: str = "") -> str:
     now = datetime.now(UTC)
-    filename = experiment_name + now.strftime("%Y-%m-%d-%H-%M-%S") + ".json"
+    filename = f"{experiment_name}{now.strftime("%Y-%m-%d-%H-%M-%S")}.json"
     with open(filename, "w") as outfile:
         json.dump(dataclasses.asdict(experiment), outfile, sort_keys=True, indent=4)
     return filename

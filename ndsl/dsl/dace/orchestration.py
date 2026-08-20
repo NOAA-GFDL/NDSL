@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -10,7 +8,6 @@ from dace.frontend.python.common import SDFGConvertible
 from dace.frontend.python.parser import DaceProgram
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import OptimizationConfig
 from ndsl.dsl.dace.builder import (
     get_dace_executable,
@@ -53,16 +50,8 @@ class _LazyComputepathFunction(SDFGConvertible):
 
     def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         assert self.config.is_dace_orchestrated()
-        sdfg = parse_sdfg(
-            self.daceprog,
-            self.config,
-            self.optimization_config,
-            *args,
-            **kwargs,
-        )
         exe = get_dace_executable(
             self.daceprog,
-            sdfg,
             self.config,
             self.optimization_config,
             args,
@@ -80,7 +69,12 @@ class _LazyComputepathFunction(SDFGConvertible):
 
     def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         return parse_sdfg(
-            self.daceprog, self.config, self.optimization_config, *args, **kwargs
+            self.daceprog,
+            self.config,
+            self.optimization_config,
+            False,
+            *args,
+            **kwargs,
         )
 
     def __sdfg_closure__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
@@ -104,11 +98,11 @@ class _LazyComputepathMethod:
 
     # In order to not regenerate SDFG for the same obj.method callable
     # we cache the SDFGEnabledCallable we have already init
-    bound_callables: dict[tuple[int, int], SDFGEnabledCallable] = dict()
+    bound_callables: dict[tuple[int, int], "SDFGEnabledCallable"] = dict()
 
     class SDFGEnabledCallable(SDFGConvertible):
         def __init__(
-            self, lazy_method: _LazyComputepathMethod, obj_to_bind: object
+            self, lazy_method: "_LazyComputepathMethod", obj_to_bind: object
         ) -> None:
             methodwrapper = dace_method(lazy_method.func)
             self.obj_to_bind = obj_to_bind
@@ -125,16 +119,8 @@ class _LazyComputepathMethod:
 
         def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             assert self.lazy_method.config.is_dace_orchestrated()
-            sdfg = parse_sdfg(
-                self.daceprog,
-                self.lazy_method.config,
-                self.lazy_method.optimization_config,
-                *args,
-                **kwargs,
-            )
             exe = get_dace_executable(
                 self.daceprog,
-                sdfg,
                 self.lazy_method.config,
                 self.lazy_method.optimization_config,
                 args,
@@ -147,6 +133,7 @@ class _LazyComputepathMethod:
                 self.daceprog,
                 self.lazy_method.config,
                 self.lazy_method.optimization_config,
+                False,
                 *args,
                 **kwargs,
             )
@@ -236,9 +223,7 @@ def orchestrate(
 
     if not hasattr(obj, method_to_orchestrate):
         raise RuntimeError(
-            f"Could not orchestrate, "
-            f"{type(obj).__name__}.{method_to_orchestrate} "
-            "does not exist."
+            f"Could not orchestrate, {type(obj).__name__}.{method_to_orchestrate} does not exist."
         )
 
     if dace_compiletime_args is None:

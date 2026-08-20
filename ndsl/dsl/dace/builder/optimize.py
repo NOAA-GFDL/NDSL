@@ -16,21 +16,16 @@ from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
 from dace.transformation.helpers import get_parent_map
-from gt4py import storage as gt_storage
 
-import ndsl.dsl.dace.replacements  # noqa # We load in the DaCe replacements
 from ndsl import Backend, OptimizationConfig, ndsl_log
-from ndsl.dsl.dace.builder.cache import DACE_BUILD_INFO_FILENAME
+from ndsl.dsl.dace.builder.cache import BuildInfo
 from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     negative_delp_checker,
     negative_qtracers_checker,
     sdfg_nan_checker,
 )
 from ndsl.dsl.dace.builder.stree import CPUPipeline, GPUPipeline, StreePipeline
-from ndsl.dsl.dace.dace_config import (
-    DEACTIVATE_DISTRIBUTED_DACE_COMPILE,
-    DaceConfig,
-)
+from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.dsl.dace.utils import (
     DaCeProgress,
@@ -51,20 +46,6 @@ def _upload_to_device(host_data: list) -> None:
     for i, data in enumerate(host_data):
         if isinstance(data, cp.ndarray):
             host_data[i] = cp.asarray(data)
-
-
-def _download_results_from_dace(
-    config: DaceConfig, dace_result: list | None
-) -> list | None:
-    """Move all data from DaCe memory space to GT4Py"""
-    if dace_result is None:
-        return None
-
-    backend = config.get_backend()
-    return [
-        gt_storage.from_array(result, backend=backend.as_gt4py())
-        for result in dace_result
-    ]
 
 
 def _to_gpu(sdfg: SDFG) -> None:
@@ -153,47 +134,18 @@ def _optimization_pipeline(
     )
 
 
-def _write_build_info(
-    sdfg: SDFG,
-    layout: tuple[int, int],
-    resolution_per_tile: list[int],
-    memory_report: str,
-    backend: Backend,
-) -> None:
-    """Write down all relevant information on the build to identify
-    it at load time."""
-    # Dev NOTE: we should be able to leverage sdfg.make_key to get a hash or
-    # even go to a complete hash base system and read the data from the SDFG itself
-    import os
-
-    path_to_sdfg_dir = os.path.abspath(sdfg.build_folder)
-    with open(f"{path_to_sdfg_dir}/{DACE_BUILD_INFO_FILENAME}", "w") as build_info_read:
-        build_info_read.write("#Schema: Backend Layout Resolution per tile\n")
-        build_info_read.write(f"{backend}\n")
-        build_info_read.write(f"{layout}\n")
-        build_info_read.write(f"{resolution_per_tile}\n")
-
-    with open(f"{path_to_sdfg_dir}/memory_report.txt", "w") as f:
-        f.write(memory_report)
-
-
 def optimize_full_program_sdfg(
     parsed_sdfg: SDFG,
     config: DaceConfig,
     optimization_config: OptimizationConfig | None,
     args: Any,
     kwargs: Any,
-) -> CompiledSDFG | None:
+) -> CompiledSDFG:
     """Optimize and compile the SFDG (creating the .daceache and with the source and dynamic library)
-    from the parsed SDFG (e.g. python code + gt4py stencils) when on compiling rank.
-    If called on a non-compiling rank, the functions return None."""
-    is_compiling = DEACTIVATE_DISTRIBUTED_DACE_COMPILE or config.do_compile
-
-    if not is_compiling:
-        return None
+    from a parsed SDFG (e.g. python code + gt4py stencils).
+    """
 
     device_type = DaceDeviceType.GPU if config.is_gpu_backend() else DaceDeviceType.CPU
-    backend_name = config.get_backend()
     mode = config.get_orchestrate()
 
     # Enforce cache directory made so all downstream caching file
@@ -282,7 +234,7 @@ def optimize_full_program_sdfg(
             pipeline = _optimization_pipeline(
                 optimization_config,
                 device_type,
-                backend_name,
+                config.get_backend(),
                 cache_directory=Path(parsed_sdfg.build_folder),
                 passes=_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES,
             )
@@ -427,8 +379,8 @@ def optimize_full_program_sdfg(
         ndsl_log.info(f"{DaCeProgress.default_prefix(mode)} {report}")
 
     # Store build info in the common cache directory
-    _write_build_info(
-        parsed_sdfg, config.layout, config.tile_resolution, report, backend_name
+    BuildInfo.save(
+        parsed_sdfg, config.layout, config.tile_resolution, report, config.get_backend()
     )
 
     return compiled_sdfg

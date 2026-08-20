@@ -2,7 +2,7 @@ import dataclasses
 
 import pytest
 
-from ndsl import NDSLRuntime, Quantity, State, StencilFactory
+from ndsl import DaCeOrchestration, NDSLRuntime, Quantity, State, StencilFactory
 from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
@@ -70,6 +70,35 @@ class GTTypeProgram(NDSLRuntime):
 
     def __call__(self, a_quantity: FloatField):
         self.stencil(a_quantity)
+
+
+def test_orchestration_mode():
+    # TODO: this doesn't truly test that we are not recompiling by mistake.
+    #       Also, this needs to be expanded to check build_info, swap of backends and all the errors
+    #       of the orchestration pipeline
+
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0, orchestration_mode=DaCeOrchestration.BuildAndRun
+    )
+
+    assert len(DACE_EXECUTABLE_CACHE) == 0
+
+    code = OrchestratedProgram(stencil_factory)
+    qty_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+
+    code(qty_A)
+
+    assert len(DACE_EXECUTABLE_CACHE.values()) == 1
+    DACE_EXECUTABLE_CACHE.clear()
+
+    stencil_factory_run, _ = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0, orchestration_mode=DaCeOrchestration.Run
+    )
+
+    code_run = OrchestratedProgram(stencil_factory_run)
+    code_run(qty_A)
+
+    assert len(DACE_EXECUTABLE_CACHE.values()) == 1
 
 
 def test_memory_reallocation_blind_type():

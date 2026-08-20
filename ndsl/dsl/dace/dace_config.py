@@ -379,7 +379,7 @@ class DaceConfig:
                 single_code_path=self._single_code_path,
             )
             self.layout = communicator.partitioner.layout
-            self.do_compile = (
+            self._do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
                 or _determine_compiling_ranks(self, communicator.partitioner)
             )
@@ -388,7 +388,7 @@ class DaceConfig:
             self.rank_size = 1
             self.code_path = FV3CodePath.All
             self.layout = (1, 1)
-            self.do_compile = True
+            self._do_compile = True
 
         self._set_distributed_caches()
 
@@ -403,6 +403,9 @@ class DaceConfig:
 
     def get_orchestrate(self) -> DaCeOrchestration:
         return self._orchestrate
+
+    def is_compiling(self) -> bool:
+        return self._do_compile
 
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")
@@ -470,7 +473,7 @@ class DaceConfig:
                 )
 
         # Set read/write caches to the target rank
-        if self.do_compile:
+        if self._do_compile:
             verb = "reading/writing"
         else:
             verb = "reading"

@@ -25,8 +25,8 @@ DaceExecutables = dict[DaceProgram, "DaceExecutable"]
 DACE_EXECUTABLE_CACHE: DaceExecutables = {}
 
 _BUNDLE_DIRECTORY_NAME = "NDSLRecording"
-_GT4PY_SDFG_NAME = "gt4py_sdfg"
-_ORCH_SDFG_NAME = "orch_sdfg"
+_PARSED_SDFG_NAME = "parsed_sdfg"
+_OPTIMIZED_SDFG_NAME = "optimized_sdfg"
 
 
 def _upload_to_device(host_data: list) -> None:
@@ -161,18 +161,18 @@ class DaceExecutable:
 
         if self.original_unoptimized_sdfg:
             self.original_unoptimized_sdfg.save(
-                f"{bundle_dir}/{_GT4PY_SDFG_NAME}.sdfgz", compress=True
+                f"{bundle_dir}/{_PARSED_SDFG_NAME}.sdfgz", compress=True
             )
 
         self.compiled_sdfg.sdfg.save(
-            f"{bundle_dir}/{_ORCH_SDFG_NAME}.sdfgz", compress=True
+            f"{bundle_dir}/{_OPTIMIZED_SDFG_NAME}.sdfgz", compress=True
         )
         with open(bundle_dir / "backend.txt", "w") as f:
             f.write(self.backend.as_humanly_readable())
 
     @classmethod
     def from_serialized_bundle(
-        cls, bundle_dir: str, do_compile: bool = True
+        cls, bundle_dir: str, *, do_compile: bool = True
     ) -> "DaceExecutable":
         """Read a serialized bundle and ready the system for replay."""
 
@@ -181,11 +181,11 @@ class DaceExecutable:
         with open(bundle_path / "de_args.pickle", "rb") as f:
             arguments = pickle.load(f)
 
-        gt4py_sdfg_bundle_sdfg = bundle_path / f"{_GT4PY_SDFG_NAME}.sdfgz"
+        gt4py_sdfg_bundle_sdfg = bundle_path / f"{_PARSED_SDFG_NAME}.sdfgz"
         if gt4py_sdfg_bundle_sdfg.exists():
             original_unoptimized_sdfg = SDFG.from_file(str(gt4py_sdfg_bundle_sdfg))
 
-        sdfg = SDFG.from_file(f"{bundle_path}/{_ORCH_SDFG_NAME}.sdfgz")
+        sdfg = SDFG.from_file(f"{bundle_path}/{_OPTIMIZED_SDFG_NAME}.sdfgz")
         with open(bundle_path / "backend.txt", "r") as f:
             backend = Backend(f.readlines()[0])
 
@@ -239,7 +239,7 @@ class DaceExecutable:
 
         return h
 
-    def replay(self, bench: bool = False) -> None:
+    def replay(self, *, bench: bool = False) -> None:
         """Replay executable using last cached arguments"""
         if not self.arguments:
             raise RuntimeError(f"Cannot replay {self.name} - no arguments available")
