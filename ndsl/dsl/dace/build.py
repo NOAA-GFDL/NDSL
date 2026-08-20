@@ -37,7 +37,7 @@ def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> Non
             )
 
     # Set read/write caches to the target rank
-    if config.do_compile:
+    if config._do_compile:
         verb = "reading/writing"
     else:
         verb = "reading"
