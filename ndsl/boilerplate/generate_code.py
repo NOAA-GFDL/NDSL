@@ -64,6 +64,8 @@ MAIN_SECTION = textwrap.dedent("""\
             squared.field[:] == quantity.field[:] * quantity.field[:]
         ).all(), "{class_name} saves squared values."
 
+        print("Done 🚀")
+
 
     if __name__ == "__main__":
         main()
