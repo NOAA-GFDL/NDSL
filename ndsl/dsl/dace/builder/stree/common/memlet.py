@@ -1,3 +1,4 @@
+from collections import defaultdict
 from enum import Enum
 
 from dace.memlet import Memlet
@@ -130,3 +131,21 @@ def has_dynamic_memlets(first: tn.MapScope, second: tn.MapScope) -> bool:
         ]
     )
     return has_dynamic_memlets
+
+
+class WriteDependencyCollector(tn.ScheduleNodeVisitor):
+    """Collect write dependency for all data as list of memlet
+    used as inputs in tasklet."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.dataflow: dict[str, list[Memlet]] = defaultdict(list)
+
+    def visit_TaskletNode(self, node: tn.TaskletNode):
+        # Go through each tasklet
+        # For every output memlet.data, gather an _ordered_ list of the inputs.data
+        # Build a dict[memlet.data, list[memlet]]
+
+        for out_memlet in node.out_memlets.values():
+            for in_memlet in node.in_memlets.values():
+                self.dataflow[out_memlet.data].append(in_memlet)

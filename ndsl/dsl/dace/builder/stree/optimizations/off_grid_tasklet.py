@@ -2,7 +2,6 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.builder.stree.common import AxisIterator, list_index
-from ndsl.dsl.dace.builder.stree.common.control_flow import is_off_grid_tasklet
 
 
 class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
@@ -19,8 +18,8 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
 
     def __init__(self) -> None:
         super().__init__()
+        self._on_grid_data: set[str] = set()
         self._off_grid_tasklets: list[tn.TaskletNode] = []
-        self._on_grid_tasklets: list[tn.TaskletNode] = []
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
 
@@ -29,41 +28,33 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
         for child in node.children:
             self.visit(child)
 
-        # Prune the off-grid tasklet where input memlets dataflow
-        # is linked to an on-grid tasklet
-        pruned_off_grid = []
-        pruned_on_grid = self._on_grid_tasklets
-        for off_grid_tasklet in self._off_grid_tasklets:
-            is_on_grid_dep = False
-            for on_grid_tasklet in pruned_on_grid:
-                for in_memlet in off_grid_tasklet.in_memlets.values():
-                    for out_memlet in on_grid_tasklet.out_memlets.values():
-                        if in_memlet.data == out_memlet.data:
-                            is_on_grid_dep = True
-                            break
-                if is_on_grid_dep:
-                    break
-            if is_on_grid_dep:
-                pruned_on_grid.append(off_grid_tasklet)
-            else:
-                pruned_off_grid.append(off_grid_tasklet)
-
         # Un-parent
-        for tasklet in pruned_off_grid:
+        for tasklet in self._off_grid_tasklets:
             assert tasklet.parent is not None
             parent = tasklet.parent
             parent.children.pop(list_index(tasklet, parent.children))
             tasklet.parent = node
 
         # Re-insert in front
-        node.children = [*pruned_off_grid, *node.children]
+        node.children = [*self._off_grid_tasklets, *node.children]
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
-        # Collect offgrid tasklet
-        if is_off_grid_tasklet(node):
-            self._off_grid_tasklets.append(node)
-        else:
-            self._on_grid_tasklets.append(node)
+        # Check the inputs are not on-grid
+        for memlet in [*node.in_memlets.values(), *node.out_memlets.values()]:
+            # Are we on-grid
+            if memlet.free_symbols != set():
+                # Collect the output for future check
+                for out_memlet in node.out_memlets.values():
+                    self._on_grid_data.add(out_memlet.data)
+                return
+
+            # Not on grid, but do we depend on a data that was calculated on
+            # the grid before (transitivity)
+            if memlet.data in self._on_grid_data:
+                return
+
+        # We are truly off-grid
+        self._off_grid_tasklets.append(node)
 
 
 class InlineOffGridTasklet(tn.ScheduleNodeVisitor):
