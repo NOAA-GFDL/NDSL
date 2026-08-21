@@ -11,21 +11,22 @@ from gt4py.cartesian.gtscript import PARALLEL, computation, interval
 import ndsl.xumpy as xp
 from ndsl import ndsl_log
 from ndsl.config import Backend
-from ndsl.dsl.dace.dace_config import DaceConfig
+from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
 from ndsl.dsl.stencil import CompilationConfig, FrozenStencil, StencilConfig
 from ndsl.dsl.typing import Float, FloatField
+from ndsl.optional_imports import cupy as cp
 
 
 class DaCeProgress:
     """Rough timer & log for major operations of DaCe build stack."""
 
-    def __init__(self, config: DaceConfig, label: str) -> None:
-        self.prefix = DaCeProgress.default_prefix(config)
+    def __init__(self, mode: DaCeOrchestration, label: str) -> None:
+        self.prefix = DaCeProgress.default_prefix(mode)
         self.label = label
 
     @classmethod
-    def default_prefix(cls, config: DaceConfig) -> str:
-        return f"[{config.get_orchestrate()}]"
+    def default_prefix(cls, mode: DaCeOrchestration) -> str:
+        return f"[{mode}]"
 
     def __enter__(self) -> None:
         ndsl_log.debug(f"{self.prefix} {self.label}...")
@@ -40,9 +41,12 @@ def _is_ref(sd: dace.sdfg.SDFG, aname: str) -> bool:
     for node, state in sd.all_nodes_recursive():
         if not isinstance(state, dace.sdfg.SDFGState):
             continue
-        if state.parent is sd:
-            if isinstance(node, dace.nodes.AccessNode) and aname == node.data:
-                return True
+        if (
+            state.parent is sd
+            and isinstance(node, dace.nodes.AccessNode)
+            and aname == node.data
+        ):
+            return True
 
     return False
 
@@ -189,7 +193,7 @@ def copy_kernel(q_in: FloatField, q_out: FloatField) -> None:  # type: ignore[va
 
 class MaxBandwidthBenchmarkProgram:
     def __init__(self, size: Any, backend: Backend) -> None:
-        from ndsl.dsl.dace.orchestration import DaCeOrchestration, orchestrate
+        from ndsl.dsl.dace import DaCeOrchestration, orchestrate
 
         dace_config = DaceConfig(
             None, backend, orchestration=DaCeOrchestration.BuildAndRun
@@ -355,3 +359,19 @@ def kernel_theoretical_timing_from_path(
         human_readable=True,
         out_format=output_format,
     )
+
+
+# ----------------------------------------------------------
+# Memory marshalling helpers
+# ----------------------------------------------------------
+
+
+def upload_to_device(host_data: list) -> None:
+    """Make sure any ndarrays gets uploaded to the device
+
+    This will raise an assertion if cupy is not installed.
+    """
+    assert cp is not None
+    for i, data in enumerate(host_data):
+        if isinstance(data, cp.ndarray):
+            host_data[i] = cp.asarray(data)

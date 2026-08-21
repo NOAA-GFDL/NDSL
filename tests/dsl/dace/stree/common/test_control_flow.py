@@ -3,7 +3,7 @@ from dace.sdfg import nodes
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 from dace.sdfg.state import LoopRegion
 
-from ndsl.dsl.dace.stree.common import (
+from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
     is_axis_for,
     is_axis_map,

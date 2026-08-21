@@ -2,10 +2,11 @@ import copy
 import os.path
 import subprocess
 from collections.abc import Mapping
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 
+from ndsl import ndsl_log
 from ndsl.comm.comm_abc import Comm
 from ndsl.config import Backend
 from ndsl.optional_imports import cupy as cp
@@ -27,6 +28,8 @@ class AbstractPerformanceCollector(Protocol):
     timestep_timer: Timer
 
     def collect_performance(self) -> None: ...
+
+    def clock_timestep(self, name: str) -> Any: ...
 
     def write_out_performance(
         self,
@@ -77,8 +80,27 @@ class PerformanceCollector(AbstractPerformanceCollector):
         self.hits_per_step.append(self.timestep_timer.hits)
         self.timestep_timer.reset()
 
+    def clock_timestep(self, name: str) -> Any:
+        class Wrapper:
+            def __init__(self, collector: PerformanceCollector, name: str) -> None:
+                self.collector = collector
+                self.name = name
+
+            def __enter__(self) -> None:
+                self.collector.timestep_timer.start(name)
+
+            def __exit__(self, type, value, traceback):  # type: ignore[no-untyped-def]
+                self.collector.timestep_timer.stop(name)
+                self.collector.collect_performance()
+
+        return Wrapper(self, name)
+
     def write_out_rank_0(
-        self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
+        self,
+        backend: Backend,
+        is_orchestrated: bool,
+        dt_atmos: float,
+        sim_status: str,
     ) -> None:
         if self.comm.Get_rank() == 0:
             git_hash = "None"
@@ -92,15 +114,19 @@ class PerformanceCollector(AbstractPerformanceCollector):
                 for data_point in self.times_per_step:
                     if timer_name in data_point:
                         data.append(data_point[timer_name])
+                times = copy.deepcopy(np.array(data).tolist())
                 timing_info[timer_name] = TimeReport(
-                    hits=0, times=copy.deepcopy(np.array(data).tolist())
+                    hits=0,
+                    times=times,
+                    mean=np.mean(times),
+                    median=np.median(times),
+                    std_deviation=np.std(times),
                 )
             exp_info = get_experiment_info(
                 self.experiment_name,
                 len(self.hits_per_step) - 1,
                 backend,
                 git_hash,
-                is_orchestrated,
             )
             timing_info = gather_hit_counts(self.hits_per_step, timing_info)
             report = Report(
@@ -109,7 +135,8 @@ class PerformanceCollector(AbstractPerformanceCollector):
                 dt_atmos=dt_atmos,
                 sim_status=sim_status,
             )
-            write_to_timestamped_json(report)
+            filename = write_to_timestamped_json(report, self.experiment_name)
+            ndsl_log.info(f"Performance report in : {filename}")
         else:
             pass
 
@@ -172,4 +199,7 @@ class NullPerformanceCollector(AbstractPerformanceCollector):
     def write_out_rank_0(
         self, backend: Backend, is_orchestrated: bool, dt_atmos: float, sim_status: str
     ) -> None:
+        pass
+
+    def clock_timestep(self, name: str) -> Any:
         pass

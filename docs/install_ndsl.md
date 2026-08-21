@@ -21,7 +21,7 @@ All other dependencies are installed with NDSL.
 NDSL uses Git submodules for dependencies including GT4Py and DaCe, so be sure to clone recursively.
 
 ```shell
-git clone --recurse-submodules git@github.com:NOAA-GFDL/NDSL.git
+git clone --branch 2026.08.00 --recurse-submodules git@github.com:NOAA-GFDL/NDSL.git
 cd NDSL/
 ```
 

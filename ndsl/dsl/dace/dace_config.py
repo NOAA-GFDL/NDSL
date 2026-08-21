@@ -3,20 +3,25 @@ from __future__ import annotations
 import enum
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
 
 import dace.config
+from gt4py.cartesian import config as gt_config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
 from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
 
-from ndsl import LocalComm
+from ndsl import LocalComm, ndsl_log
 from ndsl.comm import Comm
 from ndsl.comm.communicator import Communicator
 from ndsl.comm.partitioner import Partitioner
 from ndsl.config import Backend
 from ndsl.dsl import NDSL_COMPILER_SILENCE, NDSL_GLOBAL_PRECISION
-from ndsl.dsl.caches.cache_location import identify_code_path
-from ndsl.dsl.caches.codepath import FV3CodePath
+from ndsl.dsl.caches import (
+    FV3CodePath,
+    get_cache_directory,
+    get_cache_fullpath,
+    identify_code_path,
+)
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.optional_imports import cupy as cp
 from ndsl.performance.collector import (
@@ -24,9 +29,6 @@ from ndsl.performance.collector import (
     NullPerformanceCollector,
     PerformanceCollector,
 )
-
-if TYPE_CHECKING:
-    from ndsl.dsl.dace.dace_executable import DaceExecutables
 
 # This can be turned on to revert compilation for orchestration
 # in a rank-compile-itself more, instead of the distributed top-tile
@@ -185,7 +187,6 @@ class DaceConfig:
         # Recording SDFG loaded for fast re-access
         # ToDo: DaceConfig becomes a bit more than a read-only config
         #       with this. Should be refactored into a DaceExecutor carrying a config
-        self.loaded_dace_executables: DaceExecutables = {}
         if not time:
             self.performance_collector: AbstractPerformanceCollector = (
                 NullPerformanceCollector()
@@ -367,7 +368,6 @@ class DaceConfig:
             Path(dace_conf_to_kill).unlink(missing_ok=True)
 
         self.tile_resolution = [tile_nx, tile_nx, tile_nz]
-        from ndsl.dsl.dace.build import set_distributed_caches
 
         # Distributed build required info
         if communicator:
@@ -379,7 +379,7 @@ class DaceConfig:
                 single_code_path=self._single_code_path,
             )
             self.layout = communicator.partitioner.layout
-            self.do_compile = (
+            self._do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
                 or _determine_compiling_ranks(self, communicator.partitioner)
             )
@@ -388,9 +388,9 @@ class DaceConfig:
             self.rank_size = 1
             self.code_path = FV3CodePath.All
             self.layout = (1, 1)
-            self.do_compile = True
+            self._do_compile = True
 
-        set_distributed_caches(self)
+        self._set_distributed_caches()
 
     def is_dace_orchestrated(self) -> bool:
         return self._backend.is_orchestrated()
@@ -403,6 +403,9 @@ class DaceConfig:
 
     def get_orchestrate(self) -> DaCeOrchestration:
         return self._orchestrate
+
+    def is_compiling(self) -> bool:
+        return self._do_compile
 
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")
@@ -444,4 +447,52 @@ class DaceConfig:
         self.performance_collector = PerformanceCollector(
             "InternalOrchestrationTimer",
             comm=(LocalComm(0, 6, {}) if comm is None else comm),
+        )
+
+    def _set_distributed_caches(self, force_build: bool = False) -> None:
+        """In Run mode, check required file then point current rank cache to source cache.
+
+        Optional: force build irregardless of backend or orchestration mode.
+        """
+
+        # Execute specific initialization per orchestration state
+        if not self.get_backend().is_orchestrated() and not force_build:
+            return
+
+        # Check that we have all the file we need to early out in case
+        # of issues.
+        orchestration_mode = self.get_orchestrate()
+        if orchestration_mode == DaCeOrchestration.Run and not force_build:
+            import os
+
+            cache_directory = get_cache_fullpath(self.code_path)
+            if not os.path.exists(cache_directory):
+                raise RuntimeError(
+                    f"{orchestration_mode} error: Could not find caches for rank "
+                    f"{self.my_rank} at {cache_directory}"
+                )
+
+        # Set read/write caches to the target rank
+        if self._do_compile:
+            verb = "reading/writing"
+        else:
+            verb = "reading"
+
+        gt_config.cache_settings["dir_name"] = get_cache_directory(self.code_path)
+
+        # NOTE: In the (rare) case we orchestrate code _without_ any stencils, we need
+        # to set the build folder. The other code is in FrozenStencil and deals with the
+        # case of `dace` used in both orchestrated and not orchestrated.
+        # A better build system would deal with this in BOTH cases.
+        dace.config.Config.set(
+            "default_build_folder",
+            value="{gt_root}/{gt_cache}/dacecache".format(
+                gt_root=gt_config.cache_settings["root_path"],
+                gt_cache=gt_config.cache_settings["dir_name"],
+            ),
+        )
+
+        ndsl_log.info(
+            f"[{orchestration_mode}] Rank {self.my_rank} "
+            f"{verb} cache {gt_config.cache_settings['dir_name']}"
         )
