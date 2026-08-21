@@ -73,3 +73,13 @@ NDSL has the following extras:
 - `serialbox`: install [serialbox](https://github.com/FlorianDeconinck/serialbox/) to support porting code from Fortran to NDSL
 
 Workflows that port code from Fortran to NDSL might depend on [serialbox](https://github.com/FlorianDeconinck/serialbox/), e.g. the script `ndsl-serialbox_to_netcdf`. If you install the serialbox extra, you'll need the Boost library and development headers.
+
+## Running on GPUs
+
+To run on GPUs, we have some more expectations on your setup and you'll need some optional dependencies. In a nutshell
+
+- You will need a graphics card (duh). NDSL supports NVIDIA and AMD cards.
+- You will need a system MPI that is compiled with CUDA support.
+- Install NDSL with either `--extra cuda12` or `--extra cuda13` extra. Use `--extra hmm-cuda12` if your card supports Heterogeneous
+Memory Management (HMM).
+- In your code (e.g. when you setup the factories), use a GPU-enabled backend, e.g. `backend = Backend.gpu()`.
