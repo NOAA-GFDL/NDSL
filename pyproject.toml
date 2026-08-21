@@ -34,8 +34,8 @@ classifiers = [
   "Programming Language :: Python :: 3.13"
 ]
 dependencies = [
-  "dace>=2.0.0a6",
-  "gt4py>=1.2.1",
+  "dace @ git+https://github.com/spcl/dace.git@v2.0.0-alpha6",
+  "gt4py @ git+https://github.com/Gridtools/gt4py.git@v1.2.1",
   "mpi4py>=4.1",
   "cftime",
   "xarray>=2025.01.2",  # datatree + fixes
