@@ -13,6 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  UV_FROZEN: 1 # sync without updating uv.lock
+  UV_NO_DEV: 1 # don't install dev dependency group by default
+  UV_NO_EDITABLE: 1 # don't install NDSL in editable mode
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -38,10 +43,10 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      # In one place we should check that `pyproject.toml` and `uv.lock` are up-to-date. This place
-      # is as good any other.
+      # In one place we should check that `pyproject.toml` and `uv.lock` are up-to-date.
+      # This place is as good any other. We un-freeze to lock file to do so.
       - name: Check that uv.lock is up-to-date
-        run: uv lock --check
+        run: UV_FROZEN=0 uv lock --check
 
       - name: Run lint via pre-commit
-        run: uv run --frozen --only-group=lint pre-commit run --show-diff-on-failure --color=always --all-files
+        run: uv run --only-group=lint pre-commit run --show-diff-on-failure --color=always --all-files

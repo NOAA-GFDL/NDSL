@@ -12,6 +12,11 @@ permissions:
   pages: write
   id-token: write
 
+env:
+  UV_FROZEN: 1 # sync without updating uv.lock
+  UV_NO_DEV: 1 # don't install dev dependency group by default
+  UV_NO_EDITABLE: 1 # don't install NDSL in editable mode
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -30,7 +35,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-      - run: uv run --frozen --only-group=docs zensical build
+      - run: uv run -only-group=docs zensical build
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site

@@ -13,6 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  UV_FROZEN: 1 # sync without updating uv.lock
+  UV_NO_DEV: 1 # don't install dev dependency group by default
+  UV_NO_EDITABLE: 1 # don't install NDSL in editable mode
+
 jobs:
   ndsl_unit_tests:
     runs-on: ubuntu-latest
@@ -53,12 +58,12 @@ jobs:
           sudo apt-get install libopenmpi-dev netcdf-bin libnetcdf-dev libnetcdff-dev nco libyaml-dev diffutils
 
       - name: Run serial cpu tests
-        run: uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
+        run: uv run --group=test --extra=${{ matrix.extra }} coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
 
       - name: Run parallel cpu tests
-        run: uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
+        run: uv run --group=test --extra=${{ matrix.extra }} mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
 
       - name: Output code coverage
         run: |
-          uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} coverage combine
-          uv run --frozen --no-dev --group=test --extra=${{ matrix.extra }} coverage report
+          uv run --group=test --extra=${{ matrix.extra }} coverage combine
+          uv run --group=test --extra=${{ matrix.extra }} coverage report
