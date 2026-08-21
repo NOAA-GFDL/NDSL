@@ -36,11 +36,11 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Install Python packages
-        run: uv sync --frozen --no-dev --extra openmpi
-
       - name: Generate and run code
         run: |
+          uv init --python=3.12 test
+          cd test/
+          uv add git+https://github.com/noaa-gfdl/ndsl.git --tag=2026.08.00
           source .venv/bin/activate
           ndsl-gencode --exec --output test_ndsl_gencode.py
           python test_ndsl_gencode.py
