@@ -141,7 +141,7 @@ class WriteDependencyCollector(tn.ScheduleNodeVisitor):
         super().__init__()
         self.dataflow: dict[str, list[Memlet]] = defaultdict(list)
 
-    def visit_TaskletNode(self, node: tn.TaskletNode):
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         # Go through each tasklet
         # For every output memlet.data, gather an _ordered_ list of the inputs.data
         # Build a dict[memlet.data, list[memlet]]
