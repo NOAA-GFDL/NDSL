@@ -1,3 +1,4 @@
+from ndsl.dsl.dace.builder.stree.common.memlet import CARTESIAN_AXIS_SYMBOLS
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 from ndsl.dsl.dace.builder.stree.common import AxisIterator
@@ -10,12 +11,12 @@ def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
 
     param = node.node.map.params[0]
     assert isinstance(param, str)
-    return axis.is_equal(param)
+    return axis == param
 
 
 def is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
     """Returns true if node is a For over the given axis."""
-    return axis.is_equal(node.loop.loop_variable)
+    return axis == node.loop.loop_variable
 
 
 def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
@@ -31,11 +32,19 @@ def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
 
 def is_off_grid_conditional(node: tn.IfScope) -> bool:
     """Conditional is off-grid if the code block does not refer to the cartesian symbols"""
-    for symbol in node.condition.get_free_symbols():
-        if (
-            AxisIterator._I.as_str() in symbol
-            or AxisIterator._J.as_str() in symbol
-            or AxisIterator._K.as_str() in symbol
-        ):
+    return not any(
+        symbol in CARTESIAN_AXIS_SYMBOLS
+        for symbol in node.condition.get_free_symbols()
+    )
+
+def is_off_grid_tasklet(node: tn.TaskletNode) -> bool:
+    """Tasklet processing arrays not indexed by cartesian symbols"""
+
+    for memlet in (
+        *node.in_memlets.values(),
+        *node.out_memlets.values(),
+    ):
+        if any(symbol in CARTESIAN_AXIS_SYMBOLS for symbol in memlet.free_symbols):
             return False
+
     return True

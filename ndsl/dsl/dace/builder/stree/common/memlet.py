@@ -17,12 +17,20 @@ class AxisIterator(Enum):
     def as_cartesian_index(self) -> int:
         return self.value[1]
 
-    def is_equal(self, other: str) -> bool:
-        if self == AxisIterator._K:
-            return other.startswith(self.as_str())
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AxisIterator):
+            return self.value == other.value
+        if isinstance(other, str):
+            if self == AxisIterator._K:
+                return other.startswith(self.as_str())
+            return self.as_str() == other
+        
+        raise ValueError("Equality with AxisIterator or string is undefined")
 
-        return other == self.as_str()
+    # Restore hashing that got sniped by __eq__ (see object.__hash__ in py doc)
+    __hash__ = Enum.__hash__
 
+CARTESIAN_AXIS_SYMBOLS = [AxisIterator._I, AxisIterator._J, AxisIterator._K]
 
 def no_data_dependencies_on_cartesian_axis(
     first: tn.MapScope,
@@ -55,13 +63,6 @@ def no_data_dependencies_on_cartesian_axis(
                 write.data == other_write.data
                 and previous_axis_index != other_write.subset[axis_index][0]
             ):
-                ndsl_log.debug(
-                    f"[{axis.name} Merge] Found write after write conflict "
-                    f"for {write.data} "
-                    f"with different offset to {axis.name} ("
-                    f"first write at {previous_axis_index}, "
-                    f"second write at {other_write.subset[axis_index][0]})"
-                )
                 return False
 
         # Read-after-write with an offset case
@@ -70,13 +71,6 @@ def no_data_dependencies_on_cartesian_axis(
                 write.data == read.data
                 and previous_axis_index != read.subset[axis_index][0]
             ):
-                ndsl_log.debug(
-                    f"[{axis.name} Merge] Found read after write conflict "
-                    f"for {write.data} "
-                    f"with different offset to {axis.name} ("
-                    f"write at {write.subset[axis_index][0]}, "
-                    f"read at {read.subset[axis_index][0]})"
-                )
                 return False
 
     return True

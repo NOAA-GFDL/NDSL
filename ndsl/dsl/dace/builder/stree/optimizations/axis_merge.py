@@ -97,6 +97,9 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     It expects:
         - All Maps and ForLoop are on a single axis - but doesn't check for it.
 
+    This pass has been designed to work in coordination with `OffGridConditional` and
+    `OffGridTasklet` passes to allow to align maps for merge
+
     Args:
         axis: AxisIterator to be merged
         overcompute: merge at the cost of an if statement.
@@ -104,6 +107,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
     def __init__(self, axis: AxisIterator, *, overcompute: bool) -> None:
         self.axis = axis
+        self.failed_due_to_data_dep = 0
         self.overcompute = overcompute
 
     def __str__(self) -> str:
@@ -127,7 +131,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             return self._for_merge(node)
 
         if isinstance(node, tn.TaskletNode):
-            return self._push_tasklet_down(node, nodes)
+            return 0 # We stop thinking - `OffGridTasklet` should have taken care of those
 
         if isinstance(node, tn.ControlFlowScope):
             return self._default_control_flow(node)
@@ -160,36 +164,6 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         return 0
 
-    def _push_tasklet_down(
-        self, the_tasklet: tn.TaskletNode, nodes: list[tn.ScheduleTreeNode]
-    ) -> int:
-        """Push tasklet into a consecutive map."""
-        in_memlets = the_tasklet.input_memlets()
-        if len(in_memlets) != 0 and "__pystate" in [
-            tasklet.data for tasklet in the_tasklet.input_memlets()
-        ]:
-            return 0  # Tasklet is a callback
-
-        next_index = list_index(the_tasklet, nodes)
-        if next_index == len(nodes) - 1:
-            return 0  # Last node - done
-
-        next_node = nodes[next_index + 1]
-
-        # Before checking the possibility of merging - attempt to surface
-        # a map from the next nodes
-        merged = self._merge_node(next_node, nodes)
-
-        # Attempt to push the tasklet in the next map
-        next_node = nodes[next_index + 1]
-        if isinstance(next_node, tn.MapScope):
-            next_node.children.insert(0, the_tasklet)
-            the_tasklet.parent = next_node
-            nodes.remove(the_tasklet)
-            merged += self._merge_node(next_node, nodes)
-
-        return merged
-
     def _map_overcompute_merge(
         self, the_map: tn.MapScope, nodes: list[tn.ScheduleTreeNode]
     ) -> int:
@@ -209,7 +183,11 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             return 0
 
         # Attempt to merge consecutive maps
+        if not _both_same_single_axis_maps(the_map, next_node, self.axis):
+            return 0
+
         if not _can_merge_axis_maps(the_map, next_node, self.axis):
+            self.failed_due_to_data_dep += 1
             return 0
 
         # Over compute to merge:
@@ -317,13 +295,10 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         while True:
             i += 1
             previous_children = copy.deepcopy(node.children)
-            try:
-                merged = self._merge(node)
-                overall_merged += merged
-                if __debug__:
-                    detect_cycle(node.children, set())
-            except RecursionError as re:
-                raise re
+            merged = self._merge(node)
+            overall_merged += merged
+            if __debug__:
+                detect_cycle(node.children, set())
 
             # If we didn't merge, we revert the children
             # to the previous state
@@ -338,5 +313,6 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         tn.validate_children_and_parents_align(node)
 
         ndsl_log.debug(
-            f"🚀 {self}: {overall_merged} maps merged in {passes_apply} passes"
+            f"🚀 {self}: {overall_merged} maps merged in {passes_apply} passes "
+            f"({self.failed_due_to_data_dep} merge blocked because of data dependency)"
         )
