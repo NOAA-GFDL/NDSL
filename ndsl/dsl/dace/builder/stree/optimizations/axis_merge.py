@@ -131,7 +131,8 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             return self._for_merge(node)
 
         if isinstance(node, tn.TaskletNode):
-            return 0 # We stop thinking - `OffGridTasklet` should have taken care of those
+            # We stop thinking - `OffGridTasklet` should have taken care of those
+            return 0
 
         if isinstance(node, tn.ControlFlowScope):
             return self._default_control_flow(node)

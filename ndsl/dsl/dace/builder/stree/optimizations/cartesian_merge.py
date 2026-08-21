@@ -44,7 +44,7 @@ class CartesianMergePipeline(StreePipeline):
         ):
             raise ValueError(f"Unexpected merge order {self._merge_order}.")
         axis_merge_order = self._axis_merge_order()
-        
+
         passes = []
 
         # Get offgrid tasklet out of the way
@@ -61,7 +61,7 @@ class CartesianMergePipeline(StreePipeline):
         for axis in axis_merge_order:
             passes.append(CartesianAxisMerge(axis, overcompute=self._overcompute))
 
-        # Optimize cache-friendliness of offgrid conditional 
+        # Optimize cache-friendliness of offgrid conditional
         passes.append(ExtractOffGridConditionals())
         passes.append(MergeConditionals())
 

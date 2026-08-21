@@ -1,7 +1,7 @@
-from ndsl.dsl.dace.builder.stree.common.memlet import CARTESIAN_AXIS_SYMBOLS
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
 from ndsl.dsl.dace.builder.stree.common import AxisIterator
+from ndsl.dsl.dace.builder.stree.common.memlet import CARTESIAN_AXIS_SYMBOLS
 
 
 def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
@@ -33,9 +33,9 @@ def is_cartesian_axis(node: tn.MapScope | tn.ForScope) -> bool:
 def is_off_grid_conditional(node: tn.IfScope) -> bool:
     """Conditional is off-grid if the code block does not refer to the cartesian symbols"""
     return not any(
-        symbol in CARTESIAN_AXIS_SYMBOLS
-        for symbol in node.condition.get_free_symbols()
+        symbol in CARTESIAN_AXIS_SYMBOLS for symbol in node.condition.get_free_symbols()
     )
+
 
 def is_off_grid_tasklet(node: tn.TaskletNode) -> bool:
     """Tasklet processing arrays not indexed by cartesian symbols"""

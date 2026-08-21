@@ -5,10 +5,9 @@ from ndsl.dsl.dace.builder.stree.common import AxisIterator, list_index
 from ndsl.dsl.dace.builder.stree.common.control_flow import is_off_grid_tasklet
 
 
-
 class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
     """
-    Gather all offgrid tasklet and store them at the top of the Schedule Tree
+    Gather all off-grid tasklet and store them at the top of the Schedule Tree
     like a C style declarative process.
 
     Dev note: this pass functions because we keep the tasklet _in order_ the entire
@@ -25,7 +24,7 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
 
-        # Sort all tasklets between off/on-grid, without memlet 
+        # Sort all tasklets between off/on-grid, without memlet
         # dataflow checks
         for child in node.children:
             self.visit(child)
@@ -48,7 +47,6 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
                 pruned_on_grid.append(off_grid_tasklet)
             else:
                 pruned_off_grid.append(off_grid_tasklet)
-                
 
         # Un-parent
         for tasklet in pruned_off_grid:
@@ -70,7 +68,7 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
 
 class InlineOffGridTasklet(tn.ScheduleNodeVisitor):
     """
-    Move the offgrid tasklet as-close-as possible to their first usage but
+    Move the off-grid tasklet as-close-as possible to their first usage but
     _outside_ of any grid tight loop, e.g. C++ optimization style.
 
     Dev note: movement need to be made in reverse order so we can keep any dependancy on

@@ -3,8 +3,6 @@ from enum import Enum
 from dace.memlet import Memlet
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl import ndsl_log
-
 
 class AxisIterator(Enum):
     _I = ("__i", 0)
@@ -24,13 +22,15 @@ class AxisIterator(Enum):
             if self == AxisIterator._K:
                 return other.startswith(self.as_str())
             return self.as_str() == other
-        
+
         raise ValueError("Equality with AxisIterator or string is undefined")
 
     # Restore hashing that got sniped by __eq__ (see object.__hash__ in py doc)
     __hash__ = Enum.__hash__
 
+
 CARTESIAN_AXIS_SYMBOLS = [AxisIterator._I, AxisIterator._J, AxisIterator._K]
+
 
 def no_data_dependencies_on_cartesian_axis(
     first: tn.MapScope,
