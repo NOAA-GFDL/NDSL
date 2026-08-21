@@ -51,7 +51,6 @@ class StreePipeline:
             path: Path | None = None
             if verbose:
                 path = cache_directory / f"pass_n{nesting}_{i}_{p}.txt"
-                ndsl_log_on_rank_0.info(f"[Stree OPT] {p} (saving {path} after)")
 
             if isinstance(p, tn.ScheduleNodeVisitor):
                 p.visit(stree)
