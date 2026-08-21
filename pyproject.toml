@@ -13,8 +13,10 @@ docs = [
   "zensical"
 ]
 lint = [
+  "flake8-bugbear",
   "flake8-pyproject",
-  "pre-commit"
+  "pre-commit",
+  "types-PyYAML"
 ]
 test = [
   "coverage",
