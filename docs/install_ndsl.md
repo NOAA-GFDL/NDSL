@@ -2,7 +2,7 @@
 
 NDSL is a modern domain-specific language (DSL) for portable, high-performance atmospheric modeling. It let's you build portable atmospheric modeling workflows across CPUs, GPUs, and emerging computing architectures from a single codebase.
 
-NDSL is written in the [python](https://www.python.org/) programming language and user code will also be written in python. This guide will help you get up and running.
+NDSL is written in the [python programming language](https://www.python.org/) and user code will also be written in python. This guide will help you get up and running.
 
 ## Prerequisites
 
@@ -62,3 +62,14 @@ $ uv run python ndsl_example.py
 ```
 
 Congratulation, you just ran you first NDSL program. Have a look at `ndsl_example.py` and start experimenting with NDSL. 🚀
+
+## Optional components
+
+NDSL has the following extras:
+
+- `demos`: extra dependencies to run [NDSL examples](https://github.com/NOAA-GFDL/NDSL/tree/develop/examples/NDSL)
+- `openmpi`: install OpenMPI from python (do support GPU)
+- `pyfms`: install [pyFMS](https://github.com/NOAA-GFDL/pyfms) to allow interaction with its diagnostics manager
+- `serialbox`: install [serialbox](https://github.com/FlorianDeconinck/serialbox/) to support porting code from Fortran to NDSL
+
+Workflows that port code from Fortran to NDSL might depend on [serialbox](https://github.com/FlorianDeconinck/serialbox/), e.g. the script `ndsl-serialbox_to_netcdf`. If you install the serialbox extra, you'll need the Boost library and development headers.
