@@ -64,11 +64,11 @@ def test_is_cartesian_axis() -> None:
     assert is_cartesian_axis(map_j)
 
     map_k = tn.MapScope(
-        node=nodes.MapEntry(nodes.Map("map_k", ["__k_1234"], [(0, 3, 1)])), children=[]
+        node=nodes.MapEntry(nodes.Map("map_k", ["__k"], [(0, 3, 1)])), children=[]
     )
     assert is_cartesian_axis(map_k)
 
-    for_k = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k_1234"), children=[])
+    for_k = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k"), children=[])
     assert is_cartesian_axis(for_k)
 
     map_non_cartesian = tn.MapScope(
@@ -79,12 +79,12 @@ def test_is_cartesian_axis() -> None:
 
 
 def test_is_axis_for_k() -> None:
-    node = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k_1234"), children=[])
+    node = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k"), children=[])
     assert is_axis_for(node, AxisIterator._K)
 
 
 def test_is_axis_for_wrong_iterator() -> None:
-    node = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k_1234"), children=[])
+    node = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k"), children=[])
     assert not is_axis_for(node, AxisIterator._I)
 
 
