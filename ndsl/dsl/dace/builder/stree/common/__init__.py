@@ -1,4 +1,6 @@
-from .memlet import AxisIterator, no_data_dependencies_on_cartesian_axis  # isort: skip
+from .memlet import CARTESIAN_AXIS_SYMBOLS  # isort: skip
+from .memlet import AxisIterator  # isort: skip
+from .memlet import no_data_dependencies_on_cartesian_axis  # isort: skip
 from .control_flow import (
     is_axis_for,
     is_axis_map,
@@ -19,6 +21,7 @@ from .topology import (
 
 __all__ = [
     "AxisIterator",
+    "CARTESIAN_AXIS_SYMBOLS",
     "no_data_dependencies_on_cartesian_axis",
     "is_axis_map",
     "is_cartesian_axis",

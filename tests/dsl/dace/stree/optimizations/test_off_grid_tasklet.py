@@ -11,15 +11,10 @@ from ndsl import (
 )
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
-from ndsl.dsl.gt4py import PARALLEL, computation, interval
-from ndsl.dsl.typing import Float, FloatField
+from ndsl.dsl.typing import FloatField
+from ndsl.stencils import multiply_to_self
 from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
-
-
-def mult_stencils(inout_field: FloatField, scalar: Float):
-    with computation(PARALLEL), interval(...):
-        inout_field = inout_field * scalar
 
 
 class OrchestratedCode(NDSLRuntime):
@@ -46,7 +41,7 @@ class OrchestratedCode(NDSLRuntime):
             stencils.copy, [I_DIM, J_DIM, K_DIM]
         )
         self._mult_stencil = stencil_factory.from_dims_halo(
-            mult_stencils, [I_DIM, J_DIM, K_DIM]
+            multiply_to_self, [I_DIM, J_DIM, K_DIM]
         )
 
     def happy_case(

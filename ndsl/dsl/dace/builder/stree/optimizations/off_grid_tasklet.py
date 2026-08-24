@@ -10,7 +10,7 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
     like a C style declarative process.
 
     Dev note: this pass functions because we keep the tasklet _in order_ the entire
-    time, keeping alive any dependancy on each other correct.
+    time, keeping alive any dependency on each other correct.
     """
 
     def __str__(self) -> str:

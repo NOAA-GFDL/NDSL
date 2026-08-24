@@ -1,7 +1,6 @@
 import dace.sdfg.analysis.schedule_tree.treenodes as tn
 
-from ndsl.dsl.dace.builder.stree.common import AxisIterator
-from ndsl.dsl.dace.builder.stree.common.memlet import CARTESIAN_AXIS_SYMBOLS
+from ndsl.dsl.dace.builder.stree.common import CARTESIAN_AXIS_SYMBOLS, AxisIterator
 
 
 def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:

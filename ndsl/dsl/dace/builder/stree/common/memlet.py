@@ -20,8 +20,6 @@ class AxisIterator(Enum):
         if isinstance(other, AxisIterator):
             return self.value == other.value
         if isinstance(other, str):
-            if self == AxisIterator._K:
-                return other.startswith(self.as_str())
             return self.as_str() == other
 
         raise ValueError("Equality with AxisIterator or string is undefined")
