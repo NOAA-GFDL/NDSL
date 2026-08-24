@@ -47,7 +47,7 @@ $ source .venv/bin/activate
 (ndsl) $ pre-commit install
 ```
 
-For more a complicated developer setup installing multiple repositories in editable mode, please refer to [the team's dev setup guide](https://github.com/GEOS-ESM/SMT-Nebulae#dev-setup).
+For more a complicated developer setup installing multiple repositories in editable mode, please refer to [the team's dev setup guide](https://github.com/GEOS-ESM/SMT-Nebulae#dev-setup-guide).
 
 ### Running tests
 
