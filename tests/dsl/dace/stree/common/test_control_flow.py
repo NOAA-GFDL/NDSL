@@ -40,7 +40,7 @@ def test_is_axis_map_not_I() -> None:
 
 def test_is_axis_map_K() -> None:
     node = tn.MapScope(
-        node=nodes.MapEntry(nodes.Map("map_k", ["__k_1234"], [(0, 3, 1)])), children=[]
+        node=nodes.MapEntry(nodes.Map("map_k", ["__k"], [(0, 3, 1)])), children=[]
     )
     assert is_axis_map(node, AxisIterator._K)
 
