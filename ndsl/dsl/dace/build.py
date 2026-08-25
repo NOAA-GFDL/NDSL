@@ -14,8 +14,8 @@ def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> Non
     """
 
     warnings.warn(
-        "Use DaceConfig.set_distributed_caches",
-        UserWarning,
+        "Use DaceConfig._set_distributed_caches() instead.",
+        DeprecationWarning,
         stacklevel=2,
     )
 
