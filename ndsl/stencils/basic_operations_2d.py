@@ -1,5 +1,4 @@
 from ndsl.dsl.gt4py import FORWARD, computation, interval
-from ndsl.dsl.stencil import deprecated_stencil
 from ndsl.dsl.typing import Bool, BoolFieldIJ, Float, FloatFieldIJ
 
 
@@ -11,7 +10,7 @@ def copy_2d(input: FloatFieldIJ, output: FloatFieldIJ) -> None:
         input: input field
         output: output field
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         output = input
 
 
@@ -33,7 +32,7 @@ def add_to_self_2d(field: FloatFieldIJ, summand: FloatFieldIJ) -> None:
     Add a summand to a field - 2D variant.
 
     Args:
-        field: field to be modifid
+        field: field to be modified
         summand: modification to be made
     """
     with computation(FORWARD), interval(0, 1):
@@ -87,7 +86,7 @@ def multiply_to_self_2d(field: FloatFieldIJ, factor: FloatFieldIJ) -> None:
     Multiply a field by a factor - 2D variant.
 
     Args:
-        field: field to be modifid
+        field: field to be modified
         factor: modification factor
     """
     with computation(FORWARD), interval(0, 1):
@@ -129,7 +128,7 @@ def set_value_2d(field: FloatFieldIJ, value: Float) -> None:
         field: output field
         value: value of Float type
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         field = value
 
 
@@ -143,34 +142,3 @@ def set_boolean_value_2d(field: BoolFieldIJ, value: Bool) -> None:
     """
     with computation(FORWARD), interval(0, 1):
         field = value
-
-
-#############################
-# Deprecated stencils       #
-#############################
-# Will be removed and replaced with the above, properly named one
-@deprecated_stencil
-def divide_to_self_2d(field: FloatFieldIJ, divisor: FloatFieldIJ) -> None:
-    """
-    Muultiply a field by a factor - 2D variant.
-
-    Args:
-        field: field to be modifid
-        divisor: modification factor
-    """
-    with computation(FORWARD), interval(0, 1):
-        field = field / divisor
-
-
-# Will be removed and replaced with the above, properly named one
-@deprecated_stencil
-def subtract_to_self_2d(field: FloatFieldIJ, subtrahend: FloatFieldIJ) -> None:
-    """
-    Subtract a modification from a field - 2D variant.
-
-    Args:
-        field: field to be modified
-        subtrahend: modification to be made
-    """
-    with computation(FORWARD), interval(0, 1):
-        field = field - subtrahend
