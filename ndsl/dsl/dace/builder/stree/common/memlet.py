@@ -1,6 +1,7 @@
 from collections import defaultdict
 from enum import Enum
 
+from dace import data
 from dace.memlet import Memlet
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
@@ -147,3 +148,11 @@ class WriteDependencyCollector(tn.ScheduleNodeVisitor):
         for out_memlet in node.out_memlets.values():
             for in_memlet in node.in_memlets.values():
                 self.dataflow[out_memlet.data].append(in_memlet)
+
+
+def memlet_is_transient_scalar(root: tn.ScheduleTreeRoot, memlet: Memlet) -> bool:
+    return (
+        memlet.data in root.containers
+        and isinstance(root.containers[memlet.data], data.Scalar)
+        and root.containers[memlet.data].transient
+    )

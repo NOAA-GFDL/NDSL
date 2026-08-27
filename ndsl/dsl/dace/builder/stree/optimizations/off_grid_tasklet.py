@@ -1,7 +1,63 @@
+import copy
+
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.builder.stree.common import AxisIterator, list_index
+from ndsl.dsl.dace.builder.stree.common.code_block import replace_variable_name
+from ndsl.dsl.dace.builder.stree.common.memlet import memlet_is_transient_scalar
+
+
+class TransientScalarSSA(tn.ScheduleNodeVisitor):
+    """Transform all transient scalar throught SSA, e.g.
+    ```python
+        A = tasklet()
+        if A:
+            f0 = tasklet(A, ...)
+        A = tasklet()
+        if A:
+            f1 = tasklet(A, ...)
+    ```
+    becomes
+    ```python
+        A = tasklet()
+        if A:
+            f0 = tasklet(A, ...)
+        A_0 = tasklet()
+        if A_0:
+            f1 = tasklet(A_0, ...)
+    ```
+    """
+
+    def __init__(self) -> None:
+        self._ssa_book: dict[str, str] = {}
+
+    def _make_SSA(self, name: str, node: tn.ScheduleTreeNode):
+        if name not in self._ssa_book:
+            self._ssa_book[name] = name + "_"
+        else:
+            self._ssa_book[name] = self._ssa_book[name] + "_"
+        node.get_root().containers[self._ssa_book[name]] = copy.copy(
+            node.get_root().containers[name]
+        )
+
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
+        for out_memlet in node.out_memlets.values():
+            if not memlet_is_transient_scalar(node.get_root(), out_memlet):
+                continue
+            name = out_memlet.data
+            self._make_SSA(name, node)
+            # Update the memlet data
+            out_memlet.data = self._ssa_book[name]
+
+    def visit_IfScope(self, node: tn.IfScope) -> None:
+        for in_memlet in node.input_memlets():
+            name = in_memlet.data
+            if name not in self._ssa_book:
+                continue
+            # Update the condtional code and memlet data
+            replace_variable_name(node.condition, name, self._ssa_book[name])
+            in_memlet.data = self._ssa_book[name]
 
 
 class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
@@ -20,8 +76,11 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
         super().__init__()
         self._on_grid_data: set[str] = set()
         self._off_grid_tasklets: list[tn.TaskletNode] = []
+        self._off_grid_symbols: dict[str, str] = {}
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
+        # Make sure all transient scalar
+        TransientScalarSSA().visit(node)
 
         # Sort all tasklets between off/on-grid, without memlet
         # dataflow checks
@@ -41,7 +100,15 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         # Check the inputs are not on-grid
         for memlet in [*node.in_memlets.values(), *node.out_memlets.values()]:
-            # Are we on-grid
+
+            # Are we on-grid, e.g. are we dependent on grid indexation
+            #
+            # Dev NOTE: because we can have _many_ grids due to DaCe parsing some pythong
+            # into its own many-maps we go more stricter here and we restrict to
+            # any symbols that are not resolved yet (and therefore could be indexer).
+            # The fix is to create a pass that collects all the grids, and change this check
+            # to look into the "indexer symbols" as well as the topology to see if we are indeed
+            # under a grid calculation (e.g. under or after maps indexed)
             if memlet.free_symbols != set():
                 # Collect the output for future check
                 for out_memlet in node.out_memlets.values():
@@ -53,7 +120,6 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
             if memlet.data in self._on_grid_data:
                 return
 
-        # We are truly off-grid
         self._off_grid_tasklets.append(node)
 
 
