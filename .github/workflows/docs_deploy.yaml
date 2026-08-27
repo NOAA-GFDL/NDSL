@@ -35,7 +35,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-      - run: uv run -only-group=docs zensical build
+      - run: uv run --only-group=docs zensical build
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
