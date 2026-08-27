@@ -32,7 +32,7 @@ class TransientScalarSSA(tn.ScheduleNodeVisitor):
     def __init__(self) -> None:
         self._ssa_book: dict[str, str] = {}
 
-    def _make_SSA(self, name: str, node: tn.ScheduleTreeNode):
+    def _make_SSA(self, name: str, node: tn.ScheduleTreeNode) -> None:
         if name not in self._ssa_book:
             self._ssa_book[name] = name + "_"
         else:
