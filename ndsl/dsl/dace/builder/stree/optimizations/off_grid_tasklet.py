@@ -4,7 +4,10 @@ from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.builder.stree.common import AxisIterator, list_index
-from ndsl.dsl.dace.builder.stree.common.code_block import replace_variable_name
+from ndsl.dsl.dace.builder.stree.common.code_block import (
+    make_unique_container_name,
+    replace_variable_name,
+)
 from ndsl.dsl.dace.builder.stree.common.memlet import memlet_is_transient_scalar
 
 
@@ -34,10 +37,13 @@ class TransientScalarSSA(tn.ScheduleNodeVisitor):
 
     def _make_SSA(self, name: str, node: tn.ScheduleTreeNode) -> None:
         if name not in self._ssa_book:
-            self._ssa_book[name] = name + "_"
-        else:
-            self._ssa_book[name] = self._ssa_book[name] + "_"
-        node.get_root().containers[self._ssa_book[name]] = copy.copy(
+            # The first assign - we keep the name
+            self._ssa_book[name] = name
+            return
+
+        candidate = make_unique_container_name(name, node.get_root())
+        self._ssa_book[name] = candidate
+        node.get_root().containers[candidate] = copy.copy(
             node.get_root().containers[name]
         )
 
