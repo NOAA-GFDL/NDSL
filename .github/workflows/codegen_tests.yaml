@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14']
       fail-fast: true
     name: ndsl-gencode (py${{ matrix.python-version }})
     steps:
@@ -35,10 +35,11 @@ jobs:
 
       - name: Generate and run code
         run: |
-          uv init --python=3.12 test
+          uv init test
           cd test/
           # github.sha contains the merge commit of this PR with the base branch
           uv add git+https://github.com/noaa-gfdl/ndsl.git --extra openmpi --rev ${{ github.sha }}
           source .venv/bin/activate
+          python --version
           ndsl-gencode --exec --output test_ndsl_gencode.py
           python test_ndsl_gencode.py

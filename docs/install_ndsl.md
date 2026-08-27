@@ -6,7 +6,7 @@ NDSL is written in the [python programming language](https://www.python.org/) an
 
 ## Prerequisites
 
-There are only two things we require you to have installed. Frist, we rely on [uv](https://docs.astral.sh/uv/) as package and project manager.
+There are only two things we require you to have installed. First, we rely on [uv](https://docs.astral.sh/uv/) as package and project manager.
 
 !!! note "Install uv"
 
