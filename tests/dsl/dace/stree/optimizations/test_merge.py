@@ -73,8 +73,11 @@ class OrchestratedCode:
             "trivial_merge",
             "missing_merge_of_forscope_and_map",
             "overcompute_merge",
-            "block_merge_when_dependencies_are_found",
+            "no_overcompute_merge",
             "push_non_cartesian_for",
+            "block_merge_read_after_write_with_offset",
+            "block_merge_write_after_read_with_offset",
+            "block_merge_write_after_write_with_different_offset",
         ]
         for method in orchestratable_methods:
             orchestrate(
