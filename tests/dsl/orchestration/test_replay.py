@@ -30,7 +30,7 @@ def test_record_and_replay():
     qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
     code = OrchestratedProgram(stencil_factory)
 
-    record_orginal_value = os.getenv("NDSL_RECORD_ORCHESTRATION", "False")
+    record_original_value = os.getenv("NDSL_RECORD_ORCHESTRATION", "False")
     os.environ["NDSL_RECORD_ORCHESTRATION"] = "True"
 
     code(qty)
@@ -44,4 +44,4 @@ def test_record_and_replay():
 
     loaded_exe.replay()
 
-    os.environ["NDSL_RECORD_ORCHESTRATION"] = record_orginal_value
+    os.environ["NDSL_RECORD_ORCHESTRATION"] = record_original_value

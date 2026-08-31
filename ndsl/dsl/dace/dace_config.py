@@ -43,7 +43,7 @@ def _sync_gpu_option() -> bool:
     Debugging Dace orchestration deeper can be done by turning on `syncdebug`.
     We control this Dace configuration below with our own override.
     """
-    return os.getenv("NDSL_DACE_FORCE_SYNC_GPU", "False") == "True"
+    return os.getenv("NDSL_DACE_FORCE_SYNC_GPU", "False").lower() == "true"
 
 
 def _is_corner(rank: int, partitioner: Partitioner) -> bool:
@@ -209,10 +209,11 @@ class DaceConfig:
 
         # Verbose optimizations
         self.verbose_orchestration = (
-            os.getenv("NDSL_VERBOSE_ORCHESTRATION", "False") == "True"
+            os.getenv("NDSL_VERBOSE_ORCHESTRATION", "False").lower() == "true"
         )
         self.verbose_schedule_tree_optimizations = (
-            os.getenv("NDSL_VERBOSE_SCHEDULE_TREE_OPTIMIZATIONS", "False") == "True"
+            os.getenv("NDSL_VERBOSE_SCHEDULE_TREE_OPTIMIZATIONS", "False").lower()
+            == "true"
         )
 
         # We hijack the optimization level of GT4Py because we don't
