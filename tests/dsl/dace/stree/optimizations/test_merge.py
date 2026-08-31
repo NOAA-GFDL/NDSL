@@ -37,7 +37,7 @@ def stencil_with_different_intervals(
         out_field = in_field + 5
 
 
-def stencil_with_buffer_read_offset_in_K(
+def stencil_with_buffer_read_offset_in_Km1(
     in_field: FloatField, out_field: FloatField, buffer: FloatField
 ) -> None:
     with computation(PARALLEL), interval(1, None):
@@ -45,6 +45,15 @@ def stencil_with_buffer_read_offset_in_K(
 
     with computation(PARALLEL), interval(1, None):
         out_field = buffer[K - 1] + 7
+
+def stencil_with_buffer_read_offset_in_Kp1(
+    in_field: FloatField, out_field: FloatField, buffer: FloatField
+) -> None:
+    with computation(PARALLEL), interval(1, None):
+        buffer = in_field + 6
+
+    with computation(PARALLEL), interval(1, None):
+        out_field = buffer[K + 1] + 7
 
 
 class OrchestratedCode:
@@ -95,8 +104,8 @@ class OrchestratedCode:
             func=stencil_with_forward_K,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
-        self.stencil_with_buffer_read_offset_in_K = stencil_factory.from_dims_halo(
-            func=stencil_with_buffer_read_offset_in_K,
+        self.stencil_with_buffer_read_offset_in_Km1 = stencil_factory.from_dims_halo(
+            func=stencil_with_buffer_read_offset_in_Km1,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_different_intervals = stencil_factory.from_dims_halo(
@@ -123,14 +132,6 @@ class OrchestratedCode:
         self.stencil_with_forward_K(in_field, out_field)
         self.stencil(in_field, out_field)
 
-    def block_merge_when_dependencies_are_found(
-        self,
-        in_field: FloatField,
-        out_field: FloatField,
-    ) -> None:
-        self.stencil(in_field, out_field)
-        self.stencil_with_buffer_read_offset_in_K(in_field, out_field, self._buffer)
-
     def overcompute_merge(
         self,
         in_field: FloatField,
@@ -156,6 +157,29 @@ class OrchestratedCode:
         for _ in dace.nounroll(range(2)):
             self.stencil(in_field, out_field)
 
+    def block_merge_read_after_write_with_offset(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil(in_field, out_field)
+        self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
+
+    def block_merge_write_after_read_with_offset(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
+        self.stencil(in_field, out_field)
+
+    def block_merge_write_after_write_with_different_offset(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
+        self.stencil(in_field, out_field)
 
 class TestStreeMergeMapsIJK:
     @pytest.fixture
