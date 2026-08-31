@@ -542,20 +542,23 @@ wheels = [
 
 [[package]]
 name = "dace"
-version = "2.0.0a6"
-source = { git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6#e432a8c69f05b3e7cbaae5aad85cf371a82f8c27" }
+version = "2.0.0a7"
+source = { git = "https://github.com/spcl/dace.git?rev=24e48e2dd91fcbfb295bc5ed31457ccbf75b56a5#24e48e2dd91fcbfb295bc5ed31457ccbf75b56a5" }
 dependencies = [
     { name = "astunparse" },
+    { name = "cmake" },
     { name = "dill" },
     { name = "fparser" },
     { name = "ml-dtypes" },
     { name = "networkx" },
+    { name = "ninja" },
     { name = "numpy" },
     { name = "ordered-set" },
     { name = "packaging" },
     { name = "ply" },
     { name = "pyreadline", marker = "sys_platform == 'win32'" },
     { name = "pyyaml" },
+    { name = "scikit-build" },
     { name = "sympy" },
     { name = "typing-extensions" },
 ]
@@ -668,6 +671,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c9/02/bd72be9134d25ed783ecbbc38a539ffaefbf90c78418c7fb7229600dbac7/distlib-0.4.3.tar.gz", hash = "sha256:f152097224a0ae24be5a0f6bae1b9359af82133bce63f98a95f86cae1aede9ed", size = 615141, upload-time = "2026-06-12T08:04:52.847Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl", hash = "sha256:4b0ce306c966eb73bc3a7b6abad017c556dadd92c44701562cd528ac7fde4d5b", size = 470628, upload-time = "2026-06-12T08:04:50.506Z" },
+]
+
+[[package]]
+name = "distro"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
 ]
 
 [[package]]
@@ -852,8 +864,8 @@ wheels = [
 
 [[package]]
 name = "gt4py"
-version = "1.2.1"
-source = { git = "https://github.com/Gridtools/gt4py.git?rev=v1.2.1#68fdad68f0a050da26c51f72df20af4323ae3ebf" }
+version = "1.2.1.post23+39f5ac45"
+source = { git = "https://github.com/Gridtools/gt4py.git?rev=39f5ac45677fe6ec1449ea430fdd53ed768da62f#39f5ac45677fe6ec1449ea430fdd53ed768da62f" }
 dependencies = [
     { name = "array-api-compat" },
     { name = "attrs" },
@@ -1512,11 +1524,11 @@ requires-dist = [
     { name = "cftime" },
     { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
     { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
-    { name = "dace", git = "https://github.com/spcl/dace.git?rev=v2.0.0-alpha6" },
+    { name = "dace", git = "https://github.com/spcl/dace.git?rev=24e48e2dd91fcbfb295bc5ed31457ccbf75b56a5" },
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
-    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=v1.2.1" },
+    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=39f5ac45677fe6ec1449ea430fdd53ed768da62f" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "ipykernel", marker = "extra == 'demos'" },
@@ -2218,6 +2230,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/52/aa/3918b5ac7f9987bd9c421b065074fd7409ded88f856f2c704a24341877ec/pyzmq-27.2.0-cp312-abi3-win_arm64.whl", hash = "sha256:348d6fd3e4b81ae4580622ea8c2ea60224e84b2ac1b3be4482e6edc7de06e7a3", size = 556006, upload-time = "2026-08-20T19:06:55.242Z" },
     { url = "https://files.pythonhosted.org/packages/83/5e/d0541596b48c5a19f85dcbea83d6673d8e91681cdf853eb194c31fc9766e/pyzmq-27.2.0-cp313-cp313-android_24_arm64_v8a.whl", hash = "sha256:c551b9e2f86dc625fcb1a032c0d68042678caf96a8dd7c28796766b673bd5b52", size = 1127193, upload-time = "2026-08-20T19:06:56.545Z" },
     { url = "https://files.pythonhosted.org/packages/50/9f/8c7411bb283982d46e6d56dca6a095678c87eb0398daead12776d9881ac2/pyzmq-27.2.0-cp313-cp313-android_24_x86_64.whl", hash = "sha256:288cc790da0e3064a14a38ddc56ba169dada8c8af4cb86518db2bcbd380eedbb", size = 1166833, upload-time = "2026-08-20T19:06:58.011Z" },
+]
+
+[[package]]
+name = "scikit-build"
+version = "0.19.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "distro" },
+    { name = "packaging" },
+    { name = "setuptools" },
+    { name = "wheel" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c7/ce/8ec52888f74a3e849a56bfe0a6d48d93646ac95ad4ff22915639a4393ea6/scikit_build-0.19.1.tar.gz", hash = "sha256:b9a8d07fca2d5d10d93220bc57a685161d72af1fc76285d55c564ddaa862e584", size = 276708, upload-time = "2026-06-23T01:39:06.454Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/ef/53c5d9293d1d11ed4e682fdd7f32c776b79ee30f83757395db0d4d0f0276/scikit_build-0.19.1-py3-none-any.whl", hash = "sha256:a4fa78a7222ca40d5e8bae6700514bbf7efea4346efd9fc1f8cfca837cd1de71", size = 86399, upload-time = "2026-06-23T01:39:04.874Z" },
 ]
 
 [[package]]
