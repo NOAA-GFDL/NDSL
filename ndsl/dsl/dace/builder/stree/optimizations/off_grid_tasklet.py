@@ -113,6 +113,18 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
         node.children = [*self._off_grid_tasklets, *node.children]
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
+        # Exclude tasklet that are within a mask
+        #
+        # Dev NOTE: we could extract those tasklet as well if:
+        #           - the conditional is also offgrid
+        #           - we move both the conditional and the tasklet
+        #           - we replicate the conditional for the other children to not break control flow
+        parent = node.parent
+        while parent:
+            if isinstance(parent, (tn.IfScope, tn.ElifScope, tn.ElseScope)):
+                return
+            parent = parent.parent
+
         # Check the inputs are not on-grid
         for memlet in [*node.in_memlets.values(), *node.out_memlets.values()]:
 
