@@ -35,7 +35,7 @@ if __name__ == "__main__":
     ranks_per_edge = int((size // 6) ** 0.5)
     layout = (ranks_per_edge, ranks_per_edge)
 
-    store = zarr.storage.DirectoryStore(OUTPUT_PATH)
+    store = zarr.storage.LocalStore(OUTPUT_PATH)
     partitioner = CubedSpherePartitioner(TilePartitioner(layout))
     monitor = ZarrMonitor(store, partitioner, mpi_comm=MPI.COMM_WORLD)
 

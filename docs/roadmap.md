@@ -8,6 +8,7 @@ We are building NDSL in the open. On this page we'll start to share our public r
 - :rocket: CPU serial execution merger
 - :rocket: Scalarization and refinement of local memory for better cache access
 - :gear: use `uv` for dependency management
+- :snake: Add support for python 3.14
 
 ## 2026.08.00
 
