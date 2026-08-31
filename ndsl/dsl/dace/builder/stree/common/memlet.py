@@ -43,7 +43,7 @@ def no_data_dependencies_on_cartesian_axis(
 
     first_reads_writes = MemletCollector()
     first_reads_writes.visit(first)
-    
+
     second_reads_writes = MemletCollector()
     second_reads_writes.visit(second)
 
@@ -52,7 +52,7 @@ def no_data_dependencies_on_cartesian_axis(
     for write in first_reads_writes.out_memlets:
 
         if write.subset.dims() <= axis_index:
-            continue # Dimension does not exist
+            continue  # Dimension does not exist
 
         first_axis_index = write.subset[axis_index][0]
 
@@ -86,11 +86,10 @@ def no_data_dependencies_on_cartesian_axis(
             ):
                 return False
 
-    
     for first_read in first_reads_writes.in_memlets:
-        
+
         if first_read.subset.dims() <= axis_index:
-            continue # Dimension does not exist
+            continue  # Dimension does not exist
 
         first_axis_index = first_read.subset[axis_index][0]
 

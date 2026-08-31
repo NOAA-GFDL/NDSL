@@ -46,6 +46,7 @@ def stencil_with_buffer_read_offset_in_Km1(
     with computation(PARALLEL), interval(1, None):
         out_field = buffer[K - 1] + 7
 
+
 def stencil_with_buffer_read_offset_in_Kp1(
     in_field: FloatField, out_field: FloatField, buffer: FloatField
 ) -> None:
@@ -180,6 +181,7 @@ class OrchestratedCode:
     ) -> None:
         self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
         self.stencil(in_field, out_field)
+
 
 class TestStreeMergeMapsIJK:
     @pytest.fixture
