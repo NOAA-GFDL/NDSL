@@ -48,6 +48,15 @@ class TransientScalarSSA(tn.ScheduleNodeVisitor):
         )
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
+        
+        # Swap input names
+        # ⚠️ this needs to be done _before_ we potentially make a 
+        #    new name for a scalar so computation is done from the
+        #    previous valid scalar name
+        for in_memlet in node.in_memlets.values():
+            if in_memlet.data in self._ssa_book:
+                in_memlet.data = self._ssa_book[in_memlet.data]
+
         for out_memlet in node.out_memlets.values():
             if not memlet_is_transient_scalar(node.get_root(), out_memlet):
                 continue
