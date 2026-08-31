@@ -73,7 +73,6 @@ class OrchestratedCode:
             "trivial_merge",
             "missing_merge_of_forscope_and_map",
             "overcompute_merge",
-            "no_overcompute_merge",
             "push_non_cartesian_for",
             "block_merge_read_after_write_with_offset",
             "block_merge_write_after_read_with_offset",
@@ -282,15 +281,14 @@ class TestStreeMergeMapsIJK:
         assert ij_maps == 1
         assert k_maps == 2
 
-    def test_block_merge_when_dependencies_are_found(
-        self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_read_after_write_with_offset(self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
         # Forbid merging when data dependencies are detected
-        code.block_merge_when_dependencies_are_found(in_qty, out_qty)
+        code.block_merge_read_after_write_with_offset(in_qty, out_qty)
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
@@ -299,6 +297,41 @@ class TestStreeMergeMapsIJK:
             if isinstance(me, nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+
+    def test_block_merge_write_after_read_with_offset(self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        # Forbid merging when data dependencies are detected
+        code.block_merge_write_after_read_with_offset(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+
+    def test_block_merge_write_after_write_with_different_offset(self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        # Forbid merging when data dependencies are detected
+        code.block_merge_write_after_write_with_different_offset(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
@@ -397,15 +430,14 @@ class TestStreeMergeMapsKJI:
         ]
         assert len(all_maps) == 1  # All maps merged & collapsed
 
-    def test_block_merge_when_dependencies_are_found(
-        self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_read_after_write_with_offset(self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
         # Forbid merging when data dependencies are detected
-        code.block_merge_when_dependencies_are_found(in_qty, out_qty)
+        code.block_merge_read_after_write_with_offset(in_qty, out_qty)
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
@@ -413,7 +445,41 @@ class TestStreeMergeMapsKJI:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 2  # 2 * KJI
+        assert len(all_maps) == 2  # 2 IJKs (un-merged)
+
+    def test_block_merge_write_after_read_with_offset(self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        # Forbid merging when data dependencies are detected
+        code.block_merge_write_after_read_with_offset(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        assert len(all_maps) == 2  # 2 IJKs (un-merged)
+
+    def test_block_merge_write_after_write_with_different_offset(self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        # Forbid merging when data dependencies are detected
+        code.block_merge_write_after_write_with_different_offset(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        assert len(all_maps) == 2  # 2 IJKs (un-merged)
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
