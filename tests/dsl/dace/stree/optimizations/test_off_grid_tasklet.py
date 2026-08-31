@@ -32,7 +32,12 @@ class OrchestratedCode(NDSLRuntime):
         )
         super().__init__(stencil_factory, config)
 
-        methods_to_orchestrate = ["happy_case", "dace_auto_grid", "reuse_of_scalars"]
+        methods_to_orchestrate = [
+            "happy_case",
+            "dace_auto_grid",
+            "reuse_of_scalars",
+            "reuse_of_scalars_in_inputs",
+        ]
 
         for method in methods_to_orchestrate:
             orchestrate(
@@ -70,6 +75,14 @@ class OrchestratedCode(NDSLRuntime):
             fillc = self._fillc_value[n]
             if fillc:
                 self._mult_stencil(in_field, scalar)
+
+    def reuse_of_scalars_in_inputs(
+        self, scalar: float, in_field: FloatField, out_field: FloatField
+    ):
+        tmp_scalar = scalar * 2.0
+        self._mult_stencil(in_field, tmp_scalar)
+        tmp_scalar = scalar * 2.0
+        self._mult_stencil(in_field, tmp_scalar)
 
 
 class TestStreeExtractOffgridConditionals:
@@ -138,3 +151,24 @@ class TestStreeExtractOffgridConditionals:
         assert len(all_maps) == 1  # merged
 
         assert (in_quantity.field[:] == 2.0).all()
+
+    def test_reuse_of_sclars_in_inputs(self, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+
+        code = OrchestratedCode(stencil_factory)
+        in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        scalar = 2.0
+
+        code.reuse_of_scalars_in_inputs(scalar, in_quantity, out_quantity)
+
+        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+
+        all_maps = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        assert len(all_maps) == 1  # merged
+
+        assert (in_quantity.field[:] == 16.0).all()
