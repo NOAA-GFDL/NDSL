@@ -93,7 +93,7 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
     """
     return stree.as_sdfg(
         validate=False,
-        simplify=True,
+        simplify=False,  # D_SW failed validation on merging
         skip={"ScalarToSymbolPromotion", "ControlFlowRaising"},
     )
 
