@@ -281,7 +281,8 @@ class TestStreeMergeMapsIJK:
         assert ij_maps == 1
         assert k_maps == 2
 
-    def test_block_merge_read_after_write_with_offset(self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_read_after_write_with_offset(
+        self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
@@ -298,7 +299,8 @@ class TestStreeMergeMapsIJK:
         ]
         assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
 
-    def test_block_merge_write_after_read_with_offset(self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_write_after_read_with_offset(
+        self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
@@ -315,7 +317,8 @@ class TestStreeMergeMapsIJK:
         ]
         assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
 
-    def test_block_merge_write_after_write_with_different_offset(self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_write_after_write_with_different_offset(
+        self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
@@ -331,7 +334,6 @@ class TestStreeMergeMapsIJK:
             if isinstance(me, nodes.MapEntry)
         ]
         assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
-
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
@@ -430,7 +432,8 @@ class TestStreeMergeMapsKJI:
         ]
         assert len(all_maps) == 1  # All maps merged & collapsed
 
-    def test_block_merge_read_after_write_with_offset(self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_read_after_write_with_offset(
+        self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
@@ -447,7 +450,8 @@ class TestStreeMergeMapsKJI:
         ]
         assert len(all_maps) == 2  # 2 IJKs (un-merged)
 
-    def test_block_merge_write_after_read_with_offset(self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_write_after_read_with_offset(
+        self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
@@ -464,7 +468,8 @@ class TestStreeMergeMapsKJI:
         ]
         assert len(all_maps) == 2  # 2 IJKs (un-merged)
 
-    def test_block_merge_write_after_write_with_different_offset(self, code: OrchestratedCode, factories: Factories
+    def test_block_merge_write_after_write_with_different_offset(
+        self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
         in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
