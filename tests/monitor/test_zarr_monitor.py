@@ -229,7 +229,7 @@ def test_monitor_file_store_multi_rank_state(
     timestep = timedelta(hours=1)
     total_ranks = 6 * layout[0] * layout[1]
     partitioner = CubedSpherePartitioner(grid)
-    store = zarr.storage.DirectoryStore(tmpdir)
+    store = zarr.storage.LocalStore(tmpdir.strpath)
     shared_buffer = {}
     monitor_list = []
     for rank in range(total_ranks):
@@ -255,7 +255,7 @@ def test_monitor_file_store_multi_rank_state(
                 ),
             }
             monitor_list[rank].store(state)
-    group = zarr.hierarchy.open_group(store=store, mode="r")
+    group = zarr.open_group(store=store, mode="r")
     assert "var1" in group
     assert group["var1"].shape == (nt, 6, nz, ny + ny_rank_add, nx + nx_rank_add)
     numpy.testing.assert_array_equal(group["var1"], 1.0)
@@ -438,7 +438,7 @@ def _transpose(quantity, dims_2d, dims_3d):
 @pytest.fixture(scope="function")
 def zarr_store(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp("diags.zarr")
-    return zarr.storage.DirectoryStore(tmpdir)
+    return zarr.storage.LocalStore(tmpdir.strpath)
 
 
 @pytest.fixture(scope="function")

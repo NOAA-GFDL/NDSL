@@ -7,7 +7,7 @@ import cftime
 import xarray as xr
 
 import ndsl.constants as constants
-from ndsl import ndsl_log
+from ndsl import Quantity, ndsl_log
 from ndsl.comm import Comm
 from ndsl.comm.partitioner import Partitioner, subtile_slice
 from ndsl.monitor.convert import to_numpy
@@ -147,8 +147,8 @@ class _ZarrVariableWriter:
     def _get_array_dims(self):
         if self.array is None:
             raise ValueError("Array not yet set, must call .store first.")
-        else:
-            return self.array.attrs.get("_ARRAY_DIMENSIONS")
+
+        return self.array.attrs.get("_ARRAY_DIMENSIONS")
 
     def _init_zarr(self, quantity):
         if self.rank == 0:
@@ -156,17 +156,18 @@ class _ZarrVariableWriter:
             self.array.attrs.update(self._get_attrs(quantity))
         self.sync_array()
 
-    def _init_zarr_root(self, quantity):
+    def _init_zarr_root(self, quantity: Quantity) -> None:
         tile_shape = self._partitioner.tile.global_extent(quantity.metadata)
         chunks = self._prepend_chunks + array_chunks(
             self._partitioner.layout, tile_shape, quantity.dims
         )
-        self.array = self.group.create_dataset(
+        self.array = self.group.create_array(
             self.name,
             shape=self._prepend_shape + tile_shape,
             dtype=quantity.dtype,
             chunks=chunks,
             fill_value=None,
+            dimension_names=self._get_quantity_dims(quantity),
         )
 
     def sync_array(self) -> None:
@@ -176,8 +177,8 @@ class _ZarrVariableWriter:
         self._check_dims(quantity)
         if self._get_array_dims() != self._get_quantity_dims(quantity):
             return quantity.transpose(self._get_array_dims()[2:])
-        else:
-            return quantity
+
+        return quantity
 
     def _check_dims(self, quantity):
         quantity_dims = self._get_quantity_dims(quantity)
@@ -209,7 +210,7 @@ class _ZarrVariableWriter:
                 + self._partitioner.tile.global_extent(quantity.metadata)
             )
             new_shape[0] = self.i_time + 1
-            self.array.resize(*new_shape)
+            self.array.resize(tuple(new_shape))
         self.sync_array()
 
         target_slice = (
@@ -329,8 +330,13 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
     def _init_zarr_root(self, array):
         shape = self._prepend_shape
         chunks = self._prepend_chunks
-        self.array = self.group.create_dataset(
-            self.name, shape=shape, dtype=array.dtype, chunks=chunks, fill_value=None
+        self.array = self.group.create_array(
+            self.name,
+            shape=shape,
+            dtype=array.dtype,
+            chunks=chunks,
+            fill_value=None,
+            dimension_names=self._get_quantity_dims(array),
         )
 
     def _set_time_encoding_attrs(self, time):
@@ -357,8 +363,7 @@ class _ZarrTimeWriter(_ZarrVariableWriter):
             self._init_zarr(array)
             self._set_time_encoding_attrs(time)
         if self.i_time >= self.array.shape[0] and self.rank == 0:
-            new_shape = (self.i_time + 1,)
-            self.array.resize(*new_shape)
+            self.array.resize((self.i_time + 1,))
         self.sync_array()
         if self.rank == 0:
             self.array[self.i_time] = self._encode_time(time)

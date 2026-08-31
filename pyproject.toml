@@ -70,7 +70,10 @@ hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']
 openmpi = ['openmpi']
 pyfms = ["pyfms @ git+https://github.com/noaa-gfdl/pyfms.git"]
 serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
-zarr = ["zarr<3"]
+zarr = [
+  "zarr>=3,<4",
+  "numcodecs>=0.16.3"  # support for gcc>=15
+]
 
 [project.scripts]
 best_guess_diff = "ndsl.stencils.testing.best_guess_diff:entry_point"
