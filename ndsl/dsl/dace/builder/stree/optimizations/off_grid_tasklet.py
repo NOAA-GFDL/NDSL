@@ -1,7 +1,7 @@
-from dace.utils import find_new_name
 import copy
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
+from dace.utils import find_new_name
 
 from ndsl import ndsl_log
 from ndsl.dsl.dace.builder.stree.common import (
