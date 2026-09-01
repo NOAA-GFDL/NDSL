@@ -1,3 +1,4 @@
+from dace.utils import find_new_name
 import copy
 
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
@@ -8,10 +9,7 @@ from ndsl.dsl.dace.builder.stree.common import (
     is_cartesian_axis,
     list_index,
 )
-from ndsl.dsl.dace.builder.stree.common.code_block import (
-    make_unique_container_name,
-    replace_variable_name,
-)
+from ndsl.dsl.dace.builder.stree.common.code_block import replace_variable_name
 from ndsl.dsl.dace.builder.stree.common.memlet import memlet_is_transient_scalar
 
 # ----- DEV NOTE -----
@@ -52,7 +50,7 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
             self._ssa_book[name] = name
             return
 
-        candidate = make_unique_container_name(name, node.get_root())
+        candidate = find_new_name(name, list(node.get_root().containers.keys()))
         self._ssa_book[name] = candidate
         node.get_root().containers[candidate] = copy.copy(
             node.get_root().containers[name]
