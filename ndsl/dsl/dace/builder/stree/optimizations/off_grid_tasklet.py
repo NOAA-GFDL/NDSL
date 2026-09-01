@@ -3,16 +3,25 @@ import copy
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.builder.stree.common import AxisIterator, list_index
+from ndsl.dsl.dace.builder.stree.common import (
+    AxisIterator,
+    is_cartesian_axis,
+    list_index,
+)
 from ndsl.dsl.dace.builder.stree.common.code_block import (
     make_unique_container_name,
     replace_variable_name,
 )
 from ndsl.dsl.dace.builder.stree.common.memlet import memlet_is_transient_scalar
 
+# ----- DEV NOTE -----
+# The pass below have been coded defensively, e.g. they restrict their application to non-cartesian code
+# by skipping the visitor as soon as we detect that we are entering cartesian code
+# ----- DEV NOTE -----
 
-class TransientScalarSSA(tn.ScheduleNodeVisitor):
-    """Transform all transient scalar throught SSA, e.g.
+
+class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
+    """Transform all off-grid transient scalar throught SSA, e.g.
     ```python
         A = tasklet()
         if A:
@@ -30,6 +39,8 @@ class TransientScalarSSA(tn.ScheduleNodeVisitor):
         if A_0:
             f1 = tasklet(A_0, ...)
     ```
+
+    The pass _will not_ apply within cartesian blocks.
     """
 
     def __init__(self) -> None:
@@ -46,6 +57,20 @@ class TransientScalarSSA(tn.ScheduleNodeVisitor):
         node.get_root().containers[candidate] = copy.copy(
             node.get_root().containers[name]
         )
+
+    def visit_MapScope(self, node: tn.MapScope) -> None:
+        if is_cartesian_axis(node):
+            return
+
+        for child in node.children:
+            self.visit(child)
+
+    def visit_ForScope(self, node: tn.ForScope) -> None:
+        if is_cartesian_axis(node):
+            return
+
+        for child in node.children:
+            self.visit(child)
 
     def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
 
@@ -74,6 +99,9 @@ class TransientScalarSSA(tn.ScheduleNodeVisitor):
             replace_variable_name(node.condition, name, self._ssa_book[name])
             in_memlet.data = self._ssa_book[name]
 
+        for child in node.children:
+            self.visit(child)
+
 
 class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
     """
@@ -82,6 +110,8 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
 
     Dev note: this pass functions because we keep the tasklet _in order_ the entire
     time, keeping alive any dependency on each other correct.
+
+    The pass _will not_ apply within cartesian blocks.
     """
 
     def __str__(self) -> str:
@@ -95,7 +125,7 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         # Make sure all transient scalar
-        TransientScalarSSA().visit(node)
+        OffgridTransientScalarSSA().visit(node)
 
         # Sort all tasklets between off/on-grid, without memlet
         # dataflow checks
@@ -112,19 +142,21 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
         # Re-insert in front
         node.children = [*self._off_grid_tasklets, *node.children]
 
-    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
-        # Exclude tasklet that are within a mask
-        #
-        # Dev NOTE: we could extract those tasklet as well if:
-        #           - the conditional is also offgrid
-        #           - we move both the conditional and the tasklet
-        #           - we replicate the conditional for the other children to not break control flow
-        parent = node.parent
-        while parent:
-            if isinstance(parent, (tn.IfScope, tn.ElifScope, tn.ElseScope)):
-                return
-            parent = parent.parent
+    def visit_MapScope(self, node: tn.MapScope) -> None:
+        if is_cartesian_axis(node):
+            return
 
+        for child in node.children:
+            self.visit(child)
+
+    def visit_ForScope(self, node: tn.ForScope) -> None:
+        if is_cartesian_axis(node):
+            return
+
+        for child in node.children:
+            self.visit(child)
+
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
         # Check the inputs are not on-grid
         for memlet in [*node.in_memlets.values(), *node.out_memlets.values()]:
 

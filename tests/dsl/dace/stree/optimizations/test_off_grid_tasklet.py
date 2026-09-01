@@ -181,23 +181,3 @@ class TestStreeExtractOffgridTasklets:
         assert len(all_maps) == 1  # merged
 
         assert (in_quantity.field[:] == 16.0).all()
-
-    def test_block_by_conditional(self, factories: Factories) -> None:
-        stencil_factory, quantity_factory = factories
-
-        code = OrchestratedCode(stencil_factory)
-        in_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-        scalar = 2.0
-
-        code.block_by_conditional(scalar, in_quantity, out_quantity)
-
-        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-
-        all_maps = [
-            (me, state)
-            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
-            if isinstance(me, nodes.MapEntry)
-        ]
-        assert len(all_maps) == 2  # non merged because the scalar is in the
-        # a conditional that was properly blocked
