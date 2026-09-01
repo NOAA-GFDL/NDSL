@@ -36,6 +36,13 @@ def _both_same_single_axis_maps(
 def _can_merge_axis_maps(
     first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
+    # Dev NOTE: since the merger uses a re-entry system we migth check mergeability
+    #           many times within the same transformation execution.
+    #           We could cache the map that have been tested as non-mergeable in the caller
+    #           of this function instead of re-doing the expensive data dependencies analysis.
+    #           The only thing to be careful is that we have merged, a map will have different dependencies
+    #           but the logic would be that if map A and B can't be merged, any merged A or B will contain
+    #           the dependencies that made it non-mergeable in the first place.
     return _both_same_single_axis_maps(
         first, second, axis
     ) and no_data_dependencies_on_cartesian_axis(first, second, axis)

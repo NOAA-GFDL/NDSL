@@ -23,20 +23,22 @@ jobs:
       fail-fast: true
     name: ndsl-gencode (py${{ matrix.python-version }})
     steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: recursive
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Generate and run code
         run: |
-          pip install openmpi
-          pip install .
-
-      - name: Generate executable code
-        run: ndsl-gencode --exec --output test_ndsl_gencode.py
-
-      - name: Run generated code
-        run: python test_ndsl_gencode.py
+          uv init --python=3.12 test
+          cd test/
+          # github.sha contains the merge commit of this PR with the base branch
+          uv add git+https://github.com/noaa-gfdl/ndsl.git --extra openmpi --rev ${{ github.sha }}
+          source .venv/bin/activate
+          ndsl-gencode --exec --output test_ndsl_gencode.py
+          python test_ndsl_gencode.py
