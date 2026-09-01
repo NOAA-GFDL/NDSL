@@ -1,8 +1,8 @@
-# Basic operations (3D)
+# Arithmetic functions
 
-`ndsl.stencil` offers the following basic operations as building blocks in 3D:
+`ndsl.stencils` offers the following arithmetic functions as building blocks:
 
-::: stencils.basic_operations
+::: stencils.arithmetic_functions
 
 <style>
 /* re-enable the left side navigation bar for this page */

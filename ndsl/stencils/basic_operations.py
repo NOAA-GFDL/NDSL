@@ -78,7 +78,7 @@ def multiply(factor_1: FloatField, factor_2: FloatField, product: FloatField) ->
     Args:
         factor_1: input field
         factor_2: input field
-        output: output field
+        product: output field
     """
     with computation(PARALLEL), interval(...):
         product = factor_1 * factor_2

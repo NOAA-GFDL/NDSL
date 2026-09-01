@@ -47,7 +47,7 @@ def subtract_2d(
 
     Args:
         minuend: input field
-        summand_2: input field
+        subtrahend: input field
         difference: output field
     """
     with computation(FORWARD), interval(0, 1):
