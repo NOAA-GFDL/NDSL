@@ -1,7 +1,9 @@
-from .cache_location import identify_code_path
+from .cache_location import get_cache_directory, get_cache_fullpath, identify_code_path
 from .codepath import FV3CodePath
 
 __all__ = [
-    "identify_code_path",
     "FV3CodePath",
+    "get_cache_directory",
+    "get_cache_fullpath",
+    "identify_code_path",
 ]

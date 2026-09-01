@@ -4,7 +4,7 @@ from dace.data import Data
 from dace.sdfg import nodes
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl.dsl.dace.stree.common.topology import (
+from ndsl.dsl.dace.builder.stree.common.topology import (
     detect_cycle,
     get_next_node,
     get_previous_node,
