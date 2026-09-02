@@ -90,28 +90,47 @@ nav = [
         {"codepath" = "docstrings/dsl/caches/codepath.md"}
       ]},
       {"dace" = [
-        {"sdfg" = [
-          {"loop_transform" = "docstrings/dsl/dace/sdfg/loop_transform.md"}
-        ]},
-        {"stree" = [
-          {"optimizations" = [
-            {"axis_merge" = "docstrings/dsl/dace/stree/optimizations/axis_merge.md"},
-            {"clean_tree" = "docstrings/dsl/dace/stree/optimizations/clean_tree.md"},
-            {"memlet_helpers" = "docstrings/dsl/dace/stree/optimizations/memlet_helpers.md"},
-            {"refine_transients" = "docstrings/dsl/dace/stree/optimizations/refine_transients.md"},
-            {"specialize_maps" = "docstrings/dsl/dace/stree/optimizations/specialize_maps.md"},
-            {"tree_common_op" = "docstrings/dsl/dace/stree/optimizations/tree_common_op.md"}
+        {"builder" = [
+          {"sdfg" = [
+            {"debug_passes" = "docstrings/dsl/dace/builder/sdfg/debug_passes.md"},
+            {"loop_transform" = "docstrings/dsl/dace/builder/sdfg/loop_transform.md"}
           ]},
-          {"pipeline" = "docstrings/dsl/dace/stree/pipeline.md"}
+          {"stree" = [
+            {"common" = [
+              {"code_block" = "docstrings/dsl/dace/builder/stree/common/code_block.md"},
+              {"control_flow" = "docstrings/dsl/dace/builder/stree/common/control_flow.md"},
+              {"memlet" = "docstrings/dsl/dace/builder/stree/common/memlet.md"},
+              {"topology" = "docstrings/dsl/dace/builder/stree/common/topology.md"}
+            ]},
+            {"optimizations" = [
+              {"axis_merge" = "docstrings/dsl/dace/builder/stree/optimizations/axis_merge.md"},
+              {"cartesian_merge" = "docstrings/dsl/dace/builder/stree/optimizations/cartesian_merge.md"},
+              {"clean_tree" = "docstrings/dsl/dace/builder/stree/optimizations/clean_tree.md"},
+              {"kernelize_maps" = "docstrings/dsl/dace/builder/stree/optimizations/kernelize_maps.md"},
+              {"local_optimizations" = "docstrings/dsl/dace/builder/stree/optimizations/local_optimizations.md"},
+              {"off_grid_conditionals" = "docstrings/dsl/dace/builder/stree/optimizations/off_grid_conditionals.md"},
+              {"off_grid_tasklet" = "docstrings/dsl/dace/builder/stree/optimizations/off_grid_tasklet.md"},
+              {"refine_transients" = "docstrings/dsl/dace/builder/stree/optimizations/refine_transients.md"},
+              {"remove_loops" = "docstrings/dsl/dace/builder/stree/optimizations/remove_loops.md"},
+              {"replace_axis_symbol" = "docstrings/dsl/dace/builder/stree/optimizations/replace_axis_symbol.md"},
+              {"specialize_maps" = "docstrings/dsl/dace/builder/stree/optimizations/specialize_maps.md"}
+            ]},
+            {"default_pipeline" = "docstrings/dsl/dace/builder/stree/default_pipeline.md"},
+            {"pipeline" = "docstrings/dsl/dace/builder/stree/pipeline.md"},
+            {"statistics" = "docstrings/dsl/dace/builder/stree/statistics.md"}
+          ]},
+          {"builder" = "docstrings/dsl/dace/builder/builder.md"},
+          {"cache" = "docstrings/dsl/dace/builder/cache.md"},
+          {"labeler" = "docstrings/dsl/dace/builder/labeler.md"},
+          {"optimize" = "docstrings/dsl/dace/builder/optimize.md"},
+          {"parse" = "docstrings/dsl/dace/builder/parse.md"}
         ]},
         {"build" = "docstrings/dsl/dace/build.md"},
         {"dace_config" = "docstrings/dsl/dace/dace_config.md"},
         {"dace_executable" = "docstrings/dsl/dace/dace_executable.md"},
         {"hardware_config" = "docstrings/dsl/dace/hardware_config.md"},
-        {"labeler" = "docstrings/dsl/dace/labeler.md"},
         {"orchestration" = "docstrings/dsl/dace/orchestration.md"},
         {"replacements" = "docstrings/dsl/dace/replacements.md"},
-        {"sdfg_debug_passes" = "docstrings/dsl/dace/sdfg_debug_passes.md"},
         {"utils" = "docstrings/dsl/dace/utils.md"},
         {"wrapped_halo_exchange" = "docstrings/dsl/dace/wrapped_halo_exchange.md"}
       ]},

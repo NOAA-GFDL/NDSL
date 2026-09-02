@@ -1,6 +1,6 @@
 # replace_axis_symbol
 
-dsl.dace.builder.stree.optimizations.replace_axis_symbol
+::: dsl.dace.builder.stree.optimizations.replace_axis_symbol
 
 <style>
 /* re-enable the left side navigation bar for this page */

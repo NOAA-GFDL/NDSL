@@ -1,6 +1,6 @@
-# default_pipeline
+# build
 
-::: dsl.dace.builder.stree.default_pipeline
+::: dsl.dace.build
 
 <style>
 /* re-enable the left side navigation bar for this page */

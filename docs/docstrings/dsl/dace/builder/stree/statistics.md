@@ -1,6 +1,6 @@
 # statistics
 
-dsl.dace.builder.stree.statistics
+::: dsl.dace.builder.stree.statistics
 
 <style>
 /* re-enable the left side navigation bar for this page */
