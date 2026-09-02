@@ -38,7 +38,7 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
             f1 = tasklet(A_0, ...)
     ```
 
-    The pass _will not_ apply within cartesian blocks.
+    The pass _will not_ apply SSA within cartesian blocks, but will keep renaming going.
     """
 
     def __init__(self) -> None:
@@ -56,21 +56,19 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
             node.get_root().containers[name]
         )
 
-    def visit_MapScope(self, node: tn.MapScope) -> None:
-        if is_cartesian_axis(node):
-            return
-
+    def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
         for child in node.children:
-            self.visit(child)
+            self.visit(child, in_cartesian=False)
+
+    def visit_MapScope(self, node: tn.MapScope, in_cartesian: bool) -> None:
+        for child in node.children:
+            self.visit(child, in_cartesian=is_cartesian_axis(node))
 
     def visit_ForScope(self, node: tn.ForScope) -> None:
-        if is_cartesian_axis(node):
-            return
-
         for child in node.children:
-            self.visit(child)
+            self.visit(child, in_cartesian=is_cartesian_axis(node))
 
-    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
+    def visit_TaskletNode(self, node: tn.TaskletNode, in_cartesian: bool) -> None:
 
         # Swap input names
         # ⚠️ this needs to be done _before_ we potentially make a
@@ -83,12 +81,15 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
         for out_memlet in node.out_memlets.values():
             if not memlet_is_transient_scalar(node.get_root(), out_memlet):
                 continue
-            name = out_memlet.data
-            self._make_SSA(name, node)
+
+            if not in_cartesian:
+                name = out_memlet.data
+                self._make_SSA(name, node)
+
             # Update the memlet data
             out_memlet.data = self._ssa_book[name]
 
-    def visit_IfScope(self, node: tn.IfScope) -> None:
+    def visit_IfScope(self, node: tn.IfScope, in_cartesian: bool) -> None:
         for in_memlet in node.input_memlets():
             name = in_memlet.data
             if name not in self._ssa_book:
@@ -98,7 +99,23 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
             in_memlet.data = self._ssa_book[name]
 
         for child in node.children:
-            self.visit(child)
+            self.visit(child, in_cartesian=in_cartesian)
+
+    def visit_WhileScope(self, node: tn.WhileScope, in_cartesian: bool) -> None:
+        for in_memlet in node.input_memlets():
+            name = in_memlet.data
+            if name not in self._ssa_book:
+                continue
+            # Update the conditional codes and memlet data
+            replace_variable_name(node.loop.init_statement, name, self._ssa_book[name])
+            replace_variable_name(
+                node.loop.update_statement, name, self._ssa_book[name]
+            )
+            replace_variable_name(node.loop.loop_condition, name, self._ssa_book[name])
+            in_memlet.data = self._ssa_book[name]
+
+        for child in node.children:
+            self.visit(child, in_cartesian=in_cartesian)
 
 
 class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
