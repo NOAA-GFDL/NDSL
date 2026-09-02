@@ -17,7 +17,7 @@ from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
 
 
-def mult_stencil(inout_field: FloatField, scalar: Float):
+def mult_stencil(inout_field: FloatField, scalar: Float) -> None:
     with computation(PARALLEL), interval(...):
         inout_field = inout_field * scalar
 
@@ -79,7 +79,7 @@ class OrchestratedCode(NDSLRuntime):
 
     def reuse_of_scalars_in_inputs(
         self, scalar: float, in_field: FloatField, out_field: FloatField
-    ):
+    ) -> None:
         tmp_scalar = scalar * 2.0
         self._mult_stencil(in_field, tmp_scalar)
         tmp_scalar = scalar * 2.0
@@ -87,7 +87,7 @@ class OrchestratedCode(NDSLRuntime):
 
     def block_by_conditional(
         self, scalar: float, in_field: FloatField, out_field: FloatField
-    ):
+    ) -> None:
         self._mult_stencil(in_field, scalar)
         if scalar > 2:
             tmp_scalar = scalar * 2.0

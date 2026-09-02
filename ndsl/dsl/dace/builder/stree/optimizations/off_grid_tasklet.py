@@ -19,7 +19,7 @@ from ndsl.dsl.dace.builder.stree.common.memlet import memlet_is_transient_scalar
 
 
 class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
-    """Transform all off-grid transient scalar throught SSA, e.g.
+    """Transform all off-grid transient scalar through SSA, e.g.
     ```python
         A = tasklet()
         if A:
@@ -50,7 +50,7 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
             self._ssa_book[name] = name
             return
 
-        candidate = find_new_name(name, list(node.get_root().containers.keys()))
+        candidate = find_new_name(name, node.get_root().containers)
         self._ssa_book[name] = candidate
         node.get_root().containers[candidate] = copy.copy(
             node.get_root().containers[name]
@@ -93,7 +93,7 @@ class OffgridTransientScalarSSA(tn.ScheduleNodeVisitor):
             name = in_memlet.data
             if name not in self._ssa_book:
                 continue
-            # Update the condtional code and memlet data
+            # Update the conditional code and memlet data
             replace_variable_name(node.condition, name, self._ssa_book[name])
             in_memlet.data = self._ssa_book[name]
 
@@ -160,13 +160,13 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
 
             # Are we on-grid, e.g. are we dependent on grid indexation
             #
-            # Dev NOTE: because we can have _many_ grids due to DaCe parsing some pythong
+            # Dev NOTE: because we can have _many_ grids due to DaCe parsing some python
             # into its own many-maps we go more stricter here and we restrict to
             # any symbols that are not resolved yet (and therefore could be indexer).
             # The fix is to create a pass that collects all the grids, and change this check
             # to look into the "indexer symbols" as well as the topology to see if we are indeed
             # under a grid calculation (e.g. under or after maps indexed)
-            if memlet.free_symbols != set():
+            if len(memlet.free_symbols) > 0:
                 # Collect the output for future check
                 for out_memlet in node.out_memlets.values():
                     self._on_grid_data.add(out_memlet.data)
@@ -185,7 +185,7 @@ class InlineOffGridTasklet(tn.ScheduleNodeVisitor):
     Move the off-grid tasklet as-close-as possible to their first usage but
     _outside_ of any grid tight loop, e.g. C++ optimization style.
 
-    Dev note: movement need to be made in reverse order so we can keep any dependancy on
+    Dev note: movement need to be made in reverse order so we can keep any dependency on
     each other tasklet correct e.g. in
     ```
     A = tasklet()

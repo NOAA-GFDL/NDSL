@@ -47,16 +47,6 @@ def stencil_with_buffer_read_offset_in_Km1(
         out_field = buffer[K - 1] + 7
 
 
-def stencil_with_buffer_read_offset_in_Kp1(
-    in_field: FloatField, out_field: FloatField, buffer: FloatField
-) -> None:
-    with computation(PARALLEL), interval(1, None):
-        buffer = in_field + 6
-
-    with computation(PARALLEL), interval(1, None):
-        out_field = buffer[K + 1] + 7
-
-
 class OrchestratedCode:
     def __init__(
         self,
