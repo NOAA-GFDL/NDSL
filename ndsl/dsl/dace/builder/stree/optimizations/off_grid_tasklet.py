@@ -168,8 +168,8 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
     Gather all off-grid nodes and store them at the top of the Schedule Tree
     like a C style declarative process.
 
-    Dev note: this pass functions because we keep the node _in order_ the entire
-    time, keeping alive any dependency on each other correct.
+    Dev note: this pass functions because we keep the nodes _in order_ the entire
+    time, keeping any dependency on each other correct.
 
     We move `tasklet` if all its writes have been SSA properly.
 
@@ -283,7 +283,7 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
                 return
 
             # We check that the output is SSA, e.g. written a single time throughout
-            # if not then we will
+            # if not then we will not extract the tasklet
             if self._transient_scalar_writes.get(memlet.data, 0) > 1:
                 return
 
