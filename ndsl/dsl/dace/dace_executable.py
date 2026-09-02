@@ -181,6 +181,7 @@ class DaceExecutable:
             original_unoptimized_sdfg = SDFG.from_file(str(gt4py_sdfg_bundle_sdfg))
 
         sdfg = SDFG.from_file(f"{bundle_path}/{_OPTIMIZED_SDFG_NAME}.sdfgz")
+        sdfg.build_folder = f"{os.getcwd()}/.dacecache"
         with open(bundle_path / "backend.txt", "r") as f:
             backend = Backend(f.readlines()[0])
 
