@@ -37,7 +37,6 @@ class OrchestratedCode(NDSLRuntime):
             "dace_auto_grid",
             "reuse_of_scalars",
             "reuse_of_scalars_in_inputs",
-            "block_by_cartesian",
             "many_writes_scalar",
         ]
 
