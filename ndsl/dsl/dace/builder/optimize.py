@@ -128,7 +128,7 @@ def optimize_full_program_sdfg(
     args: Any,
     kwargs: Any,
 ) -> CompiledSDFG:
-    """Optimize and compile the SFDG (creating the .daceache and with the source and dynamic library)
+    """Optimize and compile the SDFG (creating the .dacecache and with the source and dynamic library)
     from a parsed SDFG (e.g. python code + gt4py stencils).
     """
 
@@ -278,7 +278,7 @@ def optimize_full_program_sdfg(
             # Set block size on GPU maps and collect callback
             # tasklets to exclude next
             gpu_defaults = get_gpu_hardware_defaults()
-            exclude_taskslets_list = []
+            exclude_tasklets_list = []
 
             for me, _state in parsed_sdfg.all_nodes_recursive():
                 if (
@@ -288,7 +288,7 @@ def optimize_full_program_sdfg(
                     me.map.gpu_block_size = gpu_defaults.block_size
 
                 if isinstance(me, nodes.Tasklet) and "callback_" in me.label:
-                    exclude_taskslets_list.append(me.label)
+                    exclude_tasklets_list.append(me.label)
 
             parsed_sdfg.apply_transformations_repeated(
                 AddThreadBlockMap, print_report=False
@@ -303,7 +303,7 @@ def optimize_full_program_sdfg(
                     parsed_sdfg.apply_transformations(
                         GPUTransformSDFG,
                         options={
-                            "exclude_tasklets": ",".join(exclude_taskslets_list),
+                            "exclude_tasklets": ",".join(exclude_tasklets_list),
                             "host_data": ["__pystate"],
                         },
                     )
