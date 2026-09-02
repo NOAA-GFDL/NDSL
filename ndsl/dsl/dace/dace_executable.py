@@ -11,6 +11,7 @@ from dace.sdfg.sdfg import SDFG
 from gt4py import storage as gt_storage
 from mpi4py import MPI
 
+from ndsl import ndsl_log
 from ndsl.comm.local_comm import LocalComm
 from ndsl.config.backend import Backend
 from ndsl.dsl.dace.dace_config import DaceConfig, DaCeOrchestration
@@ -238,6 +239,8 @@ class DaceExecutable:
         """Replay executable using last cached arguments"""
         if not self.arguments:
             raise RuntimeError(f"Cannot replay {self.name} - no arguments available")
+
+        ndsl_log.info("Benching...")
 
         self.performance_collector.start_cuda_profiler()
 

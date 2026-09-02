@@ -1,9 +1,9 @@
+from collections import defaultdict
 from enum import Enum
 
+from dace import data
 from dace.memlet import Memlet
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
-
-from ndsl import ndsl_log
 
 
 class AxisIterator(Enum):
@@ -17,11 +17,19 @@ class AxisIterator(Enum):
     def as_cartesian_index(self) -> int:
         return self.value[1]
 
-    def is_equal(self, other: str) -> bool:
-        if self == AxisIterator._K:
-            return other.startswith(self.as_str())
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AxisIterator):
+            return self.value == other.value
+        if isinstance(other, str):
+            return self.as_str() == other
 
-        return other == self.as_str()
+        raise ValueError("Equality with AxisIterator or string is undefined")
+
+    # Restore hashing that got sniped by __eq__ (see object.__hash__ in py doc)
+    __hash__ = Enum.__hash__
+
+
+CARTESIAN_AXIS_SYMBOLS = [AxisIterator._I, AxisIterator._J, AxisIterator._K]
 
 
 def no_data_dependencies_on_cartesian_axis(
@@ -29,54 +37,75 @@ def no_data_dependencies_on_cartesian_axis(
     second: tn.MapScope,
     axis: AxisIterator,
 ) -> bool:
-    """Check for read after write and write after write with different offsets."""
+    """Check for read after write, write after write and write after read, with different offsets."""
 
-    write_collector = MemletCollector(collect_reads=False)
-    write_collector.visit(first)
-    other_writes = MemletCollector(collect_reads=False)
-    other_writes.visit(second)
-    read_collector = MemletCollector(collect_writes=False)
-    read_collector.visit(second)
+    # TODO: this can be optimized to allow non-overlapping intervals and such in the future
+
+    first_reads_writes = MemletCollector()
+    first_reads_writes.visit(first)
+
+    second_reads_writes = MemletCollector()
+    second_reads_writes.visit(second)
 
     axis_index = axis.as_cartesian_index()
 
-    for write in write_collector.out_memlets:
-        # TODO: this can be optimized to allow non-overlapping intervals and such in the future
+    for write in first_reads_writes.out_memlets:
 
         if write.subset.dims() <= axis_index:
-            # Dimension does not exist
-            continue
+            continue  # Dimension does not exist
 
-        previous_axis_index = write.subset[axis_index][0]
+        first_axis_index = write.subset[axis_index][0]
 
-        # Write-after-write with an offset case
-        for other_write in other_writes.out_memlets:
+        # Write-after-write with a different offset case
+        # Case of:
+        #   map1 of k
+        #       A[k] = f( ... )
+        #   map2 of k
+        #       A[k+1] = f( ... )
+        # Allowing merging would have A in map1 writes overwritten by map2
+        # TODO: this only matter is A is read between write 1 and 2 ! Here we are much
+        #       more restrictive
+        for second_write in second_reads_writes.out_memlets:
             if (
-                write.data == other_write.data
-                and previous_axis_index != other_write.subset[axis_index][0]
+                write.data == second_write.data
+                and first_axis_index != second_write.subset[axis_index][0]
             ):
-                ndsl_log.debug(
-                    f"[{axis.name} Merge] Found write after write conflict "
-                    f"for {write.data} "
-                    f"with different offset to {axis.name} ("
-                    f"first write at {previous_axis_index}, "
-                    f"second write at {other_write.subset[axis_index][0]})"
-                )
                 return False
 
-        # Read-after-write with an offset case
-        for read in read_collector.in_memlets:
+        # Read-after-write with a different offset case
+        # Case of:
+        #   map1 of k
+        #       A[k] = f( ... )
+        #   map2 of k
+        #       B = f( A[k+1] )
+        # Allowing merging would read the wrong value in map2
+        for second_read in second_reads_writes.in_memlets:
             if (
-                write.data == read.data
-                and previous_axis_index != read.subset[axis_index][0]
+                write.data == second_read.data
+                and first_axis_index != second_read.subset[axis_index][0]
             ):
-                ndsl_log.debug(
-                    f"[{axis.name} Merge] Found read after write conflict "
-                    f"for {write.data} "
-                    f"with different offset to {axis.name} ("
-                    f"write at {write.subset[axis_index][0]}, "
-                    f"read at {read.subset[axis_index][0]})"
-                )
+                return False
+
+    for first_read in first_reads_writes.in_memlets:
+
+        if first_read.subset.dims() <= axis_index:
+            continue  # Dimension does not exist
+
+        first_axis_index = first_read.subset[axis_index][0]
+
+        # Write-after-read ith a different offset case
+        # Case of:
+        #   map1 of k
+        #       B = f( A[k] )
+        #   map2 of k
+        #       A[k+1] = f( ... )
+        # Allowing merging would read the wrong value on map1
+        for second_write in second_reads_writes.out_memlets:
+
+            if (
+                first_read.data == second_write.data
+                and first_axis_index != second_write.subset[axis_index][0]
+            ):
                 return False
 
     return True
@@ -136,3 +165,29 @@ def has_dynamic_memlets(first: tn.MapScope, second: tn.MapScope) -> bool:
         ]
     )
     return has_dynamic_memlets
+
+
+class WriteDependencyCollector(tn.ScheduleNodeVisitor):
+    """Collect write dependency for all data as list of memlet
+    used as inputs in tasklet."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.dataflow: dict[str, list[Memlet]] = defaultdict(list)
+
+    def visit_TaskletNode(self, node: tn.TaskletNode) -> None:
+        # Go through each tasklet
+        # For every output memlet.data, gather an _ordered_ list of the inputs.data
+        # Build a dict[memlet.data, list[memlet]]
+
+        for out_memlet in node.out_memlets.values():
+            for in_memlet in node.in_memlets.values():
+                self.dataflow[out_memlet.data].append(in_memlet)
+
+
+def memlet_is_transient_scalar(root: tn.ScheduleTreeRoot, memlet: Memlet) -> bool:
+    return (
+        memlet.data in root.containers
+        and isinstance(root.containers[memlet.data], data.Scalar)
+        and root.containers[memlet.data].transient
+    )
