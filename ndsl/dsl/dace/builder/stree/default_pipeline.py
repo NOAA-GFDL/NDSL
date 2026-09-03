@@ -29,20 +29,10 @@ class CPUPipeline(StreePipeline):
             if config.stree.inline_K_loops_size_one:
                 ppl_passes.append(InlineVertical2DWrite())
             if config.stree.merger.enabled:
-                maximize_parallelization = (
-                    config.stree.merger.maximize_parallelization
-                    == OptimizationOption.APPLY
-                    or (
-                        config.stree.merger.maximize_parallelization
-                        == OptimizationOption.AUTO
-                        and config.hint == OptimizationHint.PARALLEL
-                    )
-                )
                 ppl_passes.append(
                     CartesianMergePipeline(
                         backend,
                         overcompute=config.stree.merger.overcompute,
-                        maximize_parallelization=maximize_parallelization,
                         merge_order=config.stree.merger.order,
                     )
                 )
@@ -79,10 +69,12 @@ class GPUPipeline(StreePipeline):
                     CartesianMergePipeline(
                         backend,
                         overcompute=config.stree.merger.overcompute,
-                        maximize_parallelization=True,
                     )
                 )
-            if config.stree.kernelize in [OptimizationOption.APPLY, OptimizationOption.AUTO]:
+            if config.stree.kernelize in [
+                OptimizationOption.APPLY,
+                OptimizationOption.AUTO,
+            ]:
                 ppl_passes.append(KernelizeMaps(backend))
             if config.stree.refine_transients:
                 # TODO

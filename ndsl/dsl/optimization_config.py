@@ -5,12 +5,14 @@ from dataclasses import dataclass, field
 
 class OptimizationHint(enum.Enum):
     """Hint for the configuration system that will drive the OptimizationOption.AUTO value"""
+
     SERIAL = enum.auto()
     PARALLEL = enum.auto()
 
 
 class OptimizationOption(enum.Enum):
     """Options for configuration element. AUTO will rely on the best guess default"""
+
     AUTO = enum.auto()  # Best guess relying on the OptimizationHint
     APPLY = enum.auto()  # Pass will always be applied
     DO_NOT_APPLY = enum.auto()  # Pass will never be applied
@@ -19,6 +21,7 @@ class OptimizationOption(enum.Enum):
 @dataclass
 class OptimizationConfig:
     """Configuration for running the full-program optimization"""
+
     @dataclass
     class Tree:
         """Optimization using the Schedule Tree IR"""
@@ -32,9 +35,6 @@ class OptimizationConfig:
                 os.getenv("NDSL_STREE_OVERCOMPUTE_MERGE", "True").lower() == "true"
             )
             """When merging allow maps of different sizes to merge by inserting an `if` guard."""
-
-            maximize_parallelization: OptimizationOption = OptimizationOption.AUTO
-            """Merge to maximize parallelization over serial FLOPs"""
 
             order: str = "default"
             """
