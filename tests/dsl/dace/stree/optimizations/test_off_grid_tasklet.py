@@ -17,7 +17,7 @@ from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
 
 
-def mult_stencil(inout_field: FloatField, scalar: Float):
+def mult_stencil(inout_field: FloatField, scalar: Float) -> None:
     with computation(PARALLEL), interval(...):
         inout_field = inout_field * scalar
 
@@ -37,7 +37,7 @@ class OrchestratedCode(NDSLRuntime):
             "dace_auto_grid",
             "reuse_of_scalars",
             "reuse_of_scalars_in_inputs",
-            "block_by_conditional",
+            "many_writes_scalar",
         ]
 
         for method in methods_to_orchestrate:
@@ -79,19 +79,22 @@ class OrchestratedCode(NDSLRuntime):
 
     def reuse_of_scalars_in_inputs(
         self, scalar: float, in_field: FloatField, out_field: FloatField
-    ):
+    ) -> None:
         tmp_scalar = scalar * 2.0
         self._mult_stencil(in_field, tmp_scalar)
-        tmp_scalar = scalar * 2.0
+        tmp_scalar = scalar * 2.0  # IDIOT !
         self._mult_stencil(in_field, tmp_scalar)
 
-    def block_by_conditional(
+    def many_writes_scalar(
         self, scalar: float, in_field: FloatField, out_field: FloatField
-    ):
+    ) -> None:
         self._mult_stencil(in_field, scalar)
-        if scalar > 2:
-            tmp_scalar = scalar * 2.0
-            self._mult_stencil(in_field, tmp_scalar)
+        tmp_scalar = 1.0
+        if scalar >= 1:
+            tmp_scalar = 2.0
+        if scalar >= 2:
+            tmp_scalar = 4.0
+        self._mult_stencil(in_field, tmp_scalar)
 
 
 class TestStreeExtractOffgridTasklets:
@@ -181,3 +184,34 @@ class TestStreeExtractOffgridTasklets:
         assert len(all_maps) == 1  # merged
 
         assert (in_quantity.field[:] == 16.0).all()
+
+    def test_many_writes_scalar(self, factories: Factories) -> None:
+        stencil_factory, quantity_factory = factories
+
+        code = OrchestratedCode(stencil_factory)
+        inout_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        __unused_quantity = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+        scalar = 1.0
+
+        code.many_writes_scalar(scalar, inout_quantity, __unused_quantity)
+
+        assert (inout_quantity.field[:] == 2.0).all()
+
+        inout_quantity[:] = 1.0
+        scalar = 2.0
+
+        code.many_writes_scalar(scalar, inout_quantity, __unused_quantity)
+
+        assert (inout_quantity.field[:] == 8.0).all()
+
+        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
+
+        all_maps = [
+            (me, state)
+            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+        assert (
+            len(all_maps) == 2
+        )  # This will not merge because we can't remove the block
+        # of conditionals in-between the stencils. Better SSA and/or extractor is needed.

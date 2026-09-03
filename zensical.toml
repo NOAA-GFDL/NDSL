@@ -168,7 +168,9 @@ nav = [
       {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"}
     ]},
     {"stencils" = [
+      {"arithmetic_functions" = "docstrings/stencils/arithmetic_functions.md"},
       {"basic_operations" = "docstrings/stencils/basic_operations.md"},
+      {"basic_operations_2d" = "docstrings/stencils/basic_operations_2d.md"},
       {"column_operations" = "docstrings/stencils/column_operations.md"},
       {"c2l_ord" = "docstrings/stencils/c2l_ord.md"},
       {"corners" = "docstrings/stencils/corners.md"},
