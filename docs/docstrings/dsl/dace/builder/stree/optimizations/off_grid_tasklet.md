@@ -1,6 +1,6 @@
-# default_pipeline
+# off_grid_tasklet
 
-::: dsl.dace.builder.stree.default_pipeline
+::: dsl.dace.builder.stree.optimizations.off_grid_tasklet
 
 <style>
 /* re-enable the left side navigation bar for this page */

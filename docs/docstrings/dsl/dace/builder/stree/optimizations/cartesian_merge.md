@@ -1,6 +1,6 @@
-# default_pipeline
+# cartesian_merge
 
-::: dsl.dace.builder.stree.default_pipeline
+::: dsl.dace.builder.stree.optimizations.cartesian_merge
 
 <style>
 /* re-enable the left side navigation bar for this page */

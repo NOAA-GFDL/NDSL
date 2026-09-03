@@ -11,6 +11,8 @@ def set_distributed_caches(config: DaceConfig, force_build: bool = False) -> Non
     """In Run mode, check required file then point current rank cache to source cache.
 
     Optional: force build irregardless of backend or orchestration mode.
+
+    __Deprecated__ Use DaceConfig._set_distributed_caches() instead.
     """
 
     warnings.warn(

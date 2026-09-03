@@ -1,6 +1,6 @@
 # off_grid_conditionals
 
-dsl.dace.builder.stree.optimizations.off_grid_conditionals
+::: dsl.dace.builder.stree.optimizations.off_grid_conditionals
 
 <style>
 /* re-enable the left side navigation bar for this page */
