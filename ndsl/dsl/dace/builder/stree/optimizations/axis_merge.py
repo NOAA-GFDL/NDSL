@@ -49,10 +49,12 @@ def _can_merge_axis_maps(
 
 
 class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
-    """Recurse down the cartesian-block of maps before patching the inner maps with the if-guard.
+    """
+    Recurse down the cartesian-block of maps before patching the inner maps with the if-guard.
 
     Recursing down allows to surface the maps for more subsequent merging.
-    Recursing down also insure that maximum parallelization is conserved."""
+    Recursing down also ensures that maximum parallelization is conserved.
+    """
 
     def __init__(
         self,

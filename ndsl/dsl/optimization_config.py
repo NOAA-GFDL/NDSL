@@ -7,15 +7,20 @@ class OptimizationHint(enum.Enum):
     """Hint for the configuration system that will drive the OptimizationOption.AUTO value"""
 
     SERIAL = enum.auto()
+    "Suitable for many-cores (serial) CPU strategy."
     PARALLEL = enum.auto()
+    "Suitable for GPU or many-thread (parallelization) CPU strategy."
 
 
 class OptimizationOption(enum.Enum):
     """Options for configuration element. AUTO will rely on the best guess default"""
 
-    AUTO = enum.auto()  # Best guess relying on the OptimizationHint
-    APPLY = enum.auto()  # Pass will always be applied
-    DO_NOT_APPLY = enum.auto()  # Pass will never be applied
+    AUTO = enum.auto()
+    "Best guess relying on the OptimizationHint"
+    APPLY = enum.auto()
+    "Pass will always be applied"
+    DO_NOT_APPLY = enum.auto()
+    "Pass will never be applied"
 
 
 @dataclass
