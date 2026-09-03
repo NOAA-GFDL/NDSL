@@ -1,9 +1,32 @@
+import enum
 import os
 from dataclasses import dataclass, field
 
 
+class OptimizationHint(enum.Enum):
+    """Hint for the configuration system that will drive the OptimizationOption.AUTO value"""
+
+    SERIAL = enum.auto()
+    "Suitable for many-cores (serial) CPU strategy."
+    PARALLEL = enum.auto()
+    "Suitable for GPU or many-thread (parallelization) CPU strategy."
+
+
+class OptimizationOption(enum.Enum):
+    """Options for configuration element. AUTO will rely on the best guess default"""
+
+    AUTO = enum.auto()
+    "Best guess relying on the OptimizationHint"
+    APPLY = enum.auto()
+    "Pass will always be applied"
+    DO_NOT_APPLY = enum.auto()
+    "Pass will never be applied"
+
+
 @dataclass
 class OptimizationConfig:
+    """Configuration for running the full-program optimization"""
+
     @dataclass
     class Tree:
         """Optimization using the Schedule Tree IR"""
@@ -31,7 +54,7 @@ class OptimizationConfig:
         inline_K_loops_size_one: bool = False
         """"Remove serial for loops of size one in the K-axis."""
 
-        kernelize: bool = True
+        kernelize: OptimizationOption = OptimizationOption.AUTO
         """Enable maximizing 3-axis kernelization by duplicating maps (GPU only)."""
 
         merger: Merger = field(default_factory=Merger)
@@ -48,6 +71,12 @@ class OptimizationConfig:
         """DaCe common xforms bundled in `apply_gpu_transformations`"""
 
     stree: Tree = field(default_factory=Tree)
+    """Schedule Tree optimization options"""
+
     gpu: GPU = field(default_factory=GPU)
+    """GPU-only optimization options"""
+
+    hint: OptimizationHint = OptimizationHint.PARALLEL
+    """Hint for all optimizations passes"""
 
     name: str = "unset"

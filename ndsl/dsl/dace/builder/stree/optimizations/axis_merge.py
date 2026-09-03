@@ -49,6 +49,13 @@ def _can_merge_axis_maps(
 
 
 class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
+    """
+    Recurse down the cartesian-block of maps before patching the inner maps with the if-guard.
+
+    Recursing down allows to surface the maps for more subsequent merging.
+    Recursing down also ensures that maximum parallelization is conserved.
+    """
+
     def __init__(
         self,
         axis_as_string: str,
@@ -91,6 +98,7 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
             for child in node.children:
                 child.parent = if_scope
             node.children = [if_scope]
+
         return node
 
 
@@ -200,8 +208,10 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
 
         # Over compute to merge:
         # - force-merge by expanding the ranges
-        first_range = the_map.node.map.range
-        second_range = next_node.node.map.range
+        first_map = the_map
+        second_map = next_node
+        first_range = first_map.node.map.range
+        second_range = second_map.node.map.range
         merged_range = dace.subsets.Range(
             [
                 (
@@ -218,31 +228,32 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         ):
             return 0
 
-        # - then, guard children to only run in their respective range
-        axis_as_str = the_map.node.map.params[0]
+        # Process range, with overcompute guard
+        # for children to only run in their respective range
+        axis_as_str = first_map.node.map.params[0]
         assert isinstance(axis_as_str, str)
-        first_map = InsertOvercomputationGuard(
-            axis_as_str, merged_range=merged_range, original_range=first_range
-        ).visit(the_map)
-        second_map = InsertOvercomputationGuard(
+        InsertOvercomputationGuard(
+            axis_as_str,
+            merged_range=merged_range,
+            original_range=first_range,
+        ).visit(first_map)
+        InsertOvercomputationGuard(
             axis_as_str,
             merged_range=merged_range,
             original_range=second_range,
-        ).visit(next_node)
+        ).visit(second_map)
         assert isinstance(first_map, tn.MapScope)
         assert isinstance(second_map, tn.MapScope)
+        first_map.node.map.range = merged_range
+
+        # Merge children
         merged_children: list[tn.ScheduleTreeNode] = [
             *first_map.children,
             *second_map.children,
         ]
         first_map.children = merged_children
-
-        # Reparent children
         for child in merged_children:
             child.parent = first_map
-
-        # TODO also merge containers and symbols (if applicable)
-        first_map.node.map.range = merged_range
 
         # K-maps use unique iterators (i.e. every k-map iterates over `k__[0-9]*`).
         # After merge, we need to replace the axis symbols of the second map's children
@@ -252,7 +263,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             ReplaceAxisSymbol(replacements).visit(first_map)
 
         # delete now-merged second_map
-        del nodes[list_index(next_node, nodes)]
+        del nodes[list_index(second_map, nodes)]
 
         return 1
 

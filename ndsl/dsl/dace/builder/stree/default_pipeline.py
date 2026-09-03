@@ -12,6 +12,7 @@ from ndsl.dsl.dace.builder.stree.optimizations import (
     LocalOptimizations,
 )
 from ndsl.dsl.dace.builder.stree.pipeline import StreePipeline
+from ndsl.dsl.optimization_config import OptimizationHint, OptimizationOption
 
 
 class CPUPipeline(StreePipeline):
@@ -35,6 +36,11 @@ class CPUPipeline(StreePipeline):
                         merge_order=config.stree.merger.order,
                     )
                 )
+            if config.stree.kernelize == OptimizationOption.APPLY or (
+                config.stree.kernelize == OptimizationOption.AUTO
+                and config.hint == OptimizationHint.PARALLEL
+            ):
+                ppl_passes.append(KernelizeMaps(backend))
             if config.stree.refine_transients:
                 ppl_passes.append(CartesianRefineTransients(backend))
         else:
@@ -61,10 +67,14 @@ class GPUPipeline(StreePipeline):
             if config.stree.merger.enabled:
                 ppl_passes.append(
                     CartesianMergePipeline(
-                        backend, overcompute=config.stree.merger.overcompute
+                        backend,
+                        overcompute=config.stree.merger.overcompute,
                     )
                 )
-            if config.stree.kernelize:
+            if config.stree.kernelize in [
+                OptimizationOption.APPLY,
+                OptimizationOption.AUTO,
+            ]:
                 ppl_passes.append(KernelizeMaps(backend))
             if config.stree.refine_transients:
                 # TODO

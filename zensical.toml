@@ -137,6 +137,7 @@ nav = [
       {"gt4py" = "docstrings/dsl/gt4py.md"},
       {"gt4py_utils" = "docstrings/dsl/gt4py_utils.md"},
       {"ndsl_runtime" = "docstrings/dsl/ndsl_runtime.md"},
+      {"optimization_config" = "docstrings/dsl/optimization_config.md"},
       {"stencil_config" = "docstrings/dsl/stencil_config.md"},
       {"stencil" = "docstrings/dsl/stencil.md"},
       {"typing" = "docstrings/dsl/typing.md"}

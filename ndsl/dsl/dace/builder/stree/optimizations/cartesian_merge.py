@@ -59,7 +59,12 @@ class CartesianMergePipeline(StreePipeline):
 
         # We are ready to merge
         for axis in axis_merge_order:
-            passes.append(CartesianAxisMerge(axis, overcompute=self._overcompute))
+            passes.append(
+                CartesianAxisMerge(
+                    axis,
+                    overcompute=self._overcompute,
+                )
+            )
 
         # Optimize cache-friendliness of offgrid conditional
         passes.append(ExtractOffGridConditionals())

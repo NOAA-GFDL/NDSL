@@ -60,11 +60,6 @@ class KernelizeMaps(tn.ScheduleNodeVisitor):
         self._backend = backend
         self._apply_order = apply_order
 
-        if not self._backend.is_gpu_backend():
-            raise ValueError(
-                "The transformation `KernelizeMaps` is only intended to run on GPUs."
-            )
-
     def __str__(self) -> str:
         return "KernelizeMaps"
 

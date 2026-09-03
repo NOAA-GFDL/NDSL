@@ -6,6 +6,7 @@ from ndsl import Backend, NDSLRuntime, OptimizationConfig, orchestrate
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, computation, interval
+from ndsl.dsl.optimization_config import OptimizationOption
 from ndsl.dsl.stencil import StencilFactory
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
@@ -50,6 +51,7 @@ class OrchestratedCode(NDSLRuntime):
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
+                kernelize=OptimizationOption.APPLY,
             )
         )
         super().__init__(stencil_factory, optimization_config)
@@ -118,70 +120,38 @@ class TestKernelizeMaps:
 
         precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
 
-        if stencil_factory.backend.is_gpu_backend():
-            # check for kernelization
-            all_maps = [
-                node
-                for node, _ in precompiled_sdfg.sdfg.all_nodes_recursive()
-                if isinstance(node, nodes.MapEntry)
-            ]
+        # check for kernelization
+        all_maps = [
+            node
+            for node, _ in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(node, nodes.MapEntry)
+        ]
 
-            ij_maps = 0
-            ijk_maps = 0
-            for map_entry in all_maps:
-                if map_entry.map.params == ["__i", "__j"]:
-                    ij_maps += 1
-                elif len(map_entry.map.params) == 3:
-                    params = map_entry.map.params
-                    k_param = params[2]
-                    if (
-                        params[0:2] == ["__i", "__j"]
-                        and isinstance(k_param, str)
-                        and k_param == "__k"
-                    ):
-                        ijk_maps += 1
+        ij_maps = 0
+        ijk_maps = 0
+        for map_entry in all_maps:
+            if map_entry.map.params == ["__i", "__j"]:
+                ij_maps += 1
+            elif len(map_entry.map.params) == 3:
+                params = map_entry.map.params
+                k_param = params[2]
+                if (
+                    params[0:2] == ["__i", "__j"]
+                    and isinstance(k_param, str)
+                    and k_param == "__k"
+                ):
+                    ijk_maps += 1
 
-            # expect two IJK-maps and one IJ-map
-            assert ij_maps == 1
-            assert ijk_maps == 2
-            assert len(all_maps) == 3
+        # expect two IJK-maps and one IJ-map
+        assert ij_maps == 1
+        assert ijk_maps == 2
+        assert len(all_maps) == 3
 
-            all_loop_regions = [
-                node
-                for node, _ in precompiled_sdfg.sdfg.all_nodes_recursive()
-                if isinstance(node, LoopRegion)
-            ]
-            # expect one k-loop is preserved
-            assert len(all_loop_regions) == 1
-            assert all_loop_regions[0].loop_variable == "__k"
-        else:
-            # check that we keep IJ loops merged
-            all_maps = [
-                node
-                for node, _ in precompiled_sdfg.sdfg.all_nodes_recursive()
-                if isinstance(node, nodes.MapEntry)
-            ]
-
-            ij_maps = 0
-            k_maps = 0
-            for map_entry in all_maps:
-                if map_entry.map.params == ["__i", "__j"]:
-                    ij_maps += 1
-                elif len(map_entry.map.params) == 1:
-                    param = map_entry.map.params[0]
-                    if isinstance(param, str) and param == "__k":
-                        k_maps += 1
-
-            # expect one IJ-map and two K-maps
-            assert ij_maps == 1
-            assert k_maps == 2
-            assert len(all_maps) == 3
-
-            all_loop_regions = [
-                node
-                for node, _ in precompiled_sdfg.sdfg.all_nodes_recursive()
-                if isinstance(node, LoopRegion)
-            ]
-            # expect one k-loop is preserved
-            assert len(all_loop_regions) == 1
-            assert all_loop_regions[0].loop_variable == "__k"
+        all_loop_regions = [
+            node
+            for node, _ in precompiled_sdfg.sdfg.all_nodes_recursive()
+            if isinstance(node, LoopRegion)
+        ]
+        # expect one k-loop is preserved
+        assert len(all_loop_regions) == 1
+        assert all_loop_regions[0].loop_variable == "__k"
