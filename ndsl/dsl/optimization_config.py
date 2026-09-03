@@ -62,7 +62,7 @@ class OptimizationConfig:
     class GPU:
         """Optimization dedicated for GPU"""
 
-        common_gpu_xforms: OptimizationOption = OptimizationOption.DO_NOT_APPLY
+        common_gpu_xforms: bool = False
         """DaCe common xforms bundled in `apply_gpu_transformations`"""
 
     stree: Tree = field(default_factory=Tree)
