@@ -9,6 +9,7 @@ from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
+from ndsl.dsl.optimization_config import OptimizationOption
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
@@ -47,16 +48,6 @@ def stencil_with_buffer_read_offset_in_Km1(
         out_field = buffer[K - 1] + 7
 
 
-def stencil_with_buffer_read_offset_in_Kp1(
-    in_field: FloatField, out_field: FloatField, buffer: FloatField
-) -> None:
-    with computation(PARALLEL), interval(1, None):
-        buffer = in_field + 6
-
-    with computation(PARALLEL), interval(1, None):
-        out_field = buffer[K + 1] + 7
-
-
 class OrchestratedCode:
     def __init__(
         self,
@@ -67,6 +58,7 @@ class OrchestratedCode:
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
+                kernelize=OptimizationOption.DO_NOT_APPLY,
             )
         )
         orchestratable_methods = [
@@ -85,6 +77,7 @@ class OrchestratedCode:
                 method_to_orchestrate=method,
                 optimization_config=config,
             )
+
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,
@@ -93,8 +86,10 @@ class OrchestratedCode:
                 stree=OptimizationConfig.Tree(
                     enabled=True,
                     merger=OptimizationConfig.Tree.Merger(
-                        enabled=True, overcompute=False
+                        enabled=True,
+                        overcompute=False,
                     ),
+                    kernelize=OptimizationOption.DO_NOT_APPLY,
                 )
             ),
         )
