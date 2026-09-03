@@ -48,7 +48,7 @@ def _can_merge_axis_maps(
     ) and no_data_dependencies_on_cartesian_axis(first, second, axis)
 
 
-class InsertOvercomputationGuard:
+class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
     def __init__(
         self,
         axis_as_string: str,
@@ -73,7 +73,32 @@ class InsertOvercomputationGuard:
             f"and ({self._axis_as_string} - {start}) % {step} == 0"
         )
 
-    def patch_map(self, node: tn.MapScope) -> None:
+    def visit_MapScope(self, node: tn.MapScope) -> tn.MapScope:
+        """Recurse down the maps before patching the inner maps with the if-guard
+
+        Dev NOTE: do not call this, use the patch function"""
+        all_children_are_maps = all(
+            isinstance(child, tn.MapScope) for child in node.children
+        )
+        if all_children_are_maps:
+            node.children = self.visit(node.children)
+            return node
+
+        self._patch_map(node)
+
+        return node
+
+    def patch(self, node: tn.MapScope, maximize_parallelization: bool) -> None:
+        """Patch the current maps while trying to maximize the map parallelization opportunity"""
+        if maximize_parallelization:
+            self.visit_MapScope(node)
+        else:
+            self._patch_map(node)
+
+    def _patch_map(self, node: tn.MapScope) -> None:
+        """Path this map with the if-guard node
+
+        Dev NOTE: do not call this, use the patch function"""
         if self._merged_range != self._original_range:
             if_scope = tn.IfScope(
                 condition=self._execution_condition(),
@@ -104,10 +129,13 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         overcompute: merge at the cost of an if statement.
     """
 
-    def __init__(self, axis: AxisIterator, *, overcompute: bool) -> None:
+    def __init__(
+        self, axis: AxisIterator, *, overcompute: bool, maximize_parallelization: bool
+    ) -> None:
         self.axis = axis
         self.failed_due_to_data_dep = 0
         self.overcompute = overcompute
+        self.maximize_parallelization = maximize_parallelization
 
     def __str__(self) -> str:
         suffix = "_overcompute" if self.overcompute else ""
@@ -220,12 +248,12 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             axis_as_str,
             merged_range=merged_range,
             original_range=first_range,
-        ).patch_map(first_map)
+        ).patch(first_map, self.maximize_parallelization)
         InsertOvercomputationGuard(
             axis_as_str,
             merged_range=merged_range,
             original_range=second_range,
-        ).patch_map(second_map)
+        ).patch(second_map, self.maximize_parallelization)
         assert isinstance(first_map, tn.MapScope)
         assert isinstance(second_map, tn.MapScope)
         first_map.node.map.range = merged_range

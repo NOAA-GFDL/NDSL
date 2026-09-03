@@ -28,10 +28,12 @@ class CartesianMergePipeline(StreePipeline):
         backend: Backend,
         *,
         overcompute: bool = True,
+        maximize_parallelization: bool = True,
         merge_order: str = "default",
     ) -> None:
         self._backend = backend
         self._overcompute = overcompute
+        self._maximize_parallelization = maximize_parallelization
         self._merge_order = merge_order
         if self._merge_order not in (
             "default",
@@ -59,7 +61,13 @@ class CartesianMergePipeline(StreePipeline):
 
         # We are ready to merge
         for axis in axis_merge_order:
-            passes.append(CartesianAxisMerge(axis, overcompute=self._overcompute))
+            passes.append(
+                CartesianAxisMerge(
+                    axis,
+                    overcompute=self._overcompute,
+                    maximize_parallelization=self._maximize_parallelization,
+                )
+            )
 
         # Optimize cache-friendliness of offgrid conditional
         passes.append(ExtractOffGridConditionals())
