@@ -317,24 +317,13 @@ class TestStreeMergeMaps:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 1  # All maps merged and collapsed
 
-    def test_overcompute_merge_maximize_parallelization(
-        self, code: OrchestratedCode, factories: Factories
-    ) -> None:
-        stencil_factory, quantity_factory = factories
-        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-
-        code.overcompute_merge(in_qty, out_qty)
-
-        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
-        all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, nodes.MapEntry)
-        ]
-        assert len(all_maps) == 1  # All maps merged and collapsed
+        if self.hint == OptimizationHint.PARALLEL:
+            assert len(all_maps) == 1  # All maps merged and collapsed
+        elif self.hint == OptimizationHint.SERIAL:
+            assert (
+                len(all_maps) == 3
+            )  # K merged - but IJ merge block by overcompute guard
 
     def test_no_overcompute_merge(
         self, code: OrchestratedCode, factories: Factories
@@ -386,7 +375,12 @@ class TestStreeMergeMaps:
         if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
             assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
         elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
-            assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            if self.hint == OptimizationHint.PARALLEL:
+                assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            elif self.hint == OptimizationHint.SERIAL:
+                assert (
+                    len(all_maps) == 4
+                )  # 1 IJKs and 1 K + IJs merging block by overcompute if-guard
 
     def test_block_merge_write_after_read_with_offset(
         self, code: OrchestratedCode, factories: Factories
@@ -408,7 +402,12 @@ class TestStreeMergeMaps:
         if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
             assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
         elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
-            assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            if self.hint == OptimizationHint.PARALLEL:
+                assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            elif self.hint == OptimizationHint.SERIAL:
+                assert (
+                    len(all_maps) == 4
+                )  # 1 IJKs and 1 K + IJs merging block by overcompute if-guard
 
     def test_block_merge_write_after_write_with_different_offset(
         self, code: OrchestratedCode, factories: Factories
@@ -430,7 +429,12 @@ class TestStreeMergeMaps:
         if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
             assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
         elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
-            assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            if self.hint == OptimizationHint.PARALLEL:
+                assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            elif self.hint == OptimizationHint.SERIAL:
+                assert (
+                    len(all_maps) == 4
+                )  # 1 IJKs and 1 K + IJs merging block by overcompute if-guard
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories

@@ -19,6 +19,7 @@ from ndsl.dsl.dace.builder.stree.common import (
 from ndsl.dsl.dace.builder.stree.optimizations.replace_axis_symbol import (
     ReplaceAxisSymbol,
 )
+from ndsl.dsl.optimization_config import OptimizationHint
 
 
 def _both_same_single_axis_maps(
@@ -62,10 +63,12 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
         *,
         merged_range: dace.subsets.Range,
         original_range: dace.subsets.Range,
+        hint: OptimizationHint,
     ):
         self._axis_as_string = axis_as_string
         self._merged_range = merged_range
         self._original_range = original_range
+        self._hint = hint
 
     def _execution_condition(self) -> CodeBlock:
         # NOTE range.ranges are inclusive, e.g.
@@ -81,12 +84,15 @@ class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
         )
 
     def visit_MapScope(self, node: tn.MapScope) -> tn.MapScope:
-        all_children_are_maps = all(
-            isinstance(child, tn.MapScope) for child in node.children
-        )
-        if all_children_are_maps:
-            node.children = self.visit(node.children)
-            return node
+        # To maximize parallelization we push the guard as deep into the cartesian
+        # block as we can in order to surface all maps at the cost of higher FLOPs
+        if self._hint == OptimizationHint.PARALLEL:
+            all_children_are_maps = all(
+                isinstance(child, tn.MapScope) for child in node.children
+            )
+            if all_children_are_maps:
+                node.children = self.visit(node.children)
+                return node
 
         if self._merged_range != self._original_range:
             if_scope = tn.IfScope(
@@ -120,10 +126,13 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         overcompute: merge at the cost of an if statement.
     """
 
-    def __init__(self, axis: AxisIterator, *, overcompute: bool) -> None:
+    def __init__(
+        self, axis: AxisIterator, *, overcompute: bool, hint: OptimizationHint
+    ) -> None:
         self.axis = axis
         self.failed_due_to_data_dep = 0
         self.overcompute = overcompute
+        self.hint = hint
 
     def __str__(self) -> str:
         suffix = "_overcompute" if self.overcompute else ""
@@ -236,11 +245,13 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             axis_as_str,
             merged_range=merged_range,
             original_range=first_range,
+            hint=self.hint,
         ).visit(first_map)
         InsertOvercomputationGuard(
             axis_as_str,
             merged_range=merged_range,
             original_range=second_range,
+            hint=self.hint,
         ).visit(second_map)
         assert isinstance(first_map, tn.MapScope)
         assert isinstance(second_map, tn.MapScope)
@@ -287,25 +298,25 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         return merged
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
-        """Merge as many maps as possible.
+        """Merge consecutive maps of the same cartesian axis.
+
+        Dev NOTE: this pass has been implemented in coordination with the rest of the passes
+        deployed in `CartesianMerge`. Some of the other passes aim to surface maps in a way to maximize
+        the efficiency of this pass.
 
         The algorithm works as follows:
-            - Start merging - move nodes to surface maps as much as possible
             - Try to merge the surfaced maps
             - When done, count the number of actual merges
             - If NO merges - restore the previous children
             (undo potential changes that didn't lead to map merge)
+            - If merges - go again since we have modified the tree
             Then exit.
-
 
         ToDo:
             - ForLoop are not merge at the moment, only Maps.
-            - Non-cartesian ForLoop should be merged down _if_ the maps below
-            are unique (e.g. if everything has been merged). This is relevant for
-            linear solvers and other iteration-dependent algorithmics
-            - The K loops have varied indices name of the form _k_x[_y]. This overcomplicates
-            merging and we don't take care of it at the moment. We could write a pass cleaning
-            those first.
+            - Non-cartesian ForLoop could be merged down _if_ the maps below
+            are unique (e.g. if everything has been merged) and the hint is PARALLEL.
+            This is relevant for linear solvers and other iteration-dependent algorithmics
         """
         tn.validate_children_and_parents_align(node)
         overall_merged = 0

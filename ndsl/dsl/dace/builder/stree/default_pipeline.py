@@ -32,6 +32,7 @@ class CPUPipeline(StreePipeline):
                 ppl_passes.append(
                     CartesianMergePipeline(
                         backend,
+                        hint=config.hint,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
@@ -68,6 +69,7 @@ class GPUPipeline(StreePipeline):
                 ppl_passes.append(
                     CartesianMergePipeline(
                         backend,
+                        hint=config.hint,
                         overcompute=config.stree.merger.overcompute,
                     )
                 )

@@ -319,6 +319,7 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                 if config.stree.merger.enabled:
                     gpu_merger = CartesianMergePipeline(
                         self._backend,
+                        hint=config.hint,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
@@ -358,6 +359,7 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                 if config.stree.merger.enabled:
                     cpu_merger = CartesianMergePipeline(
                         self._backend,
+                        hint=config.hint,
                         overcompute=config.stree.merger.overcompute,
                         merge_order=config.stree.merger.order,
                     )
