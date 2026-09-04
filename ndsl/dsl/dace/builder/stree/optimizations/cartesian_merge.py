@@ -13,6 +13,7 @@ from ndsl.dsl.dace.builder.stree.optimizations.off_grid_tasklet import (
     InlineOffGridTasklet,
 )
 from ndsl.dsl.dace.builder.stree.pipeline import StreePipeline
+from ndsl.dsl.optimization_config import OptimizationHint
 
 
 class CartesianMergePipeline(StreePipeline):
@@ -27,6 +28,7 @@ class CartesianMergePipeline(StreePipeline):
         self,
         backend: Backend,
         *,
+        hint: OptimizationHint,
         overcompute: bool = True,
         merge_order: str = "default",
     ) -> None:
@@ -59,12 +61,24 @@ class CartesianMergePipeline(StreePipeline):
 
         # We are ready to merge
         for axis in axis_merge_order:
+            # If we want to overcompute we first merge the maps that don't need overcomputation
+            # to be merged so we gather the bigger contiguous maps first, before we introduce
+            # the overcomputation guards.
             passes.append(
                 CartesianAxisMerge(
                     axis,
-                    overcompute=self._overcompute,
+                    overcompute=False,
+                    hint=hint,
                 )
             )
+            if self._overcompute:
+                passes.append(
+                    CartesianAxisMerge(
+                        axis,
+                        overcompute=self._overcompute,
+                        hint=hint,
+                    )
+                )
 
         # Optimize cache-friendliness of offgrid conditional
         passes.append(ExtractOffGridConditionals())
