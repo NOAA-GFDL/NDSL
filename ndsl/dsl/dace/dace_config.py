@@ -286,7 +286,7 @@ class DaceConfig:
                 "compiler",
                 "cuda",
                 "args",
-                value=f"{warnings_policy} -Xcompiler -Xcompiler {march_option} {gpu_cflags}",
+                value=f"{warnings_policy} -Xcompiler {march_option} {gpu_cflags}",
             )
             # Target compilation for hardware micro-code capacities
             gpu_defaults = get_gpu_hardware_defaults()

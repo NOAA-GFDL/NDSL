@@ -37,7 +37,7 @@ def _both_same_single_axis_maps(
 def _can_merge_axis_maps(
     first: tn.MapScope, second: tn.MapScope, axis: AxisIterator
 ) -> bool:
-    # Dev NOTE: since the merger uses a re-entry system we migth check mergeability
+    # Dev NOTE: since the merger uses a re-entry system we might check mergeability
     #           many times within the same transformation execution.
     #           We could cache the map that have been tested as non-mergeable in the caller
     #           of this function instead of re-doing the expensive data dependencies analysis.
