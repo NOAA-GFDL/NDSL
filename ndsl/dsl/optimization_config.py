@@ -78,5 +78,3 @@ class OptimizationConfig:
 
     hint: OptimizationHint = OptimizationHint.PARALLEL
     """Hint for all optimizations passes"""
-
-    name: str = "unset"
