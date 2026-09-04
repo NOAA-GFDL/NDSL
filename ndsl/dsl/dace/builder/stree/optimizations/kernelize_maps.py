@@ -80,6 +80,8 @@ class KernelizeMaps(tn.ScheduleNodeVisitor):
             return [AxisIterator._J, AxisIterator._I]
         if self._backend.loop_order == BackendLoopOrder.KJI:
             return [AxisIterator._J, AxisIterator._K]
+        if self._backend.loop_order == BackendLoopOrder.KIJ:
+            return [AxisIterator._I, AxisIterator._K]
 
         raise NotImplementedError(
             f"KernelizeMaps is not configured for loop order {self._backend.loop_order}."
