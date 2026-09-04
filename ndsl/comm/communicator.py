@@ -632,6 +632,12 @@ class Communicator(abc.ABC, Generic[P]):
                     self._boundaries[boundary_type] = boundary
         return self._boundaries
 
+    def Split(self, color, key) -> CommABC:  # type: ignore[no-untyped-def]
+        return self.comm.Split(color=color, key=key)
+
+    def Scatterv(self, sendbuf, recvbuf, root=0, **kwargs):  # type: ignore[no-untyped-def]
+        self.comm.Scatterv(sendbuf=sendbuf, recvbuf=sendbuf, root=root, **kwargs)
+
 
 def bcast_metadata_list(comm: CommABC, quantity_list: list[Quantity]):  # type: ignore[no-untyped-def]
     is_root = comm.Get_rank() == constants.ROOT_RANK

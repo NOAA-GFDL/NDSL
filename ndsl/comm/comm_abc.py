@@ -84,3 +84,6 @@ class Comm(abc.ABC, Generic[T]):
 
     @abc.abstractmethod
     def Allreduce_inplace(self, obj: T, op: ReductionOperator) -> T: ...
+
+    @abc.abstractmethod
+    def Scatterv(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict): ...  # type: ignore[no-untyped-def]
