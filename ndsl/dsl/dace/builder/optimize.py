@@ -213,7 +213,7 @@ def optimize_full_program_sdfg(
                         else ScheduleType.Default
                     )
                 },
-                validate=True,
+                validate=False,
             )
             stree = parsed_sdfg.as_schedule_tree()
             if config.verbose_orchestration:
@@ -298,7 +298,7 @@ def optimize_full_program_sdfg(
                     exclude_tasklets_list.append(me.label)
 
             parsed_sdfg.apply_transformations_repeated(
-                AddThreadBlockMap, print_report=False
+                AddThreadBlockMap, print_report=False, validate=False
             )
 
             if optimization_config.gpu.common_gpu_xforms:
@@ -313,6 +313,7 @@ def optimize_full_program_sdfg(
                             "exclude_tasklets": ",".join(exclude_tasklets_list),
                             "host_data": ["__pystate"],
                         },
+                        validate=False,
                     )
             else:
                 with DaCeProgress(mode, "GPU simplify"):
