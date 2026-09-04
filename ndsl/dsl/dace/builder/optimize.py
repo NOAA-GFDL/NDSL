@@ -79,7 +79,8 @@ def _simplify(
         # We disable ScalarToSymbolPromotion because it might push symbols onto edges
         # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
         # calls or (complicated) field accesses.
-        # We disable LiftTrivialIf because it takes forever on larger graphs
+        # We disable LiftTrivialIf because it takes long on bigger graphs and we estimate
+        # the potential speed gains to be minimal anyway.
         skip={"ScalarToSymbolPromotion", "LiftTrivialIf"},
     )
 
@@ -91,10 +92,16 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
     This function wraps `stree.as_sdfg()` with a configuration that is suitable for
     NDSL, e.g. skipping certain passes of `sdfg.simplify()`.
     """
+    # We disable ScalarToSymbolPromotion because it might push symbols onto edges
+    # that DaCe itself can't parse anymore later, e.g. casts,  inlined function
+    # calls or (complicated) field accesses.
+    # We disable ControlFlowRaising because tree -> sdfg outputs control flow graphs.
+    # We disable LiftTrivialIf because it takes long on bigger graphs and we estimate
+    # the potential speed gains to be minimal anyway.
     return stree.as_sdfg(
         validate=False,
         simplify=False,  # D_SW failed validation on merging
-        skip={"ScalarToSymbolPromotion", "ControlFlowRaising"},
+        skip={"ScalarToSymbolPromotion", "ControlFlowRaising", "LiftTrivialIf"},
     )
 
 
@@ -206,7 +213,7 @@ def optimize_full_program_sdfg(
                         else ScheduleType.Default
                     )
                 },
-                validate=True,
+                validate=False,
             )
             stree = parsed_sdfg.as_schedule_tree()
             if config.verbose_orchestration:
@@ -291,7 +298,7 @@ def optimize_full_program_sdfg(
                     exclude_tasklets_list.append(me.label)
 
             parsed_sdfg.apply_transformations_repeated(
-                AddThreadBlockMap, print_report=False
+                AddThreadBlockMap, print_report=False, validate=False
             )
 
             if optimization_config.gpu.common_gpu_xforms:
@@ -306,6 +313,7 @@ def optimize_full_program_sdfg(
                             "exclude_tasklets": ",".join(exclude_tasklets_list),
                             "host_data": ["__pystate"],
                         },
+                        validate=False,
                     )
             else:
                 with DaCeProgress(mode, "GPU simplify"):
