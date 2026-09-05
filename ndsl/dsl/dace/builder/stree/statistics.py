@@ -97,7 +97,7 @@ class TreeOptimizationStatistics:
         self._record(self._optimized_record, tree_root)
 
     def report(self) -> str:
-        """Craft a concize string reporting on the statistics"""
+        """Craft a concise string reporting on the statistics"""
         msg = "Tree optimization:\n"
         msg += f"  Cartesian maps [I, J, K]: {self._original_record.cartesian_maps} -> {self._optimized_record.cartesian_maps}\n"
         msg += f"  Cartesian fors [I, J, K]: {self._original_record.cartesian_fors} -> {self._optimized_record.cartesian_fors}\n"
