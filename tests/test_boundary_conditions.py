@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+import pytest
+
 from ndsl import (
     Backend,
     Quantity,
@@ -15,6 +17,7 @@ from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.grid import MetricTerms
 
 
+@pytest.mark.boundary_condition
 def test_boundary_condition():
 
     backend = Backend.python()
