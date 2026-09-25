@@ -6,7 +6,7 @@ from dace.utils import find_new_name
 from ndsl import ndsl_log
 from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
-    is_cartesian_axis,
+    is_cartesian_loop,
     list_index,
 )
 from ndsl.dsl.dace.builder.stree.common.code_block import replace_variable_name
@@ -81,11 +81,11 @@ class OffGridTransientScalarSSA(tn.ScheduleNodeVisitor):
 
     def visit_MapScope(self, node: tn.MapScope, in_cartesian: bool) -> None:
         for child in node.children:
-            self.visit(child, in_cartesian=is_cartesian_axis(node))
+            self.visit(child, in_cartesian=is_cartesian_loop(node))
 
     def visit_ForScope(self, node: tn.ForScope, in_cartesian: bool) -> None:
         for child in node.children:
-            self.visit(child, in_cartesian=is_cartesian_axis(node))
+            self.visit(child, in_cartesian=is_cartesian_loop(node))
 
     def visit_TaskletNode(self, node: tn.TaskletNode, in_cartesian: bool) -> None:
 
@@ -210,14 +210,14 @@ class ExtractOffGridTasklet(tn.ScheduleNodeVisitor):
         node.children = [*self._nodes_to_extract, *node.children]
 
     def visit_MapScope(self, node: tn.MapScope) -> None:
-        if is_cartesian_axis(node):
+        if is_cartesian_loop(node):
             return
 
         for child in node.children:
             self.visit(child)
 
     def visit_ForScope(self, node: tn.ForScope) -> None:
-        if is_cartesian_axis(node):
+        if is_cartesian_loop(node):
             return
 
         for child in node.children:

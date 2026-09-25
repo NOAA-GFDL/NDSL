@@ -18,11 +18,6 @@ class CountCartesianLoops(tn.ScheduleNodeVisitor):
             if is_axis_map(node, axis):
                 self._maps[axis.as_cartesian_index()] += 1
 
-        if isinstance(node.children[0], tn.MapScope) and isinstance(
-            node.children[0].children[0], tn.MapScope
-        ):
-            self._3D_kernels += 1
-
         self.visit(node.children)
 
     def visit_ForScope(self, node: tn.ForScope) -> None:
@@ -102,5 +97,4 @@ class TreeOptimizationStatistics:
         msg += f"  Cartesian maps [I, J, K]: {self._original_record.cartesian_maps} -> {self._optimized_record.cartesian_maps}\n"
         msg += f"  Cartesian fors [I, J, K]: {self._original_record.cartesian_fors} -> {self._optimized_record.cartesian_fors}\n"
         msg += f"  Transients [Scalarized Array, 1D, 2D, 3D, 4D+]: {self._original_record.transients} -> {self._optimized_record.transients}\n"
-        msg += f"  Full 3D kernels: {self._original_record.threeD_kernels} -> {self._optimized_record.threeD_kernels}\n"
         return msg

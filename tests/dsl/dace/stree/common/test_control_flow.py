@@ -7,7 +7,7 @@ from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
     is_axis_for,
     is_axis_map,
-    is_cartesian_axis,
+    is_cartesian_loop,
     is_off_grid_conditional,
 )
 
@@ -52,30 +52,30 @@ def test_is_axis_map_wrong_iterator() -> None:
     assert not is_axis_map(node, AxisIterator._J)
 
 
-def test_is_cartesian_axis() -> None:
+def test_is_cartesian_map() -> None:
     map_i = tn.MapScope(
         node=nodes.MapEntry(nodes.Map("map_i", ["__i"], [(0, 3, 1)])), children=[]
     )
-    assert is_cartesian_axis(map_i)
+    assert is_cartesian_loop(map_i)
 
     map_j = tn.MapScope(
         node=nodes.MapEntry(nodes.Map("map_j", ["__j"], [(0, 3, 1)])), children=[]
     )
-    assert is_cartesian_axis(map_j)
+    assert is_cartesian_loop(map_j)
 
     map_k = tn.MapScope(
         node=nodes.MapEntry(nodes.Map("map_k", ["__k"], [(0, 3, 1)])), children=[]
     )
-    assert is_cartesian_axis(map_k)
+    assert is_cartesian_loop(map_k)
 
     for_k = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k"), children=[])
-    assert is_cartesian_axis(for_k)
+    assert is_cartesian_loop(for_k)
 
     map_non_cartesian = tn.MapScope(
         node=nodes.MapEntry(nodes.Map("map_other_i", ["__i0"], [(0, 3, 1)])),
         children=[],
     )
-    assert not is_cartesian_axis(map_non_cartesian)
+    assert not is_cartesian_loop(map_non_cartesian)
 
 
 def test_is_axis_for_k() -> None:

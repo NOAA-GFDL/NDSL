@@ -5,6 +5,8 @@ from dace import data
 from dace.memlet import Memlet
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
+from ndsl.config.backend import Backend, BackendLoopOrder
+
 
 class AxisIterator(Enum):
     _I = ("__i", 0)
@@ -30,6 +32,29 @@ class AxisIterator(Enum):
 
 
 CARTESIAN_AXIS_SYMBOLS = [AxisIterator._I, AxisIterator._J, AxisIterator._K]
+HORIZONTAL_AXIS_SYMBOLS = [AxisIterator._I, AxisIterator._J]
+VERTICAL_AXIS_SYMBOLS = [AxisIterator._K]
+
+
+def axis_from_backend(backend: Backend) -> tuple[AxisIterator, ...]:
+    """Return axis in order of execution for a given backend"""
+    if backend.loop_order == BackendLoopOrder.IJK:
+        return (AxisIterator._I, AxisIterator._J, AxisIterator._K)
+
+    if backend.loop_order == BackendLoopOrder.IKJ:
+        return (AxisIterator._I, AxisIterator._K, AxisIterator._J)
+
+    if backend.loop_order == BackendLoopOrder.JIK:
+        return (AxisIterator._J, AxisIterator._I, AxisIterator._K)
+
+    if backend.loop_order == BackendLoopOrder.JKI:
+        return (AxisIterator._J, AxisIterator._K, AxisIterator._I)
+
+    if backend.loop_order == BackendLoopOrder.KIJ:
+        return (AxisIterator._K, AxisIterator._I, AxisIterator._J)
+
+    assert backend.loop_order == BackendLoopOrder.KJI
+    return (AxisIterator._K, AxisIterator._J, AxisIterator._I)
 
 
 def no_data_dependencies_on_cartesian_axis(
