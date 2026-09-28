@@ -126,7 +126,7 @@ class OptimizationConfig:
 
     @classmethod
     def get_default(cls) -> "OptimizationConfig":
-        config_filename = pathlib.Path(os.getenv("NDSL_OPTIMIZATION_CONFIG", ""))
+        config_filename = pathlib.Path(os.getenv("NDSL_OPTIMIZATION_CONFIG", "None"))
         if not config_filename.exists():
             return OptimizationConfig()
 
