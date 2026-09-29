@@ -12,7 +12,12 @@ from ndsl.buffer import array_buffer, device_synchronize, recv_buffer, send_buff
 from ndsl.comm.boundary import Boundary
 from ndsl.comm.comm_abc import Comm as CommABC
 from ndsl.comm.comm_abc import ReductionOperator
-from ndsl.comm.partitioner import CubedSpherePartitioner, Partitioner, TilePartitioner
+from ndsl.comm.partitioner import (
+    CubedSpherePartitioner,
+    NestedPartitioner,
+    Partitioner,
+    TilePartitioner,
+)
 from ndsl.halo.updater import HaloUpdater, HaloUpdateRequest, VectorInterfaceHaloUpdater
 from ndsl.optional_imports import cupy
 from ndsl.performance.timer import NullTimer, Timer
@@ -859,3 +864,632 @@ class CubedSphereCommunicator(Communicator[CubedSpherePartitioner]):
             allow_mismatch_float_precision=True,
         )
         return recv_quantity
+
+
+class NestTileCommunicator(TileCommunicator):
+    """Communicate within one non-periodic nested grid region.
+
+    Nested halo updates use the generic Communicator implementation rather
+    than the specialized TileCommunicator path. NestedPartitioner supports
+    non-periodic layouts that do not necessarily satisfy the layout
+    assumptions enforced by TileCommunicator.
+    """
+
+    @classmethod
+    def from_layout(
+        cls,
+        comm: CommABC,
+        layout: tuple[int, int],
+        force_cpu: bool = False,
+        timer: Timer | None = None,
+    ) -> NestTileCommunicator:
+        raise NotImplementedError(
+            "NestTileCommunicator requires an existing NestedPartitioner"
+        )
+
+    @property
+    def tile(self) -> NestTileCommunicator:
+        return self
+
+    def start_halo_update(
+        self,
+        quantity: Quantity | list[Quantity],
+        n_points: int,
+    ) -> HaloUpdater:
+        return Communicator.start_halo_update(
+            self,
+            quantity,
+            n_points,
+        )
+
+    def start_vector_halo_update(
+        self,
+        x_quantity: Quantity | list[Quantity],
+        y_quantity: Quantity | list[Quantity],
+        n_points: int,
+    ) -> HaloUpdater:
+        return Communicator.start_vector_halo_update(
+            self,
+            x_quantity,
+            y_quantity,
+            n_points,
+        )
+
+
+class NestedCommunicator:
+    """Coordinate communication among a parent domain and nested domains.
+
+    NestedCommunicator is an orchestration layer rather than the communicator
+    for a single partitioned domain. It delegates same-resolution halo updates
+    to the nested-domain communicators and coordinates parent-to-nested
+    transport over the world communicator.
+
+    The cross-domain orchestration in this class supports the current nested-grid
+    prototype. Some of these responsibilities may ultimately belong to a
+    higher-level component once ownership of nested-grid orchestration is
+    established.
+
+    Numerical coarse-to-fine interpolation is owned by the caller.
+    """
+
+    def __init__(
+        self,
+        comm: CommABC,
+        parent_partitioner: Partitioner,
+        nested_partitioners: Mapping[int, NestedPartitioner],
+        nested_world_ranks: Mapping[int, Sequence[int]],
+        parent_comm: Communicator | None = None,
+        nested_comms: Mapping[int, NestTileCommunicator] | None = None,
+        force_cpu: bool = False,
+        timer: Timer | None = None,
+    ) -> None:
+        self.comm = comm
+        self.parent_comm = parent_comm
+        self.nested_comms = dict(nested_comms) if nested_comms is not None else {}
+
+        self.parent_partitioner = parent_partitioner
+        self.nested_partitioners = dict(nested_partitioners)
+        self.nested_world_ranks = {
+            nest_id: tuple(world_ranks)
+            for nest_id, world_ranks in nested_world_ranks.items()
+        }
+
+        self._force_cpu = force_cpu
+        self.timer = timer if timer is not None else NullTimer()
+        self._last_halo_tag = 0
+
+        self.world_rank = self.comm.Get_rank()
+        self.world_size = self.comm.Get_size()
+        self.parent_size = self.parent_partitioner.total_ranks
+
+        self._validate_configuration()
+
+    # -------------------------------------------------------------------------
+    # Domain and rank bookkeeping
+    #
+    # These methods describe participation in the parent and nested domains and
+    # translate between nested-domain ranks and world ranks.
+    # -------------------------------------------------------------------------
+
+    def _validate_configuration(self) -> None:
+        """Validate nested-domain rank mappings against configured partitioners."""
+        if set(self.nested_partitioners) != set(self.nested_world_ranks):
+            raise ValueError(
+                "nested_partitioners and nested_world_ranks must "
+                "contain the same nest ID's"
+            )
+
+        for nest_id, partitioner in self.nested_partitioners.items():
+            world_ranks = self.nested_world_ranks[nest_id]
+
+            if len(world_ranks) != partitioner.total_ranks:
+                raise ValueError(
+                    f"nested domain {nest_id} requires "
+                    f"{partitioner.total_ranks} ranks, "
+                    f"got {len(world_ranks)} world ranks"
+                )
+
+            for world_rank in world_ranks:
+                if world_rank < 0 or world_rank >= self.world_size:
+                    raise ValueError(
+                        f"nested domain {nest_id} contains invalid world rank "
+                        f"{world_rank} for world size {self.world_size}"
+                    )
+
+    @property
+    def rank(self) -> int:
+        return self.comm.Get_rank()
+
+    @property
+    def size(self) -> int:
+        return self.comm.Get_size()
+
+    @property
+    def is_parent_rank(self) -> bool:
+        return self.parent_comm is not None
+
+    @property
+    def is_nested_rank(self) -> bool:
+        return bool(self.nested_comms)
+
+    @property
+    def parent_rank(self) -> int | None:
+        if self.parent_comm is None:
+            return None
+
+        return self.parent_comm.rank
+
+    def nested_rank(self, nest_id: int) -> int | None:
+        nested_comm = self.nested_comms.get(nest_id)
+
+        if nested_comm is None:
+            return None
+
+        return nested_comm.rank
+
+    def nested_size(self, nest_id: int) -> int:
+        return self.nested_partitioners[nest_id].total_ranks
+
+    def _nested_partitioner(self, nest_id: int) -> NestedPartitioner:
+        try:
+            return self.nested_partitioners[nest_id]
+        except KeyError as err:
+            raise ValueError(f"unknown nested domain {nest_id}") from err
+
+    def _nested_world_rank(self, nest_id: int, nested_rank: int) -> int:
+        try:
+            world_ranks = self.nested_world_ranks[nest_id]
+        except KeyError as err:
+            raise ValueError(f"unknown nested domain {nest_id}") from err
+
+        if nested_rank < 0 or nested_rank >= len(world_ranks):
+            raise ValueError(
+                f"nested rank {nested_rank} is outside nested "
+                f"domain {nest_id} of size {len(world_ranks)}"
+            )
+
+        return world_ranks[nested_rank]
+
+    # -------------------------------------------------------------------------
+    # Same-domain nested communication
+    #
+    # Fine-grid halo exchange remains ordinary communication within a single
+    # nested domain and is delegated to that domain's NestTileCommunicator.
+    # -------------------------------------------------------------------------
+
+    def update_nested_halo(
+        self,
+        nest_id: int,
+        fine_quantity: Quantity | None,
+        n_points: int,
+    ) -> None:
+        """Perform same-resolution halo communication within one nest."""
+        nested_comm = self.nested_comms.get(nest_id)
+
+        if nested_comm is None:
+            return
+
+        if fine_quantity is None:
+            raise ValueError(
+                "fine_quantity is required on ranks participating "
+                f"in nested domain {nest_id}"
+            )
+
+        nested_comm.halo_update(
+            fine_quantity,
+            n_points=n_points,
+        )
+
+    # -------------------------------------------------------------------------
+    # Prototype cross-domain orchestration
+    #
+    # The methods below coordinate parent-to-nested transport. They establish
+    # common quantity geometry, enforce current prototype restrictions, ask the
+    # NestedPartitioner for cross-domain boundary geometry, and determine the
+    # local side of each exchange.
+    #
+    # This orchestration may ultimately move to a higher-level component once
+    # the ownership of nested-grid coupling is established.
+    # -------------------------------------------------------------------------
+
+    def _parent_quantity_geometry(
+        self,
+        parent_quantity: Quantity | None,
+        anchor_parent_rank: int,
+    ) -> tuple[tuple[str, ...], tuple[int, ...]]:
+        """Broadcast parent quantity dimensions and parent-tile extent."""
+        parent_info = None
+
+        if self.world_rank == anchor_parent_rank:
+            if self.parent_comm is None:
+                raise RuntimeError(
+                    "NestMapping anchor rank does not participate "
+                    "in the parent communicator"
+                )
+
+            if parent_quantity is None:
+                raise ValueError(
+                    "parent_quantity must be supplied on the "
+                    "NestMapping anchor parent rank"
+                )
+
+            parent_tile = self.parent_comm.tile
+            parent_info = (
+                tuple(parent_quantity.dims),
+                tuple(parent_tile.partitioner.global_extent(parent_quantity.metadata)),
+            )
+
+        parent_info = self.comm.bcast(
+            parent_info,
+            root=anchor_parent_rank,
+        )
+
+        if parent_info is None:
+            raise RuntimeError("Failed to broadcast parent quantity geometry")
+
+        dims = tuple(parent_info[0])
+        extent = tuple(int(value) for value in parent_info[1])
+
+        return dims, extent
+
+    def _nested_quantity_geometry(
+        self,
+        nest_id: int,
+        nested_quantity: Quantity | None,
+    ) -> tuple[tuple[str, ...], tuple[int, ...]]:
+        """Broadcast nested quantity dimensions and nest-global extent."""
+        nested_partitioner = self._nested_partitioner(nest_id)
+        nested_anchor_world_rank = self._nested_world_rank(nest_id, 0)
+        nested_info = None
+
+        if self.world_rank == nested_anchor_world_rank:
+            nested_comm = self.nested_comms.get(nest_id)
+
+            if nested_comm is None:
+                raise RuntimeError(
+                    f"rank zero of nested domain {nest_id} "
+                    "does not have its NestTileCommunicator"
+                )
+
+            if nested_quantity is None:
+                raise ValueError(
+                    "nested_quantity must be supplied on nested rank zero "
+                    f"of nested domain {nest_id}"
+                )
+
+            nested_info = (
+                tuple(nested_quantity.dims),
+                tuple(nested_partitioner.global_extent(nested_quantity.metadata)),
+            )
+
+        nested_info = self.comm.bcast(
+            nested_info,
+            root=nested_anchor_world_rank,
+        )
+
+        if nested_info is None:
+            raise RuntimeError(
+                "Failed to broadcast nested quantity geometry "
+                f"for nested domain {nest_id}"
+            )
+
+        dims = tuple(nested_info[0])
+        extent = tuple(int(value) for value in nested_info[1])
+
+        return dims, extent
+
+    def _validate_parent_anchor(self, parent_rank: int) -> None:
+        """Ensure a nest's parent anchor belongs to the parent communicator."""
+        if parent_rank >= self.parent_size:
+            raise ValueError(
+                f"NestMapping parent_rank={parent_rank} is outside "
+                f"parent communicator of size {self.parent_size}"
+            )
+
+    def _validate_nested_data_domain_within_parent_tile(
+        self,
+        nest_id: int,
+        parent_tile_extent: tuple[int, ...],
+        nested_global_extent: tuple[int, ...],
+        dims: tuple[str, ...],
+        coarse_n_points: int,
+    ) -> None:
+        """Ensure the requested nested coarse data domain stays on one parent tile.
+
+        Crossing parent-rank boundaries is supported. Crossing a parent-tile
+        boundary is not yet implemented.
+        """
+        nested_partitioner = self._nested_partitioner(nest_id)
+        mapping = nested_partitioner.mapping
+
+        try:
+            i_index = next(
+                index for index, dim in enumerate(dims) if dim in constants.I_DIMS
+            )
+            j_index = next(
+                index for index, dim in enumerate(dims) if dim in constants.J_DIMS
+            )
+        except StopIteration as err:
+            raise ValueError(
+                f"Nested exchange requires horizontal i/j dimensions, got {dims}"
+            ) from err
+
+        parent_i0, parent_j0 = mapping.parent_start
+
+        data_i0 = parent_i0 - coarse_n_points
+        data_j0 = parent_j0 - coarse_n_points
+
+        data_i1 = parent_i0 + nested_global_extent[i_index] + coarse_n_points
+        data_j1 = parent_j0 + nested_global_extent[j_index] + coarse_n_points
+
+        tile_i_extent = parent_tile_extent[i_index]
+        tile_j_extent = parent_tile_extent[j_index]
+
+        if (
+            data_i0 < 0
+            or data_j0 < 0
+            or data_i1 > tile_i_extent
+            or data_j1 > tile_j_extent
+        ):
+            raise NotImplementedError(
+                "Nested data domains crossing parent tile boundaries "
+                "are not yet implemented. "
+                f"nest_id={nest_id}, "
+                f"data_domain=(({data_i0}, {data_i1}), "
+                f"({data_j0}, {data_j1})), "
+                f"parent_tile_extent=({tile_i_extent}, {tile_j_extent})"
+            )
+
+    def _collect_parent_to_nested_boundaries(
+        self,
+        nest_id: int,
+        parent_tile_extent: tuple[int, ...],
+        nested_global_extent: tuple[int, ...],
+        dims: tuple[str, ...],
+        coarse_n_points: int,
+    ) -> list[Boundary]:
+        """Collect the parent-to-nested boundaries relevant to this world rank."""
+        boundaries: list[Boundary] = []
+        nested_partitioner = self._nested_partitioner(nest_id)
+
+        if self.is_parent_rank:
+            nested_ranks_to_process: Sequence[int] = range(
+                nested_partitioner.total_ranks
+            )
+        else:
+            nested_rank = self.nested_rank(nest_id)
+
+            if nested_rank is None:
+                return boundaries
+
+            nested_ranks_to_process = (nested_rank,)
+
+        for nested_rank in nested_ranks_to_process:
+            for boundary_type in nested_partitioner.external_boundary_types(
+                nested_rank
+            ):
+                exchanges = nested_partitioner.parent_to_nested_boundaries(
+                    parent_partitioner=self.parent_partitioner,
+                    parent_tile_extent=parent_tile_extent,
+                    nested_global_extent=nested_global_extent,
+                    dims=dims,
+                    boundary_type=boundary_type,
+                    nested_rank=nested_rank,
+                    nested_world_rank=self._nested_world_rank(
+                        nest_id,
+                        nested_rank,
+                    ),
+                    coarse_n_points=coarse_n_points,
+                )
+
+                for parent_boundary, nested_boundary in exchanges:
+                    if self.is_parent_rank:
+                        if self.world_rank != parent_boundary.from_rank:
+                            continue
+
+                        boundaries.append(parent_boundary)
+                    else:
+                        boundaries.append(nested_boundary)
+
+        return boundaries
+
+    def _local_parent_to_nested_quantity(
+        self,
+        nest_id: int,
+        parent_quantity: Quantity | None,
+        nested_quantity: Quantity | None,
+        dims: tuple[str, ...],
+    ) -> Quantity:
+        """Return the local quantity participating in an inter-domain exchange."""
+        if self.is_parent_rank:
+            if parent_quantity is None:
+                raise ValueError(
+                    "parent_quantity is required on a parent rank "
+                    "participating in a nested exchange"
+                )
+
+            quantity = parent_quantity
+        else:
+            if nested_quantity is None:
+                raise ValueError(
+                    "nested_quantity is required on ranks "
+                    f"participating in nested domain {nest_id}"
+                )
+
+            quantity = nested_quantity
+
+        if tuple(quantity.dims) != dims:
+            raise ValueError(
+                "local Quantity dimensions do not match the planned exchange: "
+                f"expected {dims}, got {quantity.dims}"
+            )
+
+        return quantity
+
+    def _exchange_parent_to_nested(
+        self,
+        quantity: Quantity,
+        boundaries: Sequence[Boundary],
+        n_points: int,
+        tag: int,
+    ) -> None:
+        """Execute a planned parent-to-nested exchange."""
+        specification = self._quantity_halo_spec(
+            quantity,
+            n_points=n_points,
+        )
+
+        updater = HaloUpdater.from_scalar_specifications(
+            comm=cast(Communicator[Any], self),
+            numpy_like_module=self._maybe_force_cpu(quantity.np),
+            specifications=[specification],
+            boundaries=boundaries,
+            tag=tag,
+            optional_timer=self.timer,
+        )
+
+        updater.force_finalize_on_wait()
+        updater.update([quantity])
+
+    def parent_to_nested(
+        self,
+        nest_id: int,
+        parent_quantity: Quantity | None,
+        nested_quantity: Quantity | None,
+        coarse_n_points: int,
+    ) -> None:
+        """Transport parent-resolution boundary data to a nested domain."""
+        if coarse_n_points <= 0:
+            raise ValueError("coarse_n_points must be positive")
+
+        nested_partitioner = self._nested_partitioner(nest_id)
+        anchor_parent_rank = nested_partitioner.mapping.parent_rank
+
+        self._validate_parent_anchor(anchor_parent_rank)
+
+        # Establish the geometry of the parent and nested transport quantities.
+        parent_dims, parent_tile_extent = self._parent_quantity_geometry(
+            parent_quantity,
+            anchor_parent_rank,
+        )
+        nested_dims, nested_global_extent = self._nested_quantity_geometry(
+            nest_id,
+            nested_quantity,
+        )
+
+        if parent_dims != nested_dims:
+            raise ValueError(
+                "parent and nested quantities must have matching dimensions: "
+                f"parent={parent_dims}, nested={nested_dims}"
+            )
+
+        dims = parent_dims
+
+        # Validate the currently supported nesting geometry and determine which
+        # parent/nested boundaries participate on this world rank.
+        self._validate_nested_data_domain_within_parent_tile(
+            nest_id=nest_id,
+            parent_tile_extent=parent_tile_extent,
+            nested_global_extent=nested_global_extent,
+            dims=dims,
+            coarse_n_points=coarse_n_points,
+        )
+
+        boundaries = self._collect_parent_to_nested_boundaries(
+            nest_id=nest_id,
+            parent_tile_extent=parent_tile_extent,
+            nested_global_extent=nested_global_extent,
+            dims=dims,
+            coarse_n_points=coarse_n_points,
+        )
+
+        # Advance the tag on every rank involved in this orchestration so that
+        # subsequent exchanges remain synchronized even on ranks with no local
+        # parent-to-nested boundary.
+        tag = self._get_halo_tag()
+
+        if not boundaries:
+            return
+
+        quantity = self._local_parent_to_nested_quantity(
+            nest_id=nest_id,
+            parent_quantity=parent_quantity,
+            nested_quantity=nested_quantity,
+            dims=dims,
+        )
+
+        self._exchange_parent_to_nested(
+            quantity=quantity,
+            boundaries=boundaries,
+            n_points=coarse_n_points,
+            tag=tag,
+        )
+
+    def update_nested_boundaries(
+        self,
+        nest_id: int,
+        parent_quantity: Quantity | None,
+        nested_coarse_quantity: Quantity | None,
+        fine_quantity: Quantity | None,
+        fine_n_points: int,
+        coarse_n_points: int,
+    ) -> None:
+        """Update internal nested halos and transport parent boundary data.
+
+        Internal nested halos are exchanged at the fine-grid resolution.
+        Parent boundary data is transported into a parent-resolution quantity
+        on the nested ranks for subsequent coarse-to-fine interpolation.
+        """
+        self.update_nested_halo(
+            nest_id=nest_id,
+            fine_quantity=fine_quantity,
+            n_points=fine_n_points,
+        )
+
+        self.parent_to_nested(
+            nest_id=nest_id,
+            parent_quantity=parent_quantity,
+            nested_quantity=nested_coarse_quantity,
+            coarse_n_points=coarse_n_points,
+        )
+
+    # -------------------------------------------------------------------------
+    # HaloUpdater compatibility for cross-domain transport
+    #
+    # HaloUpdater currently expects a Communicator-shaped object. These methods
+    # provide the minimal interface needed to reuse that machinery for
+    # inter-domain exchanges. They are an implementation bridge for the current
+    # prototype rather than part of the coordinator's conceptual API.
+    # -------------------------------------------------------------------------
+
+    def _get_halo_tag(self) -> int:
+        self._last_halo_tag += 1
+        return self._last_halo_tag
+
+    def _device_synchronize(self) -> None:
+        Communicator._device_synchronize()
+
+    def _maybe_force_cpu(self, module: ModuleType) -> ModuleType:
+        if self._force_cpu:
+            return np
+
+        return module
+
+    def _quantity_halo_spec(
+        self,
+        quantity: Quantity,
+        n_points: int,
+    ) -> QuantityHaloSpec:
+        data = quantity[:]
+
+        return QuantityHaloSpec(
+            n_points=n_points,
+            shape=quantity.shape,
+            strides=data.strides,
+            itemsize=data.itemsize,
+            origin=quantity.origin,
+            extent=quantity.extent,
+            dims=quantity.dims,
+            numpy_module=self._maybe_force_cpu(quantity.np),
+            dtype=quantity.metadata.dtype,
+        )
