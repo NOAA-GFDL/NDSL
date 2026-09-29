@@ -75,6 +75,13 @@ def _create_input(reduction: str = "none") -> None:
                         "reduction": reduction,
                         "kind": "r8",
                     },
+                    {
+                        "module": "atm_mod",
+                        "var_name": "var3",
+                        "long_name": "variable three",
+                        "reduction": reduction,
+                        "kind": "r8",
+                    },
                 ],
             }
         ],
@@ -158,6 +165,27 @@ def test_dm_monitor() -> None:
         not_xy=True,
     )
 
+    monitor.register_axis(
+        name="x_interface",
+        axis_data=np.arange(nx + 1, dtype=np.float64),
+        cart_name="x",
+        long_name="x_interface",
+        units="m",
+        not_xy=False,
+        domain_id=domain_id,
+        extend_domain_direction="east",
+    )
+    monitor.register_axis(
+        name="y_interface",
+        axis_data=np.arange(ny + 1, dtype=np.float64),
+        cart_name="y",
+        long_name="y_interface",
+        units="m",
+        not_xy=False,
+        domain_id=domain_id,
+        extend_domain_direction="north",
+    )
+
     # fields will be registered in the component they are defined in (either pyFV3 or pySHiELD)
     monitor.register_field(
         module_name="atm_mod",
@@ -179,9 +207,23 @@ def test_dm_monitor() -> None:
         missing_value=-999.0,
         dtype="float64",
     )
+    monitor.register_field(
+        module_name="atm_mod",
+        field_name="var3",
+        dims=["x_interface", "y_interface", "z"],
+        units="m",
+        long_name="variable three",
+        init_time=start,
+        missing_value=-999.0,
+        dtype="float64",
+    )
     assert "x" in monitor.axes
     assert "y" in monitor.axes
+    assert "x_interface" in monitor.axes
+    assert "y_interface" in monitor.axes
     assert "var1" in monitor.fields
+    assert "var2" in monitor.fields
+    assert "var3" in monitor.fields
 
     # pace driver will call store for each timestep to send the data
     for t in range(1, ntimesteps + 1):
@@ -192,12 +234,24 @@ def test_dm_monitor() -> None:
         field_q2 = quantity_factory.full(
             dims=("i", "j", "k"), units="m", value=t * 2, dtype=np.float64
         )
-        state = {"time": current_time, "var1": field_q1, "var2": field_q2}
+        field_q3 = quantity_factory.full(
+            dims=("i_interface", "j_interface", "k"),
+            units="m",
+            value=t * 2,
+            dtype=np.float64,
+        )
+        state = {
+            "time": current_time,
+            "var1": field_q1,
+            "var2": field_q2,
+            "var3": field_q3,
+        }
         monitor.store(state)
 
     # cleanup writes and closes the file
     monitor.cleanup()
 
+    # check the output file for each tile
     pe = MPIComm()._comm.Get_rank() + 1
     filename = "diag_manager_cubed_sphere.tile" + str(pe) + ".nc"
     assert Path(filename).exists()
@@ -208,12 +262,16 @@ def test_dm_monitor() -> None:
     assert "var2" in ds.variables
     var2_ds = ds.variables["var2"]
     np.testing.assert_array_equal(var2_ds.shape, (ntimesteps, nz, ny, nx))
+    assert "var3" in ds.variables
+    var3_ds = ds.variables["var3"]
+    np.testing.assert_array_equal(var3_ds.shape, (ntimesteps, nz, ny + 1, nx + 1))
     assert var1_ds.dimensions == ("time", "y", "x")
     assert var2_ds.dimensions == ("time", "z", "y", "x")
+    assert var3_ds.dimensions == ("time", "z", "y_interface", "x_interface")
     time_var = ds["time"]
-    dates = num2date(time_var[:], units=time_var.units, calendar=time_var.calendar)
     assert time_var.shape == (ntimesteps,)
     assert time_var.dimensions == ("time",)
+    dates = num2date(time_var[:], units=time_var.units, calendar=time_var.calendar)
     assert dates[0] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 15)
     assert dates[1] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 30)
     assert dates[2] == cftime.DatetimeNoLeap(1, 1, 1, 0, 0, 45)
@@ -224,5 +282,8 @@ def test_dm_monitor() -> None:
     np.testing.assert_array_equal(var2_ds[0, :, :, :], 2)
     np.testing.assert_array_equal(var2_ds[1, :, :, :], 4)
     np.testing.assert_array_equal(var2_ds[2, :, :, :], 6)
+    np.testing.assert_array_equal(var3_ds[0, :, :, :], 2)
+    np.testing.assert_array_equal(var3_ds[1, :, :, :], 4)
+    np.testing.assert_array_equal(var3_ds[2, :, :, :], 6)
 
     pyfms.fms.end()
