@@ -14,7 +14,6 @@ from dace.sdfg.utils import fuse_states, inline_sdfgs
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
-from dace.transformation.dataflow.map_for_loop import MapToForLoop
 from dace.transformation.helpers import get_parent_map
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
@@ -33,7 +32,6 @@ from ndsl.dsl.dace.utils import (
     report_memory_static_analysis,
     upload_to_device,
 )
-from ndsl.dsl.optimization_config import OptimizationHint
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
 
@@ -194,6 +192,11 @@ def optimize_full_program_sdfg(
                 compress=True,
             )
 
+    with DaCeProgress(mode, "Expand maps"):
+        parsed_sdfg.apply_transformations_repeated(
+            [MapExpansion], validate=False,
+        )
+
     if optimization_config.stree.enabled:
         with DaCeProgress(mode, "Expand maps (pre tree conversion)"):
             parsed_sdfg.apply_transformations_repeated(
@@ -234,31 +237,6 @@ def optimize_full_program_sdfg(
         with DaCeProgress(mode, "Simplify (post-stree conversion)"):
             _simplify(parsed_sdfg)
 
-    # TODO: the schedule CartesianMerge doesn't know how to merge For loops so
-    #       we delay swapping everything to serial loops. This should be done
-    #       as quickly as possible
-    if optimization_config.hint == OptimizationHint.SERIAL:
-        with DaCeProgress(mode, "Swap all maps to serial loop"):
-            parsed_sdfg.apply_transformations_repeated([MapExpansion, MapToForLoop])
-            ctr_sdfg = 1
-            ctr_state = 1
-            while ctr_sdfg > 0 or ctr_state > 0:
-                ctr_sdfg = inline_sdfgs(parsed_sdfg)
-                ctr_state = fuse_states(parsed_sdfg)
-                ndsl_log.debug(
-                    f"Inline SDFGs | Fuse states counts: {ctr_sdfg} | {ctr_state}"
-                )
-
-    # We want all maps properly collapse to make sure the codegen will see nD parallel
-    # axis as a single kernelizable map
-    with DaCeProgress(mode, "Collapse maps"):
-        # permissive: allow `MapCollapse` to collapse maps with different schedules
-        # progress: do not print intermediate transformations applied
-        # validate: do not validate after applying all transformations
-        parsed_sdfg.apply_transformations_repeated(
-            MapCollapse, permissive=True, progress=False, validate=False
-        )
-
     if optimization_config.loop_vectorization:
         with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
             stree = parsed_sdfg.as_schedule_tree()
@@ -270,6 +248,7 @@ def optimize_full_program_sdfg(
             try:
                 from dace.sdfg.analysis.schedule_tree.passes import (
                     convert_diamonds_to_selects,
+                    convert_map_to_loop,
                     fold_guards,
                     forward_substitute_conditions,
                     fuse_rolled_loops,
@@ -286,6 +265,7 @@ def optimize_full_program_sdfg(
                 )
 
                 PIPELINE = [
+                    convert_map_to_loop,
                     pair_complementary_guards,
                     forward_substitute_conditions,
                     remove_dead_assignments,
@@ -319,18 +299,22 @@ def optimize_full_program_sdfg(
                     "The experimental PredicateToIntegerArray is not available"
                 )
 
-    if optimization_config.array_access_via_cursor_arithmetic:
-        with DaCeProgress(mode, "Swap memlet schedule to LoopCursor"):
-            try:
-                from dace.transformation.passes.memlet_schedules import (
-                    ScheduleLoopCursors,
-                )
-            except ModuleNotFoundError:
-                ndsl_log.debug("The experimental ScheduleLoopCursors is not available")
-                ScheduleLoopCursors = None
-            if ScheduleLoopCursors:
-                result = ScheduleLoopCursors(scope="all").apply_pass(parsed_sdfg, {})
-                ndsl_log.debug(result)
+        with DaCeProgress(mode, "Inline SDFGs & Fuse states"):
+            ctr_sdfg = inline_sdfgs(parsed_sdfg)
+            ctr_state = fuse_states(parsed_sdfg)
+            ndsl_log.debug(
+                f"Inline SDFGs | Fuse states counts: {ctr_sdfg} | {ctr_state}"
+            )
+
+    # We want all maps properly collapse to make sure the codegen will see nD parallel
+    # axis as a single kernelizable map
+    with DaCeProgress(mode, "Collapse maps"):
+        # permissive: allow `MapCollapse` to collapse maps with different schedules
+        # progress: do not print intermediate transformations applied
+        # validate: do not validate after applying all transformations
+        parsed_sdfg.apply_transformations_repeated(
+            MapCollapse, permissive=True, progress=False, validate=False
+        )
 
     with DaCeProgress(mode, "Make transient persistents"):
         # Make the transients array persistents
