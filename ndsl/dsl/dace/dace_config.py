@@ -394,13 +394,13 @@ class DaceConfig:
             self._do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
                 or _determine_compiling_ranks(self, communicator.partitioner)
-            )
+            ) and self._orchestrate != DaCeOrchestration.Run
         else:
             self.my_rank = 0
             self.rank_size = 1
             self.code_path = FV3CodePath.All
             self.layout = (1, 1)
-            self._do_compile = True
+            self._do_compile = self._orchestrate != DaCeOrchestration.Run
 
         self._set_distributed_caches()
 
