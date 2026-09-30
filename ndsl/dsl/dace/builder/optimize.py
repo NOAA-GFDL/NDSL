@@ -194,7 +194,8 @@ def optimize_full_program_sdfg(
 
     with DaCeProgress(mode, "Expand maps"):
         parsed_sdfg.apply_transformations_repeated(
-            [MapExpansion], validate=False,
+            [MapExpansion],
+            validate=False,
         )
 
     if optimization_config.stree.enabled:
@@ -409,6 +410,13 @@ def optimize_full_program_sdfg(
 
     # Compile
     with DaCeProgress(mode, "Codegen & compile"):
+        ndsl_log.debug(
+            "Stats on SDFG before compilation\n:"
+            f"  Arrays: {len([name for _, name, _ in parsed_sdfg.arrays_recursive(include_nested_data=True)])}\n"
+            f"  SDFGs : {len([sdfg for sdfg in parsed_sdfg.all_sdfgs_recursive()])}\n"
+            f"  States: {len(parsed_sdfg.states())}\n"
+            f"  CFGs  : {len([cfg for cfg in parsed_sdfg.all_control_flow_regions(recursive=True)])}\n"
+        )
         compiled_sdfg = parsed_sdfg.compile()
 
     # Printing analysis of the compiled SDFG
