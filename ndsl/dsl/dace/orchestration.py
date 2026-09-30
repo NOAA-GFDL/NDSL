@@ -44,19 +44,19 @@ class _LazyComputepathFunction(SDFGConvertible):
         self.optimization_config = optimization_config
         self.daceprog: DaceProgram = dace_program_wrapper(self.func)
         self._sdfg = None
-        self.exe = None
+        self._exe = None
 
     def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         assert self.config.is_dace_orchestrated()
-        if self.exe is None:
-            self.exe = get_dace_executable(
+        if self._exe is None:
+            self._exe = get_dace_executable(
                 self.daceprog,
                 self.config,
                 self.optimization_config,
                 args,
                 kwargs,
             )
-        return self.exe.run(self.daceprog, args, kwargs)
+        return self._exe.run(self.daceprog, args, kwargs)
 
     @property
     def global_vars(self):  # type: ignore[no-untyped-def]
