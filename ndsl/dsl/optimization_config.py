@@ -33,6 +33,9 @@ class OptimizationOption(enum.Enum):
     DO_NOT_APPLY = enum.auto()
     "Pass will never be applied"
 
+    def __bool__(self) -> bool:
+        return self is OptimizationOption.APPLY
+        
     def __repr__(self) -> str:
         return self.name
 
@@ -105,13 +108,7 @@ class OptimizationConfig:
     stree: Tree = field(default_factory=Tree)
     """Schedule Tree optimization options"""
 
-    array_access_via_cursor_arithmetic: bool = False
-    """
-    Transform array access from the basic strided access to a arithmetic on pointer (cursor) strategy
-    EXPERIMENTAL, therefore defaulting to False.
-    """
-
-    loop_vectorization: bool = False
+    loop_vectorization: OptimizationOption = OptimizationOption.AUTO
     """
     Series of transformed aimed at helping the generic compiler do auto-vectorization for AVX instructions.
     Also contains some transient refinement
@@ -194,6 +191,7 @@ class OptimizationConfig:
                 omp_num_thread = os.getenv("OMP_NUM_THREAD")
                 if omp_num_thread is None or int(omp_num_thread) <= 1:
                     self.hint = OptimizationHint.SERIAL
+                    self.loop_vectorization = OptimizationOption.APPLY
                 else:
                     self.hint = OptimizationHint.PARALLEL
 
