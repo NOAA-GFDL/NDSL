@@ -419,6 +419,11 @@ class DaceConfig:
     def is_compiling(self) -> bool:
         return self._do_compile
 
+    @property
+    def do_compile(self) -> bool:
+        """Backward API compatibility"""
+        return self.is_compiling()
+
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")
 
