@@ -26,11 +26,11 @@ class OptimizationHint(enum.Enum):
 class OptimizationOption(enum.Enum):
     """Options for configuration element. AUTO will rely on the best guess default"""
 
-    AUTO = enum.auto()
+    AUTO = 2
     "Best guess relying on the OptimizationHint"
-    APPLY = enum.auto()
+    APPLY = 1
     "Pass will always be applied"
-    DO_NOT_APPLY = enum.auto()
+    DO_NOT_APPLY = 0
     "Pass will never be applied"
 
     def __bool__(self) -> bool:
@@ -143,6 +143,12 @@ class OptimizationConfig:
                 # If target is a dataclass and value is a dict, parse recursively
                 if is_dataclass(f.type) and isinstance(val, dict):
                     kwargs[f.name] = cls._from_dict(f.type, val)
+                elif f.type is OptimizationOption and isinstance(val, bool):
+                    kwargs[f.name] = (
+                        OptimizationOption.APPLY
+                        if val
+                        else OptimizationOption.DO_NOT_APPLY
+                    )
                 else:
                     kwargs[f.name] = val
 
@@ -191,7 +197,8 @@ class OptimizationConfig:
                 omp_num_thread = os.getenv("OMP_NUM_THREAD")
                 if omp_num_thread is None or int(omp_num_thread) <= 1:
                     self.hint = OptimizationHint.SERIAL
-                    self.loop_vectorization = OptimizationOption.APPLY
+                    if self.loop_vectorization is OptimizationOption.AUTO:
+                        self.loop_vectorization = OptimizationOption.APPLY
                 else:
                     self.hint = OptimizationHint.PARALLEL
 

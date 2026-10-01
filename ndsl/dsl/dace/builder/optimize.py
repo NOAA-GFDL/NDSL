@@ -1,3 +1,4 @@
+import gc
 import numbers
 import os
 from pathlib import Path
@@ -411,12 +412,13 @@ def optimize_full_program_sdfg(
     # Compile
     with DaCeProgress(mode, "Codegen & compile"):
         ndsl_log.debug(
-            "Stats on SDFG before compilation\n:"
+            "Stats on SDFG before compilation:\n"
             f"  Arrays: {len([name for _, name, _ in parsed_sdfg.arrays_recursive(include_nested_data=True)])}\n"
             f"  SDFGs : {len([sdfg for sdfg in parsed_sdfg.all_sdfgs_recursive()])}\n"
             f"  States: {len(parsed_sdfg.states())}\n"
             f"  CFGs  : {len([cfg for cfg in parsed_sdfg.all_control_flow_regions(recursive=True)])}\n"
         )
+        parsed_sdfg.save("pre-compile.sdfgz", compress=True)
         compiled_sdfg = parsed_sdfg.compile()
 
     # Printing analysis of the compiled SDFG
@@ -430,5 +432,9 @@ def optimize_full_program_sdfg(
     BuildInfo.save(
         parsed_sdfg, config.layout, config.tile_resolution, report, config.get_backend()
     )
+
+    # The full process of orchestration and compile is very memory hungry, since we are about to
+    # begin runtime execution in earnest, let's give python a beat to clean up
+    gc.collect(2)
 
     return compiled_sdfg
