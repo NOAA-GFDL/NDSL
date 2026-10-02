@@ -1,3 +1,4 @@
+from ndsl.dsl.dace.builder.stree.optimizations import CartesianRefineTransients
 import gc
 import numbers
 import os
@@ -258,6 +259,7 @@ def optimize_full_program_sdfg(
                     merge_contiguous_loops,
                     move_small_transients_to_stack,
                     pair_complementary_guards,
+                    refine_loop_local_transients,
                     remove_dead_assignments,
                     remove_dead_stores,
                     reroll_statements,
@@ -272,19 +274,21 @@ def optimize_full_program_sdfg(
                     forward_substitute_conditions,
                     remove_dead_assignments,
                     fold_guards,
-                    unswitch_invariant_guards,  # V3
+                    unswitch_invariant_guards,
                     split_iteration_spaces,
                     convert_diamonds_to_selects,
                     remove_dead_stores,
                     merge_contiguous_loops,
                     reroll_statements,
                     fuse_rolled_loops,
-                    hoist_select_arms,  # V2
-                    reuse_transients,  # V3
-                    move_small_transients_to_stack,  # V3
+                    hoist_select_arms,
+                    refine_loop_local_transients,
+                    reuse_transients,
+                    move_small_transients_to_stack,
                 ]
                 for trf in PIPELINE:
-                    trf(stree)
+                    r = trf(stree)
+                    ndsl_log.debug(f"{trf.__name__}: {r}")
             except ModuleNotFoundError:
                 ndsl_log.debug("The experimental ScheduleTree.passes are not available")
 
