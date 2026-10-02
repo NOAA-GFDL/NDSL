@@ -9,7 +9,7 @@ from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
     detect_cycle,
     get_next_node,
-    is_axis_for,
+    is_axis_loop,
     is_axis_map,
     is_last_node,
     list_index,
@@ -167,7 +167,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
     def _for_merge(self, the_for_scope: tn.ForScope) -> int:
         merged = 0
 
-        if is_axis_for(the_for_scope, AxisIterator._K):
+        if is_axis_loop(the_for_scope, self.axis):
             # TODO: if the for scope is on a cartesian axis it can be
             # merged with other for scope going in the same direction
             pass

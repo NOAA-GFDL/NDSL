@@ -3,7 +3,7 @@ import dataclasses
 import dace
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_for, is_axis_map
+from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_loop, is_axis_map
 
 
 class CountCartesianLoops(tn.ScheduleNodeVisitor):
@@ -22,7 +22,7 @@ class CountCartesianLoops(tn.ScheduleNodeVisitor):
 
     def visit_ForScope(self, node: tn.ForScope) -> None:
         for axis in AxisIterator:
-            if is_axis_for(node, axis):
+            if is_axis_loop(node, axis):
                 self._fors[axis.as_cartesian_index()] += 1
 
         self.visit(node.children)

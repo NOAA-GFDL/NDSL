@@ -44,17 +44,19 @@ class _LazyComputepathFunction(SDFGConvertible):
         self.optimization_config = optimization_config
         self.daceprog: DaceProgram = dace_program_wrapper(self.func)
         self._sdfg = None
+        self._exe = None
 
     def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         assert self.config.is_dace_orchestrated()
-        exe = get_dace_executable(
-            self.daceprog,
-            self.config,
-            self.optimization_config,
-            args,
-            kwargs,
-        )
-        return exe.run(self.daceprog, args, kwargs)
+        if self._exe is None:
+            self._exe = get_dace_executable(
+                self.daceprog,
+                self.config,
+                self.optimization_config,
+                args,
+                kwargs,
+            )
+        return self._exe.run(self.daceprog, args, kwargs)
 
     @property
     def global_vars(self):  # type: ignore[no-untyped-def]
@@ -105,6 +107,7 @@ class _LazyComputepathMethod:
             self.obj_to_bind = obj_to_bind
             self.lazy_method = lazy_method
             self.daceprog: DaceProgram = methodwrapper.__get__(obj_to_bind)
+            self._exe = None
 
         @property
         def global_vars(self):  # type: ignore[no-untyped-def]
@@ -116,14 +119,15 @@ class _LazyComputepathMethod:
 
         def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             assert self.lazy_method.config.is_dace_orchestrated()
-            exe = get_dace_executable(
-                self.daceprog,
-                self.lazy_method.config,
-                self.lazy_method.optimization_config,
-                args,
-                kwargs,
-            )
-            return exe.run(self.daceprog, args, kwargs)
+            if self._exe is None:
+                self._exe = get_dace_executable(
+                    self.daceprog,
+                    self.lazy_method.config,
+                    self.lazy_method.optimization_config,
+                    args,
+                    kwargs,
+                )
+            return self._exe.run(self.daceprog, args, kwargs)
 
         def __sdfg__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             sdfg = parse_sdfg(

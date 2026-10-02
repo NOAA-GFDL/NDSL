@@ -8,7 +8,11 @@ from typing import Any, Self
 import dace.config
 from gt4py.cartesian import config as gt_config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
-from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
+from gt4py.cartesian.utils.compiler import (
+    CxxCompilerName,
+    cxx_compiler_defaults,
+    gpu_configuration,
+)
 
 from ndsl import LocalComm, ndsl_log
 from ndsl.comm import Comm
@@ -253,18 +257,39 @@ class DaceConfig:
             )
 
             # Resolve "march/mtune" option for GPU
-            # - turn on numeric-centric SSE by default
+            # - turn on numeric-centric SSE by (avx2)
             # - Neoverse-V2 Grace CPU is too new for GCC 14 and -march=native will fail
             # - use alternative march=armv8-a instead
-            march_cpu = "armv8-a" if is_arm_neoverse else "native"
-            # Removed --fmath
+            march_cpu = "armv8-a" if is_arm_neoverse else "core-avx2"
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
+            if cxx_defaults.name == CxxCompilerName.GNU:
+                if int(GT4PY_COMPILE_OPT_LEVEL) > 1:
+                    optimization_flags = (
+                        "-mno-fma "  # match GEOS
+                        "-funroll-loops "
+                        "-ffinite-loops "
+                        "-fno-math-errno "
+                        "-fno-trapping-math "
+                        "-fprefetch-loop-arrays "
+                        "-fno-semantic-interposition "
+                    )
+            elif cxx_defaults.name == CxxCompilerName.CLANG:
+                optimization_flags = "-mno-fma"
+            elif cxx_defaults.name == CxxCompilerName.INTEL:
+                optimization_flags = "-mno-fma"
+            else:
+                optimization_flags = "-mno-fma"
+            cpp_standard = "c++20"
             warnings_policy = "-w" if NDSL_COMPILER_SILENCE else "-Wall"
             dace.config.Config.set(
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-march={march_cpu} {warnings_policy} {cxx_defaults.cxx_compile_flags}",
+                value=(
+                    f"-march={march_cpu} {optimization_flags} "
+                    f" {warnings_policy} {cxx_defaults.cxx_compile_flags} "
+                    f" -std={cpp_standard}"
+                ),
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -394,13 +419,13 @@ class DaceConfig:
             self._do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
                 or _determine_compiling_ranks(self, communicator.partitioner)
-            )
+            ) and self._orchestrate != DaCeOrchestration.Run
         else:
             self.my_rank = 0
             self.rank_size = 1
             self.code_path = FV3CodePath.All
             self.layout = (1, 1)
-            self._do_compile = True
+            self._do_compile = self._orchestrate != DaCeOrchestration.Run
 
         self._set_distributed_caches()
 
@@ -418,6 +443,11 @@ class DaceConfig:
 
     def is_compiling(self) -> bool:
         return self._do_compile
+
+    @property
+    def do_compile(self) -> bool:
+        """Backward API compatibility"""
+        return self.is_compiling()
 
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")

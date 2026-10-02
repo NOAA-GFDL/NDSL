@@ -12,7 +12,7 @@ from ndsl.dsl.dace.builder.stree.optimizations import (
     LocalOptimizations,
 )
 from ndsl.dsl.dace.builder.stree.pipeline import StreePipeline
-from ndsl.dsl.optimization_config import OptimizationHint, OptimizationOption
+from ndsl.dsl.optimization_config import OptimizationOption
 
 
 class CPUPipeline(StreePipeline):
@@ -24,6 +24,8 @@ class CPUPipeline(StreePipeline):
         passes: list[tn.ScheduleNodeVisitor] | None = None,
         cache_directory: Path | None = None,
     ) -> None:
+        # TODO: checlk that `config` has been concretized
+
         if passes is None:
             ppl_passes = [CleanUpScheduleTree(), LocalOptimizations(backend)]
             if config.stree.inline_K_loops_size_one:
@@ -33,14 +35,14 @@ class CPUPipeline(StreePipeline):
                     CartesianMergePipeline(
                         backend,
                         hint=config.hint,
-                        overcompute=config.stree.merger.overcompute,
+                        align_lhs_on_center_horizontal=config.stree.merger.align_lhs_on_center_horizontal,
+                        align_lhs_on_center_vertical=config.stree.merger.align_lhs_on_center_vertical,
+                        overcompute_horizontal=config.stree.merger.overcompute_horizontal,
+                        overcompute_vertical=config.stree.merger.overcompute_vertical,
                         merge_order=config.stree.merger.order,
                     )
                 )
-            if config.stree.kernelize == OptimizationOption.APPLY or (
-                config.stree.kernelize == OptimizationOption.AUTO
-                and config.hint == OptimizationHint.PARALLEL
-            ):
+            if config.stree.kernelize == OptimizationOption.APPLY:
                 ppl_passes.append(KernelizeMaps(backend))
             if config.stree.refine_transients:
                 ppl_passes.append(CartesianRefineTransients(backend))
@@ -70,7 +72,8 @@ class GPUPipeline(StreePipeline):
                     CartesianMergePipeline(
                         backend,
                         hint=config.hint,
-                        overcompute=config.stree.merger.overcompute,
+                        overcompute_horizontal=config.stree.merger.overcompute_horizontal,
+                        overcompute_vertical=config.stree.merger.overcompute_vertical,
                     )
                 )
             if config.stree.kernelize in [

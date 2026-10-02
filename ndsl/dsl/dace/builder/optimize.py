@@ -1,3 +1,5 @@
+from ndsl.dsl.dace.builder.stree.optimizations import CartesianRefineTransients
+import gc
 import numbers
 import os
 from pathlib import Path
@@ -10,6 +12,7 @@ from dace.dtypes import DeviceType as DaceDeviceType
 from dace.dtypes import ScheduleType
 from dace.dtypes import StorageType as DaceStorageType
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
+from dace.sdfg.utils import fuse_states, inline_sdfgs
 from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
@@ -148,8 +151,8 @@ def optimize_full_program_sdfg(
 
     if optimization_config is None:
         ndsl_log.debug(f"Using default optimization config for {parsed_sdfg.label}.")
-        optimization_config = OptimizationConfig()
-
+        optimization_config = OptimizationConfig.get_default()
+    optimization_config.concretize(config.get_backend())
     ndsl_log.debug(f"Compiling config:\n{pformat(optimization_config, indent=2)}")
 
     # Fully specialize all known symbols and then propagate these changes in the simplify
@@ -165,11 +168,9 @@ def optimize_full_program_sdfg(
                 my_sdfg.replace_dict(repl_dict)
 
         if config.verbose_orchestration:
-            ndsl_log.debug("saving 00-combined_from_stencils.sdfgz")
+            ndsl_log.debug("Saving parsed_sdfg.sdfgz")
             parsed_sdfg.save(
-                os.path.abspath(
-                    f"{parsed_sdfg.build_folder}/00-combined_from_stencils.sdfgz"
-                ),
+                os.path.abspath(f"{parsed_sdfg.build_folder}/parsed_sdfg.sdfgz"),
                 compress=True,
             )
 
@@ -184,13 +185,6 @@ def optimize_full_program_sdfg(
                         ):
                             node.schedule = ScheduleType.GPU_Device
 
-        if config.verbose_orchestration:
-            ndsl_log.debug("saving 00-gpu-maps.sdfgz")
-            parsed_sdfg.save(
-                os.path.abspath(f"{parsed_sdfg.build_folder}/00-gpu-maps.sdfgz"),
-                compress=True,
-            )
-
     with DaCeProgress(mode, "Simplify (1)"):
         _simplify(parsed_sdfg)
         if config.verbose_orchestration:
@@ -200,10 +194,14 @@ def optimize_full_program_sdfg(
                 compress=True,
             )
 
+    with DaCeProgress(mode, "Expand maps"):
+        parsed_sdfg.apply_transformations_repeated(
+            [MapExpansion],
+            validate=False,
+        )
+
     if optimization_config.stree.enabled:
-        # Here be 🐉 - but tests exists in test_optimization.py
-        with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
-            # Break all loops into uni-dimensional loops to simplify optimizations
+        with DaCeProgress(mode, "Expand maps (pre tree conversion)"):
             parsed_sdfg.apply_transformations_repeated(
                 MapExpansion,
                 options={
@@ -215,14 +213,10 @@ def optimize_full_program_sdfg(
                 },
                 validate=False,
             )
+        # Here be 🐉 - but tests exists in test_optimization.py
+        with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
+            # Break all loops into uni-dimensional loops to simplify optimizations
             stree = parsed_sdfg.as_schedule_tree()
-            if config.verbose_orchestration:
-                ndsl_log.debug("saving 02-pre_opt.stree.txt")
-                with open(
-                    os.path.abspath(f"{parsed_sdfg.build_folder}/02-pre_opt.stree.txt"),
-                    "w+",
-                ) as f:
-                    f.write(stree.as_string())
 
         with DaCeProgress(mode, "Schedule Tree: optimization"):
             pipeline = _optimization_pipeline(
@@ -233,15 +227,6 @@ def optimize_full_program_sdfg(
                 passes=_INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES,
             )
             pipeline.run(stree, verbose=config.verbose_schedule_tree_optimizations)
-            if config.verbose_orchestration:
-                ndsl_log.debug("saving 03-post_opt.stree.txt")
-                with open(
-                    os.path.abspath(
-                        f"{parsed_sdfg.build_folder}/03-post_opt.stree.txt"
-                    ),
-                    "w+",
-                ) as f:
-                    f.write(stree.as_string())
 
         with DaCeProgress(mode, "Schedule Tree: go back to SDFG"):
             parsed_sdfg = _tree_as_sdfg(stree)
@@ -251,6 +236,81 @@ def optimize_full_program_sdfg(
                     os.path.abspath(f"{parsed_sdfg.build_folder}/04-from_stree.sdfgz"),
                     compress=True,
                 )
+
+        with DaCeProgress(mode, "Simplify (post-stree conversion)"):
+            _simplify(parsed_sdfg)
+
+    if optimization_config.loop_vectorization:
+        with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
+            stree = parsed_sdfg.as_schedule_tree()
+
+        with DaCeProgress(
+            mode,
+            "Schedule Tree: cleanup, vectorization friendly pass, transient massaging",
+        ):
+            try:
+                from dace.sdfg.analysis.schedule_tree.passes import (
+                    convert_diamonds_to_selects,
+                    convert_map_to_loop,
+                    fold_guards,
+                    forward_substitute_conditions,
+                    fuse_rolled_loops,
+                    hoist_select_arms,
+                    merge_contiguous_loops,
+                    move_small_transients_to_stack,
+                    pair_complementary_guards,
+                    refine_loop_local_transients,
+                    remove_dead_assignments,
+                    remove_dead_stores,
+                    reroll_statements,
+                    reuse_transients,
+                    split_iteration_spaces,
+                    unswitch_invariant_guards,
+                )
+
+                PIPELINE = [
+                    convert_map_to_loop,
+                    pair_complementary_guards,
+                    forward_substitute_conditions,
+                    remove_dead_assignments,
+                    fold_guards,
+                    unswitch_invariant_guards,
+                    split_iteration_spaces,
+                    convert_diamonds_to_selects,
+                    remove_dead_stores,
+                    merge_contiguous_loops,
+                    reroll_statements,
+                    fuse_rolled_loops,
+                    hoist_select_arms,
+                    refine_loop_local_transients,
+                    reuse_transients,
+                    move_small_transients_to_stack,
+                ]
+                for trf in PIPELINE:
+                    r = trf(stree)
+                    ndsl_log.debug(f"{trf.__name__}: {r}")
+            except ModuleNotFoundError:
+                ndsl_log.debug("The experimental ScheduleTree.passes are not available")
+
+        with DaCeProgress(mode, "Schedule Tree: go back to SDFG"):
+            parsed_sdfg = _tree_as_sdfg(stree)
+
+        with DaCeProgress(mode, "Replace Bool array by Int array (vectorization)"):
+            try:
+                from dace.transformation.passes import PredicateToIntegerArray
+
+                PredicateToIntegerArray().apply_pass(parsed_sdfg, {})
+            except ModuleNotFoundError:
+                ndsl_log.debug(
+                    "The experimental PredicateToIntegerArray is not available"
+                )
+
+        with DaCeProgress(mode, "Inline SDFGs & Fuse states"):
+            ctr_sdfg = inline_sdfgs(parsed_sdfg)
+            ctr_state = fuse_states(parsed_sdfg)
+            ndsl_log.debug(
+                f"Inline SDFGs | Fuse states counts: {ctr_sdfg} | {ctr_state}"
+            )
 
     # We want all maps properly collapse to make sure the codegen will see nD parallel
     # axis as a single kernelizable map
@@ -327,15 +387,6 @@ def optimize_full_program_sdfg(
                     ),
                     compress=True,
                 )
-    else:
-        with DaCeProgress(mode, "Simplify (2)"):
-            _simplify(parsed_sdfg)
-            if config.verbose_orchestration:
-                ndsl_log.debug("saving 05-simplify_2.sdfgz")
-                parsed_sdfg.save(
-                    os.path.abspath(f"{parsed_sdfg.build_folder}/05-simplify_2.sdfgz"),
-                    compress=True,
-                )
     # Move all memory that can be into a pool to lower memory pressure for GPU
     # We skip this memory optimization for CPU because we don't have a memory
     # pool available yet (DaCe v1)
@@ -364,6 +415,14 @@ def optimize_full_program_sdfg(
 
     # Compile
     with DaCeProgress(mode, "Codegen & compile"):
+        ndsl_log.debug(
+            "Stats on SDFG before compilation:\n"
+            f"  Arrays: {len([name for _, name, _ in parsed_sdfg.arrays_recursive(include_nested_data=True)])}\n"
+            f"  SDFGs : {len([sdfg for sdfg in parsed_sdfg.all_sdfgs_recursive()])}\n"
+            f"  States: {len(parsed_sdfg.states())}\n"
+            f"  CFGs  : {len([cfg for cfg in parsed_sdfg.all_control_flow_regions(recursive=True)])}\n"
+        )
+        parsed_sdfg.save("pre-compile.sdfgz", compress=True)
         compiled_sdfg = parsed_sdfg.compile()
 
     # Printing analysis of the compiled SDFG
@@ -377,5 +436,9 @@ def optimize_full_program_sdfg(
     BuildInfo.save(
         parsed_sdfg, config.layout, config.tile_resolution, report, config.get_backend()
     )
+
+    # The full process of orchestration and compile is very memory hungry, since we are about to
+    # begin runtime execution in earnest, let's give python a beat to clean up
+    gc.collect(2)
 
     return compiled_sdfg

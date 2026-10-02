@@ -89,7 +89,10 @@ class OrchestratedCode:
                     enabled=True,
                     merger=OptimizationConfig.Tree.Merger(
                         enabled=True,
-                        overcompute=False,
+                        align_lhs_on_center_horizontal=False,
+                        align_lhs_on_center_vertical=False,
+                        overcompute_horizontal=False,
+                        overcompute_vertical=False,
                     ),
                     kernelize=OptimizationOption.DO_NOT_APPLY,
                 )
@@ -105,7 +108,10 @@ class OrchestratedCode:
                     enabled=True,
                     merger=OptimizationConfig.Tree.Merger(
                         enabled=True,
-                        overcompute=False,
+                        align_lhs_on_center_horizontal=False,
+                        align_lhs_on_center_vertical=False,
+                        overcompute_horizontal=False,
+                        overcompute_vertical=False,
                     ),
                     kernelize=OptimizationOption.AUTO,
                 ),
