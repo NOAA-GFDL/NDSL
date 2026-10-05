@@ -394,13 +394,13 @@ class DaceConfig:
             self._do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
                 or _determine_compiling_ranks(self, communicator.partitioner)
-            )
+            ) and self._orchestrate != DaCeOrchestration.Run
         else:
             self.my_rank = 0
             self.rank_size = 1
             self.code_path = FV3CodePath.All
             self.layout = (1, 1)
-            self._do_compile = True
+            self._do_compile = self._orchestrate != DaCeOrchestration.Run
 
         self._set_distributed_caches()
 
@@ -418,6 +418,11 @@ class DaceConfig:
 
     def is_compiling(self) -> bool:
         return self._do_compile
+
+    @property
+    def do_compile(self) -> bool:
+        """Backward API compatibility"""
+        return self.is_compiling()
 
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")
