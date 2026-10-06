@@ -1,4 +1,3 @@
-from ndsl.dsl.dace.builder.stree.optimizations import CartesianRefineTransients
 import gc
 import numbers
 import os
@@ -256,6 +255,7 @@ def optimize_full_program_sdfg(
                     forward_substitute_conditions,
                     fuse_rolled_loops,
                     hoist_select_arms,
+                    merge_consecutive_loops,
                     merge_contiguous_loops,
                     move_small_transients_to_stack,
                     pair_complementary_guards,
@@ -270,18 +270,21 @@ def optimize_full_program_sdfg(
 
                 PIPELINE = [
                     convert_map_to_loop,
+                    merge_consecutive_loops,
                     pair_complementary_guards,
                     forward_substitute_conditions,
                     remove_dead_assignments,
                     fold_guards,
                     unswitch_invariant_guards,
                     split_iteration_spaces,
+                    merge_consecutive_loops,
                     convert_diamonds_to_selects,
                     remove_dead_stores,
                     merge_contiguous_loops,
                     reroll_statements,
                     fuse_rolled_loops,
                     hoist_select_arms,
+                    merge_consecutive_loops,
                     refine_loop_local_transients,
                     reuse_transients,
                     move_small_transients_to_stack,
