@@ -66,6 +66,7 @@ class OrchestratedCode:
         orchestratable_methods = [
             "trivial_merge",
             "missing_merge_of_forscope_and_map",
+            "merge_consecutive_forward_loops",
             "overcompute_merge",
             "push_non_cartesian_for",
             "block_merge_read_after_write_with_offset",
@@ -154,6 +155,14 @@ class OrchestratedCode:
         self.stencil(in_field, out_field)
         self.stencil_with_forward_K(in_field, out_field)
         self.stencil(in_field, out_field)
+
+    def merge_consecutive_forward_loops(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_with_forward_K(in_field, out_field)
+        self.stencil_with_forward_K(in_field, out_field)
 
     def overcompute_merge(
         self,
@@ -283,6 +292,24 @@ class TestStreeMergeMaps:
         elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
             assert len(all_maps) == 3  # 2 KJI (all maps) + 1 JI
             assert len(all_loops) == 1  # 1 For loop
+
+    def test_merge_consecutive_forward_loops(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        code.merge_consecutive_forward_loops(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_loops = [
+            loop
+            for loop, _ in sdfg.all_nodes_recursive()
+            if isinstance(loop, LoopRegion)
+        ]
+
+        assert len(all_loops) == 1
 
     def test_overcompute_merge_with_auto_kernalize(
         self, code: OrchestratedCode, factories: Factories
