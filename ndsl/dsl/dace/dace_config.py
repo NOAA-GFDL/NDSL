@@ -306,6 +306,12 @@ class DaceConfig:
                 value=True,
             )
 
+            dace.config.Config.set(
+                "compiler",
+                "max_stack_array_size",
+                value=512*1024,
+            )
+
             # Resolve "march/mtune" option for GPU
             # - turn on numeric-centric SSE by default
             # - Neoverse-V2 Grace CPU will fail
