@@ -281,9 +281,9 @@ def optimize_full_program_sdfg(
                 "reuse_transients",
                 "move_small_transients_to_stack",
             ]
-            for trf in PIPELINE:
+            for step in PIPELINE:
                 trf = _dynamic_transform_load(
-                    "dace.sdfg.analysis.schedule_tree.passes", trf
+                    "dace.sdfg.analysis.schedule_tree.passes", step
                 )
                 if trf:
                     r = trf(stree)
