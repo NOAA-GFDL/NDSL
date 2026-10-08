@@ -61,6 +61,7 @@ class OrchestratedCode:
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
                 kernelize=OptimizationOption.DO_NOT_APPLY,
             ),
+            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
             hint=hint,
         )
         orchestratable_methods = [
@@ -96,7 +97,8 @@ class OrchestratedCode:
                         overcompute_vertical=False,
                     ),
                     kernelize=OptimizationOption.DO_NOT_APPLY,
-                )
+                ),
+                loop_vectorization=OptimizationOption.DO_NOT_APPLY,
             ),
         )
 

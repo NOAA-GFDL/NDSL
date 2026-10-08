@@ -12,6 +12,7 @@ from ndsl import (
 from ndsl.boilerplate import get_factories_single_tile
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.optimization_config import OptimizationOption
 from ndsl.dsl.typing import Float, FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
@@ -28,7 +29,8 @@ class OrchestratedCode(NDSLRuntime):
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
-            )
+            ),
+            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         super().__init__(stencil_factory, config)
 
