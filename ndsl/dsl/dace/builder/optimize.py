@@ -253,7 +253,9 @@ def optimize_full_program_sdfg(
                     convert_map_to_loop,
                     fold_guards,
                     forward_substitute_conditions,
+                    fuse_loops_for_reuse,
                     fuse_rolled_loops,
+                    hoist_condition_reads,
                     hoist_select_arms,
                     merge_consecutive_loops,
                     merge_contiguous_loops,
@@ -270,6 +272,7 @@ def optimize_full_program_sdfg(
 
                 PIPELINE = [
                     convert_map_to_loop,
+                    fuse_loops_for_reuse,
                     merge_consecutive_loops,
                     pair_complementary_guards,
                     forward_substitute_conditions,
@@ -285,6 +288,7 @@ def optimize_full_program_sdfg(
                     fuse_rolled_loops,
                     hoist_select_arms,
                     merge_consecutive_loops,
+                    hoist_condition_reads,
                     refine_loop_local_transients,
                     reuse_transients,
                     move_small_transients_to_stack,
