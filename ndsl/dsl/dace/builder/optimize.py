@@ -1,4 +1,5 @@
 import gc
+import importlib
 import numbers
 import os
 from pathlib import Path
@@ -35,6 +36,16 @@ from ndsl.dsl.dace.utils import (
 )
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
+
+
+def _dynamic_transform_load(module_name: str, class_name: str) -> type | None:
+    """Safely load a class from a module specified by string."""
+    try:
+        module = importlib.import_module(module_name)
+        return getattr(module, class_name)
+    except (ModuleNotFoundError, AttributeError):
+        ndsl_log.debug(f"Transform {class_name} not available")
+        return None
 
 
 def _to_gpu(sdfg: SDFG) -> None:
@@ -247,57 +258,36 @@ def optimize_full_program_sdfg(
             mode,
             "Schedule Tree: cleanup, vectorization friendly pass, transient massaging",
         ):
-            try:
-                from dace.sdfg.analysis.schedule_tree.passes import (
-                    convert_diamonds_to_selects,
-                    convert_map_to_loop,
-                    fold_guards,
-                    forward_substitute_conditions,
-                    fuse_loops_for_reuse,
-                    fuse_rolled_loops,
-                    hoist_condition_reads,
-                    hoist_select_arms,
-                    merge_consecutive_loops,
-                    merge_contiguous_loops,
-                    move_small_transients_to_stack,
-                    pair_complementary_guards,
-                    refine_loop_local_transients,
-                    remove_dead_assignments,
-                    remove_dead_stores,
-                    reroll_statements,
-                    reuse_transients,
-                    split_iteration_spaces,
-                    unswitch_invariant_guards,
+            PIPELINE = [
+                "convert_map_to_loop",
+                "fuse_loops_for_reuse",
+                "merge_consecutive_loops",
+                "pair_complementary_guards",
+                "forward_substitute_conditions",
+                "remove_dead_assignments",
+                "fold_guards",
+                "unswitch_invariant_guards",
+                "split_iteration_spaces",
+                "merge_consecutive_loops",
+                "convert_diamonds_to_selects",
+                "remove_dead_stores",
+                "merge_contiguous_loops",
+                "reroll_statements",
+                "fuse_rolled_loops",
+                "hoist_select_arms",
+                "merge_consecutive_loops",
+                "hoist_condition_reads",
+                "refine_loop_local_transients",
+                "reuse_transients",
+                "move_small_transients_to_stack",
+            ]
+            for trf in PIPELINE:
+                trf = _dynamic_transform_load(
+                    "dace.sdfg.analysis.schedule_tree.passes", trf
                 )
-
-                PIPELINE = [
-                    convert_map_to_loop,
-                    fuse_loops_for_reuse,
-                    merge_consecutive_loops,
-                    pair_complementary_guards,
-                    forward_substitute_conditions,
-                    remove_dead_assignments,
-                    fold_guards,
-                    unswitch_invariant_guards,
-                    split_iteration_spaces,
-                    merge_consecutive_loops,
-                    convert_diamonds_to_selects,
-                    remove_dead_stores,
-                    merge_contiguous_loops,
-                    reroll_statements,
-                    fuse_rolled_loops,
-                    hoist_select_arms,
-                    merge_consecutive_loops,
-                    hoist_condition_reads,
-                    refine_loop_local_transients,
-                    reuse_transients,
-                    move_small_transients_to_stack,
-                ]
-                for trf in PIPELINE:
+                if trf:
                     r = trf(stree)
                     ndsl_log.debug(f"{trf.__name__}: {r}")
-            except ModuleNotFoundError:
-                ndsl_log.debug("The experimental ScheduleTree.passes are not available")
 
         with DaCeProgress(mode, "Schedule Tree: go back to SDFG"):
             parsed_sdfg = _tree_as_sdfg(stree)
