@@ -21,193 +21,193 @@ extra_javascript = [
 ]
 nav = [
   # ── Home ──────────────────────────────────────────────────────────────────
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md"},
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5 12 3l9 7.5'/><path d='M5 9.5V20h14V9.5'/></svg> Home" = "index.md" },
   # ── Install ─────────────────────────────────────────────────────────────
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v10'/><path d='M8 9l4 4 4-4'/><rect x='3' y='14' width='18' height='7' rx='2'/></svg> Install" = "install_ndsl.md"},
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v10'/><path d='M8 9l4 4 4-4'/><rect x='3' y='14' width='18' height='7' rx='2'/></svg> Install" = "install_ndsl.md" },
   # ── User Manual ───────────────────────────────────────────────────────────
   # Step-by-step guide for developers using NDSL.
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
-    {"Introduction to NDSL" = "user_manual/ndsl_introduction.md"},
-    {"1. Data Types and Storage" = "user_manual/data.md"},
-    {"2. Writing Code with NDSL" = "user_manual/writing_ndsl_code.md"},
-    {"3. Advanced Features" = "user_manual/advanced_features.md"},
-    {"4. Backends" = "user_manual/backends.md"},
-    {"5. Common Patterns" = "user_manual/common_patterns.md"},
-    {"6. Why Use Classes?" = "user_manual/why_use_classes.md"},
-    {"7. Best Coding Practices" = "user_manual/best_coding_practices.md"}
-  ]},
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg> User Manual" = [
+    { "Introduction to NDSL" = "user_manual/ndsl_introduction.md" },
+    { "1. Data Types and Storage" = "user_manual/data.md" },
+    { "2. Writing Code with NDSL" = "user_manual/writing_ndsl_code.md" },
+    { "3. Advanced Features" = "user_manual/advanced_features.md" },
+    { "4. Backends" = "user_manual/backends.md" },
+    { "5. Common Patterns" = "user_manual/common_patterns.md" },
+    { "6. Why Use Classes?" = "user_manual/why_use_classes.md" },
+    { "7. Best Coding Practices" = "user_manual/best_coding_practices.md" }
+  ] },
   # ── NDSL In Action ────────────────────────────────────────────────────────
   # Real-world results from running NDSL in GEOS model configurations.
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL In Action" = [
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M4 19V5'/><path d='M10 19V9'/><path d='M16 19v-4'/><path d='M22 19V3'/></svg> NDSL In Action" = [
     "ndsl_in_action/index.md",
-    {"NASA" = ["ndsl_in_action/nasa/index.md"]}
-  ]},
+    { "NASA" = ["ndsl_in_action/nasa/index.md"] }
+  ] },
   # ── API Docs ──────────────────────────────────────────────────────────────
   # Auto-generated reference docs from NDSL Python docstrings (via mkdocstrings).
   # Organized to mirror the ndsl/ package structure.
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg> API Docs" = [
     "docstrings/index.md",
-    {"Top-level" = [
-      {"boilerplate" = "docstrings/top/boilerplate.md"},
-      {"buffer" = "docstrings/top/buffer.md"},
-      {"constants" = "docstrings/top/constants.md"},
-      {"io" = "docstrings/top/io.md"},
-      {"logging" = "docstrings/top/logging.md"},
-      {"optional_imports" = "docstrings/top/optional_imports.md"},
-      {"types" = "docstrings/top/types.md"},
-      {"typing" = "docstrings/top/typing.md"},
-      {"utils" = "docstrings/top/utils.md"}
-    ]},
-    {"checkpointer" = [
-      {"base" = "docstrings/checkpointer/base.md"},
-      {"null" = "docstrings/checkpointer/null.md"},
-      {"snapshots" = "docstrings/checkpointer/snapshots.md"},
-      {"thresholds" = "docstrings/checkpointer/thresholds.md"},
-      {"validation" = "docstrings/checkpointer/validation.md"}
-    ]},
-    {"config" = [
-      {"backend" = "docstrings/config/backend.md"}
-    ]},
-    {"comm" = [
-      {"_boundary_utils" = "docstrings/comm/_boundary_utils.md"},
-      {"boundary" = "docstrings/comm/boundary.md"},
-      {"caching_comm" = "docstrings/comm/caching_comm.md"},
-      {"comm_abc" = "docstrings/comm/comm_abc.md"},
-      {"communicator" = "docstrings/comm/communicator.md"},
-      {"decomposition" = "docstrings/comm/decomposition.md"},
-      {"local_comm" = "docstrings/comm/local_comm.md"},
-      {"mpi" = "docstrings/comm/mpi.md"},
-      {"partitioner" = "docstrings/comm/partitioner.md"}
-    ]},
-    {"debug" = [
-      {"config" = "docstrings/debug/config.md"},
-      {"debugger" = "docstrings/debug/debugger.md"},
-      {"tooling" = "docstrings/debug/tooling.md"}
-    ]},
-    {"dsl" = [
-      {"caches" = [
-        {"cache_location" = "docstrings/dsl/caches/cache_location.md"},
-        {"codepath" = "docstrings/dsl/caches/codepath.md"}
-      ]},
-      {"dace" = [
-        {"builder" = [
-          {"sdfg" = [
-            {"debug_passes" = "docstrings/dsl/dace/builder/sdfg/debug_passes.md"},
-            {"loop_transform" = "docstrings/dsl/dace/builder/sdfg/loop_transform.md"}
-          ]},
-          {"stree" = [
-            {"common" = [
-              {"code_block" = "docstrings/dsl/dace/builder/stree/common/code_block.md"},
-              {"control_flow" = "docstrings/dsl/dace/builder/stree/common/control_flow.md"},
-              {"memlet" = "docstrings/dsl/dace/builder/stree/common/memlet.md"},
-              {"topology" = "docstrings/dsl/dace/builder/stree/common/topology.md"}
-            ]},
-            {"optimizations" = [
-              {"axis_merge" = "docstrings/dsl/dace/builder/stree/optimizations/axis_merge.md"},
-              {"cartesian_merge" = "docstrings/dsl/dace/builder/stree/optimizations/cartesian_merge.md"},
-              {"clean_tree" = "docstrings/dsl/dace/builder/stree/optimizations/clean_tree.md"},
-              {"kernelize_maps" = "docstrings/dsl/dace/builder/stree/optimizations/kernelize_maps.md"},
-              {"local_optimizations" = "docstrings/dsl/dace/builder/stree/optimizations/local_optimizations.md"},
-              {"off_grid_conditionals" = "docstrings/dsl/dace/builder/stree/optimizations/off_grid_conditionals.md"},
-              {"off_grid_tasklet" = "docstrings/dsl/dace/builder/stree/optimizations/off_grid_tasklet.md"},
-              {"refine_transients" = "docstrings/dsl/dace/builder/stree/optimizations/refine_transients.md"},
-              {"remove_loops" = "docstrings/dsl/dace/builder/stree/optimizations/remove_loops.md"},
-              {"replace_axis_symbol" = "docstrings/dsl/dace/builder/stree/optimizations/replace_axis_symbol.md"},
-              {"specialize_maps" = "docstrings/dsl/dace/builder/stree/optimizations/specialize_maps.md"}
-            ]},
-            {"default_pipeline" = "docstrings/dsl/dace/builder/stree/default_pipeline.md"},
-            {"pipeline" = "docstrings/dsl/dace/builder/stree/pipeline.md"},
-            {"statistics" = "docstrings/dsl/dace/builder/stree/statistics.md"}
-          ]},
-          {"builder" = "docstrings/dsl/dace/builder/builder.md"},
-          {"cache" = "docstrings/dsl/dace/builder/cache.md"},
-          {"labeler" = "docstrings/dsl/dace/builder/labeler.md"},
-          {"optimize" = "docstrings/dsl/dace/builder/optimize.md"},
-          {"parse" = "docstrings/dsl/dace/builder/parse.md"}
-        ]},
-        {"build" = "docstrings/dsl/dace/build.md"},
-        {"dace_config" = "docstrings/dsl/dace/dace_config.md"},
-        {"dace_executable" = "docstrings/dsl/dace/dace_executable.md"},
-        {"hardware_config" = "docstrings/dsl/dace/hardware_config.md"},
-        {"orchestration" = "docstrings/dsl/dace/orchestration.md"},
-        {"replacements" = "docstrings/dsl/dace/replacements.md"},
-        {"utils" = "docstrings/dsl/dace/utils.md"},
-        {"wrapped_halo_exchange" = "docstrings/dsl/dace/wrapped_halo_exchange.md"}
-      ]},
-      {"gt4py" = "docstrings/dsl/gt4py.md"},
-      {"gt4py_utils" = "docstrings/dsl/gt4py_utils.md"},
-      {"ndsl_runtime" = "docstrings/dsl/ndsl_runtime.md"},
-      {"optimization_config" = "docstrings/dsl/optimization_config.md"},
-      {"stencil_config" = "docstrings/dsl/stencil_config.md"},
-      {"stencil" = "docstrings/dsl/stencil.md"},
-      {"typing" = "docstrings/dsl/typing.md"}
-    ]},
-    {"grid" = [
-      {"eta" = "docstrings/grid/eta.md"},
-      {"generation" = "docstrings/grid/generation.md"},
-      {"geometry" = "docstrings/grid/geometry.md"},
-      {"global_setup" = "docstrings/grid/global_setup.md"},
-      {"gnomonic" = "docstrings/grid/gnomonic.md"},
-      {"helper" = "docstrings/grid/helper.md"},
-      {"mirror" = "docstrings/grid/mirror.md"},
-      {"stretch_transformation" = "docstrings/grid/stretch_transformation.md"}
-    ]},
-    {"halo" = [
-      {"cuda_kernels" = "docstrings/halo/cuda_kernels.md"},
-      {"data_transformer" = "docstrings/halo/data_transformer.md"},
-      {"rotate" = "docstrings/halo/rotate.md"},
-      {"updater" = "docstrings/halo/updater.md"}
-    ]},
-    {"initialization" = [
-      {"allocator" = "docstrings/initialization/allocator.md"},
-      {"grid_sizer" = "docstrings/initialization/grid_sizer.md"},
-      {"subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md"}
-    ]},
-    {"monitor" = [
-      {"convert" = "docstrings/monitor/convert.md"},
-      {"netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md"},
-      {"protocol" = "docstrings/monitor/protocol.md"},
-      {"zarr_monitor" = "docstrings/monitor/zarr_monitor.md"}
-    ]},
-    {"performance" = [
-      {"collector" = "docstrings/performance/collector.md"},
-      {"config" = "docstrings/performance/config.md"},
-      {"profiler" = "docstrings/performance/profiler.md"},
-      {"report" = "docstrings/performance/report.md"},
-      {"timer" = "docstrings/performance/timer.md"},
-      {"tools" = "docstrings/performance/tools.md"}
-    ]},
-    {"quantity" = [
-      {"bounds" = "docstrings/quantity/bounds.md"},
-      {"local" = "docstrings/quantity/local.md"},
-      {"metadata" = "docstrings/quantity/metadata.md"},
-      {"quantity" = "docstrings/quantity/quantity.md"},
-      {"state" = "docstrings/quantity/state.md"}
-    ]},
-    {"restart" = [
-      {"_legacy_restart" = "docstrings/restart/_legacy_restart.md"}
-    ]},
-    {"stencils" = [
-      {"arithmetic_functions" = "docstrings/stencils/arithmetic_functions.md"},
-      {"basic_operations" = "docstrings/stencils/basic_operations.md"},
-      {"basic_operations_2d" = "docstrings/stencils/basic_operations_2d.md"},
-      {"column_operations" = "docstrings/stencils/column_operations.md"},
-      {"c2l_ord" = "docstrings/stencils/c2l_ord.md"},
-      {"corners" = "docstrings/stencils/corners.md"},
-      {"tridiag" = "docstrings/stencils/tridiag.md"}
-    ]},
-    {"testing" = [
-      {"comparison" = "docstrings/testing/comparison.md"},
-      {"perturbation" = "docstrings/testing/perturbation.md"}
-    ]},
-    {"viz" = [
-      {"cube_sphere" = "docstrings/viz/cube_sphere.md"}
-    ]}
-  ]},
+    { "Top-level" = [
+      { "boilerplate" = "docstrings/top/boilerplate.md" },
+      { "buffer" = "docstrings/top/buffer.md" },
+      { "constants" = "docstrings/top/constants.md" },
+      { "io" = "docstrings/top/io.md" },
+      { "logging" = "docstrings/top/logging.md" },
+      { "optional_imports" = "docstrings/top/optional_imports.md" },
+      { "types" = "docstrings/top/types.md" },
+      { "typing" = "docstrings/top/typing.md" },
+      { "utils" = "docstrings/top/utils.md" }
+    ] },
+    { "checkpointer" = [
+      { "base" = "docstrings/checkpointer/base.md" },
+      { "null" = "docstrings/checkpointer/null.md" },
+      { "snapshots" = "docstrings/checkpointer/snapshots.md" },
+      { "thresholds" = "docstrings/checkpointer/thresholds.md" },
+      { "validation" = "docstrings/checkpointer/validation.md" }
+    ] },
+    { "config" = [
+      { "backend" = "docstrings/config/backend.md" }
+    ] },
+    { "comm" = [
+      { "_boundary_utils" = "docstrings/comm/_boundary_utils.md" },
+      { "boundary" = "docstrings/comm/boundary.md" },
+      { "caching_comm" = "docstrings/comm/caching_comm.md" },
+      { "comm_abc" = "docstrings/comm/comm_abc.md" },
+      { "communicator" = "docstrings/comm/communicator.md" },
+      { "decomposition" = "docstrings/comm/decomposition.md" },
+      { "local_comm" = "docstrings/comm/local_comm.md" },
+      { "mpi" = "docstrings/comm/mpi.md" },
+      { "partitioner" = "docstrings/comm/partitioner.md" }
+    ] },
+    { "debug" = [
+      { "config" = "docstrings/debug/config.md" },
+      { "debugger" = "docstrings/debug/debugger.md" },
+      { "tooling" = "docstrings/debug/tooling.md" }
+    ] },
+    { "dsl" = [
+      { "caches" = [
+        { "cache_location" = "docstrings/dsl/caches/cache_location.md" },
+        { "codepath" = "docstrings/dsl/caches/codepath.md" }
+      ] },
+      { "dace" = [
+        { "builder" = [
+          { "sdfg" = [
+            { "debug_passes" = "docstrings/dsl/dace/builder/sdfg/debug_passes.md" },
+            { "loop_transform" = "docstrings/dsl/dace/builder/sdfg/loop_transform.md" }
+          ] },
+          { "stree" = [
+            { "common" = [
+              { "code_block" = "docstrings/dsl/dace/builder/stree/common/code_block.md" },
+              { "control_flow" = "docstrings/dsl/dace/builder/stree/common/control_flow.md" },
+              { "memlet" = "docstrings/dsl/dace/builder/stree/common/memlet.md" },
+              { "topology" = "docstrings/dsl/dace/builder/stree/common/topology.md" }
+            ] },
+            { "optimizations" = [
+              { "axis_merge" = "docstrings/dsl/dace/builder/stree/optimizations/axis_merge.md" },
+              { "cartesian_merge" = "docstrings/dsl/dace/builder/stree/optimizations/cartesian_merge.md" },
+              { "clean_tree" = "docstrings/dsl/dace/builder/stree/optimizations/clean_tree.md" },
+              { "kernelize_maps" = "docstrings/dsl/dace/builder/stree/optimizations/kernelize_maps.md" },
+              { "local_optimizations" = "docstrings/dsl/dace/builder/stree/optimizations/local_optimizations.md" },
+              { "off_grid_conditionals" = "docstrings/dsl/dace/builder/stree/optimizations/off_grid_conditionals.md" },
+              { "off_grid_tasklet" = "docstrings/dsl/dace/builder/stree/optimizations/off_grid_tasklet.md" },
+              { "refine_transients" = "docstrings/dsl/dace/builder/stree/optimizations/refine_transients.md" },
+              { "remove_loops" = "docstrings/dsl/dace/builder/stree/optimizations/remove_loops.md" },
+              { "replace_axis_symbol" = "docstrings/dsl/dace/builder/stree/optimizations/replace_axis_symbol.md" },
+              { "specialize_maps" = "docstrings/dsl/dace/builder/stree/optimizations/specialize_maps.md" }
+            ] },
+            { "default_pipeline" = "docstrings/dsl/dace/builder/stree/default_pipeline.md" },
+            { "pipeline" = "docstrings/dsl/dace/builder/stree/pipeline.md" },
+            { "statistics" = "docstrings/dsl/dace/builder/stree/statistics.md" }
+          ] },
+          { "builder" = "docstrings/dsl/dace/builder/builder.md" },
+          { "cache" = "docstrings/dsl/dace/builder/cache.md" },
+          { "labeler" = "docstrings/dsl/dace/builder/labeler.md" },
+          { "optimize" = "docstrings/dsl/dace/builder/optimize.md" },
+          { "parse" = "docstrings/dsl/dace/builder/parse.md" }
+        ] },
+        { "build" = "docstrings/dsl/dace/build.md" },
+        { "dace_config" = "docstrings/dsl/dace/dace_config.md" },
+        { "dace_executable" = "docstrings/dsl/dace/dace_executable.md" },
+        { "hardware_config" = "docstrings/dsl/dace/hardware_config.md" },
+        { "orchestration" = "docstrings/dsl/dace/orchestration.md" },
+        { "replacements" = "docstrings/dsl/dace/replacements.md" },
+        { "utils" = "docstrings/dsl/dace/utils.md" },
+        { "wrapped_halo_exchange" = "docstrings/dsl/dace/wrapped_halo_exchange.md" }
+      ] },
+      { "gt4py" = "docstrings/dsl/gt4py.md" },
+      { "gt4py_utils" = "docstrings/dsl/gt4py_utils.md" },
+      { "ndsl_runtime" = "docstrings/dsl/ndsl_runtime.md" },
+      { "optimization_config" = "docstrings/dsl/optimization_config.md" },
+      { "stencil_config" = "docstrings/dsl/stencil_config.md" },
+      { "stencil" = "docstrings/dsl/stencil.md" },
+      { "typing" = "docstrings/dsl/typing.md" }
+    ] },
+    { "grid" = [
+      { "eta" = "docstrings/grid/eta.md" },
+      { "generation" = "docstrings/grid/generation.md" },
+      { "geometry" = "docstrings/grid/geometry.md" },
+      { "global_setup" = "docstrings/grid/global_setup.md" },
+      { "gnomonic" = "docstrings/grid/gnomonic.md" },
+      { "helper" = "docstrings/grid/helper.md" },
+      { "mirror" = "docstrings/grid/mirror.md" },
+      { "stretch_transformation" = "docstrings/grid/stretch_transformation.md" }
+    ] },
+    { "halo" = [
+      { "cuda_kernels" = "docstrings/halo/cuda_kernels.md" },
+      { "data_transformer" = "docstrings/halo/data_transformer.md" },
+      { "rotate" = "docstrings/halo/rotate.md" },
+      { "updater" = "docstrings/halo/updater.md" }
+    ] },
+    { "initialization" = [
+      { "allocator" = "docstrings/initialization/allocator.md" },
+      { "grid_sizer" = "docstrings/initialization/grid_sizer.md" },
+      { "subtile_grid_sizer" = "docstrings/initialization/subtile_grid_sizer.md" }
+    ] },
+    { "monitor" = [
+      { "convert" = "docstrings/monitor/convert.md" },
+      { "netcdf_monitor" = "docstrings/monitor/netcdf_monitor.md" },
+      { "protocol" = "docstrings/monitor/protocol.md" },
+      { "zarr_monitor" = "docstrings/monitor/zarr_monitor.md" }
+    ] },
+    { "performance" = [
+      { "collector" = "docstrings/performance/collector.md" },
+      { "config" = "docstrings/performance/config.md" },
+      { "profiler" = "docstrings/performance/profiler.md" },
+      { "report" = "docstrings/performance/report.md" },
+      { "timer" = "docstrings/performance/timer.md" },
+      { "tools" = "docstrings/performance/tools.md" }
+    ] },
+    { "quantity" = [
+      { "bounds" = "docstrings/quantity/bounds.md" },
+      { "local" = "docstrings/quantity/local.md" },
+      { "metadata" = "docstrings/quantity/metadata.md" },
+      { "quantity" = "docstrings/quantity/quantity.md" },
+      { "state" = "docstrings/quantity/state.md" }
+    ] },
+    { "restart" = [
+      { "_legacy_restart" = "docstrings/restart/_legacy_restart.md" }
+    ] },
+    { "stencils" = [
+      { "arithmetic_functions" = "docstrings/stencils/arithmetic_functions.md" },
+      { "basic_operations" = "docstrings/stencils/basic_operations.md" },
+      { "basic_operations_2d" = "docstrings/stencils/basic_operations_2d.md" },
+      { "column_operations" = "docstrings/stencils/column_operations.md" },
+      { "c2l_ord" = "docstrings/stencils/c2l_ord.md" },
+      { "corners" = "docstrings/stencils/corners.md" },
+      { "tridiag" = "docstrings/stencils/tridiag.md" }
+    ] },
+    { "testing" = [
+      { "comparison" = "docstrings/testing/comparison.md" },
+      { "perturbation" = "docstrings/testing/perturbation.md" }
+    ] },
+    { "viz" = [
+      { "cube_sphere" = "docstrings/viz/cube_sphere.md" }
+    ] }
+  ] },
   # ── Roadmap ─────────────────────────────────────────────────────────────
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M2.077 18.449A2 2 0 0 0 4 21h16a2 2 0 0 0 1.924-2.55l-4-14A2 2 0 0 0 16 3H8a2 2 0 0 0-1.924 1.45z'/><path d='M12 17v4'/><path d='M12 5V3'/><path d='M12 9v3'/></svg> Roadmap" = "roadmap.md"},
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M2.077 18.449A2 2 0 0 0 4 21h16a2 2 0 0 0 1.924-2.55l-4-14A2 2 0 0 0 16 3H8a2 2 0 0 0-1.924 1.45z'/><path d='M12 17v4'/><path d='M12 5V3'/><path d='M12 9v3'/></svg> Roadmap" = "roadmap.md" },
   # ── Community ─────────────────────────────────────────────────────────────
-  {"<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md"}
+  { "<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg> Community" = "community.md" }
 ]
 repo_name = "NDSL"
 repo_url = "https://github.com/NOAA-GFDL/NDSL"
@@ -260,7 +260,7 @@ pygments_lang_class = true  # add language class to code blocks
 [project.markdown_extensions.pymdownx.superfences]
 # Allows non-fenced code blocks and enables Mermaid diagram rendering.
 custom_fences = [
-  {name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format"}
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
 ]
 
 [project.markdown_extensions.pymdownx.tabbed]
