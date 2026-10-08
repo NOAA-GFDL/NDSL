@@ -299,6 +299,14 @@ class DaceConfig:
                 value=0,
             )
 
+            dace.config.Config.set(
+                "compiler",
+                "outlining",
+                "enabled",
+                value=True,
+            )
+
+
             # Resolve "march/mtune" option for GPU
             # - turn on numeric-centric SSE by default
             # - Neoverse-V2 Grace CPU will fail
