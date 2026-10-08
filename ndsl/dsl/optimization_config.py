@@ -35,7 +35,7 @@ class OptimizationOption(enum.Enum):
 
     def __bool__(self) -> bool:
         return self is OptimizationOption.APPLY
-        
+
     def __repr__(self) -> str:
         return self.name
 
