@@ -37,7 +37,7 @@ classifiers = [
 ]
 dependencies = [
   "dace @ git+https://github.com/spcl/dace.git@664363b98a3ebac46e1f5338d73d7fe0368b5507",
-  "gt4py @ git+https://github.com/Gridtools/gt4py.git@33bd69c8a6f778561a2ce9a15020af113c072eb57",
+  "gt4py @ git+https://github.com/Gridtools/gt4py.git@3bd69c8a6f778561a2ce9a15020af113c072eb57",
   "mpi4py>=4.1",
   "cftime",
   "xarray>=2025.01.2",  # datatree + fixes
