@@ -299,12 +299,13 @@ class DaceConfig:
                 value=0,
             )
 
-            dace.config.Config.set(
-                "compiler",
-                "outlining",
-                "enabled",
-                value=True,
-            )
+            # TODO: outline works locally but dies on the HPC
+            # dace.config.Config.set(
+            #     "compiler",
+            #     "outlining",
+            #     "enabled",
+            #     value=True,
+            # )
 
             dace.config.Config.set(
                 "compiler",
