@@ -27,10 +27,25 @@ def test_memory_static_analysis_includes_nested_lifetimes() -> None:
     report = report_memory_static_analysis(sdfg, allocations, detail_report=True)
     assert "Transient: arrays 3, scalars 2" in report
     assert "Non-transient: arrays 1, scalars 1" in report
-    assert "array | transient | unreferenced | not pooled | nested | 1D | 4 | 16.00 B | scratch" in report
-    assert "array | non-transient | unreferenced | not pooled | nested | 1D | 3 | 24.00 B | persistent" in report
-    assert "scalar | transient | unreferenced | not pooled | nested | 0D | - | 4.00 B | scratch_scalar" in report
-    assert "scalar | non-transient | unreferenced | not pooled | nested | 0D | - | 8.00 B | persistent_scalar" in report
-    assert "scalar | transient | unreferenced | not pooled | nested | 0D | - | 4.00 B | empty_shape" in report
+    assert (
+        "array | transient | unreferenced | not pooled | nested | 1D | 4 | 16.00 B | scratch"
+        in report
+    )
+    assert (
+        "array | non-transient | unreferenced | not pooled | nested | 1D | 3 | 24.00 B | persistent"
+        in report
+    )
+    assert (
+        "scalar | transient | unreferenced | not pooled | nested | 0D | - | 4.00 B | scratch_scalar"
+        in report
+    )
+    assert (
+        "scalar | non-transient | unreferenced | not pooled | nested | 0D | - | 8.00 B | persistent_scalar"
+        in report
+    )
+    assert (
+        "scalar | transient | unreferenced | not pooled | nested | 0D | - | 4.00 B | empty_shape"
+        in report
+    )
     assert "2.00 KiB | kilobyte_array" in report
     assert "1.00 MiB | megabyte_array" in report
