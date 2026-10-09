@@ -70,6 +70,12 @@ class DaceExecutable:
     original_unoptimized_sdfg: SDFG | None = None
     """Optional: Unoptimized SDFG coming from GT4Py-frozen stencils + parsing."""
 
+    check_arguments_hash: bool = True
+    """Hash arguments to figure if we need to recompute their C pointer.
+    WARNING: turning this is off is very dangerous and should be used _only_ when we are sure
+    no external buffers will be swapped without DSL knowing
+    """
+
     _arguments_hash: int = 0
     """Internal: hash reflecting the python/C pointers arguments"""
 
@@ -95,8 +101,13 @@ class DaceExecutable:
                 with self.performance_collector.timestep_timer.clock(
                     f"{self.name}.ArgMarshalling"
                 ):
-                    hash_ = self._hash_expected_dsl_args(args, kwargs)
-                    if self.arguments is None or hash_ != self._arguments_hash:
+                    needs_recompute = self.check_arguments_hash
+                    hash_ = 0
+                    if needs_recompute:
+                        hash_ = self._hash_expected_dsl_args(args, kwargs)
+                        needs_recompute = hash_ != self._arguments_hash
+
+                    if self.arguments is None or needs_recompute:
                         marshalled_sdfg_args = dace_program._create_sdfg_args(
                             self.compiled_sdfg.sdfg,
                             args,
@@ -126,6 +137,7 @@ class DaceExecutable:
         config: DaceConfig,
         compiled_sdfg: dace.CompiledSDFG,
         original_unoptimized_sdfg: SDFG | None = None,
+        check_arguments_hash: bool = True,
     ) -> "DaceExecutable":
         return cls(
             name=dace_program.name,
@@ -133,9 +145,10 @@ class DaceExecutable:
             performance_collector=config.performance_collector,
             mode=config.get_orchestrate(),
             backend=config.get_backend(),
-            arguments={},
+            arguments=None,
             original_unoptimized_sdfg=original_unoptimized_sdfg,
             _record=os.getenv("NDSL_RECORD_ORCHESTRATION", "False").lower() == "true",
+            check_arguments_hash=check_arguments_hash,
         )
 
     def serialize(self) -> None:
@@ -168,9 +181,18 @@ class DaceExecutable:
 
     @classmethod
     def from_serialized_bundle(
-        cls, bundle_dir: str, *, do_compile: bool = True
+        cls,
+        bundle_dir: str | Path,
+        *,
+        load_and_compiled_optimized_sdfg: bool = True,
+        load_unoptimized_sdfg: bool = True,
     ) -> "DaceExecutable":
-        """Read a serialized bundle and ready the system for replay."""
+        """Read a serialized bundle and ready the system for replay.
+
+        Args:
+            do_compile: load and compile the optimized SDFG
+            load_unoptimized_sdfg: load unoptimized SDFG, saved before optimization was applied
+        """
 
         bundle_path = Path(bundle_dir) / _BUNDLE_DIRECTORY_NAME
 
@@ -178,18 +200,30 @@ class DaceExecutable:
             arguments = pickle.load(f)
 
         gt4py_sdfg_bundle_sdfg = bundle_path / f"{_PARSED_SDFG_NAME}.sdfgz"
-        if gt4py_sdfg_bundle_sdfg.exists():
+        original_unoptimized_sdfg = None
+        if gt4py_sdfg_bundle_sdfg.exists() and load_unoptimized_sdfg:
             original_unoptimized_sdfg = SDFG.from_file(str(gt4py_sdfg_bundle_sdfg))
+            original_unoptimized_sdfg.build_folder = f"{os.getcwd()}/.dacecache"
 
-        sdfg = SDFG.from_file(f"{bundle_path}/{_OPTIMIZED_SDFG_NAME}.sdfgz")
-        sdfg.build_folder = f"{os.getcwd()}/.dacecache"
-        with open(bundle_path / "backend.txt", "r") as f:
-            backend = Backend(f.readlines()[0])
+        opt_sdfg = None
+        csdfg = None
+        if load_and_compiled_optimized_sdfg:
+            opt_sdfg = SDFG.from_file(f"{bundle_path}/{_OPTIMIZED_SDFG_NAME}.sdfgz")
+            opt_sdfg.build_folder = f"{os.getcwd()}/.dacecache"
+            csdfg = opt_sdfg.compile(validate=False)
 
-        csdfg = sdfg.compile() if do_compile else None
+        backend = cls.read_backend_from_bundle(bundle_dir)
 
         return cls(
-            name=sdfg.name,
+            name=(
+                opt_sdfg.name
+                if opt_sdfg
+                else (
+                    original_unoptimized_sdfg.name
+                    if original_unoptimized_sdfg
+                    else "NoSDFG"
+                )
+            ),
             compiled_sdfg=csdfg,
             performance_collector=PerformanceCollector("replay", LocalComm(0, 1, {})),
             mode=DaCeOrchestration.Run,
@@ -198,6 +232,16 @@ class DaceExecutable:
             original_unoptimized_sdfg=original_unoptimized_sdfg,
             _record=False,
         )
+
+    @classmethod
+    def read_backend_from_bundle(cls, bundle_dir: str | Path) -> Backend:
+        """Read the Backend saved within a given DaceExecutable recording bundle"""
+        bundle_path = Path(bundle_dir) / _BUNDLE_DIRECTORY_NAME
+
+        with open(bundle_path / "backend.txt", "r") as f:
+            backend = Backend(f.readlines()[0])
+
+        return backend
 
     def _hash_expected_dsl_args(self, args: tuple[Any], kwargs: dict[str, Any]) -> int:
         """Hash direct memory of NDSL expected types.
@@ -236,8 +280,12 @@ class DaceExecutable:
 
         return h
 
-    def replay(self, *, bench: bool = False) -> None:
-        """Replay executable using last cached arguments"""
+    def replay(self, *, bench_iterations: int = 0) -> None:
+        """Replay executable using last cached arguments
+
+        Args:
+            bench_iterations: number of iterations for benching the code. When <=1 no benching is done
+        """
         if not self.arguments:
             raise RuntimeError(f"Cannot replay {self.name} - no arguments available")
 
@@ -248,13 +296,16 @@ class DaceExecutable:
         if not self.compiled_sdfg:
             raise RuntimeError("Replay impossible, CompiledSDFG is not set.")
 
-        self.compiled_sdfg(**self.arguments)
+        argtuple, initargtuple = self.compiled_sdfg.construct_arguments(
+            **self.arguments
+        )
+        self.compiled_sdfg.fast_call(argtuple, initargtuple)
 
-        if bench:
+        if bench_iterations > 0:
             with self.performance_collector.total_timer.clock("all"):
-                for _ in range(1000):
+                for _ in range(bench_iterations):
                     with self.performance_collector.clock_timestep("ts"):
-                        self.compiled_sdfg(**self.arguments)
+                        self.compiled_sdfg.fast_call(argtuple, initargtuple)
 
             self.performance_collector.write_out_rank_0(
                 self.backend, True, dt_atmos=-1.0, sim_status="done"

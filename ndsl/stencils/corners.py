@@ -3,7 +3,7 @@ from typing import Literal, TypeAlias, no_type_check
 from gt4py.cartesian import gtscript
 from gt4py.cartesian.gtscript import PARALLEL, computation, horizontal, interval, region
 
-from ndsl import StencilFactory
+from ndsl import NDSLRuntime, StencilFactory
 from ndsl.constants import I_INTERFACE_DIM, J_INTERFACE_DIM, K_INTERFACE_DIM
 from ndsl.dsl.stencil import GridIndexing
 from ndsl.dsl.typing import FloatField
@@ -325,7 +325,7 @@ def copy_corners_xy_stencil_defn(
             q_out_y = q_in[-3, -2, 0]
 
 
-class FillCornersBGrid:
+class FillCornersBGrid(NDSLRuntime):
     """
     Helper-class to fill corners corresponding to the fortran function
     fill_corners with BGRID=.true. and either FILL=YDir or FILL=YDIR
@@ -338,6 +338,8 @@ class FillCornersBGrid:
         origin: tuple[int, ...] | None = None,
         domain: tuple[int, ...] | None = None,
     ) -> None:
+        super().__init__(stencil_factory)
+
         n_halo = stencil_factory.grid_indexing.n_halo
         (
             default_origin,

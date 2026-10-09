@@ -7,6 +7,7 @@ from ndsl.boilerplate import get_factories_single_tile
 from ndsl.config import Backend, BackendLoopOrder
 from ndsl.constants import I_DIM, J_DIM, K_DIM, Float
 from ndsl.dsl.gt4py import FORWARD, computation, interval
+from ndsl.dsl.optimization_config import OptimizationOption
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from ndsl.stencils import copy
 from tests.dsl.dace.stree import StreePipeline, get_SDFG_and_purge
@@ -43,7 +44,8 @@ class OrchestratedCode:
                 enabled=True,
                 inline_K_loops_size_one=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
-            )
+            ),
+            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         methods_to_orchestrate = [
             "write_at_0",

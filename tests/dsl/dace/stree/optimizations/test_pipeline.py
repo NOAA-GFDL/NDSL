@@ -6,6 +6,7 @@ from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import PARALLEL, computation, interval
+from ndsl.dsl.optimization_config import OptimizationOption
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
 
@@ -23,7 +24,8 @@ class TriviallyMergeableCode:
         config = OptimizationConfig(
             stree=OptimizationConfig.Tree(
                 enabled=True, merger=OptimizationConfig.Tree.Merger(enabled=True)
-            )
+            ),
+            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         orchestrate(
             obj=self,
@@ -65,9 +67,10 @@ class LocalOptimizationsCode_Child:
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=False),
-                kernelize=False,
+                kernelize=OptimizationOption.DO_NOT_APPLY,
                 inline_K_loops_size_one=True,
-            )
+            ),
+            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         orchestrate(
             obj=self,
@@ -88,6 +91,9 @@ class LocalOptimizationsCode_ChildNoOpt:
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,
+            optimization_config=OptimizationConfig(
+                loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            ),
         )
         self.stencil = stencil_factory.from_dims_halo(
             func=single_K_map,
@@ -104,9 +110,10 @@ class LocalOptimizationsCode_TopLevel:
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
-                kernelize=False,
+                kernelize=OptimizationOption.DO_NOT_APPLY,
                 inline_K_loops_size_one=False,
-            )
+            ),
+            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         orchestrate(
             obj=self,

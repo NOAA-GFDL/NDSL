@@ -9,7 +9,7 @@ from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
     detect_cycle,
     get_next_node,
-    is_axis_for,
+    is_axis_loop,
     is_axis_map,
     is_last_node,
     list_index,
@@ -47,6 +47,15 @@ def _can_merge_axis_maps(
     return _both_same_single_axis_maps(
         first, second, axis
     ) and no_data_dependencies_on_cartesian_axis(first, second, axis)
+
+
+def _same_for_loop_shape_and_direction(first: tn.ForScope, second: tn.ForScope) -> bool:
+    return (
+        first.loop.init_statement.as_string == second.loop.init_statement.as_string
+        and first.loop.loop_condition.as_string == second.loop.loop_condition.as_string
+        and first.loop.update_statement.as_string
+        == second.loop.update_statement.as_string
+    )
 
 
 class InsertOvercomputationGuard(tn.ScheduleNodeTransformer):
@@ -152,7 +161,7 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
             return self._map_overcompute_merge(node, nodes)
 
         if isinstance(node, tn.ForScope):
-            return self._for_merge(node)
+            return self._for_merge(node, nodes)
 
         if isinstance(node, tn.TaskletNode):
             # We stop thinking - `OffGridTasklet` should have taken care of those
@@ -164,13 +173,23 @@ class CartesianAxisMerge(tn.ScheduleNodeTransformer):
         ndsl_log.debug(f"  (╯°□°)╯︵ ┻━┻: can't merge {type(node)}. Recursion ends.")
         return 0
 
-    def _for_merge(self, the_for_scope: tn.ForScope) -> int:
+    def _for_merge(
+        self, the_for_scope: tn.ForScope, nodes: list[tn.ScheduleTreeNode]
+    ) -> int:
         merged = 0
 
-        if is_axis_for(the_for_scope, AxisIterator._K):
-            # TODO: if the for scope is on a cartesian axis it can be
-            # merged with other for scope going in the same direction
-            pass
+        if is_axis_loop(the_for_scope, self.axis):
+            next_node = get_next_node(the_for_scope, nodes)
+            if (
+                isinstance(next_node, tn.ForScope)
+                and is_axis_loop(next_node, self.axis)
+                and _same_for_loop_shape_and_direction(the_for_scope, next_node)
+            ):
+                the_for_scope.children.extend(next_node.children)
+                for child in next_node.children:
+                    child.parent = the_for_scope
+                del nodes[list_index(next_node, nodes)]
+                merged += 1
         else:
             # Non-cartesian for - can be pushed down if everything merged below
             if (

@@ -320,7 +320,10 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                     gpu_merger = CartesianMergePipeline(
                         self._backend,
                         hint=config.hint,
-                        overcompute=config.stree.merger.overcompute,
+                        align_lhs_on_center_horizontal=config.stree.merger.align_lhs_on_center_horizontal,
+                        align_lhs_on_center_vertical=config.stree.merger.align_lhs_on_center_vertical,
+                        overcompute_horizontal=config.stree.merger.overcompute_horizontal,
+                        overcompute_vertical=config.stree.merger.overcompute_vertical,
                         merge_order=config.stree.merger.order,
                     )
                     gpu_merger.run(child)
@@ -360,7 +363,8 @@ class _ApplyLocalOptimizations(ScheduleTreeScopeTransformer):
                     cpu_merger = CartesianMergePipeline(
                         self._backend,
                         hint=config.hint,
-                        overcompute=config.stree.merger.overcompute,
+                        overcompute_horizontal=config.stree.merger.overcompute_horizontal,
+                        overcompute_vertical=config.stree.merger.overcompute_vertical,
                         merge_order=config.stree.merger.order,
                     )
                     cpu_merger.run(child)

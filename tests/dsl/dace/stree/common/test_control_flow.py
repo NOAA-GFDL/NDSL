@@ -5,7 +5,7 @@ from dace.sdfg.state import LoopRegion
 
 from ndsl.dsl.dace.builder.stree.common import (
     AxisIterator,
-    is_axis_for,
+    is_axis_loop,
     is_axis_map,
     is_cartesian_loop,
     is_off_grid_conditional,
@@ -80,22 +80,22 @@ def test_is_cartesian_map() -> None:
 
 def test_is_axis_for_k() -> None:
     node = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k"), children=[])
-    assert is_axis_for(node, AxisIterator._K)
+    assert is_axis_loop(node, AxisIterator._K)
 
 
 def test_is_axis_for_wrong_iterator() -> None:
     node = tn.ForScope(loop=LoopRegion("for_k", loop_var="__k"), children=[])
-    assert not is_axis_for(node, AxisIterator._I)
+    assert not is_axis_loop(node, AxisIterator._I)
 
 
 def test_is_axis_for_i() -> None:
     node = tn.ForScope(loop=LoopRegion("for_i", loop_var="__i"), children=[])
-    assert is_axis_for(node, AxisIterator._I)
+    assert is_axis_loop(node, AxisIterator._I)
 
 
 def test_is_axis_for_not_i() -> None:
     node = tn.ForScope(loop=LoopRegion("for_i", loop_var="__i0"), children=[])
-    assert not is_axis_for(node, AxisIterator._I)
+    assert not is_axis_loop(node, AxisIterator._I)
 
 
 def test_is_off_grid_conditional() -> None:
