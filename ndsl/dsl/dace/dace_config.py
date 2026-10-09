@@ -299,18 +299,17 @@ class DaceConfig:
                 value=0,
             )
 
-            # TODO: outline works locally but dies on the HPC
-            # dace.config.Config.set(
-            #     "compiler",
-            #     "outlining",
-            #     "enabled",
-            #     value=True,
-            # )
+            dace.config.Config.set(
+                "compiler",
+                "outlining",
+                "enabled",
+                value=False,  # TODO: outline works locally but dies on the HPC
+            )
 
             dace.config.Config.set(
                 "compiler",
                 "max_stack_array_size",
-                value=512*1024,
+                value=512 * 1024,
             )
 
             # Resolve "march/mtune" option for GPU

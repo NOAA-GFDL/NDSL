@@ -18,7 +18,7 @@ from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
 from dace.transformation.helpers import get_parent_map
 
-from ndsl import Backend, OptimizationConfig, ndsl_log
+from ndsl import Backend, DaCeOrchestration, OptimizationConfig, ndsl_log
 from ndsl.dsl.dace.builder.cache import BuildInfo
 from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     negative_delp_checker,
@@ -116,6 +116,142 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
         simplify=False,  # D_SW failed validation on merging
         skip={"ScalarToSymbolPromotion", "ControlFlowRaising", "LiftTrivialIf"},
     )
+
+
+def _V2_optimize_for_serial_cpu(mode: DaCeOrchestration, parsed_sdfg: SDFG) -> SDFG:
+    with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
+        stree = parsed_sdfg.as_schedule_tree()
+
+    with DaCeProgress(
+        mode,
+        "Schedule Tree: cleanup, vectorization friendly pass, transient massaging",
+    ):
+        PIPELINE = [
+            "convert_map_to_loop",
+            "fuse_loops_for_reuse",
+            "merge_consecutive_loops",
+            "pair_complementary_guards",
+            "forward_substitute_conditions",
+            "remove_dead_assignments",
+            "fold_guards",
+            "unswitch_invariant_guards",
+            "split_iteration_spaces",
+            "merge_consecutive_loops",
+            "convert_diamonds_to_selects",
+            "remove_dead_stores",
+            "merge_contiguous_loops",
+            "reroll_statements",
+            "fuse_rolled_loops",
+            "hoist_select_arms",
+            "merge_consecutive_loops",
+            "hoist_condition_reads",
+            "refine_loop_local_transients",
+            "reuse_transients",
+            "move_small_transients_to_stack",
+        ]
+        for step in PIPELINE:
+            trf = _dynamic_transform_load(
+                "dace.sdfg.analysis.schedule_tree.passes", step
+            )
+            if trf:
+                r = trf(stree)
+                ndsl_log.debug(f"{trf.__name__}: {r}")
+
+    with DaCeProgress(mode, "Schedule Tree: go back to SDFG"):
+        result = _tree_as_sdfg(stree)
+
+    with DaCeProgress(mode, "Replace Bool array by Int array (vectorization)"):
+        try:
+            from dace.transformation.passes import PredicateToIntegerArray
+
+            PredicateToIntegerArray().apply_pass(result, {})
+        except ModuleNotFoundError:
+            ndsl_log.debug("The experimental PredicateToIntegerArray is not available")
+
+    return result
+
+
+def _optimize_for_serial_cpu(
+    sdfg: SDFG, validate: bool = True, verbose: bool = True
+) -> SDFG:
+    """
+    Applies the schedule-tree passes to a (frozen) dynamical-core SDFG and returns the resulting SDFG.
+
+    :param sdfg: The SDFG to optimize (left unchanged).
+    :param verbose: Print how many changes each pass made.
+    :return: The optimized SDFG.
+    """
+    import dace.sdfg.analysis.schedule_tree.passes as passes
+
+    ndsl_log.debug("Going to tree...")
+    stree = sdfg.as_schedule_tree()
+    pipeline = [
+        # Turn all maps to loops
+        ("toloops", passes.convert_map_to_loop),
+        # Temporaries: fuse vertical loops that share them, then shrink them (before splitting separates iterations)
+        (
+            "fusion",
+            lambda t: passes.fuse_loops_for_reuse(
+                t, cache_bytes=256 * 1024, min_trip_count=2
+            ),
+        ),
+        ("refine", passes.refine_loop_local_transients),
+        # Guard cleanup
+        ("pair", passes.pair_complementary_guards),
+        ("forward", passes.forward_substitute_conditions),
+        ("deadassign", passes.remove_dead_assignments),
+        ("fold", passes.fold_guards),
+        ("unswitch", passes.unswitch_invariant_guards),
+        ("split", passes.split_iteration_spaces),
+        ("selects", passes.convert_diamonds_to_selects),
+        ("deadstores", passes.remove_dead_stores),
+        ("merge", passes.merge_contiguous_loops),
+        ("reroll", passes.reroll_statements),
+        ("fuserolled", passes.fuse_rolled_loops),
+        ("hoist", passes.hoist_select_arms),
+        # Rarely true guards (before hoist_condition_reads, which adds unguarded statements before conditions)
+        ("sink", passes.sink_into_guards),
+        (
+            "move",
+            passes.move_statements_to_readers,
+        ),  # Past nests that keep statements from their readers" guards
+        ("sink2", passes.sink_into_guards),
+        ("coarsen", passes.coarsen_guards),
+        # Skip resets of containers nothing wrote since they were last reset (before reuse, which would share them)
+        ("resets", passes.skip_redundant_resets),
+        # Conditions read transient arrays through memlets, so that the memory passes see those reads
+        ("hoistcond", passes.hoist_condition_reads),
+        # Memory: share slots between temporaries, then put small ones on the stack
+        ("reuse", passes.reuse_transients),
+        (
+            "stack",
+            lambda t: passes.move_small_transients_to_stack(
+                t,
+                max_array_bytes=4096,
+                max_total_bytes=128 * 1024,
+                zero_read_before_written=True,
+            ),
+        ),
+    ]
+    has_converged = False
+    while not has_converged:
+        ndsl_log.debug("Apply passes...")
+        results = {}
+        for name, apply in pipeline:
+            results[name] = apply(stree)
+        has_converged = all(results.values()) == 0
+        if verbose:
+            for name, count in results.items():
+                ndsl_log.debug(f"{name}: {count}")
+    result = stree.as_sdfg(validate=False, simplify=False)
+    from dace.transformation.passes import PredicateToIntegerArray
+
+    PredicateToIntegerArray().apply_pass(
+        result, {}
+    )  # Boolean mask arrays become int32 (vectorizes better)
+    if validate:
+        result.validate()
+    return result
 
 
 def _optimization_pipeline(
@@ -251,56 +387,13 @@ def optimize_full_program_sdfg(
             _simplify(parsed_sdfg)
 
     if optimization_config.loop_vectorization:
-        with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
-            stree = parsed_sdfg.as_schedule_tree()
+        with DaCeProgress(mode, "Serial CPU optimization V3"):
+            parsed_sdfg = _optimize_for_serial_cpu(
+                parsed_sdfg, validate=False, verbose=True
+            )
 
-        with DaCeProgress(
-            mode,
-            "Schedule Tree: cleanup, vectorization friendly pass, transient massaging",
-        ):
-            PIPELINE = [
-                "convert_map_to_loop",
-                "fuse_loops_for_reuse",
-                "merge_consecutive_loops",
-                "pair_complementary_guards",
-                "forward_substitute_conditions",
-                "remove_dead_assignments",
-                "fold_guards",
-                "unswitch_invariant_guards",
-                "split_iteration_spaces",
-                "merge_consecutive_loops",
-                "convert_diamonds_to_selects",
-                "remove_dead_stores",
-                "merge_contiguous_loops",
-                "reroll_statements",
-                "fuse_rolled_loops",
-                "hoist_select_arms",
-                "merge_consecutive_loops",
-                "hoist_condition_reads",
-                "refine_loop_local_transients",
-                "reuse_transients",
-                "move_small_transients_to_stack",
-            ]
-            for step in PIPELINE:
-                trf = _dynamic_transform_load(
-                    "dace.sdfg.analysis.schedule_tree.passes", step
-                )
-                if trf:
-                    r = trf(stree)
-                    ndsl_log.debug(f"{trf.__name__}: {r}")
-
-        with DaCeProgress(mode, "Schedule Tree: go back to SDFG"):
-            parsed_sdfg = _tree_as_sdfg(stree)
-
-        with DaCeProgress(mode, "Replace Bool array by Int array (vectorization)"):
-            try:
-                from dace.transformation.passes import PredicateToIntegerArray
-
-                PredicateToIntegerArray().apply_pass(parsed_sdfg, {})
-            except ModuleNotFoundError:
-                ndsl_log.debug(
-                    "The experimental PredicateToIntegerArray is not available"
-                )
+        # with DaCeProgress(mode, "Serial CPU optimization V2"):
+        #     parsed_sdfg = _V2_optimize_for_serial_cpu(mode, parsed_sdfg)
 
         with DaCeProgress(mode, "Inline SDFGs & Fuse states"):
             ctr_sdfg = inline_sdfgs(parsed_sdfg)
