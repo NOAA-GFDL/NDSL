@@ -18,7 +18,7 @@ from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
 from dace.transformation.helpers import get_parent_map
 
-from ndsl import Backend, DaCeOrchestration, OptimizationConfig, ndsl_log
+from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.dsl.dace.builder.cache import BuildInfo
 from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     negative_delp_checker,
@@ -118,7 +118,8 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
     )
 
 
-def _V2_optimize_for_serial_cpu(mode: DaCeOrchestration, parsed_sdfg: SDFG) -> SDFG:
+def _V2_optimize_for_serial_cpu(config: DaceConfig, parsed_sdfg: SDFG) -> SDFG:
+    mode = config.get_orchestrate()
     with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
         stree = parsed_sdfg.as_schedule_tree()
 
@@ -393,7 +394,7 @@ def optimize_full_program_sdfg(
             )
 
         # with DaCeProgress(mode, "Serial CPU optimization V2"):
-        #     parsed_sdfg = _V2_optimize_for_serial_cpu(mode, parsed_sdfg)
+        #     parsed_sdfg = _V2_optimize_for_serial_cpu(config, parsed_sdfg)
 
         with DaCeProgress(mode, "Inline SDFGs & Fuse states"):
             ctr_sdfg = inline_sdfgs(parsed_sdfg)
