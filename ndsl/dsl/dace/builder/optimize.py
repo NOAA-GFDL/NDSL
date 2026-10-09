@@ -173,7 +173,7 @@ def _V2_optimize_for_serial_cpu(config: DaceConfig, parsed_sdfg: SDFG) -> SDFG:
 
 
 def _optimize_for_serial_cpu(
-    sdfg: SDFG, validate: bool = True, verbose: bool = True
+    config: DaceConfig, sdfg: SDFG, validate: bool = True, verbose: bool = True
 ) -> SDFG:
     """
     Applies the schedule-tree passes to a (frozen) dynamical-core SDFG and returns the resulting SDFG.
@@ -345,6 +345,7 @@ def optimize_full_program_sdfg(
         parsed_sdfg.apply_transformations_repeated(
             [MapExpansion],
             validate=False,
+            print_report=False,
         )
 
     if optimization_config.stree.enabled:
@@ -390,7 +391,7 @@ def optimize_full_program_sdfg(
     if optimization_config.loop_vectorization:
         with DaCeProgress(mode, "Serial CPU optimization V3"):
             parsed_sdfg = _optimize_for_serial_cpu(
-                parsed_sdfg, validate=False, verbose=True
+                config, parsed_sdfg, validate=False, verbose=True
             )
 
         # with DaCeProgress(mode, "Serial CPU optimization V2"):

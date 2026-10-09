@@ -70,6 +70,12 @@ class DaceExecutable:
     original_unoptimized_sdfg: SDFG | None = None
     """Optional: Unoptimized SDFG coming from GT4Py-frozen stencils + parsing."""
 
+    check_arguments_hash: bool = True
+    """Hash arguments to figure if we need to recompute their C pointer.
+    WARNING: turning this is off is very dangerous and should be used _only_ when we are sure
+    no external buffers will be swapped without DSL knowing
+    """
+
     _arguments_hash: int = 0
     """Internal: hash reflecting the python/C pointers arguments"""
 
@@ -95,8 +101,13 @@ class DaceExecutable:
                 with self.performance_collector.timestep_timer.clock(
                     f"{self.name}.ArgMarshalling"
                 ):
-                    hash_ = self._hash_expected_dsl_args(args, kwargs)
-                    if self.arguments is None or hash_ != self._arguments_hash:
+                    needs_recompute = self.check_arguments_hash
+                    hash_ = 0
+                    if needs_recompute:
+                        hash_ = self._hash_expected_dsl_args(args, kwargs)
+                        needs_recompute = hash_ != self._arguments_hash
+
+                    if self.arguments is None or needs_recompute:
                         marshalled_sdfg_args = dace_program._create_sdfg_args(
                             self.compiled_sdfg.sdfg,
                             args,
@@ -126,6 +137,7 @@ class DaceExecutable:
         config: DaceConfig,
         compiled_sdfg: dace.CompiledSDFG,
         original_unoptimized_sdfg: SDFG | None = None,
+        check_arguments_hash: bool = True,
     ) -> "DaceExecutable":
         return cls(
             name=dace_program.name,
@@ -133,9 +145,10 @@ class DaceExecutable:
             performance_collector=config.performance_collector,
             mode=config.get_orchestrate(),
             backend=config.get_backend(),
-            arguments={},
+            arguments=None,
             original_unoptimized_sdfg=original_unoptimized_sdfg,
             _record=os.getenv("NDSL_RECORD_ORCHESTRATION", "False").lower() == "true",
+            check_arguments_hash=check_arguments_hash,
         )
 
     def serialize(self) -> None:
