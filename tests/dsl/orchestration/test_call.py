@@ -1,4 +1,5 @@
 import dataclasses
+import os
 
 import pytest
 
@@ -240,3 +241,31 @@ def test_dace_call_argument_caching():
     state_A.the_quantity = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "InnerA")
     code(quantity_A, state_A)
     assert list(DACE_EXECUTABLE_CACHE.values())[0]._arguments_hash != hash_Abis
+
+
+def test_unsafe_mode_argument_are_cached():
+    stencil_factory, quantity_factory = get_factories_single_tile_orchestrated(
+        5, 5, 2, 0, backend=Backend.cpu()
+    )
+
+    DACE_EXECUTABLE_CACHE.clear()
+
+    previous_unsafe = os.getenv("NDSL_UNSAFE_MODE", "False")
+    os.environ["NDSL_UNSAFE_MODE"] = "True"
+
+    quantity_A = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "A")
+    state_A = AState.ones(quantity_factory)
+    code = DSLTypeProgram(stencil_factory)
+    code(quantity_A, state_A)
+
+    assert (quantity_A.field[:] == 2).all()
+    assert (state_A.the_quantity.field[:] == 2).all()
+
+    quantity_B = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "B")
+    code(quantity_B, state_A)
+
+    # Quantity B unchanged, quantity A was cached and got changed
+    assert (quantity_A.field[:] == 3).all()
+    assert (quantity_B.field[:] == 1).all()
+
+    os.environ["NDSL_UNSAFE_MODE"] = previous_unsafe
