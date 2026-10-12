@@ -274,7 +274,13 @@ class DaceConfig:
                         "-fno-semantic-interposition "
                     )
             elif cxx_defaults.name == CxxCompilerName.CLANG:
-                optimization_flags = "-mno-fma"
+                optimization_flags = (
+                    "-fPIC "
+                    "-mno-fma "
+                    "-faligned-new "
+                    "-Wno-unused-label "
+                    "-Wno-unused-parameter "
+                )
             elif cxx_defaults.name == CxxCompilerName.INTEL:
                 optimization_flags = "-mno-fma"
             else:
@@ -304,12 +310,6 @@ class DaceConfig:
                 "outlining",
                 "enabled",
                 value=False,  # TODO: outline works locally but dies on the HPC
-            )
-
-            dace.config.Config.set(
-                "compiler",
-                "max_stack_array_size",
-                value=512 * 1024,
             )
 
             # Resolve "march/mtune" option for GPU

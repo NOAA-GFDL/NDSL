@@ -45,7 +45,7 @@ class OrchestratedCode:
                 inline_K_loops_size_one=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
             ),
-            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         methods_to_orchestrate = [
             "write_at_0",

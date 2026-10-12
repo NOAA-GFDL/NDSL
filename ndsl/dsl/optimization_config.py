@@ -108,11 +108,9 @@ class OptimizationConfig:
     stree: Tree = field(default_factory=Tree)
     """Schedule Tree optimization options"""
 
-    loop_vectorization: OptimizationOption = OptimizationOption.AUTO
+    serial_cpu_vectorization: OptimizationOption = OptimizationOption.AUTO
     """
     Series of transformed aimed at helping the generic compiler do auto-vectorization for AVX instructions.
-    Also contains some transient refinement
-    EXPERIMENTAL, therefore defaulting to False.
     """
 
     gpu: GPU = field(default_factory=GPU)
@@ -197,8 +195,8 @@ class OptimizationConfig:
                 omp_num_thread = os.getenv("OMP_NUM_THREAD")
                 if omp_num_thread is None or int(omp_num_thread) <= 1:
                     self.hint = OptimizationHint.SERIAL
-                    if self.loop_vectorization is OptimizationOption.AUTO:
-                        self.loop_vectorization = OptimizationOption.APPLY
+                    if self.serial_cpu_vectorization is OptimizationOption.AUTO:
+                        self.serial_cpu_vectorization = OptimizationOption.APPLY
                 else:
                     self.hint = OptimizationHint.PARALLEL
 

@@ -60,7 +60,7 @@ class TransientRefineableCode(NDSLRuntime):
                 kernelize=OptimizationOption.DO_NOT_APPLY,
                 refine_transients=True,
             ),
-            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         super().__init__(stencil_factory, optimization_config=config)
         orchestratable_methods = [
@@ -190,7 +190,7 @@ class TransientStrideTestCode(NDSLRuntime):
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
                 refine_transients=True,
             ),
-            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         super().__init__(stencil_factory, optimization_config=config)
         self.tmp = self.make_local(quantity_factory, [I_DIM, J_INTERFACE_DIM, K_DIM])

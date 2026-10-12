@@ -25,7 +25,7 @@ class TriviallyMergeableCode:
             stree=OptimizationConfig.Tree(
                 enabled=True, merger=OptimizationConfig.Tree.Merger(enabled=True)
             ),
-            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         orchestrate(
             obj=self,
@@ -70,7 +70,7 @@ class LocalOptimizationsCode_Child:
                 kernelize=OptimizationOption.DO_NOT_APPLY,
                 inline_K_loops_size_one=True,
             ),
-            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         orchestrate(
             obj=self,
@@ -92,7 +92,7 @@ class LocalOptimizationsCode_ChildNoOpt:
             obj=self,
             config=stencil_factory.config.dace_config,
             optimization_config=OptimizationConfig(
-                loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+                serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
             ),
         )
         self.stencil = stencil_factory.from_dims_halo(
@@ -113,7 +113,7 @@ class LocalOptimizationsCode_TopLevel:
                 kernelize=OptimizationOption.DO_NOT_APPLY,
                 inline_K_loops_size_one=False,
             ),
-            loop_vectorization=OptimizationOption.DO_NOT_APPLY,
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         orchestrate(
             obj=self,

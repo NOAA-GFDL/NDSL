@@ -11,4 +11,4 @@ def test_get_default_converts_boolean_optimization_options(
     config = OptimizationConfig.get_default()
 
     assert config.stree.kernelize is OptimizationOption.APPLY
-    assert config.loop_vectorization is OptimizationOption.DO_NOT_APPLY
+    assert config.serial_cpu_vectorization is OptimizationOption.DO_NOT_APPLY
