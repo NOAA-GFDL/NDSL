@@ -36,7 +36,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13"
 ]
 dependencies = [
-  "dace @ git+https://github.com/spcl/dace.git@664363b98a3ebac46e1f5338d73d7fe0368b5507",
+  "dace @ git+https://github.com/spcl/dace.git@ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d",
   "gt4py @ git+https://github.com/Gridtools/gt4py.git@3bd69c8a6f778561a2ce9a15020af113c072eb57",
   "mpi4py>=4.1",
   "cftime",
