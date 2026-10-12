@@ -518,7 +518,7 @@ wheels = [
 [[package]]
 name = "dace"
 version = "2.0.0a10"
-source = { git = "https://github.com/spcl/dace.git?rev=664363b98a3ebac46e1f5338d73d7fe0368b5507#664363b98a3ebac46e1f5338d73d7fe0368b5507" }
+source = { git = "https://github.com/spcl/dace.git?rev=ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d#ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d" }
 dependencies = [
     { name = "astunparse" },
     { name = "click" },
@@ -1465,7 +1465,7 @@ requires-dist = [
     { name = "cftime" },
     { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
     { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
-    { name = "dace", git = "https://github.com/spcl/dace.git?rev=664363b98a3ebac46e1f5338d73d7fe0368b5507" },
+    { name = "dace", git = "https://github.com/spcl/dace.git?rev=ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d" },
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
