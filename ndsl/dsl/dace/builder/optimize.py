@@ -1,5 +1,4 @@
 import gc
-import importlib
 import numbers
 import os
 from pathlib import Path
@@ -38,16 +37,6 @@ from ndsl.dsl.dace.utils import (
 )
 
 _INTERNAL__SCHEDULE_TREE_OPTIMIZATION_PASSES: list[tn.ScheduleNodeVisitor] | None = None
-
-
-def _dynamic_transform_load(module_name: str, class_name: str) -> type | None:
-    """Safely load a class from a module specified by string."""
-    try:
-        module = importlib.import_module(module_name)
-        return getattr(module, class_name)
-    except (ModuleNotFoundError, AttributeError):
-        ndsl_log.debug(f"Transform {class_name} not available")
-        return None
 
 
 def _to_gpu(sdfg: SDFG) -> None:
@@ -128,9 +117,14 @@ def _optimize_for_serial_cpu(
     verbose: bool = True,
 ) -> SDFG:
     """
-    Applies the schedule-tree passes to a (frozen) dynamical-core SDFG and returns the resulting SDFG.
+    Applies a series of passes aimed at leveraging (AVX) auto-vectorization on modern hardware and
+    compiler.
 
-    :param sdfg: The SDFG to optimize (left unchanged).
+    The passes will clean up dead code, remove/hoist branching, favor loop making over loop/guard combo,
+    look to merge loops to increase transient locality, refine transients and generally aims at presenting
+    a better vectorizable code. Target compilers were GCC (mildly sucessfull) and LLVM (successfull)
+
+    :param sdfg: The frozenn SDFG to optimize (left unchanged).
     :param verbose: Print how many changes each pass made.
     :return: The optimized SDFG.
     """
