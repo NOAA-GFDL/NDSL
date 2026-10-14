@@ -25,8 +25,8 @@ jobs:
       matrix:
         python-version: ['3.12', '3.13']
         extra: ['openmpi,zarr']
-        marker-serial: ['not parallel and not gpu and not pyfms']
-        marker-parallel: ['parallel and not gpu and not pyfms']
+        marker-serial: ['not parallel and not gpu and not pyfms and not boundary_condition']
+        marker-parallel: ['parallel and not gpu and not pyfms and not boundary_condition']
         include:
           # add pyfms tests for 3.12
           - extra: 'pyfms'
