@@ -190,15 +190,19 @@ class OptimizationConfig:
             if backend.is_gpu_backend():
                 self.hint = OptimizationHint.PARALLEL
             else:
-                # Check for OMP_NUM_THREAD to gather if we can multithread or if
-                # we should follow a
                 omp_num_thread = os.getenv("OMP_NUM_THREAD")
                 if omp_num_thread is None or int(omp_num_thread) <= 1:
                     self.hint = OptimizationHint.SERIAL
-                    if self.serial_cpu_vectorization is OptimizationOption.AUTO:
-                        self.serial_cpu_vectorization = OptimizationOption.APPLY
                 else:
                     self.hint = OptimizationHint.PARALLEL
+
+        if self.serial_cpu_vectorization is OptimizationOption.AUTO:
+            if not backend.is_gpu_backend() and (
+                omp_num_thread is None or int(omp_num_thread) <= 1
+            ):
+                self.serial_cpu_vectorization = OptimizationOption.APPLY
+            else:
+                self.serial_cpu_vectorization = OptimizationOption.DO_NOT_APPLY
 
         if self.stree.kernelize == OptimizationOption.AUTO:
             self.stree.kernelize = (

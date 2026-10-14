@@ -346,13 +346,6 @@ def optimize_full_program_sdfg(
             verbose=True,
         )
 
-        with DaCeProgress(mode, "Inline SDFGs & Fuse states"):
-            ctr_sdfg = inline_sdfgs(parsed_sdfg)
-            ctr_state = fuse_states(parsed_sdfg)
-            ndsl_log.debug(
-                f"Inline SDFGs | Fuse states counts: {ctr_sdfg} | {ctr_state}"
-            )
-
     # We want all maps properly collapse to make sure the codegen will see nD parallel
     # axis as a single kernelizable map
     with DaCeProgress(mode, "Collapse maps"):
@@ -428,6 +421,12 @@ def optimize_full_program_sdfg(
                     ),
                     compress=True,
                 )
+
+    with DaCeProgress(mode, "Inline SDFGs & Fuse states"):
+        ctr_sdfg = inline_sdfgs(parsed_sdfg)
+        ctr_state = fuse_states(parsed_sdfg)
+        ndsl_log.debug(f"Inline SDFGs | Fuse states counts: {ctr_sdfg} | {ctr_state}")
+
     # Move all memory that can be into a pool to lower memory pressure for GPU
     # We skip this memory optimization for CPU because we don't have a memory
     # pool available yet (DaCe v1)
