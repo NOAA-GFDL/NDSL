@@ -4,9 +4,9 @@ requires = ["setuptools >= 80", "setuptools-scm>=10"]
 
 [dependency-groups]
 dev = [
-  {include-group = 'docs'},
-  {include-group = 'lint'},
-  {include-group = 'test'}
+  { include-group = 'docs' },
+  { include-group = 'lint' },
+  { include-group = 'test' }
 ]
 docs = [
   "mkdocstrings[python]",
@@ -24,7 +24,7 @@ test = [
 ]
 
 [project]
-authors = [{name = "NOAA/NASA"}]
+authors = [{ name = "NOAA/NASA" }]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Science/Research",
@@ -175,5 +175,5 @@ include-package-data = true
 include = ["ndsl", "ndsl.*"]
 
 [tool.setuptools_scm]
-version_scheme = "no-guess-dev"
 tag.strict = "true"  # only consider tags with at least one dot (e.g. v1.0, 2025.06.03)
+version_scheme = "no-guess-dev"
