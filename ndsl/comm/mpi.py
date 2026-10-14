@@ -5,7 +5,7 @@ place where we directly import from mpi4py. This allows to potentially
 swap mpi4py in the future.
 """
 
-from typing import TypeVar, cast
+from typing import ClassVar, TypeVar, cast
 
 from mpi4py import MPI
 
@@ -15,7 +15,7 @@ T = TypeVar("T")
 
 
 class MPIComm(Comm):
-    _op_mapping: dict[ReductionOperator, MPI.Op] = {
+    _op_mapping: ClassVar[dict[ReductionOperator, MPI.Op]] = {
         ReductionOperator.OP_NULL: MPI.OP_NULL,
         ReductionOperator.MAX: MPI.MAX,
         ReductionOperator.MIN: MPI.MIN,
@@ -51,7 +51,7 @@ class MPIComm(Comm):
         self._comm.barrier()
 
     def Barrier(self) -> None:
-        pass
+        self._comm.Barrier()
 
     def Scatter(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         self._comm.Scatter(sendbuf, recvbuf, root=root, **kwargs)
@@ -83,10 +83,10 @@ class MPIComm(Comm):
     def allreduce(
         self, sendobj: T, op: ReductionOperator = ReductionOperator.NO_OP
     ) -> T:
-        return self._comm.allreduce(sendobj, self._op_mapping[op])
+        return self._comm.allreduce(sendobj, self._op_mapping[op])  # type: ignore[arg-type]
 
     def Allreduce(self, sendobj: T, recvobj: T, op: ReductionOperator) -> T:
-        return self._comm.Allreduce(sendobj, recvobj, self._op_mapping[op])
+        return self._comm.Allreduce(sendobj, recvobj, self._op_mapping[op])  # type: ignore[arg-type]
 
     def Allreduce_inplace(self, recvobj: T, op: ReductionOperator) -> T:
-        return self._comm.Allreduce(MPI.IN_PLACE, recvobj, self._op_mapping[op])
+        return self._comm.Allreduce(MPI.IN_PLACE, recvobj, self._op_mapping[op])  # type: ignore[arg-type]
