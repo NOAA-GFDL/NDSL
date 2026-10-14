@@ -185,12 +185,12 @@ class OptimizationConfig:
 
     def concretize(self, backend: Backend) -> None:
         """Concretize the remaining AUTO argument based on various metric."""
+        omp_num_thread = os.getenv("OMP_NUM_THREAD")
 
         if self.hint == OptimizationHint.AUTO:
             if backend.is_gpu_backend():
                 self.hint = OptimizationHint.PARALLEL
             else:
-                omp_num_thread = os.getenv("OMP_NUM_THREAD")
                 if omp_num_thread is None or int(omp_num_thread) <= 1:
                     self.hint = OptimizationHint.SERIAL
                 else:
