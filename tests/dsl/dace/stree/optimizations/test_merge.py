@@ -118,6 +118,7 @@ class OrchestratedCode:
                     ),
                     kernelize=OptimizationOption.AUTO,
                 ),
+                serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
                 hint=hint,
             ),
         )
