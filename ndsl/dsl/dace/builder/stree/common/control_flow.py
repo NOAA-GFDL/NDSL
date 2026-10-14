@@ -13,7 +13,7 @@ def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
     return axis == param
 
 
-def is_axis_for(node: tn.ForScope, axis: AxisIterator) -> bool:
+def is_axis_loop(node: tn.ForScope, axis: AxisIterator) -> bool:
     """Returns true if node is a For over the given axis."""
     return axis == node.loop.loop_variable
 
@@ -22,7 +22,7 @@ def is_cartesian_loop(node: tn.ScheduleTreeNode) -> bool:
     """Returns true if the given node is a map or for loop over a cartesian axis."""
     for axis in AxisIterator:
         if (isinstance(node, tn.MapScope) and is_axis_map(node, axis)) or (
-            isinstance(node, tn.ForScope) and is_axis_for(node, axis)
+            isinstance(node, tn.ForScope) and is_axis_loop(node, axis)
         ):
             return True
 

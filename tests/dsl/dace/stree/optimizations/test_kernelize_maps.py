@@ -52,7 +52,8 @@ class OrchestratedCode(NDSLRuntime):
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
                 kernelize=OptimizationOption.APPLY,
-            )
+            ),
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         super().__init__(stencil_factory, optimization_config)
 
