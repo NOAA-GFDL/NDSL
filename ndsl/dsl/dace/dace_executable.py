@@ -184,13 +184,14 @@ class DaceExecutable:
         cls,
         bundle_dir: str | Path,
         *,
-        load_and_compiled_optimized_sdfg: bool = True,
+        load_and_compile_optimized_sdfg: bool = True,
         load_unoptimized_sdfg: bool = True,
     ) -> "DaceExecutable":
         """Read a serialized bundle and ready the system for replay.
-
+        
         Args:
-            do_compile: load and compile the optimized SDFG
+            bundle_dir: directory from which to read the bundle
+            load_and_compile_optimized_sdfg: load and compile the optimized SDFG
             load_unoptimized_sdfg: load unoptimized SDFG, saved before optimization was applied
         """
 
@@ -207,7 +208,7 @@ class DaceExecutable:
 
         opt_sdfg = None
         csdfg = None
-        if load_and_compiled_optimized_sdfg:
+        if load_and_compile_optimized_sdfg:
             opt_sdfg = SDFG.from_file(f"{bundle_path}/{_OPTIMIZED_SDFG_NAME}.sdfgz")
             opt_sdfg.build_folder = f"{os.getcwd()}/.dacecache"
             csdfg = opt_sdfg.compile(validate=False)
@@ -284,7 +285,7 @@ class DaceExecutable:
         """Replay executable using last cached arguments
 
         Args:
-            bench_iterations: number of iterations for benching the code. When <=1 no benching is done
+            bench_iterations: number of iterations for benching the code. When <=0 no benching is done
         """
         if not self.arguments:
             raise RuntimeError(f"Cannot replay {self.name} - no arguments available")

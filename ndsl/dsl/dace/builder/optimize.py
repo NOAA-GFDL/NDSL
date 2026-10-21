@@ -111,10 +111,8 @@ def _tree_as_sdfg(stree: tn.ScheduleTreeRoot) -> SDFG:
 
 def _optimize_for_serial_cpu(
     config: DaceConfig,
-    device_type: DaceDeviceType,
     sdfg: SDFG,
     validate: bool = True,
-    verbose: bool = True,
 ) -> SDFG:
     """
     Applies a series of passes aimed at leveraging (AVX) auto-vectorization on modern hardware and
@@ -122,18 +120,14 @@ def _optimize_for_serial_cpu(
 
     The passes will clean up dead code, remove/hoist branching, favor loop making over loop/guard combo,
     look to merge loops to increase transient locality, refine transients and generally aims at presenting
-    a better vectorizable code. Target compilers were GCC (mildly sucessfull) and LLVM (successfull)
+    a better vectorizable code. Target compilers were GCC (mildly successful) and LLVM (successfull)
 
-    :param sdfg: The frozenn SDFG to optimize (left unchanged).
+    :param sdfg: The frozen SDFG to optimize (left unchanged).
     :param verbose: Print how many changes each pass made.
     :return: The optimized SDFG.
     """
 
     with DaCeProgress(config.get_orchestrate(), "Go to schedule tree"):
-        for _sd, _aname, arr in sdfg.arrays_recursive():
-            if arr.shape == (1,):
-                arr.storage = DaceStorageType.Register
-        make_transients_persistent(sdfg=sdfg, device=device_type)
         stree = sdfg.as_schedule_tree()
 
     with DaCeProgress(
@@ -292,24 +286,27 @@ def optimize_full_program_sdfg(
 
     with DaCeProgress(mode, "Expand maps"):
         parsed_sdfg.apply_transformations_repeated(
-            [MapExpansion],
+            MapExpansion,
+            options={
+                "inner_schedule": (
+                    ScheduleType.GPU_Device
+                    if device_type is DeviceType.GPU
+                    else ScheduleType.Default
+                )
+            },
             validate=False,
             print_report=False,
         )
 
+    with DaCeProgress(mode, "Make residency of memory leaner"):
+        # - Scalar are registers
+        # - Transient are persistent (cache miss but not runtime reallocation)
+        for _sd, _aname, arr in parsed_sdfg.arrays_recursive():
+            if arr.shape == (1,):
+                arr.storage = DaceStorageType.Register
+        make_transients_persistent(sdfg=parsed_sdfg, device=device_type)
+
     if optimization_config.stree.enabled:
-        with DaCeProgress(mode, "Expand maps (pre tree conversion)"):
-            parsed_sdfg.apply_transformations_repeated(
-                MapExpansion,
-                options={
-                    "inner_schedule": (
-                        ScheduleType.GPU_Device
-                        if device_type is DeviceType.GPU
-                        else ScheduleType.Default
-                    )
-                },
-                validate=False,
-            )
         # Here be 🐉 - but tests exists in test_optimization.py
         with DaCeProgress(mode, "Schedule Tree: generate from SDFG"):
             # Break all loops into uni-dimensional loops to simplify optimizations
@@ -340,10 +337,8 @@ def optimize_full_program_sdfg(
     if optimization_config.serial_cpu_vectorization:
         parsed_sdfg = _optimize_for_serial_cpu(
             config,
-            device_type,
             parsed_sdfg,
             validate=False,
-            verbose=True,
         )
 
     # We want all maps properly collapse to make sure the codegen will see nD parallel
@@ -356,23 +351,14 @@ def optimize_full_program_sdfg(
             MapCollapse, permissive=True, progress=False, validate=False
         )
 
-    with DaCeProgress(mode, "Make transient persistents"):
-        # Make the transients array persistents
-        if config.is_gpu_backend():
-            # TODO
-            # The following should happen on the stree level
+    if config.is_gpu_backend():
+        with DaCeProgress(mode, "Make residency of GPU memory correct & leaner"):
+            # Make the transients array persistents
             _to_gpu(parsed_sdfg)
             make_transients_persistent(sdfg=parsed_sdfg, device=device_type)
 
             # Upload args to device
             upload_to_device(list(args) + list(kwargs.values()))
-        else:
-            # TODO
-            # The following should happen on the stree level
-            for _sd, _aname, arr in parsed_sdfg.arrays_recursive():
-                if arr.shape == (1,):
-                    arr.storage = DaceStorageType.Register
-            make_transients_persistent(sdfg=parsed_sdfg, device=device_type)
 
     if config.is_gpu_backend():
         with DaCeProgress(mode, "Apply GPU transformations"):
