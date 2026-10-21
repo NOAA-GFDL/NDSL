@@ -188,7 +188,7 @@ class DaceExecutable:
         load_unoptimized_sdfg: bool = True,
     ) -> "DaceExecutable":
         """Read a serialized bundle and ready the system for replay.
-        
+
         Args:
             bundle_dir: directory from which to read the bundle
             load_and_compile_optimized_sdfg: load and compile the optimized SDFG
