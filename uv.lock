@@ -518,7 +518,7 @@ wheels = [
 [[package]]
 name = "dace"
 version = "2.0.0a10"
-source = { git = "https://github.com/spcl/dace.git?rev=ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d#ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d" }
+source = { git = "https://github.com/spcl/dace.git?rev=55622dde6dcd14fc92d726d05b1ba45be940edfb#55622dde6dcd14fc92d726d05b1ba45be940edfb" }
 dependencies = [
     { name = "astunparse" },
     { name = "click" },
@@ -817,7 +817,7 @@ wheels = [
 [[package]]
 name = "gt4py"
 version = "1.2.3"
-source = { git = "https://github.com/Gridtools/gt4py.git?rev=3bd69c8a6f778561a2ce9a15020af113c072eb57#3bd69c8a6f778561a2ce9a15020af113c072eb57" }
+source = { git = "https://github.com/Gridtools/gt4py.git?rev=v1.2.3#3bd69c8a6f778561a2ce9a15020af113c072eb57" }
 dependencies = [
     { name = "array-api-compat" },
     { name = "attrs" },
@@ -1465,11 +1465,11 @@ requires-dist = [
     { name = "cftime" },
     { name = "cupy-cuda12x", marker = "extra == 'cuda12'", specifier = ">=12.0" },
     { name = "cupy-cuda13x", marker = "extra == 'cuda13'", specifier = ">=14.0" },
-    { name = "dace", git = "https://github.com/spcl/dace.git?rev=ea9cbe5197f253870be0737a7bd5ce9d3c27ca7d" },
+    { name = "dace", git = "https://github.com/spcl/dace.git?rev=55622dde6dcd14fc92d726d05b1ba45be940edfb" },
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
-    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=3bd69c8a6f778561a2ce9a15020af113c072eb57" },
+    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=v1.2.3" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "ipykernel", marker = "extra == 'demos'" },
