@@ -85,12 +85,12 @@ class LHSWriteOnCenter(tn.ScheduleNodeVisitor):
 
         # Our offset should look like "+X" with X the value
         assert offset_no_whitespace[0] in ["+", "-"]
-        plus = offset_no_whitespace[0] == "-"
+        negative = offset_no_whitespace[0] == "-"
         value = int(offset_no_whitespace[1])
 
         # Offset the range of the Map
         range_ = [value]
-        node.node.map.range.offset(range_, plus)
+        node.node.map.range.offset(range_, negative)
 
         # Move all K to 0
         for child in node.children:
