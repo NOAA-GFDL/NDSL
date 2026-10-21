@@ -32,7 +32,7 @@ class CartesianMergePipeline(StreePipeline):
         align_lhs_on_center_horizontal: Attempt to align the LHS writes on center so we can push merging.
             Restrict application to horizontal axis.
             Experimental, defaults to False.
-        align_lhs_on_center_vertical: Whether to merge vertical axis maps at the cost of an if statement.
+        align_lhs_on_center_vertical: Attempt to align the LHS writes on center so we can push merging.
             Restrict application to vertical axis.
             Experimental, defaults to True.
         overcompute_horizontal: Merge horizonal axis maps at the cost of an if statement.

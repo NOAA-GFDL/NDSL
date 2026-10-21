@@ -14,7 +14,7 @@ def is_axis_map(node: tn.MapScope, axis: AxisIterator) -> bool:
 
 
 def is_axis_loop(node: tn.ForScope, axis: AxisIterator) -> bool:
-    """Returns true if node is a For over the given axis."""
+    """Returns true if node is a loop over the given axis."""
     return axis == node.loop.loop_variable
 
 

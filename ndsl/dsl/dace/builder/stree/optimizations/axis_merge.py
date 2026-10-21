@@ -50,6 +50,7 @@ def _can_merge_axis_maps(
 
 
 def _same_for_loop_shape_and_direction(first: tn.ForScope, second: tn.ForScope) -> bool:
+    """Returns true if `first` and `second` share the same  init/update/condition (as string)."""
     return (
         first.loop.init_statement.as_string == second.loop.init_statement.as_string
         and first.loop.loop_condition.as_string == second.loop.loop_condition.as_string
