@@ -110,3 +110,7 @@ class KernelizeMaps(tn.ScheduleNodeVisitor):
         raise NotImplementedError(
             f"KernelizeMaps is not configured for custom apply order {self._apply_order}."
         )
+
+
+def kernalize(stree: tn.ScheduleTreeRoot, backend: Backend) -> None:
+    KernelizeMaps(backend).visit(stree)

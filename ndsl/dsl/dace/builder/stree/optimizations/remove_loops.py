@@ -4,7 +4,7 @@ from typing import Any
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
 from ndsl import ndsl_log
-from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_for, list_index
+from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_loop, list_index
 from ndsl.dsl.dace.builder.stree.optimizations.replace_axis_symbol import (
     ReplaceAxisSymbol,
 )
@@ -35,7 +35,7 @@ class InlineVertical2DWrite(tn.ScheduleNodeVisitor):
         return "InlineVertical2DWrite"
 
     def visit_ForScope(self, the_for: tn.ForScope) -> None:
-        if not is_axis_for(the_for, AxisIterator._K):
+        if not is_axis_loop(the_for, AxisIterator._K):
             return
 
         assert the_for.parent is not None  # just to keep pyright happy

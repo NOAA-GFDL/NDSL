@@ -2,7 +2,7 @@ from .memlet import CARTESIAN_AXIS_SYMBOLS  # isort: skip
 from .memlet import AxisIterator  # isort: skip
 from .memlet import no_data_dependencies_on_cartesian_axis  # isort: skip
 from .control_flow import (
-    is_axis_for,
+    is_axis_loop,
     is_axis_map,
     is_cartesian_loop,
     is_off_grid_conditional,
@@ -25,7 +25,7 @@ __all__ = [
     "detect_cycle",
     "get_next_node",
     "get_previous_node",
-    "is_axis_for",
+    "is_axis_loop",
     "is_axis_map",
     "is_cartesian_loop",
     "is_first_node",
