@@ -277,8 +277,15 @@ def test_frozen_stencil_kwargs_passed_to_init(
         build_info={},
         dtypes={
             # Mixed precision
-            float: Float,
-            int: Int,
+            "float": Float,
+            "int": Int,
+            "Float": Float,
+            "Int": Int,
+            # NDSL dtypes
+            "Float32": np.float32,
+            "Float64": np.float64,
+            "Int32": np.int32,
+            "Int64": np.int64,
             # 2D temporaries
             "FloatFieldIJ": FloatFieldIJ,
             "FloatFieldIJ32": FloatFieldIJ32,
