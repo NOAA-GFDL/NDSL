@@ -17,7 +17,6 @@ from dace.transformation.auto.auto_optimize import make_transients_persistent
 from dace.transformation.dataflow import MapCollapse, MapExpansion
 from dace.transformation.dataflow.add_threadblock_map import AddThreadBlockMap
 from dace.transformation.helpers import get_parent_map
-from dace.transformation.passes import PredicateToIntegerArray
 
 from ndsl import Backend, OptimizationConfig, ndsl_log
 from ndsl.dsl.dace.builder.cache import BuildInfo
@@ -127,12 +126,25 @@ def _optimize_for_serial_cpu(
     :return: The optimized SDFG.
     """
 
+    # Dev NOTE: we work with a DaCe branch not merged with `main` which causes issue for their CI.
+    #           We will check that the transform of this branch `function-regions` actually exists
+    #           and bail if they don't. PredicateToIntegerArray is representative of the entire
+    #           workflow.
+    try:
+        from dace.transformation.passes import PredicateToIntegerArray
+    except ModuleNotFoundError:
+        ndsl_log.warning(
+            "Schedule tree canonicalization passes are not available, "
+            "serial CPU optimization skipped."
+        )
+        return sdfg
+
     with DaCeProgress(config.get_orchestrate(), "Go to schedule tree"):
         stree = sdfg.as_schedule_tree()
 
     with DaCeProgress(
         config.get_orchestrate(),
-        "Apply canonicalziation and massage loop for vectorization",
+        "Apply canonicalization and massage loop for vectorization",
     ):
         pipeline = [
             # Turn all maps to loops
