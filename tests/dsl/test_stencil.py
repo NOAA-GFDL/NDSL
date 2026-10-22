@@ -8,9 +8,11 @@ from ndsl import (
     CompilationConfig,
     FrozenStencil,
     GridIndexing,
+    NDSLRuntime,
     StencilConfig,
     StencilFactory,
 )
+from ndsl.boilerplate import get_factories_single_tile
 from ndsl.config import Backend
 from ndsl.constants import (
     I_DIM,
@@ -24,10 +26,16 @@ from ndsl.dsl.gt4py import FORWARD, PARALLEL, Field, computation, interval
 from ndsl.dsl.stencil import _DEPRECATED_STENCILS, deprecated_stencil
 from ndsl.dsl.typing import (
     BoolFieldIJ,
+    Float,
+    Float32,
+    Float64,
     FloatField,
     FloatFieldIJ,
     FloatFieldIJ32,
     FloatFieldIJ64,
+    Int,
+    Int32,
+    Int64,
     IntFieldIJ,
     IntFieldIJ32,
     IntFieldIJ64,
@@ -174,6 +182,43 @@ def test_stencil_2D_temporaries() -> None:
     )
     stencil(quantity)
     assert (quantity[1, 1, :] == 21.0).all()
+
+
+def test_stencil_native_NDSL_types() -> None:
+    def the_stencil(in_field: FloatField, out_field: FloatField):
+        with computation(PARALLEL), interval(...):
+            i: Int = 0
+            i32: Int32 = 0
+            i64: Int64 = 0
+            f: Float = 0.0
+            f32: Float32 = 0.0
+            f64: Float64 = 0.0
+
+            out_field = in_field + i + i32 + i64 + f + f32 + f64
+
+    class Code(NDSLRuntime):
+        def __init__(self, stencil_factory: StencilFactory) -> None:
+            super().__init__(stencil_factory)
+            self._the_stencil = stencil_factory.from_dims_halo(
+                func=the_stencil,
+                compute_dims=[I_DIM, J_DIM, K_DIM],
+            )
+
+        def __call__(self, in_field: Quantity, out_field: Quantity) -> None:
+            self._the_stencil(in_field, out_field)
+
+    # actual test starts here
+    domain = (2, 2, 5)
+    stencil_factory, quantity_factory = get_factories_single_tile(
+        domain[0], domain[1], domain[2], nhalo=0, backend=Backend.python()
+    )
+
+    A = quantity_factory.full(dims=[I_DIM, J_DIM, K_DIM], units="n/a", value=2.0)
+    B = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], units="n/a")
+
+    code = Code(stencil_factory)
+    code(A, B)
+    assert (A.field[:] == B.field[:]).all()
 
 
 @pytest.mark.parametrize(
