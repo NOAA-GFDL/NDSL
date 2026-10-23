@@ -132,7 +132,7 @@ def _optimize_for_serial_cpu(
     #           workflow.
     try:
         from dace.transformation.passes import PredicateToIntegerArray
-    except ModuleNotFoundError:
+    except ImportError:
         ndsl_log.warning(
             "Schedule tree canonicalization passes are not available, "
             "serial CPU optimization skipped."
