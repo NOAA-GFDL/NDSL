@@ -28,10 +28,10 @@ Below is a short (if it get too long, consider automating parts) release checkli
 
 Every now and then, we'll need to patch the currently released version of NDSL. To do so, follow the steps below.
 
-Disclaimer: we never did this (until now). This is what we think will work.
-
 1. Create a branch from the tag you want to patch.
 2. Commit your changes on that branch.
-3. Create a release (see above) from that branch (the branch can be deleted once the tag is made).
-4. Follow the release checklist above.
-5. Cherry-pick the fix to `develop` or make a better fix in `develop`.
+3. Test your changes, e.g. by creating a draft PR with your changes against `develop` such that CI can run.
+4. Create a release (see above) from that branch (the branch can be deleted once the tag is made).
+5. Follow the release checklist above.
+  - Note: since the patch changes aren't merged into `develop` yet, auto-generating release notes wont' work.
+6. Merge the PR from step 3 to bring the fix to `develop` or make a better fix in `develop`.

@@ -305,12 +305,17 @@ class DaceConfig:
                 value=0,
             )
 
-            dace.config.Config.set(
-                "compiler",
-                "outlining",
-                "enabled",
-                value=False,  # TODO: outline works locally but dies on the HPC
-            )
+            # Dev NOTE: the DaCe CI doesn't pull from our `pinned` version of DaCe so we have
+            #           to try/except up until those options are merged into mainline
+            try:
+                dace.config.Config.set(
+                    "compiler",
+                    "outlining",
+                    "enabled",
+                    value=False,  # TODO: outline works locally but dies on the HPC
+                )
+            except KeyError:
+                ndsl_log.debug("Outlining is not available")
 
             # Resolve "march/mtune" option for GPU
             # - turn on numeric-centric SSE by default

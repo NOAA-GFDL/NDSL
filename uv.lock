@@ -794,8 +794,8 @@ wheels = [
 
 [[package]]
 name = "gt4py"
-version = "1.2.3"
-source = { git = "https://github.com/Gridtools/gt4py.git?rev=v1.2.3#3bd69c8a6f778561a2ce9a15020af113c072eb57" }
+version = "1.2.3.post6+29242f13"
+source = { git = "https://github.com/Gridtools/gt4py.git?rev=29242f13d1ebee5576eceb1c8db147894e021e89#29242f13d1ebee5576eceb1c8db147894e021e89" }
 dependencies = [
     { name = "array-api-compat" },
     { name = "attrs" },
@@ -1458,7 +1458,7 @@ requires-dist = [
     { name = "dacite" },
     { name = "dask" },
     { name = "f90nml", specifier = ">=1.1.0" },
-    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=v1.2.3" },
+    { name = "gt4py", git = "https://github.com/Gridtools/gt4py.git?rev=29242f13d1ebee5576eceb1c8db147894e021e89" },
     { name = "h5netcdf" },
     { name = "h5py" },
     { name = "ipykernel", marker = "extra == 'demos'" },
