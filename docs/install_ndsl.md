@@ -6,7 +6,7 @@ NDSL is written in the [python programming language](https://www.python.org/) an
 
 ## Prerequisites
 
-There are only two things we require you to have installed. Frist, we rely on [uv](https://docs.astral.sh/uv/) as package and project manager.
+There are only two things we require you to have installed. First, we rely on [uv](https://docs.astral.sh/uv/) as package and project manager.
 
 !!! note "Install uv"
 
@@ -28,7 +28,7 @@ Next, change into the newly created project directory and add `ndsl` as a depend
 
 ```shell
 $ cd example/
-$ uv add git+https://github.com/noaa-gfdl/ndsl.git --tag 2026.08.00 --extra openmpi
+$ uv add git+https://github.com/noaa-gfdl/ndsl.git --tag 2026.10.02 --extra openmpi
 
 Using CPython 3.12.13 interpreter at: /usr/bin/python3.12
 Creating virtual environment at: .venv

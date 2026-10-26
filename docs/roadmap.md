@@ -2,14 +2,18 @@
 
 We are building NDSL in the open. On this page we'll start to share our public roadmap. This allows you to track our progress and see what's coming in the future. Head over to the [community section](./community.md) for discussions, questions, collaboration opportunities, and development updates.
 
-## 2026.09.00
+## 2026.11.x
 
-- :rocket: Cache-friendly merger debug
-- :rocket: CPU serial execution merger
-- :rocket: Scalarization and refinement of local memory for better cache access
+- :sparkles: Allow usage of NDSL types (`Int`, `Float`) inside stencils
+- :snake: Support for python 3.14
+
+## 2026.10.x
+
+- :rocket: Heavy CPU optimizations
+- :gear: Introducing `DaceExecutable` as basis for performance profiling
 - :gear: use `uv` for dependency management
 
-## 2026.08.00
+## 2026.08.x
 
 - :sparkles: Support for (integer) enum types in stencil code
 - :sparkles: Support for `gcc-16`

@@ -23,6 +23,7 @@ Below is a short (if it get too long, consider automating parts) release checkli
 - [ ] Send the announcement on Mattermost.
 - [ ] Update `pyFV3`, `pySHiELD`, and `pace` (in that order) with the newly released version of NDSL.
 - [ ] in NDSL, merge breaking changes of deprecated features/functions (search for e.g. `DeprecationWarning`).
+- [ ] in the NDSL docs, update the latest release and check if the roadmap needs updating
 
 ## Patch release
 
