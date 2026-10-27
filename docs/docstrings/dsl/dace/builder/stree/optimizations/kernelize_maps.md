@@ -1,6 +1,6 @@
 # kernelize_maps
 
-dsl.dace.builder.stree.optimizations.kernelize_maps
+::: dsl.dace.builder.stree.optimizations.kernelize_maps
 
 <style>
 /* re-enable the left side navigation bar for this page */

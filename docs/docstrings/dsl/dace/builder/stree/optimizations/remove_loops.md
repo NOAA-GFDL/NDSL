@@ -1,6 +1,6 @@
 # remove_loops
 
-dsl.dace.builder.stree.optimizations.remove_loops
+::: dsl.dace.builder.stree.optimizations.remove_loops
 
 <style>
 /* re-enable the left side navigation bar for this page */

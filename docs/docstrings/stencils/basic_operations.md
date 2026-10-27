@@ -1,4 +1,6 @@
-# basic_operations
+# Basic operations (3D)
+
+`ndsl.stencil` offers the following basic operations as building blocks in 3D:
 
 ::: stencils.basic_operations
 

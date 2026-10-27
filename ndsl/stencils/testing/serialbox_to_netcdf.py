@@ -39,6 +39,28 @@ def get_parser():
         default=False,
         help="merges datastreams blocked into separate savepoints",
     )
+    parser.add_argument(
+        "--layout",
+        type=int,
+        nargs=2,
+        metavar=("X", "Y"),
+        help="layout dimensions to use when input.nml is unavailable",
+    )
+    parser.add_argument(
+        "--npx",
+        type=int,
+        help="npx value to use when input.nml is unavailable",
+    )
+    parser.add_argument(
+        "--npy",
+        type=int,
+        help="npy value to use when input.nml is unavailable",
+    )
+    parser.add_argument(
+        "--grid-type",
+        type=int,
+        help="grid_type value to use when input.nml is unavailable",
+    )
     return parser
 
 
@@ -69,24 +91,45 @@ def main(
     output_path: str,
     merge_blocks: bool,
     data_name: str | None = None,
+    layout: list[int] | None = None,
+    npx: int | None = None,
+    npy: int | None = None,
+    grid_type: int | None = None,
 ) -> None:
     os.makedirs(output_path, exist_ok=True)
     namelist_filename_in = os.path.join(data_path, "input.nml")
 
-    if not os.path.exists(namelist_filename_in):
-        raise FileNotFoundError(f"Can't find input.nml in {data_path}. Required.")
-
-    namelist_filename_out = os.path.join(output_path, "input.nml")
-    if namelist_filename_out != namelist_filename_in:
-        shutil.copyfile(os.path.join(data_path, "input.nml"), namelist_filename_out)
-    namelist = f90nml.read(namelist_filename_out)
-    fv_core_nml: dict[str, Any] = namelist["fv_core_nml"]
-    if fv_core_nml["grid_type"] <= 3:
-        total_ranks = 6 * fv_core_nml["layout"][0] * fv_core_nml["layout"][1]
+    if os.path.exists(namelist_filename_in):
+        namelist_filename_out = os.path.join(output_path, "input.nml")
+        if namelist_filename_out != namelist_filename_in:
+            shutil.copyfile(namelist_filename_in, namelist_filename_out)
+        namelist = f90nml.read(namelist_filename_out)
+        fv_core_nml: dict[str, Any] = namelist["fv_core_nml"]
+        layout = fv_core_nml["layout"]
+        npx = fv_core_nml["npx"]
+        npy = fv_core_nml["npy"]
+        grid_type = fv_core_nml["grid_type"]
+        print(
+            "Using input.nml values: "
+            f"layout={layout}, npx={npx}, npy={npy}, grid_type={grid_type}"
+        )
     else:
-        total_ranks = fv_core_nml["layout"][0] * fv_core_nml["layout"][1]
-    nx = int((fv_core_nml["npx"] - 1) / (fv_core_nml["layout"][0]))
-    ny = int((fv_core_nml["npy"] - 1) / (fv_core_nml["layout"][1]))
+        if layout is None or npx is None or npy is None or grid_type is None:
+            raise FileNotFoundError(
+                f"Can't find input.nml in {data_path}. You must provide --layout X Y, "
+                "--npx, --npy, and --grid-type."
+            )
+        print(
+            "Using command-line values: "
+            f"layout={layout}, npx={npx}, npy={npy}, grid_type={grid_type}"
+        )
+
+    if grid_type <= 3:
+        total_ranks = 6 * layout[0] * layout[1]
+    else:
+        total_ranks = layout[0] * layout[1]
+    nx = int((npx - 1) / layout[0])
+    ny = int((npy - 1) / layout[1])
 
     # all ranks have the same names, just look at first one
     serializer_0 = get_serializer(data_path, rank=0, data_name=data_name)
@@ -269,6 +312,10 @@ def entry_point():
         output_path=args.output_path,
         merge_blocks=args.merge,
         data_name=args.data_name,
+        layout=args.layout,
+        npx=args.npx,
+        npy=args.npy,
+        grid_type=args.grid_type,
     )
 
 

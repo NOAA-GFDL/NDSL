@@ -3,7 +3,7 @@ import dataclasses
 import dace
 from dace.sdfg.analysis.schedule_tree import treenodes as tn
 
-from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_for, is_axis_map
+from ndsl.dsl.dace.builder.stree.common import AxisIterator, is_axis_loop, is_axis_map
 
 
 class CountCartesianLoops(tn.ScheduleNodeVisitor):
@@ -18,16 +18,11 @@ class CountCartesianLoops(tn.ScheduleNodeVisitor):
             if is_axis_map(node, axis):
                 self._maps[axis.as_cartesian_index()] += 1
 
-        if isinstance(node.children[0], tn.MapScope) and isinstance(
-            node.children[0].children[0], tn.MapScope
-        ):
-            self._3D_kernels += 1
-
         self.visit(node.children)
 
     def visit_ForScope(self, node: tn.ForScope) -> None:
         for axis in AxisIterator:
-            if is_axis_for(node, axis):
+            if is_axis_loop(node, axis):
                 self._fors[axis.as_cartesian_index()] += 1
 
         self.visit(node.children)
@@ -97,10 +92,9 @@ class TreeOptimizationStatistics:
         self._record(self._optimized_record, tree_root)
 
     def report(self) -> str:
-        """Craft a concize string reporting on the statistics"""
+        """Craft a concise string reporting on the statistics"""
         msg = "Tree optimization:\n"
         msg += f"  Cartesian maps [I, J, K]: {self._original_record.cartesian_maps} -> {self._optimized_record.cartesian_maps}\n"
         msg += f"  Cartesian fors [I, J, K]: {self._original_record.cartesian_fors} -> {self._optimized_record.cartesian_fors}\n"
         msg += f"  Transients [Scalarized Array, 1D, 2D, 3D, 4D+]: {self._original_record.transients} -> {self._optimized_record.transients}\n"
-        msg += f"  Full 3D kernels: {self._original_record.threeD_kernels} -> {self._optimized_record.threeD_kernels}\n"
         return msg

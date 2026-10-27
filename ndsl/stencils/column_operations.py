@@ -33,10 +33,11 @@ def column_max(field, start_index, end_index):
 @function
 def column_max_ddim(field, ddim, start_index, end_index):
     """
-    Find the maximum value for a full or slice of a column.
+    Find the maximum value for a full or slice of the selected data dimension column.
 
     Args:
         field: data to be analyzed
+        ddim: the data dimension column to look at
         start_index: "bottom" index of slice, must be less than end_index
         end_index: "top" index of slice, must be greater than start_index
 
@@ -85,10 +86,11 @@ def column_min(field, start_index, end_index):
 @function
 def column_min_ddim(field, ddim, start_index, end_index):
     """
-    Find the minimum value for a full or slice of a column.
+    Find the minimum value for a full or slice of the selected data dimension column.
 
     Args:
         field: data to be analyzed
+        ddim: the data dimension column to look at
         start_index: "bottom" index of slice, must be less than end_index
         end_index: "top" index of slice, must be greater than start_index
 

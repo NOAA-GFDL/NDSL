@@ -12,6 +12,7 @@ from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, J_INTERFACE_DIM, K_DIM
 from ndsl.dsl.gt4py import IJK, PARALLEL, Field, J, K, computation, interval
+from ndsl.dsl.optimization_config import OptimizationOption
 from ndsl.dsl.typing import Float, FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
 
@@ -56,8 +57,10 @@ class TransientRefineableCode(NDSLRuntime):
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
+                kernelize=OptimizationOption.DO_NOT_APPLY,
                 refine_transients=True,
-            )
+            ),
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         super().__init__(stencil_factory, optimization_config=config)
         orchestratable_methods = [
@@ -186,7 +189,8 @@ class TransientStrideTestCode(NDSLRuntime):
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
                 refine_transients=True,
-            )
+            ),
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
         )
         super().__init__(stencil_factory, optimization_config=config)
         self.tmp = self.make_local(quantity_factory, [I_DIM, J_INTERFACE_DIM, K_DIM])

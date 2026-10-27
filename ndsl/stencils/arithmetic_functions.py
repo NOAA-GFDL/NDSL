@@ -1,9 +1,9 @@
-import typing
+from typing import no_type_check
 
 from ndsl.dsl.gt4py import function
 
 
-@typing.no_type_check
+@no_type_check
 @function
 def sign(a, b):
     """
@@ -18,7 +18,7 @@ def sign(a, b):
     return a_sign_b if b > 0 else -a_sign_b
 
 
-@typing.no_type_check
+@no_type_check
 @function
 def dim(a, b):
     """

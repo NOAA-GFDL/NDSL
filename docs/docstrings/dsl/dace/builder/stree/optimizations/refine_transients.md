@@ -1,6 +1,6 @@
 # refine_transients
 
-dsl.dace.builder.stree.optimizations.refine_transients
+::: dsl.dace.builder.stree.optimizations.refine_transients
 
 <style>
 /* re-enable the left side navigation bar for this page */

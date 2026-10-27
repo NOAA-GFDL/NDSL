@@ -19,4 +19,16 @@ found [here](./full_results.md).
 
 ##### Benchmarking
 
-Coming soon...
+The following table summarizes performance numbers for the Dynamics with a quick breakdown. We also show performance numbers for a microphysics parametrization ("GFDL 1M").
+
+|  |  | Fortran (reference) |  NDSL `v2026.10.x` |
+| - | - | - | - |
+| Dynamics | | 257 |  231 |
+|   | Acoustics | 153 | 105 |
+|   | Tracers |  42 |  43 |
+|   | Remapping |  58 |  71 |
+|  | Missing from core | - |  10 |
+|  | Interface to Fortran | - | 25 |
+| GFDL 1M (microphysics) | | 170 | 124 |
+
+This is for a single tile of the size 24x24 with 72 vertical levels. Timings are time to solution and given in milliseconds (less is better).

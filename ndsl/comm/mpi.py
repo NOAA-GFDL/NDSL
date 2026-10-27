@@ -5,7 +5,7 @@ place where we directly import from mpi4py. This allows to potentially
 swap mpi4py in the future.
 """
 
-from typing import TypeVar, cast
+from typing import ClassVar, TypeVar, cast
 
 from mpi4py import MPI
 
@@ -15,7 +15,7 @@ T = TypeVar("T")
 
 
 class MPIComm(Comm):
-    _op_mapping: dict[ReductionOperator, MPI.Op] = {
+    _op_mapping: ClassVar[dict[ReductionOperator, MPI.Op]] = {
         ReductionOperator.OP_NULL: MPI.OP_NULL,
         ReductionOperator.MAX: MPI.MAX,
         ReductionOperator.MIN: MPI.MIN,
@@ -51,7 +51,7 @@ class MPIComm(Comm):
         self._comm.barrier()
 
     def Barrier(self) -> None:
-        pass
+        self._comm.Barrier()
 
     def Scatter(self, sendbuf, recvbuf, root: int = 0, **kwargs: dict):  # type: ignore[no-untyped-def]
         self._comm.Scatter(sendbuf, recvbuf, root=root, **kwargs)

@@ -1,4 +1,5 @@
 import copy
+import os
 import sys
 from typing import Any
 
@@ -35,6 +36,7 @@ def get_dace_executable(
 
     mode = config.get_orchestrate()
     is_compiling = config.is_compiling()
+    unsafe_mode = os.getenv("NDSL_UNSAFE_MODE", "False").lower() == "true"
 
     if mode == DaCeOrchestration.Run:
         with DaCeProgress(
@@ -49,6 +51,7 @@ def get_dace_executable(
             config=config,
             compiled_sdfg=compiled_sdfg,
             original_unoptimized_sdfg=None,
+            check_arguments_hash=not unsafe_mode,
         )
     elif (
         mode in [DaCeOrchestration.Build, DaCeOrchestration.BuildAndRun]
@@ -97,6 +100,7 @@ def get_dace_executable(
             config=config,
             compiled_sdfg=compiled_sdfg,
             original_unoptimized_sdfg=original_sdfg,
+            check_arguments_hash=not unsafe_mode,
         )
         DACE_EXECUTABLE_CACHE[dace_program] = exe
 

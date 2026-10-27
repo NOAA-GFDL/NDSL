@@ -8,7 +8,11 @@ from typing import Any, Self
 import dace.config
 from gt4py.cartesian import config as gt_config
 from gt4py.cartesian.config import GT4PY_COMPILE_OPT_LEVEL
-from gt4py.cartesian.utils.compiler import cxx_compiler_defaults, gpu_configuration
+from gt4py.cartesian.utils.compiler import (
+    CxxCompilerName,
+    cxx_compiler_defaults,
+    gpu_configuration,
+)
 
 from ndsl import LocalComm, ndsl_log
 from ndsl.comm import Comm
@@ -228,6 +232,22 @@ class DaceConfig:
             # NDSL has its own rank-aware system
             dace.config.Config.set("cache_distaware", value=False)
 
+            compiler_build_type = "Release"
+            if optimization_level == 0:
+                compiler_build_type = "Debug"
+            elif optimization_level == 2 or optimization_level == 1:
+                compiler_build_type = "RelWithDebInfo"
+            dace.config.Config.set(
+                "compiler",
+                "build_type",
+                value=compiler_build_type,
+            )
+            dace.config.Config.set(
+                "compiler",
+                "cpp_standard",
+                value="20",
+            )
+
             # Detecting neoverse-v1/2 requires an external package, we swap it
             # for a read on GH200 nodes themselves.
             is_arm_neoverse = (
@@ -236,26 +256,46 @@ class DaceConfig:
                 == b"NVIDIA GH200 480GB"
             )
 
-            if optimization_level == 0:
-                dace.config.Config.set("compiler", "build_type", value="Debug")
-            elif optimization_level == 2 or optimization_level == 1:
-                dace.config.Config.set("compiler", "build_type", value="RelWithDebInfo")
-            else:
-                dace.config.Config.set("compiler", "build_type", value="Release")
-
             # Resolve "march/mtune" option for GPU
-            # - turn on numeric-centric SSE by default
+            # - turn on numeric-centric SSE by (avx2)
             # - Neoverse-V2 Grace CPU is too new for GCC 14 and -march=native will fail
             # - use alternative march=armv8-a instead
-            march_cpu = "armv8-a" if is_arm_neoverse else "native"
-            # Removed --fmath
+            march_cpu = "armv8-a" if is_arm_neoverse else "core-avx2"
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
+            if cxx_defaults.name == CxxCompilerName.GNU:
+                if int(GT4PY_COMPILE_OPT_LEVEL) > 1:
+                    optimization_flags = (
+                        "-mno-fma "  # match GEOS
+                        "-funroll-loops "
+                        "-ffinite-loops "
+                        "-fno-math-errno "
+                        "-fno-trapping-math "
+                        "-fprefetch-loop-arrays "
+                        "-fno-semantic-interposition "
+                    )
+            elif cxx_defaults.name == CxxCompilerName.CLANG:
+                optimization_flags = (
+                    "-fPIC "
+                    "-mno-fma "
+                    "-faligned-new "
+                    "-Wno-unused-label "
+                    "-Wno-unused-parameter "
+                )
+            elif cxx_defaults.name == CxxCompilerName.INTEL:
+                optimization_flags = "-mno-fma"
+            else:
+                optimization_flags = "-mno-fma"
+            cpp_standard = "c++20"
             warnings_policy = "-w" if NDSL_COMPILER_SILENCE else "-Wall"
             dace.config.Config.set(
                 "compiler",
                 "cpu",
                 "args",
-                value=f"-march={march_cpu} -std=c++20 -fPIC {warnings_policy} -O{optimization_level} {cxx_defaults.cxx_compile_flags}",
+                value=(
+                    f"-march={march_cpu} {optimization_flags} "
+                    f" {warnings_policy} {cxx_defaults.cxx_compile_flags} "
+                    f" -std={cpp_standard}"
+                ),
             )
             # Potentially buggy - deactivate
             dace.config.Config.set(
@@ -264,6 +304,19 @@ class DaceConfig:
                 "openmp_sections",
                 value=0,
             )
+
+            # Dev NOTE: the DaCe CI doesn't pull from our `pinned` version of DaCe so we have
+            #           to try/except up until those options are merged into mainline
+            try:
+                dace.config.Config.set(
+                    "compiler",
+                    "outlining",
+                    "enabled",
+                    value=False,  # TODO: outline works locally but dies on the HPC
+                )
+            except KeyError:
+                ndsl_log.debug("Outlining is not available")
+
             # Resolve "march/mtune" option for GPU
             # - turn on numeric-centric SSE by default
             # - Neoverse-V2 Grace CPU will fail
@@ -276,9 +329,8 @@ class DaceConfig:
                 "compiler",
                 "cuda",
                 "args",
-                value=f"-std=c++14 {warnings_policy} -Xcompiler -fPIC -O{optimization_level} -Xcompiler {march_option} {gpu_cflags}",
+                value=f"{warnings_policy} -Xcompiler {march_option} {gpu_cflags}",
             )
-
             # Target compilation for hardware micro-code capacities
             gpu_defaults = get_gpu_hardware_defaults()
             dace.config.Config.set(
@@ -287,7 +339,6 @@ class DaceConfig:
                 "cuda_arch",
                 value=f"{gpu_defaults.compute_capability}",
             )
-
             # Default block size for kernels launch
             dace.config.Config.set(
                 "compiler",
@@ -302,14 +353,6 @@ class DaceConfig:
                 "max_concurrent_streams",
                 value=-1,  # no concurrent streams, every kernel on defaultStream
             )
-
-            # Required to True for gt4py storage/memory
-            dace.config.Config.set(
-                "compiler",
-                "allow_view_arguments",
-                value=True,
-            )
-
             # Speed up built time
             dace.config.Config.set(
                 "compiler",
@@ -317,6 +360,34 @@ class DaceConfig:
                 "unique_functions",
                 value="none",
             )
+            # Enable to debug GPU failures
+            dace.config.Config.set(
+                "compiler",
+                "cuda",
+                "syncdebug",
+                value=_sync_gpu_option(),
+            )
+            # Required to True for gt4py storage/memory
+            dace.config.Config.set(
+                "compiler",
+                "allow_view_arguments",
+                value=True,
+            )
+            # Debug lineinfo is incorrect anyway for the stencils
+            dace.config.Config.set(
+                "compiler",
+                "lineinfo",
+                value="none",
+            )
+            if NDSL_GLOBAL_PRECISION == 32:
+                # When using 32-bit float, we flip the default dtypes to be all
+                # C, e.g. 32 bit.
+                dace.Config.set(
+                    "compiler",
+                    "default_data_types",
+                    value="c",
+                )
+
             # Required for HaloEx callbacks and general code sanity
             dace.config.Config.set(
                 "frontend",
@@ -325,9 +396,9 @@ class DaceConfig:
             )
             # Unroll no loop.
             # Dev NOTE: while unrolling small loop could have an impact on speed
-            #           espcially small loop, the cost of potential increase in
+            #           especially small loop, the cost of potential increase in
             #           build time is too high. The user needs to use `nounroll`
-            #           on it's own code, shifting an optimization responsability
+            #           on it's own code, shifting an optimization responsibility
             #           away from the DSL. We opt for the default - no unrolling.
             dace.config.Config.set(
                 "frontend",
@@ -345,23 +416,6 @@ class DaceConfig:
                 "store_history",
                 value=False,
             )
-
-            # Enable to debug GPU failures
-            dace.config.Config.set(
-                "compiler", "cuda", "syncdebug", value=_sync_gpu_option()
-            )
-
-            if NDSL_GLOBAL_PRECISION == 32:
-                # When using 32-bit float, we flip the default dtypes to be all
-                # C, e.g. 32 bit.
-                dace.Config.set(
-                    "compiler",
-                    "default_data_types",
-                    value="c",
-                )
-
-            # Debug lineinfo is incorrect anyway for the stencils
-            dace.config.Config.set("compiler", "lineinfo", value="none")
 
         # Attempt to kill the dace.conf to avoid confusion
         dace_conf_to_kill = dace.config.Config.cfg_filename()
@@ -383,13 +437,13 @@ class DaceConfig:
             self._do_compile = (
                 DEACTIVATE_DISTRIBUTED_DACE_COMPILE
                 or _determine_compiling_ranks(self, communicator.partitioner)
-            )
+            ) and self._orchestrate != DaCeOrchestration.Run
         else:
             self.my_rank = 0
             self.rank_size = 1
             self.code_path = FV3CodePath.All
             self.layout = (1, 1)
-            self._do_compile = True
+            self._do_compile = self._orchestrate != DaCeOrchestration.Run
 
         self._set_distributed_caches()
 
@@ -407,6 +461,11 @@ class DaceConfig:
 
     def is_compiling(self) -> bool:
         return self._do_compile
+
+    @property
+    def do_compile(self) -> bool:
+        """Backward API compatibility"""
+        return self.is_compiling()
 
     def get_sync_debug(self) -> bool:
         return dace.config.Config.get_bool("compiler", "cuda", "syncdebug")

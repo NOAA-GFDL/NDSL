@@ -189,7 +189,7 @@ class ExtractOffGridConditionals(tn.ScheduleNodeTransformer):
         return "ExtractOffGridConditionals"
 
     def visit_ScheduleTreeRoot(self, node: tn.ScheduleTreeRoot) -> None:
-        ndsl_log.debug("ExtractOffgridConditionals is not implemented yet.")
+        ndsl_log.debug("ExtractOffGridConditionals is not implemented yet.")
 
 
 class MergeConditionals(tn.ScheduleNodeVisitor):

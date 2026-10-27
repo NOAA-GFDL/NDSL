@@ -9,6 +9,7 @@ from ndsl.boilerplate import get_factories_single_tile_orchestrated
 from ndsl.config import Backend
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, PARALLEL, K, computation, interval
+from ndsl.dsl.optimization_config import OptimizationHint, OptimizationOption
 from ndsl.dsl.typing import FloatField
 from tests.dsl.dace.stree import get_SDFG_and_purge
 from tests.dsl.dace.stree.optimizations import Factories
@@ -37,7 +38,7 @@ def stencil_with_different_intervals(
         out_field = in_field + 5
 
 
-def stencil_with_buffer_read_offset_in_K(
+def stencil_with_buffer_read_offset_in_Km1(
     in_field: FloatField, out_field: FloatField, buffer: FloatField
 ) -> None:
     with computation(PARALLEL), interval(1, None):
@@ -52,19 +53,26 @@ class OrchestratedCode:
         self,
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
+        hint: OptimizationHint,
     ) -> None:
         config = OptimizationConfig(
             stree=OptimizationConfig.Tree(
                 enabled=True,
                 merger=OptimizationConfig.Tree.Merger(enabled=True),
-            )
+                kernelize=OptimizationOption.DO_NOT_APPLY,
+            ),
+            serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
+            hint=hint,
         )
         orchestratable_methods = [
             "trivial_merge",
             "missing_merge_of_forscope_and_map",
+            "merge_consecutive_forward_loops",
             "overcompute_merge",
-            "block_merge_when_dependencies_are_found",
             "push_non_cartesian_for",
+            "block_merge_read_after_write_with_offset",
+            "block_merge_write_after_read_with_offset",
+            "block_merge_write_after_write_with_different_offset",
         ]
         for method in orchestratable_methods:
             orchestrate(
@@ -73,6 +81,7 @@ class OrchestratedCode:
                 method_to_orchestrate=method,
                 optimization_config=config,
             )
+
         orchestrate(
             obj=self,
             config=stencil_factory.config.dace_config,
@@ -81,12 +90,39 @@ class OrchestratedCode:
                 stree=OptimizationConfig.Tree(
                     enabled=True,
                     merger=OptimizationConfig.Tree.Merger(
-                        enabled=True, overcompute=False
+                        enabled=True,
+                        align_lhs_on_center_horizontal=False,
+                        align_lhs_on_center_vertical=False,
+                        overcompute_horizontal=False,
+                        overcompute_vertical=False,
                     ),
-                )
+                    kernelize=OptimizationOption.DO_NOT_APPLY,
+                ),
+                serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
             ),
         )
 
+        orchestrate(
+            obj=self,
+            config=stencil_factory.config.dace_config,
+            method_to_orchestrate="overcompute_merge_with_auto_kernalize",
+            optimization_config=OptimizationConfig(
+                stree=OptimizationConfig.Tree(
+                    enabled=True,
+                    merger=OptimizationConfig.Tree.Merger(
+                        enabled=True,
+                        align_lhs_on_center_horizontal=False,
+                        align_lhs_on_center_vertical=False,
+                        overcompute_horizontal=False,
+                        overcompute_vertical=False,
+                    ),
+                    kernelize=OptimizationOption.AUTO,
+                ),
+                serial_cpu_vectorization=OptimizationOption.DO_NOT_APPLY,
+                hint=hint,
+            ),
+        )
+        self.hint = hint
         self.stencil = stencil_factory.from_dims_halo(
             func=stencil,
             compute_dims=[I_DIM, J_DIM, K_DIM],
@@ -95,8 +131,8 @@ class OrchestratedCode:
             func=stencil_with_forward_K,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
-        self.stencil_with_buffer_read_offset_in_K = stencil_factory.from_dims_halo(
-            func=stencil_with_buffer_read_offset_in_K,
+        self.stencil_with_buffer_read_offset_in_Km1 = stencil_factory.from_dims_halo(
+            func=stencil_with_buffer_read_offset_in_Km1,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
         self.stencil_with_different_intervals = stencil_factory.from_dims_halo(
@@ -123,15 +159,23 @@ class OrchestratedCode:
         self.stencil_with_forward_K(in_field, out_field)
         self.stencil(in_field, out_field)
 
-    def block_merge_when_dependencies_are_found(
+    def merge_consecutive_forward_loops(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_with_forward_K(in_field, out_field)
+        self.stencil_with_forward_K(in_field, out_field)
+
+    def overcompute_merge(
         self,
         in_field: FloatField,
         out_field: FloatField,
     ) -> None:
         self.stencil(in_field, out_field)
-        self.stencil_with_buffer_read_offset_in_K(in_field, out_field, self._buffer)
+        self.stencil_with_different_intervals(in_field, out_field)
 
-    def overcompute_merge(
+    def overcompute_merge_with_auto_kernalize(
         self,
         in_field: FloatField,
         out_field: FloatField,
@@ -156,18 +200,56 @@ class OrchestratedCode:
         for _ in dace.nounroll(range(2)):
             self.stencil(in_field, out_field)
 
+    def block_merge_read_after_write_with_offset(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil(in_field, out_field)
+        self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
 
-class TestStreeMergeMapsIJK:
+    def block_merge_write_after_read_with_offset(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
+        self.stencil(in_field, out_field)
+
+    def block_merge_write_after_write_with_different_offset(
+        self,
+        in_field: FloatField,
+        out_field: FloatField,
+    ) -> None:
+        self.stencil_with_buffer_read_offset_in_Km1(in_field, out_field, self._buffer)
+        self.stencil(in_field, out_field)
+
+
+class TestStreeMergeMaps:
+    @pytest.fixture(
+        params=[Backend("orch:dace:cpu:IJK"), Backend("orch:dace:cpu:KJI")],
+        ids=["orch:dace:cpu:IJK", "orch:dace:cpu:KJI"],
+    )
+    def backend(self, request) -> Backend:
+        return request.param
+
     @pytest.fixture
-    def factories(self) -> Factories:
+    def factories(self, backend: Backend) -> Factories:
         domain = (3, 3, 4)
         return get_factories_single_tile_orchestrated(
-            domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:IJK")
+            domain[0], domain[1], domain[2], 0, backend=backend
         )
 
+    @pytest.fixture(
+        params=[OptimizationHint.SERIAL, OptimizationHint.PARALLEL],
+        ids=["hint:Serial", "hint:Parallel"],
+    )
+    def hint(self, request):
+        return request.param
+
     @pytest.fixture
-    def code(self, factories: Factories) -> OrchestratedCode:
-        return OrchestratedCode(*factories)
+    def code(self, hint: OptimizationHint, factories: Factories) -> OrchestratedCode:
+        return OrchestratedCode(*factories, hint)
 
     def test_trivial_merge(self, code: OrchestratedCode, factories: Factories) -> None:
         stencil_factory, quantity_factory = factories
@@ -201,13 +283,60 @@ class TestStreeMergeMapsIJK:
             for map_entry, _ in sdfg.all_nodes_recursive()
             if isinstance(map_entry, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # 1 IJ + 2 Ks
         all_loops = [
             loop
             for loop, _ in sdfg.all_nodes_recursive()
             if isinstance(loop, LoopRegion)
         ]
-        assert len(all_loops) == 1  # 1 For loop
+
+        if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
+            assert len(all_maps) == 3  # 1 IJ + 2 Ks
+            assert len(all_loops) == 1  # 1 For loop
+        elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
+            assert len(all_maps) == 3  # 2 KJI (all maps) + 1 JI
+            assert len(all_loops) == 1  # 1 For loop
+
+    def test_merge_consecutive_forward_loops(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        code.merge_consecutive_forward_loops(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_loops = [
+            loop
+            for loop, _ in sdfg.all_nodes_recursive()
+            if isinstance(loop, LoopRegion)
+        ]
+
+        assert len(all_loops) == 1
+
+    def test_overcompute_merge_with_auto_kernalize(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        code.overcompute_merge_with_auto_kernalize(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+
+        if code.hint == OptimizationHint.PARALLEL:
+            assert len(all_maps) == 2  # Re-kernalize to two maps post merge
+        if code.hint == OptimizationHint.SERIAL:
+            if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
+                assert len(all_maps) == 3  # No merge between K and IJ
+            elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
+                assert len(all_maps) == 2  # No merge between K and IJ
 
     def test_overcompute_merge(
         self, code: OrchestratedCode, factories: Factories
@@ -224,7 +353,13 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 1  # All maps merged and collapsed
+
+        if self.hint == OptimizationHint.PARALLEL:
+            assert len(all_maps) == 1  # All maps merged and collapsed
+        elif self.hint == OptimizationHint.SERIAL:
+            assert (
+                len(all_maps) == 3
+            )  # K merged - but IJ merge block by overcompute guard
 
     def test_no_overcompute_merge(
         self, code: OrchestratedCode, factories: Factories
@@ -250,10 +385,13 @@ class TestStreeMergeMapsIJK:
             if map_entry.map.params == ["__i", "__j"]:
                 ij_maps += 1
 
-        assert ij_maps == 1
-        assert k_maps == 2
+        if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
+            assert ij_maps == 1
+            assert k_maps == 2
+        elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
+            assert len(all_maps) == 2  # 2 IJKs (un-merged since K is not merging)
 
-    def test_block_merge_when_dependencies_are_found(
+    def test_block_merge_read_after_write_with_offset(
         self, code: OrchestratedCode, factories: Factories
     ) -> None:
         stencil_factory, quantity_factory = factories
@@ -261,7 +399,7 @@ class TestStreeMergeMapsIJK:
         out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
 
         # Forbid merging when data dependencies are detected
-        code.block_merge_when_dependencies_are_found(in_qty, out_qty)
+        code.block_merge_read_after_write_with_offset(in_qty, out_qty)
 
         sdfg = get_SDFG_and_purge(stencil_factory).sdfg
         all_maps = [
@@ -269,7 +407,70 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
-        assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+
+        if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
+            assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+        elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
+            if self.hint == OptimizationHint.PARALLEL:
+                assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            elif self.hint == OptimizationHint.SERIAL:
+                assert (
+                    len(all_maps) == 4
+                )  # 1 IJKs and 1 K + IJs merging block by overcompute if-guard
+
+    def test_block_merge_write_after_read_with_offset(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        # Forbid merging when data dependencies are detected
+        code.block_merge_write_after_read_with_offset(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+
+        if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
+            assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+        elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
+            if self.hint == OptimizationHint.PARALLEL:
+                assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            elif self.hint == OptimizationHint.SERIAL:
+                assert (
+                    len(all_maps) == 4
+                )  # 1 IJKs and 1 K + IJs merging block by overcompute if-guard
+
+    def test_block_merge_write_after_write_with_different_offset(
+        self, code: OrchestratedCode, factories: Factories
+    ) -> None:
+        stencil_factory, quantity_factory = factories
+        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
+        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
+
+        # Forbid merging when data dependencies are detected
+        code.block_merge_write_after_write_with_different_offset(in_qty, out_qty)
+
+        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
+        all_maps = [
+            (me, state)
+            for me, state in sdfg.all_nodes_recursive()
+            if isinstance(me, nodes.MapEntry)
+        ]
+
+        if stencil_factory.backend == Backend("orch:dace:cpu:IJK"):
+            assert len(all_maps) == 3  # 1 IJ + 2 Ks (un-merged)
+        elif stencil_factory.backend == Backend("orch:dace:cpu:KJI"):
+            if self.hint == OptimizationHint.PARALLEL:
+                assert len(all_maps) == 2  # 2 IJKs (un-merged)
+            elif self.hint == OptimizationHint.SERIAL:
+                assert (
+                    len(all_maps) == 4
+                )  # 1 IJKs and 1 K + IJs merging block by overcompute if-guard
 
     def test_push_non_cartesian_for(
         self, code: OrchestratedCode, factories: Factories
@@ -288,125 +489,11 @@ class TestStreeMergeMapsIJK:
             for me, state in sdfg.all_nodes_recursive()
             if isinstance(me, nodes.MapEntry)
         ]
+        for_loops = [
+            node
+            for node, _ in sdfg.all_nodes_recursive()
+            if isinstance(node, LoopRegion) and tn.loop_variant(node) == "for"
+        ]
+
         assert len(all_maps) == 1  # All merged & collapsed
-        for_loops = [
-            node
-            for node, _ in sdfg.all_nodes_recursive()
-            if isinstance(node, LoopRegion) and tn.loop_variant(node) == "for"
-        ]
-        assert len(for_loops) == 1  # 1 For loop
-
-
-class TestStreeMergeMapsKJI:
-    @pytest.fixture
-    def factories(self) -> Factories:
-        domain = (3, 3, 4)
-        return get_factories_single_tile_orchestrated(
-            domain[0], domain[1], domain[2], 0, backend=Backend("orch:dace:cpu:KJI")
-        )
-
-    @pytest.fixture
-    def code(self, factories: Factories) -> OrchestratedCode:
-        return OrchestratedCode(*factories)
-
-    def test_trivial_merge(self, code: OrchestratedCode, factories: Factories) -> None:
-        stencil_factory, quantity_factory = factories
-        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-
-        code.trivial_merge(in_qty, out_qty)
-
-        precompiled_sdfg = get_SDFG_and_purge(stencil_factory)
-        all_maps = [
-            (me, state)
-            for me, state in precompiled_sdfg.sdfg.all_nodes_recursive()
-            if isinstance(me, nodes.MapEntry)
-        ]
-
-        assert len(all_maps) == 1  # all maps merged and collapsed
-        assert (out_qty.field[:] == 2).all()
-
-    def test_missing_merge_of_forscope_and_map(
-        self, code: OrchestratedCode, factories: Factories
-    ) -> None:
-        stencil_factory, quantity_factory = factories
-        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-
-        # K iterative loop - blocks all merges
-        code.missing_merge_of_forscope_and_map(in_qty, out_qty)
-
-        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
-        all_maps = [
-            map_entry
-            for map_entry, _ in sdfg.all_nodes_recursive()
-            if isinstance(map_entry, nodes.MapEntry)
-        ]
-        assert len(all_maps) == 3  # 2 KJI (all maps) + 1 JI
-        all_loops = [
-            loop
-            for loop, _ in sdfg.all_nodes_recursive()
-            if isinstance(loop, LoopRegion)
-        ]
-        assert len(all_loops) == 1  # 1 For loop
-
-    def test_overcompute_merge(
-        self, code: OrchestratedCode, factories: Factories
-    ) -> None:
-        stencil_factory, quantity_factory = factories
-        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-
-        # Overcompute merge in K - we merge and introduce an If guard
-        code.overcompute_merge(in_qty, out_qty)
-
-        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
-        all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, nodes.MapEntry)
-        ]
-        assert len(all_maps) == 1  # All maps merged & collapsed
-
-    def test_block_merge_when_dependencies_are_found(
-        self, code: OrchestratedCode, factories: Factories
-    ) -> None:
-        stencil_factory, quantity_factory = factories
-        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-
-        # Forbid merging when data dependencies are detected
-        code.block_merge_when_dependencies_are_found(in_qty, out_qty)
-
-        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
-        all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, nodes.MapEntry)
-        ]
-        assert len(all_maps) == 2  # 2 * KJI
-
-    def test_push_non_cartesian_for(
-        self, code: OrchestratedCode, factories: Factories
-    ) -> None:
-        stencil_factory, quantity_factory = factories
-        in_qty = quantity_factory.ones([I_DIM, J_DIM, K_DIM], "")
-        out_qty = quantity_factory.zeros([I_DIM, J_DIM, K_DIM], "")
-
-        # Push non-cartesian ForScope inwards, which allow to potentially
-        # merge cartesian maps
-        code.push_non_cartesian_for(in_qty, out_qty)
-
-        sdfg = get_SDFG_and_purge(stencil_factory).sdfg
-        all_maps = [
-            (me, state)
-            for me, state in sdfg.all_nodes_recursive()
-            if isinstance(me, nodes.MapEntry)
-        ]
-        assert len(all_maps) == 1  # All merged and collapsed
-        for_loops = [
-            node
-            for node, _ in sdfg.all_nodes_recursive()
-            if isinstance(node, LoopRegion) and tn.loop_variant(node) == "for"
-        ]
         assert len(for_loops) == 1  # 1 For loop

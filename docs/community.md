@@ -33,7 +33,7 @@ For collaboration opportunities, technical support, or project inquiries, please
 ## Florian Deconinck
 Project Lead - NASA
 
-florian.deconinck@nasa.gov
+florian.deconinck@ssaihq.com
 </div>
 <div class="section-card tight-card" markdown>
 ## Oliver Elbert
@@ -58,8 +58,9 @@ rusty.benson@noaa.gov
 | Senior Developer | Roman Cattaneo | roman.cattaneo@ssaihq.com |
 | Senior Developer | Tobias Wicky-Pfund | tobias.wicky-pfund@ssaihq.com |
 | Support Scientist | Katrina Fandrich | katrina.fandrich@nasa.gov |
-| Support Scientist | Janice Kim | janice.kim@noaa.gov
+| Support Scientist | Janice Kim | janice.kim@noaa.gov |
 | Support Scientist | Charles Kropiewnicki | charles.kropiewnicki@nasa.gov |
 | Support Scientist | Frank Malatino | frank.malatino@noaa.gov |
+| Support Scientist | Ryan Mulhall | ryan.mulhall@noaa.gov |
 
 </div>

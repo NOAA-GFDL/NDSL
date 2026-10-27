@@ -13,7 +13,8 @@ def tridiag_solve(
 ) -> None:
     """
     This stencil solves a square, k x k tridiagonal matrix system
-    with coefficients a, b, and c, and vectors p and d using the Thomas algorithm:
+    with coefficients a, b, and c, and vectors p and d using
+    the Thomas algorithm:
 
     ```
     ###                                            ### ###  ###   ###  ###
@@ -41,16 +42,16 @@ def tridiag_solve(
     """
     with computation(FORWARD):  # Forward sweep
         with interval(0, 1):
-            x = c / b
+            x = -c / b
             delta = d / b
         with interval(1, None):
-            x = c / (b - a * x[0, 0, -1])
-            delta = (d - a * delta[0, 0, -1]) / (b - a * x[0, 0, -1])
+            x = -c / (b + a * x[0, 0, -1])
+            delta = (d - a * delta[0, 0, -1]) / (b + a * x[0, 0, -1])
     with computation(BACKWARD):  # Reverse sweep
         with interval(-1, None):
             x = delta
-        with interval(0, -1):
-            x = delta - x * x[0, 0, 1]
+        with interval(1, -1):
+            x = delta + x * x[0, 0, 1]
 
 
 def masked_tridiag_solve(
@@ -77,16 +78,16 @@ def masked_tridiag_solve(
     with computation(FORWARD):  # Forward sweep
         with interval(0, 1):
             if mask:
-                x = c / b
+                x = -c / b
                 delta = d / b
         with interval(1, None):
             if mask:
-                x = c / (b - a * x[0, 0, -1])
-                delta = (d - a * delta[0, 0, -1]) / (b - a * x[0, 0, -1])
+                x = -c / (b + a * x[0, 0, -1])
+                delta = (d - a * delta[0, 0, -1]) / (b + a * x[0, 0, -1])
     with computation(BACKWARD):  # Reverse sweep
         with interval(-1, None):
             if mask:
                 x = delta
-        with interval(0, -1):
+        with interval(1, -1):
             if mask:
-                x = delta - x * x[0, 0, 1]
+                x = delta + x * x[0, 0, 1]

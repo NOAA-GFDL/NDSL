@@ -1,6 +1,6 @@
 # local_optimizations
 
-dsl.dace.builder.stree.optimizations.local_optimizations
+::: dsl.dace.builder.stree.optimizations.local_optimizations
 
 <style>
 /* re-enable the left side navigation bar for this page */

@@ -1,6 +1,6 @@
 # clean_tree
 
-dsl.dace.builder.stree.optimizations.clean_tree
+::: dsl.dace.builder.stree.optimizations.clean_tree
 
 <style>
 /* re-enable the left side navigation bar for this page */
