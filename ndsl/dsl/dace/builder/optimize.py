@@ -132,7 +132,7 @@ def _optimize_for_serial_cpu(
     #           workflow.
     try:
         from dace.transformation.passes import PredicateToIntegerArray
-    except ModuleNotFoundError:
+    except ImportError:
         ndsl_log.warning(
             "Schedule tree canonicalization passes are not available, "
             "serial CPU optimization skipped."
@@ -457,7 +457,7 @@ def optimize_full_program_sdfg(
             "Stats on SDFG before compilation:\n"
             f"  Arrays: {len([name for _, name, _ in parsed_sdfg.arrays_recursive(include_nested_data=True)])}\n"
             f"  SDFGs : {len([sdfg for sdfg in parsed_sdfg.all_sdfgs_recursive()])}\n"
-            f"  States: {len(parsed_sdfg.states())}\n"
+            f"  States: {len([state for state in parsed_sdfg.states()])}\n"
             f"  CFGs  : {len([cfg for cfg in parsed_sdfg.all_control_flow_regions(recursive=True)])}\n"
         )
         parsed_sdfg.save("pre-compile.sdfgz", compress=True)
