@@ -26,6 +26,7 @@ from ndsl.dsl.dace.builder.sdfg.debug_passes import (
     sdfg_nan_checker,
 )
 from ndsl.dsl.dace.builder.stree import CPUPipeline, GPUPipeline, StreePipeline
+from ndsl.dsl.dace.builder.stree.optimizations.kernelize_maps import kernalize
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.dace.hardware_config import get_gpu_hardware_defaults
 from ndsl.dsl.dace.utils import (
@@ -352,6 +353,13 @@ def optimize_full_program_sdfg(
             parsed_sdfg,
             validate=False,
         )
+
+    # To avoid global sync in kernel, we always kernalize on GPU
+    if config.is_gpu_backend():
+        with DaCeProgress(mode, "GPU Kernalize"):
+            tree = parsed_sdfg.as_schedule_tree()
+            kernalize(tree, config.get_backend())
+            parsed_sdfg = tree.as_sdfg()
 
     # We want all maps properly collapse to make sure the codegen will see nD parallel
     # axis as a single kernelizable map
