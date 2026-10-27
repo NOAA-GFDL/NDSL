@@ -13,7 +13,7 @@ As a user, with `uv` as project and dependency manager, it's quick to get up and
 # Setup a project
 uv init --python=3.12 example/
 cd example/
-uv add git+https://github.com/noaa-gfdl/ndsl.git --tag 2026.08.00 --extra openmpi
+uv add git+https://github.com/noaa-gfdl/ndsl.git --tag 2026.10.02 --extra openmpi
 # Note: drop `--extra openmpi` if you want to use your system's MPI
 
 # Generate & run NDSL code
