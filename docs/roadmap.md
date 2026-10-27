@@ -12,7 +12,6 @@ We are building NDSL in the open. On this page we'll start to share our public r
 - :rocket: Heavy CPU optimizations
 - :gear: Introducing `DaceExecutable` as basis for performance profiling
 - :gear: use `uv` for dependency management
-- :snake: Add support for python 3.14
 
 ## 2026.08.x
 
