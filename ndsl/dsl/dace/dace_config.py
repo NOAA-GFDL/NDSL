@@ -261,11 +261,14 @@ class DaceConfig:
             # - Neoverse-V2 Grace CPU is too new for GCC 14 and -march=native will fail
             # - use alternative march=armv8-a instead
             march_cpu = "armv8-a" if is_arm_neoverse else "core-avx2"
+            # To insure IEEE 754 floating point compliance we forbid any use of
+            # the Fuse Multiple Add instructions
+            no_fma_instructions = "-ffp-contract=off"
             cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
             if cxx_defaults.name == CxxCompilerName.GNU:
                 if int(GT4PY_COMPILE_OPT_LEVEL) > 1:
                     optimization_flags = (
-                        "-mno-fma "  # match GEOS
+                        f"{no_fma_instructions} "
                         "-funroll-loops "
                         "-ffinite-loops "
                         "-fno-math-errno "
@@ -276,15 +279,15 @@ class DaceConfig:
             elif cxx_defaults.name == CxxCompilerName.CLANG:
                 optimization_flags = (
                     "-fPIC "
-                    "-mno-fma "
+                    f"{no_fma_instructions} "
                     "-faligned-new "
                     "-Wno-unused-label "
                     "-Wno-unused-parameter "
                 )
             elif cxx_defaults.name == CxxCompilerName.INTEL:
-                optimization_flags = "-mno-fma"
+                optimization_flags = f"{no_fma_instructions} "
             else:
-                optimization_flags = "-mno-fma"
+                optimization_flags = f"{no_fma_instructions} "
             cpp_standard = "c++20"
             warnings_policy = "-w" if NDSL_COMPILER_SILENCE else "-Wall"
             dace.config.Config.set(
