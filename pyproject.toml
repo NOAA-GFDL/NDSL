@@ -4,9 +4,9 @@ requires = ["setuptools >= 80", "setuptools-scm>=10"]
 
 [dependency-groups]
 dev = [
-  {include-group = 'docs'},
-  {include-group = 'lint'},
-  {include-group = 'test'}
+  { include-group = 'docs' },
+  { include-group = 'lint' },
+  { include-group = 'test' }
 ]
 docs = [
   "mkdocstrings[python]",
@@ -24,7 +24,7 @@ test = [
 ]
 
 [project]
-authors = [{name = "NOAA/NASA"}]
+authors = [{ name = "NOAA/NASA" }]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Science/Research",
@@ -33,11 +33,12 @@ classifiers = [
   "Natural Language :: English",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13"
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14"
 ]
 dependencies = [
-  "dace @ git+https://github.com/spcl/dace.git@24e48e2dd91fcbfb295bc5ed31457ccbf75b56a5",
-  "gt4py @ git+https://github.com/Gridtools/gt4py.git@39f5ac45677fe6ec1449ea430fdd53ed768da62f",
+  "dace @ git+https://github.com/spcl/dace.git@55622dde6dcd14fc92d726d05b1ba45be940edfb",
+  "gt4py @ git+https://github.com/Gridtools/gt4py.git@29242f13d1ebee5576eceb1c8db147894e021e89",
   "mpi4py>=4.1",
   "cftime",
   "xarray>=2025.01.2",  # datatree + fixes
@@ -58,7 +59,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE.txt", "ndsl/viz/fv3/README.md"]
 name = "ndsl"
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12,<3.15"
 
 [project.optional-dependencies]
 cuda12 = ['cupy-cuda12x>=12.0']
@@ -69,7 +70,10 @@ hmm-cuda13 = ['numpy_allocator', 'ndsl[cuda13]']
 openmpi = ['openmpi']
 pyfms = ["pyfms @ git+https://github.com/noaa-gfdl/pyfms.git"]
 serialbox = ["serialbox @ git+https://github.com/FlorianDeconinck/serialbox.git@feature/data_ijkbuff#subdirectory=src/serialbox-python"]
-zarr = ["zarr<3"]
+zarr = [
+  "zarr>=3,<4",
+  "numcodecs>=0.16.3"  # support for gcc>=15
+]
 
 [project.scripts]
 best_guess_diff = "ndsl.stencils.testing.best_guess_diff:entry_point"
@@ -175,5 +179,5 @@ include-package-data = true
 include = ["ndsl", "ndsl.*"]
 
 [tool.setuptools_scm]
-version_scheme = "no-guess-dev"
 tag.strict = "true"  # only consider tags with at least one dot (e.g. v1.0, 2025.06.03)
+version_scheme = "no-guess-dev"

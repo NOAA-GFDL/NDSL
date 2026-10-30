@@ -58,6 +58,8 @@ def _is_ref(sd: dace.sdfg.SDFG, aname: str) -> bool:
 class ArrayReport:
     name: str = ""
     total_size_in_bytes: int = 0
+    shape: tuple[Any, ...] = ()
+    scalar: bool = False
     referenced: bool = False
     transient: bool = False
     pool: bool = False
@@ -69,6 +71,10 @@ class StorageReport:
     name: str = ""
     referenced_in_bytes: int = 0
     unreferenced_in_bytes: int = 0
+    transient_referenced_in_bytes: int = 0
+    transient_unreferenced_in_bytes: int = 0
+    non_transient_referenced_in_bytes: int = 0
+    non_transient_unreferenced_in_bytes: int = 0
     in_pooled_in_bytes: int = 0
     top_level_in_bytes: int = 0
     details: list[ArrayReport] = field(default_factory=list)
@@ -79,56 +85,49 @@ def memory_static_analysis(
 ) -> dict[dace.StorageType, StorageReport]:
     """Analysis an SDFG for memory pressure.
 
-    The results split memory by type (dace.StorageType) and account for
-    allocated, unreferenced and top level (e.g. top-most SDFG) memory
+    The results split memory by storage type and lifetime, including arrays
+    nested inside nested SDFGs. Referenced, pooled, and top-level values are
+    reported as separate breakdowns of those allocations.
     """
     # We report all allocation type
     allocations: dict[dace.StorageType, StorageReport] = {}
     for storage_type in dace.StorageType:
-        allocations[storage_type] = StorageReport(name=storage_type)
+        allocations[storage_type] = StorageReport(name=storage_type.name)
 
-    for sd, aname, arr in sdfg.arrays_recursive():
-        array_size_in_bytes = arr.total_size * arr.dtype.bytes
+    for sd, aname, arr in sdfg.arrays_recursive(include_nested_data=True):
+        array_size_in_bytes = int(arr.total_size * arr.dtype.bytes)
         ref = _is_ref(sd, aname)
-
-        # Transient in maps (reference and not referenced)
-        if sd is not sdfg and arr.transient:
-            if arr.pool:
-                allocations[arr.storage].in_pooled_in_bytes += array_size_in_bytes
-            allocations[arr.storage].details.append(
-                ArrayReport(
-                    name=aname,
-                    total_size_in_bytes=array_size_in_bytes,
-                    referenced=ref,
-                    transient=arr.transient,
-                    pool=arr.pool,
-                    top_level=False,
-                )
+        allocation = allocations[arr.storage]
+        allocation.details.append(
+            ArrayReport(
+                name=aname,
+                total_size_in_bytes=array_size_in_bytes,
+                shape=tuple(arr.shape),
+                scalar=isinstance(arr, dace.data.Scalar) or not arr.shape,
+                referenced=ref,
+                transient=arr.transient,
+                pool=arr.pool,
+                top_level=sd is sdfg,
             )
-            if ref:
-                allocations[arr.storage].referenced_in_bytes += array_size_in_bytes
-            else:
-                allocations[arr.storage].unreferenced_in_bytes += array_size_in_bytes
+        )
 
-        # SDFG-level memory (reference, not referenced and pooled)
-        elif sd is sdfg:
-            if arr.pool:
-                allocations[arr.storage].in_pooled_in_bytes += array_size_in_bytes
-            allocations[arr.storage].details.append(
-                ArrayReport(
-                    name=aname,
-                    total_size_in_bytes=array_size_in_bytes,
-                    referenced=ref,
-                    transient=arr.transient,
-                    pool=arr.pool,
-                    top_level=True,
-                )
-            )
-            allocations[arr.storage].top_level_in_bytes += array_size_in_bytes
-            if ref:
-                allocations[arr.storage].referenced_in_bytes += array_size_in_bytes
+        if arr.pool:
+            allocation.in_pooled_in_bytes += array_size_in_bytes
+        if sd is sdfg:
+            allocation.top_level_in_bytes += array_size_in_bytes
+
+        if ref:
+            allocation.referenced_in_bytes += array_size_in_bytes
+            if arr.transient:
+                allocation.transient_referenced_in_bytes += array_size_in_bytes
             else:
-                allocations[arr.storage].unreferenced_in_bytes += array_size_in_bytes
+                allocation.non_transient_referenced_in_bytes += array_size_in_bytes
+        else:
+            allocation.unreferenced_in_bytes += array_size_in_bytes
+            if arr.transient:
+                allocation.transient_unreferenced_in_bytes += array_size_in_bytes
+            else:
+                allocation.non_transient_unreferenced_in_bytes += array_size_in_bytes
 
     return allocations
 
@@ -138,35 +137,66 @@ def report_memory_static_analysis(
     allocations: dict[dace.StorageType, StorageReport],
     detail_report: bool = False,
 ) -> str:
-    """Create a human readable report form the memory analysis results"""
-    report = f"{sdfg.name}:\n"
+    """Create a human-readable report from the memory analysis results."""
+
+    def format_size(size_in_bytes: int) -> str:
+        units = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB")
+        size = float(size_in_bytes)
+        unit_index = 0
+        while size >= 1024 and unit_index < len(units) - 1:
+            size /= 1024
+            unit_index += 1
+        return f"{size:.2f} {units[unit_index]}"
+
+    report = f"{sdfg.name} memory usage:\n"
     for storage, allocs in allocations.items():
-        alloc_in_mb = float(allocs.referenced_in_bytes / (1024 * 1024))
-        unref_alloc_in_mb = float(allocs.unreferenced_in_bytes / (1024 * 1024))
-        in_pooled_in_mb = float(allocs.in_pooled_in_bytes / (1024 * 1024))
-        top_level_alloc_in_mb = float(allocs.top_level_in_bytes / (1024 * 1024))
-        if alloc_in_mb or top_level_alloc_in_mb > 0:
-            report += (
-                f"{storage}:\n"
-                f"  Alloc ref {alloc_in_mb:.2f} mb\n"
-                f"  Alloc unref {unref_alloc_in_mb:.2f} mb\n"
-                f"  Pooled {in_pooled_in_mb:.2f} mb\n"
-                f"  Top lvl alloc: {top_level_alloc_in_mb:.2f}mb\n"
-            )
-            if detail_report:
-                report += "\n"
-                report += "  Referenced\tTransient   \tPooled\tTotal size(mb)\tName\n"
-                for detail in allocs.details:
-                    size_in_mb = float(detail.total_size_in_bytes / (1024 * 1024))
-                    ref_str = "     X     " if detail.referenced else "           "
-                    transient_str = "     X     " if detail.transient else "           "
-                    pooled_str = "     X     " if detail.pool else "           "
-                    report += (
-                        f" {ref_str}\t{transient_str}"
-                        f"\t   {pooled_str}"
-                        f"\t   {size_in_mb:.2f}"
-                        f"\t   {detail.name}\n"
-                    )
+        if not allocs.details:
+            continue
+
+        transient_arrays = sum(
+            detail.transient and not detail.scalar for detail in allocs.details
+        )
+        transient_scalars = sum(
+            detail.transient and detail.scalar for detail in allocs.details
+        )
+        non_transient_arrays = sum(
+            not detail.transient and not detail.scalar for detail in allocs.details
+        )
+        non_transient_scalars = sum(
+            not detail.transient and detail.scalar for detail in allocs.details
+        )
+        report += f"\n{storage}:\n"
+        report += (
+            f"  Transient: arrays {transient_arrays}, scalars {transient_scalars}; "
+            f"total {format_size(allocs.transient_referenced_in_bytes + allocs.transient_unreferenced_in_bytes)}; "
+            f"referenced {format_size(allocs.transient_referenced_in_bytes)}; "
+            f"unreferenced {format_size(allocs.transient_unreferenced_in_bytes)}\n"
+            f"  Non-transient: arrays {non_transient_arrays}, scalars {non_transient_scalars}; "
+            f"total {format_size(allocs.non_transient_referenced_in_bytes + allocs.non_transient_unreferenced_in_bytes)}; "
+            f"referenced {format_size(allocs.non_transient_referenced_in_bytes)}; "
+            f"unreferenced {format_size(allocs.non_transient_unreferenced_in_bytes)}\n"
+            f"  Pooled: {format_size(allocs.in_pooled_in_bytes)}\n"
+            f"  Top-level: {format_size(allocs.top_level_in_bytes)}\n"
+        )
+        if detail_report:
+            report += "  Details (kind | lifetime | reference | pool | scope | rank | shape | bytes | name):\n"
+            for detail in allocs.details:
+                kind = "scalar" if detail.scalar else "array"
+                lifetime = "transient" if detail.transient else "non-transient"
+                reference = "referenced" if detail.referenced else "unreferenced"
+                pooled = "pooled" if detail.pool else "not pooled"
+                scope = "top-level" if detail.top_level else "nested"
+                rank = 0 if detail.scalar else len(detail.shape)
+                shape = (
+                    "-"
+                    if detail.scalar
+                    else " x ".join(str(dimension) for dimension in detail.shape)
+                )
+                report += (
+                    f"    {kind} | {lifetime} | {reference} | {pooled} | {scope} | "
+                    f"{rank}D | {shape} | "
+                    f"{format_size(detail.total_size_in_bytes)} | {detail.name}\n"
+                )
 
     return report
 
