@@ -164,7 +164,6 @@ def main(
                     rank_data[name].append(
                         read_serialized_data(serializer, savepoint, name)
                     )
-                nblocks = len(rank_data[name])
                 if merge_blocks and len(rank_data[name]) > 1:
                     full_data = np.array(rank_data[name])
                     if len(full_data.shape) > 1:
@@ -184,10 +183,8 @@ def main(
                         raise IndexError(f"{name} data appears to be empty")
                     rank_data[name] = [full_data]
             rank_list.append(rank_data)
-        if merge_blocks:
-            n_savepoints = 1
-        else:
-            n_savepoints = len(savepoints)  # checking from last rank is fine
+        # NOTE: checking from last rank is fine
+        n_savepoints = 1 if merge_blocks else len(savepoints)
         data_vars = {}
         if n_savepoints > 0:
             encoding = {}
