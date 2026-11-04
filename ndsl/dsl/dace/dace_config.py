@@ -342,6 +342,11 @@ class DaceConfig:
                 "cuda_arch",
                 value=f"{gpu_defaults.compute_capability}",
             )
+            # Fix the `host` compiler for NVCC to not use Intel (since it will crash) - hopefully
+            # some form of GCC is around...
+            if backend.is_gpu_backend() and cxx_defaults.name == CxxCompilerName.INTEL:
+                dace.config.Config.set("compiler", "cpu", "executable", value="g++")
+
             # Default block size for kernels launch
             dace.config.Config.set(
                 "compiler",
@@ -390,6 +395,10 @@ class DaceConfig:
                     "default_data_types",
                     value="c",
                 )
+
+            # Caching the compile command is not multi-process safe and will lead
+            # to concurrent compile saving the .so in the same folder
+            dace.Config.set("compiler", "command_cache", value=False)
 
             # Required for HaloEx callbacks and general code sanity
             dace.config.Config.set(

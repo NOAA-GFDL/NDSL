@@ -536,7 +536,7 @@ class FrozenStencil(SDFGConvertible):
             field_origins = {**origin}
             origin_tuple = origin["_all_"]
         field_names = tuple(field_info_mapping.keys())
-        for i, field_name in enumerate(field_names):
+        for _i, field_name in enumerate(field_names):
             if field_name not in field_origins:
                 field_info = field_info_mapping[field_name]
                 if field_info is not None:
