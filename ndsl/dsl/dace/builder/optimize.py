@@ -309,6 +309,7 @@ def optimize_full_program_sdfg(
             },
             validate=False,
             print_report=False,
+            progress=False,
         )
 
     with DaCeProgress(mode, "Make residency of memory leaner"):
@@ -398,7 +399,10 @@ def optimize_full_program_sdfg(
                     exclude_tasklets_list.append(me.label)
 
             parsed_sdfg.apply_transformations_repeated(
-                AddThreadBlockMap, print_report=False, validate=False
+                AddThreadBlockMap,
+                print_report=False,
+                validate=False,
+                progress=False,
             )
 
             if optimization_config.gpu.common_gpu_xforms:
