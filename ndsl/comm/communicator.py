@@ -915,6 +915,15 @@ class NestTileCommunicator(TileCommunicator):
             n_points,
         )
 
+    def start_synchronize_vector_interfaces(
+        self, x_quantity: Quantity, y_quantity: Quantity
+    ) -> HaloUpdateRequest:
+        # Bounded rectangular layouts do not require TileCommunicator's
+        # periodic assumption that a pair of ranks shares only one boundary.
+        return Communicator.start_synchronize_vector_interfaces(
+            self, x_quantity, y_quantity
+        )
+
 
 class NestedCommunicator:
     """Coordinate communication among a parent domain and nested domains.

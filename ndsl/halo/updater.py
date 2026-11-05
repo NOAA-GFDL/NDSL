@@ -538,6 +538,7 @@ class VectorInterfaceHaloUpdater:
         bordering that edge. This routine copies values across those shared edges
         so that both ranks have the same value for that edge. It also handles any
         rotation of vector quantities needed to move data across the edge.
+        Missing cardinal boundaries are omitted; exterior values are preserved.
 
         Args:
             x_quantity: the x-component quantity to be synchronized
@@ -561,54 +562,59 @@ class VectorInterfaceHaloUpdater:
     def _Isend_vector_shared_boundary(
         self, x_quantity: Quantity, y_quantity: Quantity, tag: int = 0
     ) -> _HaloRequestSendList:
-        south_boundary = self.boundaries[constants.SOUTH]
-        west_boundary = self.boundaries[constants.WEST]
-        south_data = x_quantity.view.southwest.sel(
-            **{  # type: ignore[arg-type]
-                constants.J_INTERFACE_DIM: 0,
-                constants.I_DIM: slice(
-                    0, x_quantity.extent[x_quantity.dims.index(constants.I_DIM)]
-                ),
-            }
-        )
-        south_data = rotate_scalar_data(
-            south_data,
-            [constants.I_DIM],
-            x_quantity.np,
-            -south_boundary.n_clockwise_rotations,
-        )
-        if south_boundary.n_clockwise_rotations in (3, 2):
-            south_data = -south_data
-        west_data = y_quantity.view.southwest.sel(
-            **{  # type: ignore[arg-type]
-                constants.I_INTERFACE_DIM: 0,
-                constants.J_DIM: slice(
-                    0, y_quantity.extent[y_quantity.dims.index(constants.J_DIM)]
-                ),
-            }
-        )
-        west_data = rotate_scalar_data(
-            west_data,
-            [constants.J_DIM],
-            y_quantity.np,
-            -west_boundary.n_clockwise_rotations,
-        )
-        if west_boundary.n_clockwise_rotations in (1, 2):
-            west_data = -west_data
-        send_requests = [
-            self._Isend(
-                self._maybe_force_cpu(x_quantity.np),
+        send_requests: _HaloRequestSendList = []
+        south_boundary = self.boundaries.get(constants.SOUTH)
+        if south_boundary is not None:
+            south_data = x_quantity.view.southwest.sel(
+                **{  # type: ignore[arg-type]
+                    constants.J_INTERFACE_DIM: 0,
+                    constants.I_DIM: slice(
+                        0, x_quantity.extent[x_quantity.dims.index(constants.I_DIM)]
+                    ),
+                }
+            )
+            south_data = rotate_scalar_data(
                 south_data,
-                dest=south_boundary.to_rank,
-                tag=tag,
-            ),
-            self._Isend(
-                self._maybe_force_cpu(y_quantity.np),
+                [constants.I_DIM],
+                x_quantity.np,
+                -south_boundary.n_clockwise_rotations,
+            )
+            if south_boundary.n_clockwise_rotations in (3, 2):
+                south_data = -south_data
+            send_requests.append(
+                self._Isend(
+                    self._maybe_force_cpu(x_quantity.np),
+                    south_data,
+                    dest=south_boundary.to_rank,
+                    tag=tag,
+                )
+            )
+        west_boundary = self.boundaries.get(constants.WEST)
+        if west_boundary is not None:
+            west_data = y_quantity.view.southwest.sel(
+                **{  # type: ignore[arg-type]
+                    constants.I_INTERFACE_DIM: 0,
+                    constants.J_DIM: slice(
+                        0, y_quantity.extent[y_quantity.dims.index(constants.J_DIM)]
+                    ),
+                }
+            )
+            west_data = rotate_scalar_data(
                 west_data,
-                dest=west_boundary.to_rank,
-                tag=tag,
-            ),
-        ]
+                [constants.J_DIM],
+                y_quantity.np,
+                -west_boundary.n_clockwise_rotations,
+            )
+            if west_boundary.n_clockwise_rotations in (1, 2):
+                west_data = -west_data
+            send_requests.append(
+                self._Isend(
+                    self._maybe_force_cpu(y_quantity.np),
+                    west_data,
+                    dest=west_boundary.to_rank,
+                    tag=tag,
+                )
+            )
         return send_requests
 
     def _maybe_force_cpu(self, module: ModuleType) -> ModuleType:
@@ -623,38 +629,43 @@ class VectorInterfaceHaloUpdater:
     def _Irecv_vector_shared_boundary(
         self, x_quantity: Quantity, y_quantity: Quantity, tag: int = 0
     ) -> _HaloRequestRecvList:
-        north_rank = self.boundaries[constants.NORTH].to_rank
-        east_rank = self.boundaries[constants.EAST].to_rank
-        north_data = x_quantity.view.northwest.sel(
-            **{  # type: ignore[arg-type]
-                constants.J_INTERFACE_DIM: -1,
-                constants.I_DIM: slice(
-                    0, x_quantity.extent[x_quantity.dims.index(constants.I_DIM)]
-                ),
-            }
-        )
-        east_data = y_quantity.view.southeast.sel(
-            **{  # type: ignore[arg-type]
-                constants.I_INTERFACE_DIM: -1,
-                constants.J_DIM: slice(
-                    0, y_quantity.extent[y_quantity.dims.index(constants.J_DIM)]
-                ),
-            }
-        )
-        recv_requests = [
-            self._Irecv(
-                self._maybe_force_cpu(x_quantity.np),
-                north_data,
-                source=north_rank,
-                tag=tag,
-            ),
-            self._Irecv(
-                self._maybe_force_cpu(y_quantity.np),
-                east_data,
-                source=east_rank,
-                tag=tag,
-            ),
-        ]
+        recv_requests: _HaloRequestRecvList = []
+        north_boundary = self.boundaries.get(constants.NORTH)
+        if north_boundary is not None:
+            north_data = x_quantity.view.northwest.sel(
+                **{  # type: ignore[arg-type]
+                    constants.J_INTERFACE_DIM: -1,
+                    constants.I_DIM: slice(
+                        0, x_quantity.extent[x_quantity.dims.index(constants.I_DIM)]
+                    ),
+                }
+            )
+            recv_requests.append(
+                self._Irecv(
+                    self._maybe_force_cpu(x_quantity.np),
+                    north_data,
+                    source=north_boundary.to_rank,
+                    tag=tag,
+                )
+            )
+        east_boundary = self.boundaries.get(constants.EAST)
+        if east_boundary is not None:
+            east_data = y_quantity.view.southeast.sel(
+                **{  # type: ignore[arg-type]
+                    constants.I_INTERFACE_DIM: -1,
+                    constants.J_DIM: slice(
+                        0, y_quantity.extent[y_quantity.dims.index(constants.J_DIM)]
+                    ),
+                }
+            )
+            recv_requests.append(
+                self._Irecv(
+                    self._maybe_force_cpu(y_quantity.np),
+                    east_data,
+                    source=east_boundary.to_rank,
+                    tag=tag,
+                )
+            )
         return recv_requests
 
     def _Isend(self, numpy_module, in_array, **kwargs) -> _HaloSendTuple:  # type: ignore[no-untyped-def]
