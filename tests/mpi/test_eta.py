@@ -17,6 +17,7 @@ from ndsl.grid import MetricTerms
 
 
 @pytest.mark.parallel
+@pytest.mark.nproc6
 @pytest.mark.parametrize("levels", [79, 91])
 def test_set_hybrid_pressure_coefficients_correct(levels):
     """

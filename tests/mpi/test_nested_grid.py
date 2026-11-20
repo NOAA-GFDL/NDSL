@@ -28,7 +28,7 @@ from ndsl.constants import (
     SOUTH,
 )
 
-pytestmark = pytest.mark.parallel
+pytestmark = [pytest.mark.parallel, pytest.mark.nproc8]
 
 # The parent patch [2:4, 2:6] and one coarse halo fit inside an 8x8 face.
 PARENT_CELLS = (8, 8)

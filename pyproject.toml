@@ -168,6 +168,8 @@ markers = [
   "pyfms",
   # tests relying on at least two MPI processes
   "parallel",
+  "nproc6: MPI tests requiring exactly six processes",
+  "nproc8: MPI tests requiring exactly eight processes",
   # tests relying on the optional zarr dependency
   "zarr"
 ]
