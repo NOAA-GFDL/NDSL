@@ -96,6 +96,7 @@ def _create_input(reduction: str = "none") -> None:
 # Simple test, uses a lat/lon grid and (1, npes) layout
 @pytest.mark.pyfms
 @pytest.mark.parallel
+@pytest.mark.nproc6
 def test_dm_monitor() -> None:
     npes = MPIComm()._comm.Get_size()
     if npes % 6 != 0:

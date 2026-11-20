@@ -60,8 +60,21 @@ jobs:
       - name: Run serial cpu tests
         run: uv run --group=test --extra=${{ matrix.extra }} coverage run --rcfile=pyproject.toml -m pytest -m "${{matrix.marker-serial}}" tests
 
-      - name: Run parallel cpu tests
-        run: uv run --group=test --extra=${{ matrix.extra }} mpiexec -np 6 --oversubscribe coverage run --rcfile=pyproject.toml -m mpi4py -m pytest -m "${{matrix.marker-parallel}}" tests
+      - name: Run parallel CPU tests (6 ranks)
+        run: >-
+          uv run --group=test --extra=${{ matrix.extra }}
+          mpiexec -np 6 --oversubscribe
+          coverage run --rcfile=pyproject.toml -m mpi4py -m pytest
+          -m "(${{ matrix.marker-parallel }}) and not nproc8" tests
+
+      - name: Run nested-grid MPI regression (8 ranks)
+        if: ${{ !contains(matrix.extra, 'pyfms') }}
+        timeout-minutes: 5
+        run: >-
+          uv run --group=test --extra=${{ matrix.extra }}
+          mpiexec -np 8 --oversubscribe
+          coverage run --rcfile=pyproject.toml -m mpi4py -m pytest
+          -m "(${{ matrix.marker-parallel }}) and nproc8" -x -ra tests
 
       - name: Output code coverage
         run: |
