@@ -9,6 +9,8 @@ The first step, porting the Fortran code to NDSL, was completed with two mandate
 redundant, or poorly organized code. In most cases, these dual mandates were fulfilled in their entirety; however, on occasion small errors (generally no more than
 100 ULP, or roughly six orders of magnitude less than the observed value) on a small fraction (<5%) of grid points were considered acceptable.
 
+![NDSL validation workflow](../../img/ndsl-validation-workflow.png)
+
 Numerical validation has been performed by comparing the results of two GEOS runs: one using the original Fortran and another using the integrated NDSL component.
 For the purposes of this work, numerical validation has been performed on both single column model (SCM) runs and general circulation model (GCM) runs. To avoid
 conflating errors associated with different hardware types with true porting errors, numerical validation is performed with all optimization turned off - for both
