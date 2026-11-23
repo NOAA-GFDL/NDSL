@@ -68,7 +68,7 @@ Congratulation, you just ran you first NDSL program. Have a look at `ndsl_exampl
 NDSL has the following extras:
 
 - `demos`: extra dependencies to run [NDSL examples](https://github.com/NOAA-GFDL/NDSL/tree/develop/examples/NDSL)
-- `openmpi`: install OpenMPI from python (do support GPU)
+- `openmpi`: install OpenMPI from python (no GPU support)
 - `pyfms`: install [pyFMS](https://github.com/NOAA-GFDL/pyfms) to allow interaction with its diagnostics manager
 - `serialbox`: install [serialbox](https://github.com/FlorianDeconinck/serialbox/) to support porting code from Fortran to NDSL
 

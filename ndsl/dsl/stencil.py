@@ -1094,6 +1094,16 @@ class StencilFactory:
     def restrict_vertical(
         self, k_start: int = 0, nk: int | None = None
     ) -> StencilFactory:
+        """
+        Returns a copy of itself with modified vertical origin and domain.
+
+        Args:
+            k_start: offset to apply to current vertical origin, must be
+                greater than 0 and less than the size of the vertical domain
+            nk: new vertical domain size as a number of grid cells,
+                defaults to remaining grid cells in the current domain,
+                can be at most the size of the vertical domain minus k_start
+        """
         return StencilFactory(
             config=self.config,
             grid_indexing=self.grid_indexing.restrict_vertical(k_start=k_start, nk=nk),
