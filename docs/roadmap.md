@@ -4,6 +4,7 @@ We are building NDSL in the open. On this page we'll start to share our public r
 
 ## 2026.11.x
 
+- :sparkles: Support for nested grids
 - :sparkles: Allow usage of NDSL types (`Int`, `Float`) inside stencils
 - :snake: Support for python 3.14
 
