@@ -235,8 +235,7 @@ class TranslateFortranData2Py:
         else:
             out_data.update(inputs)
         out = {}
-        for var in self.out_vars.keys():
-            info = self.out_vars[var]
+        for var, info in self.out_vars.items():
             self.update_info(info, inputs)
             serialname = info["serialname"] if "serialname" in info else var
             index_variable = (

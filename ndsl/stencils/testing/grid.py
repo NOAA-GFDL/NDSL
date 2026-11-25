@@ -31,7 +31,7 @@ class Grid:
     index_pairs = [("is_", "js"), ("ie", "je"), ("isd", "jsd"), ("ied", "jed")]
     shape_params = ["npz", "npx", "npy"]
     # npx -- number of grid corners on one tile of the domain
-    # grid.ie == npx - 1identified east edge in fortran
+    # grid.ie == npx - 1 identified east edge in fortran
     # But we need to add the halo - 1 to change this check to 0 based python arrays
     # grid.ie == npx + halo - 2
 
