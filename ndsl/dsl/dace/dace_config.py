@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 import os
+import platform
 from pathlib import Path
 from typing import Any, Self
 
@@ -265,11 +266,7 @@ class DaceConfig:
             march_cpu = (
                 "armv8-a"
                 if is_arm_neoverse
-                else (
-                    "native"
-                    if cxx_defaults.name == CxxCompilerName.APPLE_CLANG
-                    else "core-avx2"
-                )
+                else ("native" if platform.system() == "Darwin" else "core-avx2")
             )
             # To insure IEEE 754 floating point compliance we forbid any use of
             # the Fuse Multiple Add instructions
