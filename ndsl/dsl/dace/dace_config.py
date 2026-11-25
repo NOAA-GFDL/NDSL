@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 import os
+import platform
 from pathlib import Path
 from typing import Any, Self
 
@@ -255,16 +256,21 @@ class DaceConfig:
                 and cp.cuda.runtime.getDeviceProperties(0)["name"]
                 == b"NVIDIA GH200 480GB"
             )
+            cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
 
             # Resolve "march/mtune" option for GPU
             # - turn on numeric-centric SSE by (avx2)
             # - Neoverse-V2 Grace CPU is too new for GCC 14 and -march=native will fail
             # - use alternative march=armv8-a instead
-            march_cpu = "armv8-a" if is_arm_neoverse else "core-avx2"
+            # - use `-march=native` on APPLE_CLANG (assume arm-based M-chips)
+            march_cpu = (
+                "armv8-a"
+                if is_arm_neoverse
+                else ("native" if platform.system() == "Darwin" else "core-avx2")
+            )
             # To insure IEEE 754 floating point compliance we forbid any use of
             # the Fuse Multiple Add instructions
             no_fma_instructions = "-ffp-contract=off"
-            cxx_defaults = cxx_compiler_defaults(GT4PY_COMPILE_OPT_LEVEL)
             if cxx_defaults.name == CxxCompilerName.GNU:
                 if int(GT4PY_COMPILE_OPT_LEVEL) > 1:
                     optimization_flags = (
