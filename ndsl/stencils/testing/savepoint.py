@@ -5,6 +5,7 @@ from typing import Any, Protocol
 import numpy as np
 import xarray as xr
 
+from ndsl.comm.communicator import Communicator
 from ndsl.stencils.testing.grid import Grid
 
 
@@ -17,8 +18,7 @@ def dataset_to_dict(ds: xr.Dataset) -> dict[str, np.ndarray | float | int]:
 def _process_if_scalar(value: np.ndarray) -> np.ndarray | float | int:
     if len(value.shape) == 0:
         return value.max()  # trick to make sure we get the right type back
-    else:
-        return value
+    return value
 
 
 class DataLoader:
@@ -45,8 +45,24 @@ class Translate(Protocol):
     def collect_input_data(self, ds: xr.Dataset) -> dict: ...
 
     def compute(self, data: dict) -> Any: ...
+    def compute_parallel(self, inputs: dict, comm: Communicator) -> Any: ...
 
     def extra_data_load(self, data_loader: DataLoader) -> None: ...
+
+    def serialnames(self, dict: dict) -> list: ...
+
+    max_error: float
+    near_zero: float
+    ignore_near_zero_errors: dict
+
+    mmr_absolute_eps: float
+    mmr_relative_fraction: float
+    mmr_ulp: float
+
+    in_vars: dict
+    out_vars: dict
+    skip_test: bool
+    compute_grid_option: bool
 
 
 @dataclasses.dataclass

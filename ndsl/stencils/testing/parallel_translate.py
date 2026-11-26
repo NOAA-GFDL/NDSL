@@ -1,11 +1,14 @@
 import copy
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Sequence
 
 import pytest
+from f90nml import Namelist
 
+from ndsl.comm.communicator import Communicator
 from ndsl.constants import HORIZONTAL_DIMS, I_DIMS, J_DIMS, N_HALO_DEFAULT
 from ndsl.dsl import gt4py_utils as utils
+from ndsl.dsl.stencil import StencilFactory
 from ndsl.quantity import Quantity
 from ndsl.stencils.testing.translate import (
     TranslateFortranData2Py,
@@ -25,7 +28,14 @@ class ParallelTranslate:
     inputs: dict[str, Any] = {}
     outputs: dict[str, Any] = {}
 
-    def __init__(self, rank_grids, namelist, stencil_factory, *args, **kwargs):
+    def __init__(
+        self,
+        rank_grids: Any,
+        namelist: Namelist,
+        stencil_factory: StencilFactory,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         if len(args) > 0:
             raise TypeError(
                 "received {} positional arguments, expected 0".format(len(args))
@@ -55,7 +65,7 @@ class ParallelTranslate:
         self._base.out_vars = {name: {} for name in self.outputs}
         self.max_error = self._base.max_error
         self._rank_grids = rank_grids
-        self.ignore_near_zero_errors = {}
+        self.ignore_near_zero_errors: dict = {}
         self.namelist = namelist
         self.skip_test = False
 
@@ -87,13 +97,13 @@ class ParallelTranslate:
                 state[properties["name"]] = input_data
         return state
 
-    def outputs_list_from_state_list(self, state_list):
+    def outputs_list_from_state_list(self, state_list: list) -> list:
         outputs_list = []
         for state in state_list:
             outputs_list.append(self.outputs_from_state(state))
         return outputs_list
 
-    def collect_input_data(self, serializer, savepoint):
+    def collect_input_data(self, serializer, savepoint):  # type: ignore
         input_data = {}
         for varname in self.inputs.keys():
             input_data[varname] = read_serialized_data(serializer, savepoint, varname)
@@ -121,20 +131,22 @@ class ParallelTranslate:
         return return_dict
 
     @property
-    def rank_grids(self):
+    def rank_grids(self) -> Any:
         return self._rank_grids
 
     @property
-    def layout(self):
+    def layout(self) -> tuple[int, int]:
         grid_params = grid_params_from_f90nml(self.namelist)
         return grid_params["layout"]
 
-    def compute_sequential(self, inputs_list, communicator_list):
+    def compute_sequential(
+        self, inputs_list: list, communicator_list: list[Communicator]
+    ) -> Any:
         """Compute the outputs while iterating over a set of communicator
         objects sequentially."""
         raise NotImplementedError()
 
-    def compute_parallel(self, inputs, communicator):
+    def compute_parallel(self, inputs: dict, communicator: Communicator) -> Any:
         """Compute the outputs using one communicator operating in parallel."""
         self.compute_sequential([inputs], [communicator])
 
@@ -157,10 +169,14 @@ class ParallelTranslateBaseSlicing(ParallelTranslate):
         return outputs
 
 
-def _serialize_slice(quantity, n_halo, real_dims=None):
+def _serialize_slice(
+    quantity: Quantity,
+    n_halo: int | Sequence[int],
+    real_dims: tuple[str, ...] | None = None,
+) -> tuple[int | slice, ...]:
     if real_dims is None:
         real_dims = quantity.dims
-    slice_list = []
+    slice_list: list[int | slice] = []
     for dim, origin, extent in zip(quantity.dims, quantity.origin, quantity.extent):
         if dim in real_dims:
             if dim in HORIZONTAL_DIMS:
@@ -218,7 +234,7 @@ class ParallelTranslateGrid(ParallelTranslate):
                 state[standard_name] = inputs[name]
         return state
 
-    def compute_sequential(self, *args, **kwargs):
+    def compute_sequential(self, *args, **kwargs):  # type: ignore
         pytest.skip(
             f"{self.__class__} only has a mpirun implementation, "
             "not running in mock-parallel"
@@ -226,12 +242,12 @@ class ParallelTranslateGrid(ParallelTranslate):
 
 
 class ParallelTranslate2Py(ParallelTranslate):
-    def collect_input_data(self, serializer, savepoint):
+    def collect_input_data(self, serializer, savepoint):  # type: ignore
         input_data = super().collect_input_data(serializer, savepoint)
         input_data.update(self._base.collect_input_data(serializer, savepoint))
         return input_data
 
-    def compute_parallel(self, inputs, communicator):
+    def compute_parallel(self, inputs: dict, communicator: Communicator) -> dict:
         inputs = {**inputs}
         inputs = self.state_from_inputs(inputs)
         inputs["comm"] = communicator
@@ -244,7 +260,7 @@ class ParallelTranslate2Py(ParallelTranslate):
         result.update(self._base.slice_output(result))
         return result
 
-    def compute_sequential(self, a, b):
+    def compute_sequential(self, a, b):  # type: ignore
         pytest.skip(
             f"{self.__class__} only has a mpirun implementation, "
             "not running in mock-parallel"
@@ -252,7 +268,7 @@ class ParallelTranslate2Py(ParallelTranslate):
 
 
 class ParallelTranslate2PyState(ParallelTranslate2Py):
-    def compute_parallel(self, inputs, communicator):
+    def compute_parallel(self, inputs: dict, communicator: Communicator) -> dict:
         self._base.make_storage_data_input_vars(inputs)
         for name, properties in self.inputs.items():
             self.grid.quantity_dict_update(
