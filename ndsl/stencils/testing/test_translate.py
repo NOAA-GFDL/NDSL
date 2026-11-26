@@ -1,20 +1,30 @@
-# type: ignore
 import copy
 import os
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pytest
+import xarray as xr
 
 from ndsl import ndsl_log
-from ndsl.comm.communicator import CubedSphereCommunicator, TileCommunicator
+from ndsl.comm.comm_abc import Comm
+from ndsl.comm.communicator import (
+    Communicator,
+    CubedSphereCommunicator,
+    TileCommunicator,
+)
 from ndsl.comm.mpi import MPI, MPIComm
 from ndsl.comm.partitioner import CubedSpherePartitioner, TilePartitioner
 from ndsl.config import Backend
 from ndsl.dsl import gt4py_utils as gt_utils
 from ndsl.dsl.dace.dace_config import DaceConfig
 from ndsl.dsl.stencil import CompilationConfig, StencilConfig
-from ndsl.stencils.testing.savepoint import DataLoader, SavepointCase, dataset_to_dict
+from ndsl.stencils.testing.savepoint import (
+    DataLoader,
+    SavepointCase,
+    Translate,
+    dataset_to_dict,
+)
 from ndsl.testing.comparison import BaseMetric, LegacyMetric, MultiModalFloatMetric
 from ndsl.testing.perturbation import perturb
 
@@ -27,12 +37,14 @@ GPU_NEAR_ZERO = 1e-15
 N_THRESHOLD_SAMPLES = int(os.getenv("NDSL_TEST_N_THRESHOLD_SAMPLES", 0))
 
 
-def platform():
+def platform() -> Literal["docker", "metal"]:
     in_docker = os.environ.get("IN_DOCKER", False)
     return "docker" if in_docker else "metal"
 
 
-def process_override(threshold_overrides, testobj, test_name, backend: Backend):
+def process_override(
+    threshold_overrides: dict, testobj: Translate, test_name: str, backend: Backend
+) -> None:
     override = threshold_overrides.get(test_name, None)
     if override is not None:
         for spec in override:
@@ -94,24 +106,26 @@ def process_override(threshold_overrides, testobj, test_name, backend: Backend):
                 "Misconfigured threshold overrides file, more than 1 specification for "
                 + test_name
                 + " with backend="
-                + backend
+                + backend.as_humanly_readable()
                 + ", platform="
                 + platform()
             )
 
 
-def get_thresholds(testobj, input_data):
+def get_thresholds(testobj: Translate, input_data: Any) -> None:
     _get_thresholds(testobj.compute, input_data)
 
 
-def get_thresholds_parallel(testobj, input_data, communicator):
-    def compute(input):
+def get_thresholds_parallel(
+    testobj: Translate, input_data: Any, communicator: Communicator
+) -> None:
+    def compute(input: Any) -> Any:
         return testobj.compute_parallel(input, communicator)
 
     _get_thresholds(compute, input_data)
 
 
-def _get_thresholds(compute_function, input_data) -> None:
+def _get_thresholds(compute_function: Any, input_data: Any) -> None:
     if N_THRESHOLD_SAMPLES <= 0:
         return
     output_list = []
@@ -147,14 +161,14 @@ def _get_thresholds(compute_function, input_data) -> None:
 def test_sequential_savepoint(
     case: SavepointCase,
     backend: str,
-    print_failures,
-    failure_stride,
-    subtests,
-    caplog,
-    threshold_overrides,
-    multimodal_metric,
-    xy_indices=True,
-):
+    print_failures: str,
+    failure_stride: int,
+    subtests: Any,
+    caplog: Any,
+    threshold_overrides: dict | None,
+    multimodal_metric: bool,
+    xy_indices: bool = True,
+) -> None:
     if case.testobj is None:
         raise ValueError(
             f"No translate object available for savepoint {case.savepoint_name}."
@@ -255,7 +269,7 @@ def test_sequential_savepoint(
             failing_names.append(varname)
             output_data = gt_utils.asarray(output[varname])
             if multimodal_metric:
-                metric = MultiModalFloatMetric(
+                metric: BaseMetric = MultiModalFloatMetric(
                     input_values=(
                         original_input_data[varname]
                         if varname in original_input_data.keys()
@@ -309,12 +323,12 @@ def test_sequential_savepoint(
         pytest.fail("No tests passed")
 
 
-def get_communicator(comm, layout):
+def get_communicator(comm: Comm, layout: tuple[int, int]) -> CubedSphereCommunicator:
     partitioner = CubedSpherePartitioner(TilePartitioner(layout))
     return CubedSphereCommunicator(comm, partitioner)
 
 
-def get_tile_communicator(comm, layout):
+def get_tile_communicator(comm: Comm, layout: tuple[int, int]) -> TileCommunicator:
     partitioner = TilePartitioner(layout)
     return TileCommunicator(comm, partitioner)
 
@@ -327,17 +341,18 @@ def get_tile_communicator(comm, layout):
 def test_parallel_savepoint(
     case: SavepointCase,
     backend: str,
-    print_failures,
-    failure_stride,
-    subtests,
-    caplog,
-    threshold_overrides,
-    grid,
-    multimodal_metric,
-    xy_indices=True,
-):
+    print_failures: str,
+    failure_stride: int,
+    subtests: Any,
+    caplog: Any,
+    threshold_overrides: dict | None,
+    grid: str,
+    multimodal_metric: bool,
+    xy_indices: bool = True,
+) -> None:
     ndsl_backend = Backend(backend)
     mpi_comm = MPIComm()
+    communicator: TileCommunicator | CubedSphereCommunicator
     if mpi_comm.Get_size() % 6 != 0:
         layout = (
             int(mpi_comm.Get_size() ** 0.5),
@@ -379,8 +394,8 @@ def test_parallel_savepoint(
     original_input_data = copy.deepcopy(input_data)
     # run python version of functionality
     output = case.testobj.compute_parallel(input_data, communicator)
-    out_vars = set(case.testobj.outputs.keys())
-    out_vars.update(list(case.testobj._base.out_vars.keys()))
+    out_vars = set(case.testobj.outputs.keys())  # type: ignore[attr-defined]
+    out_vars.update(list(case.testobj._base.out_vars.keys()))  # type: ignore[attr-defined]
     failing_names = []
     passing_names = []
     ref_data: dict[str, Any] = {}
@@ -399,7 +414,7 @@ def test_parallel_savepoint(
             failing_names.append(varname)
             output_data = gt_utils.asarray(output[varname])
             if multimodal_metric:
-                metric = MultiModalFloatMetric(
+                metric: BaseMetric = MultiModalFloatMetric(
                     input_values=(
                         original_input_data[varname]
                         if varname in original_input_data.keys()
@@ -483,15 +498,13 @@ def _report_results(
 
 
 def _save_datatree(
-    testobj,
+    testobj: Translate,
     # first list over rank, second list over savepoint
     inputs_list: list[dict[str, list[np.ndarray]]],
     output_list: list[dict[str, list[np.ndarray]]],
     ref_data: dict[str, list[np.ndarray]],
     names: list[str],
-):
-    import xarray as xr
-
+) -> xr.DataTree:
     datasets = {}
     indices = np.argsort(names)
     for index in indices:
@@ -546,17 +559,15 @@ def _save_datatree(
 
 
 def save_netcdf(
-    testobj,
+    testobj: Translate,
     # first list over rank, second list over savepoint
     inputs_list: list[dict[str, list[np.ndarray]]],
     output_list: list[dict[str, list[np.ndarray]]],
     ref_data: dict[str, list[np.ndarray]],
     failing_names: list[str],
     passing_names: list[str],
-    out_filename,
-):
-    import xarray as xr
-
+    out_filename: str,
+) -> None:
     datasets = {}
     datasets["Fail"] = _save_datatree(
         testobj=testobj,

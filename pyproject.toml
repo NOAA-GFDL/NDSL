@@ -146,10 +146,7 @@ module = [
   # Unclear what happens to this module in the future
   "ndsl.dsl.gt4py_utils",
   # We don't fix legacy (unless we really need it)
-  "ndsl.restart._legacy_restart",
-  # translate test system is "beyond repair"
-  "ndsl.stencils.testing.translate",
-  "ndsl.stencils.testing.parallel_translate"
+  "ndsl.restart._legacy_restart"
 ]
 
 [[tool.mypy.overrides]]
